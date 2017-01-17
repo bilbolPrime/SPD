@@ -138,7 +138,19 @@ public class WndSettings extends Window {
 		add( btnSound );
 		
 		if (inGame) {
-			
+
+            CheckBox btnDeg = new CheckBox( "No Degradation" ) {
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    PixelDungeon.itemDeg( checked() );
+                    //Sample.INSTANCE.play( Assets.SND_CLICK );
+                }
+            };
+            btnDeg.setRect( 0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT );
+            btnDeg.checked( PixelDungeon.itemDeg() );
+            add( btnDeg );
+
 			CheckBox btnBrightness = new CheckBox( TXT_BRIGHTNESS ) {
 				@Override
 				protected void onClick() {
@@ -146,7 +158,7 @@ public class WndSettings extends Window {
 					PixelDungeon.brightness( checked() );
 				}
 			};
-			btnBrightness.setRect( 0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT );
+			btnBrightness.setRect( 0, btnDeg.bottom() + GAP, WIDTH, BTN_HEIGHT );
 			btnBrightness.checked( PixelDungeon.brightness() );
 			add( btnBrightness );
 			

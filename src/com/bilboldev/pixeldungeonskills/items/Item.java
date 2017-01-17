@@ -25,6 +25,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
@@ -80,7 +81,9 @@ public class Item implements Bundlable {
 
 	public boolean stackable = false;
 	protected int quantity = 1;
-	
+
+    public boolean noDegrade = PixelDungeon.itemDeg();
+
 	private int level = 0;
 	private int durability = maxDurability();
 	public boolean levelKnown = false;
@@ -298,6 +301,10 @@ public class Item implements Bundlable {
 	}
 	
 	public void use() {
+
+        if(noDegrade == true) // No degrade
+            return;
+
 		if (level > 0 && !isBroken()) {
 			int threshold = (int)(maxDurability() * DURABILITY_WARNING_LEVEL);
 			if (durability-- >= threshold && threshold > durability && levelKnown) {

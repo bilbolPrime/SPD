@@ -307,6 +307,14 @@ public class PixelDungeon extends Game {
 	public static boolean soundFx() {
 		return Preferences.INSTANCE.getBoolean( Preferences.KEY_SOUND_FX, true );
 	}
+
+    public static void itemDeg( boolean value ) {
+        Preferences.INSTANCE.put( Preferences.KEY_DEGRADATION, value );
+    }
+
+    public static boolean itemDeg() {
+        return Preferences.INSTANCE.getBoolean( Preferences.KEY_DEGRADATION, true );
+    }
 	
 	public static void brightness( boolean value ) {
 		Preferences.INSTANCE.put( Preferences.KEY_BRIGHTNESS, value );

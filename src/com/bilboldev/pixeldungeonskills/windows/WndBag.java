@@ -88,7 +88,9 @@ public class WndBag extends WndTabbed {
 	
 	private static Mode lastMode;
 	private static Bag lastBag;
-	
+
+    public boolean noDegrade = PixelDungeon.itemDeg();
+
 	public WndBag( Bag bag, Listener listener, Mode mode, String title ) {
 		
 		super();
@@ -339,7 +341,10 @@ public class WndBag extends WndTabbed {
 		protected void layout() {
 			bg.x = x;
 			bg.y = y;
-			
+
+            if(noDegrade == true)
+                durability = null; // no durability
+
 			if (durability != null) {
 				for (int i=0; i < NBARS; i++) {
 					durability[i].x = x + 1 + i * 3;
