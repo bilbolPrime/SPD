@@ -85,7 +85,9 @@ public class GameScene extends PixelScene {
 	private static final String TXT_WATER	= "You hear the water splashing around you.";
 	private static final String TXT_GRASS	= "The smell of vegetation is thick in the air.";
 	private static final String TXT_SECRETS	= "The atmosphere hints that this floor hides many secrets.";
-	
+
+    private static final String TXT_WARN_DEGRADATION = "Your items will wear down with time. You can disable item degradation from settings.";
+
 	static GameScene scene;
 	
 	private SkinnedBlock water;
@@ -250,6 +252,8 @@ public class GameScene extends PixelScene {
 			switch (Dungeon.depth) {
 			case 1:
 				WndStory.showChapter( WndStory.ID_SEWERS );
+                if(PixelDungeon.itemDeg() == false)
+                    WndStory.showStory( TXT_WARN_DEGRADATION );
 				break;
 			case 6:
 				WndStory.showChapter( WndStory.ID_PRISON );
