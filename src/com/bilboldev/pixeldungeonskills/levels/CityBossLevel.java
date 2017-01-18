@@ -115,7 +115,16 @@ public class CityBossLevel extends Level {
 		
 		entrance = (TOP + HALL_HEIGHT + 2 + Random.Int( CHAMBER_HEIGHT - 1 )) * WIDTH + LEFT + (/*1 +*/ Random.Int( HALL_WIDTH-2 )); 
 		map[entrance] = Terrain.ENTRANCE;
-		
+
+        int safety = 0;
+        int arenaStorage;
+        do{
+            arenaStorage =  (TOP + HALL_HEIGHT + 2 + Random.Int( CHAMBER_HEIGHT - 1 )) * WIDTH + LEFT + (/*1 +*/ Random.Int( HALL_WIDTH-2 ));
+            safety++;
+        }while(arenaStorage == entrance && safety < 10);
+
+        map[arenaStorage] = Terrain.STORAGE;
+
 		return true;
 	}
 	

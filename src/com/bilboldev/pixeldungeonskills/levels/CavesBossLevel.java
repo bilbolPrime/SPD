@@ -137,7 +137,17 @@ public class CavesBossLevel extends Level {
 		entrance = Random.Int( ROOM_LEFT + 1, ROOM_RIGHT - 1 ) + 
 			Random.Int( ROOM_TOP + 1, ROOM_BOTTOM - 1 ) * WIDTH;
 		map[entrance] = Terrain.ENTRANCE;
-		
+
+        int arenaStorage = 0;
+        int safety = 0;
+        do{
+            arenaStorage =  Random.Int( ROOM_LEFT + 1, ROOM_RIGHT - 1 ) +
+                    Random.Int( ROOM_TOP + 1, ROOM_BOTTOM - 1 ) * WIDTH;
+            safety++;
+        }while(arenaStorage == entrance && safety < 10);
+
+        map[arenaStorage] = Terrain.STORAGE;
+
 		boolean[] patch = Patch.generate( 0.45f, 6 );
 		for (int i=0; i < LENGTH; i++) {
 			if (map[i] == Terrain.EMPTY && patch[i]) {

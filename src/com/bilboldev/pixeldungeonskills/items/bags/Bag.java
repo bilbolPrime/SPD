@@ -105,12 +105,18 @@ public class Bag extends Item implements Iterable<Item> {
 	}
 	
 	private static final String ITEMS	= "inventory";
+    private static final String ITEMS2	= "inventory2";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( ITEMS, items );
 	}
+
+    public void storeInBundle2( Bundle bundle ) {
+        super.storeInBundle( bundle );
+        bundle.put( ITEMS2, items );
+    }
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
@@ -119,6 +125,13 @@ public class Bag extends Item implements Iterable<Item> {
 			((Item)item).collect( this );
 		};
 	}
+
+    public void restoreFromBundle2( Bundle bundle ) {
+        super.restoreFromBundle( bundle );
+        for (Bundlable item : bundle.getCollection( ITEMS2 )) {
+            ((Item)item).collect( this );
+        };
+    }
 	
 	public boolean contains( Item item ) {
 		for (Item i : items) {

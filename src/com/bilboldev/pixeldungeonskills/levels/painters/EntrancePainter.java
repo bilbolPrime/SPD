@@ -31,9 +31,16 @@ public class EntrancePainter extends Painter {
 		for (Room.Door door : room.connected.values()) {
 			door.set( Room.Door.Type.REGULAR );
 		}
-		
-		level.entrance = room.random( 1 );
+
+        int safety = 0;
+        level.entrance = room.random( 1 );
+        do {
+            level.storage = room.random(2);
+            safety ++;
+        }
+        while(level.storage == level.entrance && safety < 10); // Still bugged, need a guaranteed way without risking infinte loops
 		set( level, level.entrance, Terrain.ENTRANCE );
+        set(level, level.storage, Terrain.STORAGE);
 	}
 	
 }

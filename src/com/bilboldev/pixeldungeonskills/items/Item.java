@@ -72,7 +72,9 @@ public class Item implements Bundlable {
 	
 	public static final String AC_DROP		= "DROP";
 	public static final String AC_THROW		= "THROW";
-	
+    public static final String AC_STORE		= "STORE";
+    public static final String AC_STORE_TAKE		= "STORETAKE";
+
 	public String defaultAction;
 	
 	protected String name = "smth";
@@ -84,7 +86,7 @@ public class Item implements Bundlable {
 
     public boolean noDegrade = PixelDungeon.itemDeg();
 
-	private int level = 0;
+	public int level = 0;
 	private int durability = maxDurability();
 	public boolean levelKnown = false;
 	
@@ -104,9 +106,12 @@ public class Item implements Bundlable {
 		ArrayList<String> actions = new ArrayList<String>();
 		actions.add( AC_DROP );
 		actions.add( AC_THROW );
+        if(hero.pos == Dungeon.level.storage && this != hero.belongings.weapon && this != hero.belongings.armor && this != hero.belongings.ring1 && this != hero.belongings.ring2)
+            actions.add( AC_STORE );
 		return actions;
 	}
-	
+
+
 	public boolean doPickUp( Hero hero ) {
 		if (collect( hero.belongings.backpack )) {
 			
@@ -143,8 +148,31 @@ public class Item implements Bundlable {
 			doThrow( hero );
 			
 		}
+        else if (action.equals( AC_STORE )) {
+
+            doAddStorage( hero );
+
+        }
+        else if (action.equals( AC_STORE_TAKE )) {
+
+            doTakeStorage( hero );
+
+        }
 	}
-	
+
+    public void doTakeStorage( Hero hero ) {
+        hero.spendAndNext( TIME_TO_DROP );
+        Dungeon.level.drop( detachAll( hero.storage.backpack ), hero.pos ).sprite.drop( hero.pos );
+    }
+
+    public void doAddStorage( Hero hero ) {
+        if(collect( hero.storage.backpack))
+        {
+            hero.spendAndNext( TIME_TO_DROP );
+            detachAll( hero.belongings.backpack );
+        }
+    }
+
 	public void execute( Hero hero ) {
 		execute( hero, defaultAction );
 	}

@@ -118,6 +118,7 @@ public abstract class Level implements Bundlable {
 	public Feeling feeling = Feeling.NONE;
 	
 	public int entrance;
+    public int storage;
 	public int exit;
 	
 	public HashSet<Mob> mobs;
@@ -138,6 +139,7 @@ public abstract class Level implements Bundlable {
 	private static final String MAPPED		= "mapped";
 	private static final String ENTRANCE	= "entrance";
 	private static final String EXIT		= "exit";
+    private static final String STORAGE	= "storage";
 	private static final String HEAPS		= "heaps";
 	private static final String PLANTS		= "plants";
 	private static final String MOBS		= "mobs";
@@ -231,6 +233,7 @@ public abstract class Level implements Bundlable {
 		mapped	= bundle.getBooleanArray( MAPPED );
 		
 		entrance	= bundle.getInt( ENTRANCE );
+        storage = bundle.getInt( STORAGE );
 		exit		= bundle.getInt( EXIT );
 		
 		weakFloorCreated = false;
@@ -283,6 +286,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( MAPPED, mapped );
 		bundle.put( ENTRANCE, entrance );
 		bundle.put( EXIT, exit );
+        bundle.put( STORAGE, storage );
 		bundle.put( HEAPS, heaps.values() );
 		bundle.put( PLANTS, plants.values() );
 		bundle.put( MOBS, mobs );
@@ -320,7 +324,8 @@ public abstract class Level implements Bundlable {
 			this.mapped = mapped;
 			
 			entrance = adjustPos( entrance );
-			exit = adjustPos( exit ); 
+			exit = adjustPos( exit );
+            storage =  adjustPos( storage );
 		} else {
 			resizingNeeded = false;
 		}
@@ -885,7 +890,10 @@ public abstract class Level implements Bundlable {
 	}
 	
 	public String tileName( int tile ) {
-		
+
+        if(tile == Terrain.STORAGE)
+            return "Storage";
+
 		if (tile >= Terrain.WATER_TILES) {
 			return tileName( Terrain.WATER );
 		}
@@ -1015,6 +1023,8 @@ public abstract class Level implements Bundlable {
 			return "Drop some seeds here to cook a potion.";
 		case Terrain.EMPTY_WELL:
 			return "The well has run dry.";
+            case Terrain.STORAGE:
+                return "The storage can hold up to five items. These items are not lost if you are resurrected by an Ankh. To use, stand in same tile and open your inventory. Click on any item and then click store.";
 		default:
 			if (tile >= Terrain.WATER_TILES) {
 				return tileDesc( Terrain.WATER );

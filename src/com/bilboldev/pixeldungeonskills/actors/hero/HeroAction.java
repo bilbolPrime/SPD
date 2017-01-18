@@ -85,4 +85,10 @@ public class HeroAction {
 			this.target = target;
 		}
 	}
+
+    public static class Storage extends HeroAction {
+        public Storage( int storage ) {
+            this.dst = storage;
+        }
+    }
 }

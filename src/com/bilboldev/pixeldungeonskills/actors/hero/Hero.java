@@ -105,6 +105,7 @@ import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
+import com.bilboldev.pixeldungeonskills.windows.WndStorage;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
@@ -155,6 +156,7 @@ public class Hero extends Char {
 	
 	public MissileWeapon rangedWeapon = null;
 	public Belongings belongings;
+    public Storage storage;
 	
 	public int STR;
 	public boolean weakened = false;
@@ -175,6 +177,7 @@ public class Hero extends Char {
 		awareness = 0.1f;
 		
 		belongings = new Belongings( this );
+        storage = new Storage( this );
 		
 		visibleEnemies = new ArrayList<Mob>();
 	}
@@ -205,6 +208,7 @@ public class Hero extends Char {
 		bundle.put( EXPERIENCE, exp );
 		
 		belongings.storeInBundle( bundle );
+        storage.storeInBundle(bundle);
 	}
 	
 	@Override
@@ -224,6 +228,7 @@ public class Hero extends Char {
 		exp = bundle.getInt( EXPERIENCE );
 		
 		belongings.restoreFromBundle( bundle );
+        storage.restoreFromBundle(bundle);
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
@@ -453,6 +458,12 @@ public class Hero extends Char {
 				return actCook( (HeroAction.Cook)curAction );
 				
 			}
+            else
+            if (curAction instanceof HeroAction.Storage) {
+
+                return actStorage((HeroAction.Storage) curAction);
+
+            }
 		}
 		
 		return false;
@@ -727,7 +738,25 @@ public class Hero extends Char {
 			return false;
 		}
 	}
-	
+
+    private boolean actStorage( HeroAction.Storage action ) {
+        int stairs = action.dst;
+        if (pos == stairs && pos == Dungeon.level.storage) {
+
+            GameScene.show( new WndStorage(Dungeon.hero.storage, null, WndStorage.Mode.ALL, null ) );
+            ready();
+            return false;
+
+        } else if (getCloser( stairs )) {
+
+            return true;
+
+        } else {
+            ready();
+            return false;
+        }
+    }
+
 	private boolean actAscend( HeroAction.Ascend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.entrance) {
@@ -1006,7 +1035,11 @@ public class Hero extends Char {
 			
 			curAction = new HeroAction.Ascend( cell );
 			
-		} else  {
+		} else if (cell == Dungeon.level.storage) {
+
+            curAction = new HeroAction.Storage( cell );
+
+        }else  {
 			
 			curAction = new HeroAction.Move( cell );
 			lastAction = null;
