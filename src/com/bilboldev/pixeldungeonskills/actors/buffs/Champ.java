@@ -65,7 +65,7 @@ public class Champ extends Buff {
             {
                 case 5: type = CHAMP_VAMPERIC;
                 case CHAMP_VAMPERIC: //red
-                    this.target.name = "Vamperic " + this.target.name;
+                    this.target.name = "Vampiric " + this.target.name;
                     this.target.HT *= 1.5;
                     this.target.HP = this.target.HT;
                     ((Mob)this.target).defenseSkill *= 1.1;
@@ -117,7 +117,7 @@ public class Champ extends Buff {
             switch(type)
             {
                 case CHAMP_VAMPERIC: //red
-                    this.target.name = "Vamp " + this.target.name;
+                    this.target.name = "Vampiric " + this.target.name;
                     ((Mob)this.target).defenseSkill *= 1.1;
                     if(target.sprite != null)
                     {
