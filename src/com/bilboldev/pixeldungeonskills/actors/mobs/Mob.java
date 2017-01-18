@@ -27,11 +27,15 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
+import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.Wound;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -51,7 +55,8 @@ public abstract class Mob extends Char {
 	protected static final String TXT_NOTICE1	= "?!";
 	protected static final String TXT_RAGE		= "#$%^";
 	protected static final String TXT_EXP		= "%+dEXP";
-	
+    protected static final String TXT_EXP_CHAMP		= "%+dEXP (Champion killed!)";
+
 	public AiState SLEEPEING	= new Sleeping();
 	public AiState HUNTING		= new Hunting();
 	public AiState WANDERING	= new Wandering();
@@ -63,7 +68,7 @@ public abstract class Mob extends Char {
 	
 	protected int target = -1;
 	
-	protected int defenseSkill = 0;
+	public int defenseSkill = 0;
 	
 	protected int EXP = 1;
 	protected int maxLvl = 30;
@@ -343,9 +348,17 @@ public abstract class Mob extends Char {
 			}
 
 			int exp = exp();
+
 			if (exp > 0) {
-				Dungeon.hero.sprite.showStatus( CharSprite.POSITIVE, TXT_EXP, exp );
-				Dungeon.hero.earnExp( exp );
+                if(this.champ > 0)
+                {
+                    Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, TXT_EXP_CHAMP, (int)Math.ceil(1.5 * exp));
+                    Dungeon.hero.earnExp((int)Math.ceil(1.5 * exp));
+                }
+                else {
+                    Dungeon.hero.sprite.showStatus( CharSprite.POSITIVE, TXT_EXP, exp );
+                    Dungeon.hero.earnExp( exp );
+                }
 			}
 		}
 	}
@@ -359,9 +372,15 @@ public abstract class Mob extends Char {
 		
 		super.die( cause );
 
+        if(champ > 0)
+            dropLootGuaranteed();
+
 		if (Dungeon.hero.lvl <= maxLvl + 2) {
 			dropLoot();
 		}
+
+        if(sprite != null)
+            sprite.NotAChamp();
 
 		if (Dungeon.hero.isAlive() && !Dungeon.visible[pos]) {	
 			GLog.i( TXT_DIED );
@@ -372,6 +391,14 @@ public abstract class Mob extends Char {
 	protected float lootChance = 0;
 	
 	@SuppressWarnings("unchecked")
+
+    protected void dropLootGuaranteed() {
+
+        Item item = Generator.random(  );
+        Dungeon.level.drop( item, pos ).sprite.drop();
+
+    }
+
 	protected void dropLoot() {
 		if (loot != null && Random.Float() < lootChance) {
 			Item item = null;
@@ -395,7 +422,25 @@ public abstract class Mob extends Char {
 	public boolean reset() {
 		return false;
 	}
-	
+
+    public void champEffect(Char enemy, int damage )
+    {
+        if(champ != -1) {
+            if (champ == Champ.CHAMP_VAMPERIC) {
+                int reg = Math.min(damage, HT - HP);
+
+                if (reg > 0) {
+                    HP += reg;
+                    sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+                }
+            } else if (champ == Champ.CHAMP_CURSED) {
+                Buff.affect(enemy, Weakness.class, 5);
+            } else if (champ == Champ.CHAMP_FOUL) {
+                Buff.affect(enemy, Poison.class).set(5);
+            }
+        }
+    }
+
 	public void beckon( int cell ) {
 		
 		notice();

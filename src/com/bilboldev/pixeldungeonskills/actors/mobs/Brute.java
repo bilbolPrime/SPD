@@ -85,8 +85,14 @@ public class Brute extends Mob {
 			}
 		}
 	}
-	
-	@Override
+
+    @Override
+    public int attackProc( Char enemy, int damage ) {
+        champEffect(enemy, damage);
+        return damage;
+    }
+
+    @Override
 	public String description() {
 		return
 			"Brutes are the largest, strongest and toughest of all gnolls. When severely wounded, " +

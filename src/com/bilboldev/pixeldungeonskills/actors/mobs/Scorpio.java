@@ -75,7 +75,9 @@ public class Scorpio extends Mob {
 		if (Random.Int( 2 ) == 0) {
 			Buff.prolong( enemy, Cripple.class, Cripple.DURATION );
 		}
-		
+
+        champEffect(enemy, damage);
+
 		return damage;
 	}
 	

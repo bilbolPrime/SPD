@@ -103,7 +103,9 @@ public class Thief extends Mob {
 		if (item == null && enemy instanceof Hero && steal( (Hero)enemy )) {
 			state = FLEEING;
 		}
-		
+
+        champEffect(enemy, damage);
+
 		return damage;
 	}
 	
@@ -131,7 +133,8 @@ public class Thief extends Mob {
 			return false;
 		}
 	}
-	
+
+
 	@Override
 	public String description() {
 		String desc =

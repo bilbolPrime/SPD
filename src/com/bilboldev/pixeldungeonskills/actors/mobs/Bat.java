@@ -74,6 +74,8 @@ public class Bat extends Mob {
 			HP += reg;
 			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 		}
+
+        champEffect(enemy, damage);
 		
 		return damage;
 	}

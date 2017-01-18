@@ -82,7 +82,9 @@ public class Spinner extends Mob {
 			Buff.affect( enemy, Poison.class ).set( Random.Int( 7, 9 ) * Poison.durationFactor( enemy ) );
 			state = FLEEING;
 		}
-		
+
+        champEffect(enemy, damage);
+
 		return damage;
 	}
 	
@@ -93,7 +95,8 @@ public class Spinner extends Mob {
 		}
 		super.move( step );
 	}
-	
+
+
 	@Override
 	public String description() {		
 		return 

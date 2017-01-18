@@ -25,6 +25,8 @@ import java.util.List;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Generator;
@@ -533,6 +535,8 @@ public abstract class RegularLevel extends Level {
 				mob.pos = randomRespawnCell();
 			} while (mob.pos == -1);
 			mobs.add( mob );
+            if(Random.Int(10) < 2)
+                Buff.affect(mob, Champ.class);
 			Actor.occupyCell( mob );
 		}
 	}

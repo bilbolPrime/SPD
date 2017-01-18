@@ -135,7 +135,13 @@ public class Swarm extends Mob {
 			Dungeon.level.drop( new PotionOfHealing(), pos ).sprite.drop();
 		}
 	}
-	
+
+    @Override
+    public int attackProc( Char enemy, int damage ) {
+        champEffect(enemy, damage);
+        return damage;
+    }
+
 	@Override
 	public String description() {
 		return

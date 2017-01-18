@@ -72,7 +72,13 @@ public class Golem extends Mob {
 		
 		super.die( cause );
 	}
-	
+
+    @Override
+    public int attackProc( Char enemy, int damage ) {
+        champEffect(enemy, damage);
+        return damage;
+    }
+
 	@Override
 	public String description() {
 		return

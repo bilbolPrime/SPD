@@ -69,7 +69,9 @@ public class Elemental extends Mob {
 		if (Random.Int( 2 ) == 0) {
 			Buff.affect( enemy, Burning.class ).reignite( enemy );
 		}
-		
+
+        champEffect(enemy, damage);
+
 		return damage;
 	}
 	

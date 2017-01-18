@@ -124,7 +124,13 @@ public class Warlock extends Mob implements Callback {
 	public void call() {
 		next();
 	}
-	
+
+    @Override
+    public int attackProc( Char enemy, int damage ) {
+        champEffect(enemy, damage);
+        return damage;
+    }
+
 	@Override
 	public String description() {
 		return

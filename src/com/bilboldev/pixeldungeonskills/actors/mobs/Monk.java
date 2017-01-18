@@ -96,6 +96,9 @@ public class Monk extends Mob {
 				GLog.w( TXT_DISARM, name, weapon.name() );
 			}
 		}
+
+        champEffect(enemy, damage);
+
 		
 		return damage;
 	}

@@ -27,6 +27,10 @@ import com.bilboldev.noosa.tweeners.Tweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.effects.ChampBlackHalo;
+import com.bilboldev.pixeldungeonskills.effects.ChampRedHalo;
+import com.bilboldev.pixeldungeonskills.effects.ChampWhiteHalo;
+import com.bilboldev.pixeldungeonskills.effects.ChampYellowHalo;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.FloatingText;
 import com.bilboldev.pixeldungeonskills.effects.IceBlock;
@@ -54,7 +58,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	private static final float FLASH_INTERVAL	= 0.05f;	
 	
 	public enum State {
-		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED
+		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHAMPRED, CHAMPBLACK, CHAMPWHITE, CHAMPYELLOW
 	}
 	
 	protected Animation idle;
@@ -73,7 +77,12 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	
 	protected IceBlock iceBlock;
 	protected TorchHalo halo;
-	
+
+    public ChampRedHalo champRedHalo;
+    public ChampYellowHalo champYellowHalo;
+    public ChampBlackHalo champBlackHalo;
+    public ChampWhiteHalo champWhiteHalo;
+
 	protected EmoIcon emo;
 	
 	private Tweener jumpTweener;
@@ -111,7 +120,19 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 			((cell / Level.WIDTH) + 1.0f) * csize - height
 		);
 	}
-	
+
+    public void NotAChamp()
+    {
+        if(champRedHalo != null)
+            champRedHalo.putOut();
+        if(champYellowHalo != null)
+            champYellowHalo.putOut();
+        if(champBlackHalo != null)
+            champBlackHalo.putOut();
+        if(champWhiteHalo != null)
+            champWhiteHalo.putOut();
+    }
+
 	public void place( int cell ) {
 		point( worldToCamera( cell ) );
 	}
@@ -275,6 +296,18 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		case ILLUMINATED:
 			GameScene.effect( halo = new TorchHalo( this ) );
 			break;
+        case CHAMPRED:
+            GameScene.effect( champRedHalo = new ChampRedHalo( this ) );
+            break;
+        case CHAMPWHITE:
+            GameScene.effect( champWhiteHalo = new ChampWhiteHalo( this ) );
+            break;
+        case CHAMPBLACK:
+            GameScene.effect( champBlackHalo = new ChampBlackHalo( this ) );
+            break;
+        case CHAMPYELLOW:
+            GameScene.effect( champYellowHalo = new ChampYellowHalo( this ) );
+            break;
 		}
 	}
 	

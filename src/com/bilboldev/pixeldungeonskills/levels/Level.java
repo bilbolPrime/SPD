@@ -37,6 +37,7 @@ import com.bilboldev.pixeldungeonskills.actors.blobs.WellWater;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Awareness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Blindness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.buffs.MindVision;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Shadows;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -377,6 +378,8 @@ public abstract class Level implements Bundlable {
 					mob.pos = randomRespawnCell();
 					if (Dungeon.hero.isAlive() && mob.pos != -1) {
 						GameScene.add( mob );
+                        if(Random.Int(10) < 2) // fixed 20%
+                            Buff.affect(mob, Champ.class);
 						if (Statistics.amuletObtained) {
 							mob.beckon( Dungeon.hero.pos );
 						}
@@ -387,6 +390,7 @@ public abstract class Level implements Bundlable {
 			}
 		};
 	}
+
 	
 	public int randomRespawnCell() {
 		int cell;

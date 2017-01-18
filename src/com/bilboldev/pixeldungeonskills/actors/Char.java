@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Bleeding;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
@@ -79,7 +80,8 @@ public abstract class Char extends Actor {
 	
 	public int HT;
 	public int HP;
-	
+    public int champ = -1;
+
 	protected float baseSpeed	= 1;
 	
 	public boolean paralysed	= false;
@@ -215,7 +217,7 @@ public abstract class Char extends Actor {
 		float defRoll = Random.Float( defender.defenseSkill( attacker ) );
 		return (magic ? acuRoll * 2 : acuRoll) >= defRoll;
 	}
-	
+
 	public int attackSkill( Char target ) {
 		return 0;
 	}
@@ -407,7 +409,18 @@ public abstract class Char extends Actor {
 				sprite.add( CharSprite.State.LEVITATING );
 			} else if (buff instanceof Frost) {
 				sprite.add( CharSprite.State.FROZEN );
-			} else if (buff instanceof Invisibility) {
+			} else if (buff instanceof Champ) {
+                switch(((Champ) buff).type) {
+                    case Champ.CHAMP_VAMPERIC: sprite.add(CharSprite.State.CHAMPRED);
+                        break;
+                    case Champ.CHAMP_CHIEF: sprite.add(CharSprite.State.CHAMPWHITE);
+                        break;
+                    case Champ.CHAMP_CURSED: sprite.add(CharSprite.State.CHAMPBLACK);
+                        break;
+                    case Champ.CHAMP_FOUL: sprite.add(CharSprite.State.CHAMPYELLOW);
+                        break;
+                }
+            } else if (buff instanceof Invisibility) {
 				if (!(buff instanceof Shadows)) {
 					sprite.showStatus( CharSprite.POSITIVE, "invisible" );
 				}

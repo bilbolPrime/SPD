@@ -44,7 +44,8 @@ public class Albino extends Rat {
 		if (Random.Int( 2 ) == 0) {
 			Buff.affect( enemy, Bleeding.class ).set( damage );
 		}
-		
+
+        champEffect(enemy, damage);
 		return damage;
 	}
 }
