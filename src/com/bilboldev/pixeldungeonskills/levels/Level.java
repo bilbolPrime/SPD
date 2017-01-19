@@ -378,7 +378,7 @@ public abstract class Level implements Bundlable {
 					mob.pos = randomRespawnCell();
 					if (Dungeon.hero.isAlive() && mob.pos != -1) {
 						GameScene.add( mob );
-                        if(Random.Int(10) < 2) // fixed 20%
+                        if(Random.Int(10) < Dungeon.currentDifficulty.championChance())
                             Buff.affect(mob, Champ.class);
 						if (Statistics.amuletObtained) {
 							mob.beckon( Dungeon.hero.pos );

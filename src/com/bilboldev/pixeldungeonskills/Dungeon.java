@@ -84,6 +84,10 @@ public class Dungeon {
 	
 	public static int depth;
 	public static int gold;
+
+    public static int difficulty;
+    public static Difficulties currentDifficulty;
+
 	// Reason of death
 	public static String resultDescription;
 	
@@ -135,6 +139,7 @@ public class Dungeon {
 		QuickSlot.secondaryValue = null;
 		
 		hero = new Hero();
+        hero.difficulty = difficulty;
 		hero.live();
 		
 		Badges.reset();

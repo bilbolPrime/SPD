@@ -52,6 +52,10 @@ public class Thief extends Mob {
 		lootChance = 0.01f;
 		
 		FLEEING = new Fleeing();
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private static final String ITEM = "item";

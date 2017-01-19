@@ -48,6 +48,10 @@ public class Scorpio extends Mob {
 		
 		loot = new PotionOfHealing();
 		lootChance = 0.125f;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

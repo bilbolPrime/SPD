@@ -47,6 +47,10 @@ public class Swarm extends Mob {
 		maxLvl = 10;
 		
 		flying = true;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private static final float SPLIT_DELAY	= 1f;

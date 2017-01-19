@@ -31,6 +31,7 @@ import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GamesInProgress;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
@@ -134,13 +135,13 @@ public class StartScene extends PixelScene {
 						@Override
 						protected void onSelect( int index ) {
 							if (index == 0) {
-								startNewGame();
+                                chooseDifficulty();
 							}
 						}
 					} );
 					
 				} else {
-					startNewGame();
+                    chooseDifficulty();
 				}
 			}
 		};
@@ -238,7 +239,39 @@ public class StartScene extends PixelScene {
 			}
 		};
 	}
-	
+
+
+    private void chooseDifficulty()
+    {
+        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HARD.title(), Difficulties.HELL.title(), Difficulties.SUICIDE.title() ) {
+            @Override
+            protected void onSelect( int index ) {
+                chooseDifficultyFinal(index);
+            }
+        } );
+
+
+    }
+
+    private void chooseDifficultyFinal(int index)
+    {
+        String title = "";
+        String Description = Difficulties.description(Difficulties.getNormalizedDifficulty(index));
+        final int diff = index;
+
+
+        StartScene.this.add( new WndOptions( title, Description, "Yes", "No" ) {
+
+            @Override
+            protected void onSelect( int index ) {
+                if(index == 0)
+                    startNewGame(diff);
+            }
+        } );
+
+
+    }
+
 	@Override
 	public void destroy() {
 		
@@ -297,9 +330,12 @@ public class StartScene extends PixelScene {
 		}
 	}
 	
-	private void startNewGame() {
+	private void startNewGame(int diff) {
 
 		Dungeon.hero = null;
+        diff = Difficulties.getNormalizedDifficulty(diff);
+        Dungeon.difficulty = diff;
+        Dungeon.currentDifficulty = Difficulties.values()[diff];
 		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
 		
 		if (PixelDungeon.intro()) {

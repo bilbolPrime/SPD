@@ -53,6 +53,10 @@ public class Warlock extends Mob implements Callback {
 		
 		loot = Generator.Category.POTION;
 		lootChance = 0.83f;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

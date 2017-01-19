@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import java.util.HashSet;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
@@ -43,6 +44,10 @@ public class Bat extends Mob {
 		
 		loot = new PotionOfHealing();
 		lootChance = 0.125f;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

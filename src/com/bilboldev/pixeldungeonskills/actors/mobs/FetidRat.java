@@ -42,6 +42,10 @@ public class FetidRat extends Mob {
 		maxLvl = 5;	
 		
 		state = WANDERING;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

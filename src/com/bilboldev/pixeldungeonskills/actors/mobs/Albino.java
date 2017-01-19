@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Bleeding;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -31,6 +32,10 @@ public class Albino extends Rat {
 		spriteClass = AlbinoSprite.class;
 		
 		HP = HT = 15;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

@@ -33,6 +33,10 @@ public class Bandit extends Thief {
 	{
 		name = "crazy bandit";
 		spriteClass = BanditSprite.class;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

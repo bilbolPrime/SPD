@@ -65,6 +65,10 @@ public class Yog extends Mob {
 		EXP = 50;
 		
 		state = PASSIVE;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private static final String TXT_DESC =

@@ -46,6 +46,10 @@ public class Skeleton extends Mob {
 		
 		EXP = 5;
 		maxLvl = 10;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

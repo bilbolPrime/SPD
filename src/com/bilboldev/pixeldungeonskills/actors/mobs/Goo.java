@@ -55,6 +55,10 @@ public class Goo extends Mob {
 		
 		loot = new LloydsBeacon();
 		lootChance = 0.333f;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private boolean pumpedUp	= false;

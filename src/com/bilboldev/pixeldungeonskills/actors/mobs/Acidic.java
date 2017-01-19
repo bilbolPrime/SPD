@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.sprites.AcidicSprite;
 import com.bilboldev.utils.Random;
@@ -27,6 +28,10 @@ public class Acidic extends Scorpio {
 	{
 		name = "acidic scorpio";
 		spriteClass = AcidicSprite.class;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

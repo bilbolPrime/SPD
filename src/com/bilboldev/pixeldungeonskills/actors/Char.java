@@ -146,6 +146,10 @@ public abstract class Char extends Actor {
 				Random.IntRange( 0, enemy.dr() );
 			
 			int dmg = damageRoll();
+
+            if(enemy == Dungeon.hero)
+                dmg *= Dungeon.currentDifficulty.damageModifier();
+
 			int effectiveDamage = Math.max( dmg - dr, 0 );
 			
 			effectiveDamage = attackProc( enemy, effectiveDamage );

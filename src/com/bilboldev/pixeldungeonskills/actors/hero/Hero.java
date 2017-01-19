@@ -27,6 +27,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GamesInProgress;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
@@ -165,7 +166,9 @@ public class Hero extends Char {
 	
 	public int lvl = 1;
 	public int exp = 0;
-	
+
+    public int difficulty = 0;
+
 	private ArrayList<Mob> visibleEnemies; 
 	
 	public Hero() {
@@ -191,6 +194,8 @@ public class Hero extends Char {
 	private static final String STRENGTH	= "STR";
 	private static final String LEVEL		= "lvl";
 	private static final String EXPERIENCE	= "exp";
+
+    private static final String DIFFICULTY	= "editdifficulty";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -206,7 +211,9 @@ public class Hero extends Char {
 		
 		bundle.put( LEVEL, lvl );
 		bundle.put( EXPERIENCE, exp );
-		
+
+        bundle.put( DIFFICULTY, difficulty );
+
 		belongings.storeInBundle( bundle );
         storage.storeInBundle(bundle);
 	}
@@ -226,7 +233,11 @@ public class Hero extends Char {
 		
 		lvl = bundle.getInt( LEVEL );
 		exp = bundle.getInt( EXPERIENCE );
-		
+
+        difficulty = bundle.getInt( DIFFICULTY );
+        Dungeon.difficulty = difficulty;
+        Dungeon.currentDifficulty = Difficulties.values()[difficulty];
+
 		belongings.restoreFromBundle( bundle );
         storage.restoreFromBundle(bundle);
 	}
@@ -1058,8 +1069,8 @@ public class Hero extends Char {
 			this.exp -= maxExp();
 			lvl++;
 			
-			HT += 5;
-			HP += 5;			
+			HT += 5 - Dungeon.currentDifficulty.difficultyHPLevelPenalty();
+			HP += 5 - Dungeon.currentDifficulty.difficultyHPLevelPenalty();
 			attackSkill++;
 			defenseSkill++;
 			

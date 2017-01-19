@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
@@ -114,6 +115,10 @@ public enum HeroClass {
 		(hero.belongings.armor = new ClothArmor()).identify();
 		new Food().identify().collect();
 		new Keyring().collect();
+
+        Dungeon.hero.HP -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
+        Dungeon.hero.HT -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
+        Dungeon.currentDifficulty.difficultyStartItemBonus();
 	}
 	
 	public Badges.Badge masteryBadge() {

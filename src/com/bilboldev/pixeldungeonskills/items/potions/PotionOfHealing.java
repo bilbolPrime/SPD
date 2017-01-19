@@ -36,8 +36,8 @@ public class PotionOfHealing extends Potion {
 	@Override
 	protected void apply( Hero hero ) {
 		setKnown();
-		heal( Dungeon.hero );
-		GLog.p( "Your wounds heal completely." );
+		heal( Dungeon.hero, Dungeon.currentDifficulty.healingPotionLimit() );
+		GLog.p( Dungeon.currentDifficulty.healingPotionMessage() );
 	}
 	
 	public static void heal( Hero hero ) {
@@ -50,6 +50,21 @@ public class PotionOfHealing extends Potion {
 		
 		hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
 	}
+
+    public static void heal( Hero hero, int limit ) {
+
+        hero.HP += hero.HT * limit / 100;
+
+        if(hero.HP > hero.HT)
+            hero.HP = hero.HT;
+
+        Buff.detach( hero, Poison.class );
+        Buff.detach( hero, Cripple.class );
+        Buff.detach( hero, Weakness.class );
+        Buff.detach( hero, Bleeding.class );
+
+        hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
+    }
 	
 	@Override
 	public String desc() {

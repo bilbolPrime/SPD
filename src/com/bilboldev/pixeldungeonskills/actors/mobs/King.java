@@ -60,6 +60,10 @@ public class King extends Mob {
 		defenseSkill = 25;
 		
 		Undead.count = 0;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private boolean nextPedestal = true;

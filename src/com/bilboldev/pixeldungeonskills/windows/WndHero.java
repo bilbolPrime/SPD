@@ -46,7 +46,10 @@ public class WndHero extends WndTabbed {
 	private static final String TXT_HEALTH	= "Health";
 	private static final String TXT_GOLD	= "Gold Collected";
 	private static final String TXT_DEPTH	= "Maximum Depth";
-	
+
+
+    private static final String TXT_Difficulty		= "Difficulty";
+
 	private static final int WIDTH		= 100;
 	private static final int TAB_WIDTH	= 40;
 	
@@ -139,7 +142,9 @@ public class WndHero extends WndTabbed {
 			statSlot( TXT_EXP, hero.exp + "/" + hero.maxExp() );
 
 			pos += GAP;
-			
+
+            statSlot( TXT_Difficulty, Dungeon.currentDifficulty.title() );
+
 			statSlot( TXT_GOLD, Statistics.goldCollected );
 			statSlot( TXT_DEPTH, Statistics.deepestFloor );
 			

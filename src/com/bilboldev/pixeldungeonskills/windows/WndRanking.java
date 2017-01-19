@@ -28,6 +28,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
@@ -143,7 +144,7 @@ public class WndRanking extends WndTabbed {
 		
 		private static final int GAP	= 4;
 		
-		private static final String TXT_TITLE	= "Level %d %s";
+		private static final String TXT_TITLE	= "Level %d %s (SPD)";
 		
 		private static final String TXT_CHALLENGES	= "Challenges";
 		
@@ -159,7 +160,9 @@ public class WndRanking extends WndTabbed {
 		private static final String TXT_FOOD	= "Food Eaten";
 		private static final String TXT_ALCHEMY	= "Potions Cooked";
 		private static final String TXT_ANKHS	= "Ankhs Used";
-		
+
+        private static final String TXT_DIFF	= "Difficulty";
+
 		public StatsTab() {
 			super();
 			
@@ -206,6 +209,8 @@ public class WndRanking extends WndTabbed {
 			pos = statSlot( this, TXT_FOOD, Integer.toString( Statistics.foodEaten ), pos );
 			pos = statSlot( this, TXT_ALCHEMY, Integer.toString( Statistics.potionsCooked ), pos );
 			pos = statSlot( this, TXT_ANKHS, Integer.toString( Statistics.ankhsUsed ), pos );
+
+            pos = statSlot( this, TXT_DIFF, Difficulties.title(Dungeon.hero.difficulty), pos );
 		}
 		
 		private float statSlot( Group parent, String label, String value, float pos ) {

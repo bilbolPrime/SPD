@@ -55,6 +55,10 @@ public class Tengu extends Mob {
 		HP = HT = 120;
 		EXP = 20;
 		defenseSkill = 20;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	private int timeToJump = JUMP_DELAY;

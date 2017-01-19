@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import java.util.HashSet;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
@@ -39,6 +40,10 @@ public class Golem extends Mob {
 		
 		EXP = 12;
 		maxLvl = 22;
+
+        name = Dungeon.currentDifficulty.mobPrefix() + name;
+        HT *= Dungeon.currentDifficulty.mobHPModifier();
+        HP = HT;
 	}
 	
 	@Override

@@ -535,7 +535,7 @@ public abstract class RegularLevel extends Level {
 				mob.pos = randomRespawnCell();
 			} while (mob.pos == -1);
 			mobs.add( mob );
-            if(Random.Int(10) < 2)
+            if(Random.Int(10) < Dungeon.currentDifficulty.championChance())
                 Buff.affect(mob, Champ.class);
 			Actor.occupyCell( mob );
 		}
