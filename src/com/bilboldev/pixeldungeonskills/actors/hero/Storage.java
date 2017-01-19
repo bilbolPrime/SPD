@@ -42,11 +42,7 @@ public class Storage implements Iterable<Item> {
 
 	public Bag backpack;
 
-	public KindOfWeapon weapon = null;
-	public Armor armor = null;
-	public Ring ring1 = null;
-	public Ring ring2 = null;
-	//public Bow bow = null;
+
 
 	public Storage(Hero owner) {
 		this.owner = owner;
@@ -71,209 +67,31 @@ public class Storage implements Iterable<Item> {
 		
 		backpack.clear();
 		backpack.restoreFromBundle2( bundle );
-		
 
 
-	}
-	
-	@SuppressWarnings("unchecked")
-	public<T extends Item> T getItem( Class<T> itemClass ) {
-
-		for (Item item : this) {
-			if (itemClass.isInstance( item )) {
-				return (T)item;
-			}
-		}
-		
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public <T extends Key> T getKey( Class<T> kind, int depth ) {
-		
-		for (Item item : backpack) {
-			if (item.getClass() == kind && ((Key)item).depth == depth) {
-				return (T)item;
-			}
-		}
-		
-		return null;
-	}
-	
-	public void countIronKeys() {
-		
-		IronKey.curDepthQuantity = 0;
-		
-		for (Item item : backpack) {
-			if (item instanceof IronKey && ((IronKey)item).depth == Dungeon.depth) {
-				IronKey.curDepthQuantity++;
-			}
-		}
-	}
-	
-	public void identify() {
-		for (Item item : this) {
-			item.identify();
-		}
-	}
-	
-	public void observe() {
-		if (weapon != null) {
-			weapon.identify();
-			Badges.validateItemLevelAquired( weapon );
-		}
-		if (armor != null) {
-			armor.identify();
-			Badges.validateItemLevelAquired( armor );
-		}
-		if (ring1 != null) {
-			ring1.identify();
-			Badges.validateItemLevelAquired( ring1 );
-		}
-		if (ring2 != null) {
-			ring2.identify();
-			Badges.validateItemLevelAquired( ring2 );
-		}
-		for (Item item : backpack) {
-			item.cursedKnown = true;
-		}
-	}
-	
-	public void uncurseEquipped() {
-		ScrollOfRemoveCurse.uncurse( owner, armor, weapon, ring1, ring2 );
-	}
-	
-	public Item randomUnequipped() {
-		return Random.element( backpack.items );
-	}
-	
-	public void resurrect( int depth ) {
-		for (Item item : backpack.items.toArray( new Item[0])) {
-			if (item instanceof Key) {
-				if (((Key)item).depth == depth) {
-					item.detachAll( backpack );
-				}
-			} else if (item.unique) {
-				// Keep unique items
-			} else if (!item.isEquipped( owner )) {
-				item.detachAll( backpack );
-			}
-		}
-		
-		if (weapon != null) {
-			weapon.cursed = false;
-			weapon.activate( owner );
-		}
-		
-		if (armor != null) {
-			armor.cursed = false;
-		}
-		
-		if (ring1 != null) {
-			ring1.cursed = false;
-			ring1.activate( owner );
-		}
-		if (ring2 != null) {
-			ring2.cursed = false;
-			ring2.activate( owner );
-		}
-	}
-	
-	public int charge( boolean full) {
-		
-		int count = 0;
-		
-		for (Item item : this) {
-			if (item instanceof Wand) {
-				Wand wand = (Wand)item;
-				if (wand.curCharges < wand.maxCharges) {
-					wand.curCharges = full ? wand.maxCharges : wand.curCharges + 1;
-					count++;
-					
-					wand.updateQuickslot();
-				}
-			}
-		}
-		
-		return count;
-	}
-	
-	public int discharge() {
-		
-		int count = 0;
-		
-		for (Item item : this) {
-			if (item instanceof Wand) {
-				Wand wand = (Wand)item;
-				if (wand.curCharges > 0) {
-					wand.curCharges--;
-					count++;
-					
-					wand.updateQuickslot();
-				}
-			}
-		}
-		
-		return count;
 	}
 
 	@Override
 	public Iterator<Item> iterator() {
-		return new ItemIterator(); 
+		return new ItemIterator();
 	}
-	
+
 	private class ItemIterator implements Iterator<Item> {
 
-		private int index = 0;
-		
-		private Iterator<Item> backpackIterator = backpack.iterator();
-		
-		private Item[] equipped = {weapon, armor, ring1, ring2};
-		private int backpackIndex = equipped.length;
-		
 		@Override
 		public boolean hasNext() {
-			
-			for (int i=index; i < backpackIndex; i++) {
-				if (equipped[i] != null) {
-					return true;
-				}
-			}
-			
-			return backpackIterator.hasNext();
+            return false;
 		}
 
 		@Override
 		public Item next() {
-			
-			while (index < backpackIndex) {
-				Item item = equipped[index++];
-				if (item != null) {
-					return item;
-				}
-			}
-			
-			return backpackIterator.next();
+			return null;
+
 		}
 
 		@Override
 		public void remove() {
-			switch (index) {
-			case 0:
-				equipped[0] = weapon = null;
-				break;
-			case 1:
-				equipped[1] = armor = null;
-				break;
-			case 2:
-				equipped[2] = ring1 = null;
-				break;
-			case 3:
-				equipped[3] = ring2 = null;
-				break;
-			default:
-				backpackIterator.remove();
-			}
+
 		}
 	}
 }
