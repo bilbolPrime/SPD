@@ -4,9 +4,7 @@ package com.bilboldev.pixeldungeonskills;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 
-/**
- * Created by Moussa on 19-Jan-17.
- */
+
 public enum Difficulties {
 
     NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 3 );
