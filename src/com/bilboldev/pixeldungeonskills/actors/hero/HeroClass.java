@@ -125,6 +125,7 @@ public enum HeroClass {
         Dungeon.hero.HT -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.currentDifficulty.difficultyStartItemBonus();
 
+
         Bow tmp = new Bow(1);
         tmp.collect();
         tmp.doEquip(hero);

@@ -149,9 +149,11 @@ public class Generator {
                 FrostBow.class,
                 FlameBow.class,
                 Arrow.class,
-                BombArrow.class
+                BombArrow.class,
+                NecroBlade.class,
+                DualSwords.class
                 };
-		Category.WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1 };
+		Category.WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 1 };
 		
 		Category.ARMOR.classes = new Class<?>[]{ 
 			ClothArmor.class, 

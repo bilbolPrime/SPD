@@ -51,6 +51,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -184,6 +185,16 @@ public abstract class Char extends Actor {
                     }
                     else
                         ((DualSwords) ((Hero)this).belongings.weapon).secondHit = false;
+
+                }
+            }
+
+            if(this instanceof Hero && ((Hero)this).rangedWeapon == null && ((Hero)this).belongings.weapon instanceof NecroBlade)
+            {
+                if (enemy.isAlive() == false)
+                {
+                    ((NecroBlade)Dungeon.hero.belongings.weapon).updateCharge(enemy.HT > 22 ? (int)Math.floor(enemy.HT / 22) : 1);
+                    GLog.p("NecroBlade absored a portion of " + enemy.name + "'s life energy.");
 
                 }
             }
