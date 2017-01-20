@@ -106,7 +106,7 @@ public class Item implements Bundlable {
 		ArrayList<String> actions = new ArrayList<String>();
 		actions.add( AC_DROP );
 		actions.add( AC_THROW );
-        if(hero.pos == Dungeon.level.storage && this != hero.belongings.weapon && this != hero.belongings.armor && this != hero.belongings.ring1 && this != hero.belongings.ring2)
+        if(hero.pos == Dungeon.level.storage && this != hero.belongings.weapon && this != hero.belongings.armor && this != hero.belongings.ring1 && this != hero.belongings.ring2  && this != hero.belongings.bow)
             actions.add( AC_STORE );
 		return actions;
 	}

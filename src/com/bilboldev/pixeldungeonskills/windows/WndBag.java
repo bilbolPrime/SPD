@@ -167,7 +167,8 @@ public class WndBag extends WndTabbed {
 		placeItem( stuff.armor != null ? stuff.armor : new Placeholder( ItemSpriteSheet.ARMOR ) );
 		placeItem( stuff.ring1 != null ? stuff.ring1 : new Placeholder( ItemSpriteSheet.RING ) );
 		placeItem( stuff.ring2 != null ? stuff.ring2 : new Placeholder( ItemSpriteSheet.RING ) );
-		
+        placeItem( stuff.bow != null ? stuff.bow : new Placeholder( ItemSpriteSheet.EMPTY_BOW ) );
+
 		boolean backpack = (container == Dungeon.hero.belongings.backpack);
 		if (!backpack) {
 			count = nCols;
@@ -181,7 +182,7 @@ public class WndBag extends WndTabbed {
 		}
 		
 		// Free space
-		while (count-(backpack ? 4 : nCols) < container.size) {
+		while (count-(backpack ? 5 : nCols) < container.size) { // took out 1 for bow spot
 			placeItem( null );
 		}
 		

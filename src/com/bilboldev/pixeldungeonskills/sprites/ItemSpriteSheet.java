@@ -180,4 +180,38 @@ public class ItemSpriteSheet {
 	public static final int WEIGHT	= 123;
 	public static final int BOMB	= 124;
 	public static final int HONEYPOT= 125;
+
+
+    // Skillful Pixel Dungeon Items
+    public static final int SPD_OFFSET = 136;
+    public static final int EMPTY_BOW	= SPD_OFFSET + 0;
+    public static final int Bow	= SPD_OFFSET + 1;
+    public static final int ForstBow	= SPD_OFFSET + 2;
+    public static final int FlameBow	= SPD_OFFSET + 3;
+    public static final int Arrow	= SPD_OFFSET + 4;
+    public static final int BombArrow	= SPD_OFFSET + 5;
+
+    public static final int SCROLL_SKILLPOINT	= SPD_OFFSET + 8;
+    public static final int SCROLL_SKILLRESETACTIVE		= SPD_OFFSET + 9;
+    public static final int SCROLL_GOHOME	= SPD_OFFSET + 10;
+    public static final int SCROLL_SACRIFICE	= SPD_OFFSET + 11;
+    public static final int SCROLL_BLOODY	= SPD_OFFSET + 12;
+
+
+    public static final int NecroBlade0	= SPD_OFFSET + 16;
+    public static final int NecroBlade1	= SPD_OFFSET + 17;
+    public static final int NecroBlade2	= SPD_OFFSET + 18;
+    public static final int NecroBlade3	= SPD_OFFSET + 19;
+    public static final int NecroBlade4	= SPD_OFFSET + 20;
+    public static final int NecroBlade5 = SPD_OFFSET + 21;
+
+    public static final int Knowledge	= SPD_OFFSET + 24;
+    public static final int DualSwords	= SPD_OFFSET + 26;
+    public static final int RemoteBomb	= SPD_OFFSET + 27;
+
+    public static final int POTION_MANA		= SPD_OFFSET + 28;
+
+    public static final int GemStone	= SPD_OFFSET + 29;
+    public static final int GemStoneFull = SPD_OFFSET + 30;
+    public static final int GemStonePart = SPD_OFFSET + 31;
 }

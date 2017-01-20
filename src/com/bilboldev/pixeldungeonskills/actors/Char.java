@@ -50,6 +50,8 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.features.Door;
@@ -259,8 +261,17 @@ public abstract class Char extends Actor {
 		if (HP <= 0) {
 			return;
 		}
-		
-		Buff.detach( this, Frost.class );
+
+        if(src instanceof Hero) {
+            Hero heroSrc = (Hero) src;
+            if (heroSrc.rangedWeapon instanceof Arrow && heroSrc.belongings.bow instanceof Bow) {
+
+            }
+            else
+                Buff.detach( this, Frost.class );
+        }
+        else
+		    Buff.detach( this, Frost.class );
 		
 		Class<?> srcClass = src.getClass();
 		if (immunities().contains( srcClass )) {
@@ -277,7 +288,14 @@ public abstract class Char extends Actor {
 				}
 			}
 		}
-		
+
+        if(src instanceof Hero) {
+            Hero heroSrc = (Hero) src;
+            if (heroSrc.rangedWeapon instanceof Arrow && heroSrc.belongings.bow instanceof Bow) {
+                heroSrc.belongings.bow.bowSpecial(this);
+            }
+        }
+
 		HP -= dmg;
 		if (dmg > 0 || src instanceof Char) {
 			sprite.showStatus( HP > HT / 2 ? 

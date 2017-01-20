@@ -26,6 +26,8 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -180,7 +182,7 @@ public class QuickSlot extends Button implements WndBag.Listener {
 	}
 	
 	private void enableSlot() {
-		slot.enable( 
+		slot.enable( !(itemInSlot instanceof Bow) && (!(itemInSlot instanceof Arrow)  || Dungeon.hero.belongings.bow != null) &&
 			itemInSlot != null && 
 			itemInSlot.quantity() > 0 && 
 			(Dungeon.hero.belongings.backpack.contains( itemInSlot ) || itemInSlot.isEquipped( Dungeon.hero )));

@@ -32,8 +32,13 @@ import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.ShortSword;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FlameBow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.utils.Bundle;
 
@@ -119,6 +124,12 @@ public enum HeroClass {
         Dungeon.hero.HP -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.hero.HT -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.currentDifficulty.difficultyStartItemBonus();
+
+        Bow tmp = new Bow(1);
+        tmp.collect();
+        tmp.doEquip(hero);
+        new Arrow(15).collect();
+        new BombArrow(3).collect();
 	}
 	
 	public Badges.Badge masteryBadge() {

@@ -30,12 +30,13 @@ import com.bilboldev.pixeldungeonskills.items.keys.Key;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfRemoveCurse;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class Belongings implements Iterable<Item> {
 
-	public static final int BACKPACK_SIZE	= 19;
+	public static final int BACKPACK_SIZE	= 18; // Took one out for bow
 	
 	private Hero owner;
 	
@@ -45,7 +46,8 @@ public class Belongings implements Iterable<Item> {
 	public Armor armor = null;
 	public Ring ring1 = null;
 	public Ring ring2 = null;
-	
+	public Bow bow = null;
+
 	public Belongings( Hero owner ) {
 		this.owner = owner;
 		
@@ -60,7 +62,8 @@ public class Belongings implements Iterable<Item> {
 	private static final String ARMOR		= "armor";
 	private static final String RING1		= "ring1";
 	private static final String RING2		= "ring2";
-	
+    private static final String BOW		= "bow";
+
 	public void storeInBundle( Bundle bundle ) {
 		
 		backpack.storeInBundle( bundle );
@@ -69,6 +72,7 @@ public class Belongings implements Iterable<Item> {
 		bundle.put( ARMOR, armor );
 		bundle.put( RING1, ring1 );
 		bundle.put( RING2, ring2 );
+        bundle.put( BOW, bow );
 	}
 	
 	public void restoreFromBundle( Bundle bundle ) {
@@ -92,6 +96,11 @@ public class Belongings implements Iterable<Item> {
 		if (ring2 != null) {
 			ring2.activate( owner );
 		}
+
+        bow = (Bow)bundle.get( BOW );
+        if (bow != null) {
+            bow.activate( owner );
+        }
 	}
 	
 	@SuppressWarnings("unchecked")
