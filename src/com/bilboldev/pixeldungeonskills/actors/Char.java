@@ -50,6 +50,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -171,7 +172,22 @@ public abstract class Char extends Actor {
 			
 			enemy.sprite.bloodBurstA( sprite.center(), effectiveDamage );
 			enemy.sprite.flash();
-			
+
+            if(this instanceof Hero && ((Hero)this).rangedWeapon == null && ((Hero)this).belongings.weapon instanceof DualSwords)
+            {
+                if (enemy.isAlive())
+                {
+                    if(((DualSwords) ((Hero)this).belongings.weapon).secondHit == false)
+                    {
+                        ((DualSwords) ((Hero)this).belongings.weapon).secondHit = true;
+                        attack(enemy);
+                    }
+                    else
+                        ((DualSwords) ((Hero)this).belongings.weapon).secondHit = false;
+
+                }
+            }
+
 			if (!enemy.isAlive() && visibleFight) {
 				if (enemy == Dungeon.hero) {
 					
