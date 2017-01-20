@@ -26,8 +26,11 @@ import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfHome;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSacrifice;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
@@ -37,8 +40,6 @@ import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FlameBow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.utils.Bundle;
 
@@ -131,7 +132,17 @@ public enum HeroClass {
         tmp.doEquip(hero);
         new Arrow(15).collect();
         new BombArrow(3).collect();
-	}
+
+        new ScrollOfHome().setKnown();
+        new ScrollOfSacrifice().setKnown();
+        new ScrollOfBloodyRitual().setKnown();
+
+        new ScrollOfHome().collect();
+        new ScrollOfSacrifice().collect();
+        new ScrollOfBloodyRitual().collect();
+
+
+    }
 	
 	public Badges.Badge masteryBadge() {
 		switch (this) {
