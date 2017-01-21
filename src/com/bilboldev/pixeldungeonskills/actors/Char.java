@@ -48,6 +48,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Rat;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
@@ -75,7 +76,35 @@ public abstract class Char extends Actor {
 	private static final String TXT_SMB_MISSED	= "%s %s %s's attack";
 	
 	private static final String TXT_OUT_OF_PARALYSIS	= "The pain snapped %s out of paralysis";
-	
+
+    private String[] MOB_DEATH_SCREAMS =  {
+            "...",
+            "I will haunt your dreams...",
+            "Too strong...",
+            "C'est impossible!",
+            "Sacre bleu!",
+            "Mommy...",
+            "I will be avenged..."
+    };
+
+    private String[] RAT_DEATH_SCREAMS = {
+            "The Rat King will be victorious!",
+            "The Rat King will avenge me!",
+            "The Rat King shall prevail!",
+            //"The Rat King is your father...", too harsh?
+            "Forgive me my lord...",
+            "You know nothing...",
+            "The world is ours... all of its cheese too..."
+    };
+
+    private String[] HERO_DEATH_SCREAM = {
+            "Ouch!",
+            "My face...",
+            "I have failed",
+            "This game blows...",
+            "Nerf it..."
+    };
+
 	public int pos = 0;
 	
 	public CharSprite sprite;
@@ -96,7 +125,16 @@ public abstract class Char extends Actor {
 	public int viewDistance	= 8;
 	
 	private HashSet<Buff> buffs = new HashSet<Buff>();
-	
+
+    public String getDeathScream()
+    {
+        if(this instanceof Hero)
+            return HERO_DEATH_SCREAM[Random.IntRange( 0, HERO_DEATH_SCREAM.length - 1 )];
+        if(this instanceof Rat)
+            return RAT_DEATH_SCREAMS[Random.IntRange( 0, RAT_DEATH_SCREAMS.length - 1 )];
+        return MOB_DEATH_SCREAMS[Random.IntRange( 0, MOB_DEATH_SCREAMS.length - 1 )];
+    }
+
 	@Override
 	protected boolean act() {
 		Dungeon.level.updateFieldOfView( this );
@@ -342,6 +380,7 @@ public abstract class Char extends Actor {
 	}
 	
 	public void die( Object src ) {
+        this.sprite.showStatus(CharSprite.NEUTRAL, getDeathScream());
 		destroy();
 		sprite.die();
 	}
