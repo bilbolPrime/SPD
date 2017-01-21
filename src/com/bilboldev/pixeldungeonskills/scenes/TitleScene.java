@@ -134,13 +134,20 @@ public class TitleScene extends PixelScene {
 			btnPlay.setPos( w / 2 - btnPlay.width(), btnAbout.top() - DashboardItem.SIZE );
 			btnHighscores.setPos( w / 2, btnPlay.top() );
 		}
-		
-		BitmapText version = new BitmapText( "v " + Game.version, font1x );
-		version.measure();
-		version.hardlight( 0x888888 );
-		version.x = w - version.width();
-		version.y = h - version.height();
-		add( version );
+
+        BitmapText version = new BitmapText( "v " + Game.version, font1x );
+        version.measure();
+        version.hardlight( 0xFFFFFF );
+        version.x = w - version.width();
+        version.y = h - version.height() - 9;
+        add( version );
+
+        BitmapText versionPD = new BitmapText( "Vanilla PD v 1.9.2a", font1x );
+        versionPD.measure();
+        versionPD.hardlight( 0x666666 );
+        versionPD.x = w - versionPD.width();
+        versionPD.y = h - versionPD.height();
+        add( versionPD );
 		
 		PrefsButton btnPrefs = new PrefsButton();
 		btnPrefs.setPos( 0, 0 );
