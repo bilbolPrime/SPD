@@ -135,7 +135,7 @@ public class TitleScene extends PixelScene {
 			btnHighscores.setPos( w / 2, btnPlay.top() );
 		}
 
-        BitmapText version = new BitmapText( "v " + Game.version, font1x );
+        BitmapText version = new BitmapText( "v " + Game.version + " (Build " + Game.versionBuild + ")", font1x );
         version.measure();
         version.hardlight( 0xFFFFFF );
         version.x = w - version.width();

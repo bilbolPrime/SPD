@@ -10,6 +10,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -36,7 +37,7 @@ public class WndItem extends Window {
 	
 	private static final int WIDTH = 120;
 	
-	public WndItem( final WndBag owner, final Item item ) {	
+	public WndItem( final WndBag owner, final Item item ) {
 		
 		super();
 		
@@ -48,12 +49,12 @@ public class WndItem extends Window {
 		}
 		titlebar.setRect( 0, 0, WIDTH, 0 );
 		add( titlebar );
-		
+
 		if (item.levelKnown) {
 			if (item.level() < 0) {
-				titlebar.color( ItemSlot.DEGRADED );				
+				titlebar.color( ItemSlot.DEGRADED );
 			} else if (item.level() > 0) {
-				titlebar.color( item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED );				
+				titlebar.color( item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED );
 			}
 		}
 		

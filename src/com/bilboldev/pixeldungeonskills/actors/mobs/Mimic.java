@@ -27,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -92,7 +93,7 @@ public class Mimic extends Mob {
 	
 	@Override
 	public int attackProc( Char enemy, int damage ) {
-		if (enemy == Dungeon.hero && Random.Int( 3 ) == 0) {
+		if (enemy == Dungeon.hero && Random.Int( 3 ) == 0 && Dungeon.hero.heroSkills.passiveA1.lootBonus(100) == 0) { // <--- Rogue bandit if present
 			Gold gold = new Gold( Random.Int( Dungeon.gold / 10, Dungeon.gold / 2 ) );
 			if (gold.quantity() > 0) {
 				Dungeon.gold -= gold.quantity();

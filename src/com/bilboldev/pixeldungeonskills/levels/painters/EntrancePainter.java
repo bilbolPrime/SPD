@@ -38,7 +38,7 @@ public class EntrancePainter extends Painter {
             level.storage = room.random(2);
             safety ++;
         }
-        while(level.storage == level.entrance && safety < 10); // Still bugged, need a guaranteed way without risking infinte loops
+        while((level.storage == level.entrance || level.map[level.storage]== Terrain.SIGN) && safety < 100); // Still bugged, need a guaranteed way without risking infinte loops
 		set( level, level.entrance, Terrain.ENTRANCE );
         set(level, level.storage, Terrain.STORAGE);
 	}

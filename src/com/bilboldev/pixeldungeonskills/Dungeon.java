@@ -85,6 +85,7 @@ public class Dungeon {
 	public static int depth;
 	public static int gold;
 
+
     public static int difficulty;
     public static Difficulties currentDifficulty;
 
@@ -145,6 +146,7 @@ public class Dungeon {
 		Badges.reset();
 		
 		StartScene.curClass.initHero( hero );
+
 	}
 	
 	public static boolean isChallenged( int mask ) {
@@ -618,7 +620,7 @@ public class Dungeon {
 		GameScene.afterObserve();
 	}
 	
-	private static boolean[] passable = new boolean[Level.LENGTH];
+	public static boolean[] passable = new boolean[Level.LENGTH];
 	
 	public static int findPath( Char ch, int from, int to, boolean pass[], boolean[] visible ) {
 		

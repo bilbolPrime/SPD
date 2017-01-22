@@ -38,6 +38,7 @@ public class Gold extends Item {
 	private static final String TXT_INFO	= "A pile of %d gold coins. " + TXT_COLLECT;
 	private static final String TXT_INFO_1	= "One gold coin. " + TXT_COLLECT;
 	private static final String TXT_VALUE	= "%+d";
+    private static final String TXT_VALUE_LOOT	= "%+d (%+d loot!)";
 	
 	{
 		name = "gold";
@@ -61,12 +62,16 @@ public class Gold extends Item {
 	@Override
 	public boolean doPickUp( Hero hero ) {
 		
-		Dungeon.gold += quantity;
-		Statistics.goldCollected += quantity;
+		Dungeon.gold += quantity + hero.heroSkills.passiveA1.lootBonus(quantity); // <--- Rogue bandit if present
+		Statistics.goldCollected += quantity  + hero.heroSkills.passiveA1.lootBonus(quantity);
 		Badges.validateGoldCollected();
 		
 		GameScene.pickUp( this );
-		hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE, quantity );
+        if(hero.heroSkills.passiveA1.lootBonus(quantity) == 0)
+		    hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE, quantity );
+        else
+            hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE_LOOT, quantity, hero.heroSkills.passiveA1.lootBonus(quantity));
+
 		hero.spendAndNext( TIME_TO_PICK_UP );
 		
 		Sample.INSTANCE.play( Assets.SND_GOLD, 1, 1, Random.Float( 0.9f, 1.1f ) );

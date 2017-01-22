@@ -37,6 +37,8 @@ import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
@@ -281,8 +283,12 @@ public class Item implements Bundlable {
 	protected void onDetach( ) {
 	}
 	
-	public int level() {
-		return level;
+	public int level()
+    {
+        if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+            return level + Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
+
+        return level;
 	}
 	
 	public void level( int value ) {
@@ -290,7 +296,7 @@ public class Item implements Bundlable {
 	}
 	
 	public int effectiveLevel() {
-		return isBroken() ? 0 : level;
+		return isBroken() ? 0 : level();
 	}
 	
 	public Item upgrade() {
@@ -391,7 +397,7 @@ public class Item implements Bundlable {
 	}
 	
 	public int visiblyUpgraded() {
-		return levelKnown ? level : 0;
+		return levelKnown ? level() : 0;
 	}
 	
 	public boolean visiblyCursed() {
@@ -433,7 +439,7 @@ public class Item implements Bundlable {
 			if (quantity > 1) {
 				return Utils.format( TXT_TO_STRING_LVL_X, name(), level, quantity );
 			} else {
-				return Utils.format( TXT_TO_STRING_LVL, name(), level );
+				return Utils.format( TXT_TO_STRING_LVL, name(), level() );
 			}
 		} else {
 			if (quantity > 1) {
@@ -611,6 +617,43 @@ public class Item implements Bundlable {
 				}
 			} );
 	}
+
+    public void castSPD( final Hero user, int dst, int skip ) {
+
+        final int cell = Ballistica.cast( user.pos, dst, skip);
+        user.sprite.zap( cell );
+        user.busy();
+
+        Sample.INSTANCE.play( Assets.SND_MISS, 0.6f, 0.6f, 1.5f );
+
+        Char enemy = Actor.findChar( cell );
+        QuickSlot.target( this, enemy );
+
+        // FIXME!!!
+        float delay = TIME_TO_THROW;
+        if (this instanceof MissileWeapon) {
+            delay *= ((MissileWeapon)this).speedFactor( user );
+            if (enemy != null) {
+                SnipersMark mark = user.buff( SnipersMark.class );
+                if (mark != null) {
+                    if (mark.object == enemy.id()) {
+                        delay *= 0.5f;
+                    }
+                    user.remove( mark );
+                }
+            }
+        }
+        final float finalDelay = delay;
+
+        ((MissileSprite)user.sprite.parent.recycle( MissileSprite.class )).
+                reset( user.pos, cell, this, new Callback() {
+                    @Override
+                    public void call() {
+                        Item.this.detach( user.belongings.backpack ).onThrow( cell );
+                        user.spendAndNext( finalDelay );
+                    }
+                } );
+    }
 	
 	protected static Hero curUser = null;
 	protected static Item curItem = null;
@@ -619,6 +662,8 @@ public class Item implements Bundlable {
 		public void onSelect( Integer target ) {
 			if (target != null) {
 				curItem.cast( curUser, target );
+                if(curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
+                    curItem.cast( curUser, target );
 			}
 		}
 		@Override

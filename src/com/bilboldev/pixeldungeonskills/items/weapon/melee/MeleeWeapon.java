@@ -141,13 +141,13 @@ public class MeleeWeapon extends Weapon {
 		}
 		
 		if (levelKnown && Dungeon.hero.belongings.backpack.items.contains( this )) {
-			if (STR > Dungeon.hero.STR()) {
+			if (STR() > Dungeon.hero.STR()) {
 				info.append( p );
 				info.append( 
 					"Because of your inadequate strength the accuracy and speed " +
 					"of your attack with this " + name + " is decreased." );
 			}
-			if (STR < Dungeon.hero.STR()) {
+			if (STR() < Dungeon.hero.STR()) {
 				info.append( p );
 				info.append( 
 					"Because of your excess strength the damage " +
@@ -157,6 +157,8 @@ public class MeleeWeapon extends Weapon {
 		
 		if (isEquipped( Dungeon.hero )) {
 			info.append( p );
+            if(this instanceof MeleeWeapon &&  Dungeon.hero.heroSkills.passiveA1 != null && Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus() > 0) // <--- Warrior Mastery if present
+                info.append( "Your mastery of melee weapons makes it easier to use this weapon (+ " + Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus() + " levels)\n" );
 			info.append( "You hold the " + name + " at the ready" + 
 				(cursed ? ", and because it is cursed, you are powerless to let go." : ".") ); 
 		} else {

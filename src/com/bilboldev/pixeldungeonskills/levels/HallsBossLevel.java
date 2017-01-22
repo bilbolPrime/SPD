@@ -120,7 +120,7 @@ public class HallsBossLevel extends Level {
             arenaStorage =  Random.Int( ROOM_LEFT + 1, ROOM_RIGHT - 1 ) +
                     Random.Int( ROOM_TOP + 1, ROOM_BOTTOM - 1 ) * WIDTH;
             safety++;
-        }while(arenaStorage == entrance && safety < 10);
+        }while(arenaStorage == entrance && safety < 100);
 
         map[arenaStorage] = Terrain.STORAGE;
 

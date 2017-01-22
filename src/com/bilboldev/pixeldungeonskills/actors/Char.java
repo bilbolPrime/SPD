@@ -48,13 +48,19 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Rat;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Yog;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Shuriken;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.features.Door;
@@ -105,6 +111,12 @@ public abstract class Char extends Actor {
             "Nerf it..."
     };
 
+    private String[] PET_FAREWELL = {
+            "Farewell...",
+            "I have failed you...",
+            "I just wanted some love..."
+    };
+
 	public int pos = 0;
 	
 	public CharSprite sprite;
@@ -113,6 +125,8 @@ public abstract class Char extends Actor {
 	
 	public int HT;
 	public int HP;
+    public int MP = 0;
+    public int MMP = 1;
     public int champ = -1;
 
 	protected float baseSpeed	= 1;
@@ -132,6 +146,8 @@ public abstract class Char extends Actor {
             return HERO_DEATH_SCREAM[Random.IntRange( 0, HERO_DEATH_SCREAM.length - 1 )];
         if(this instanceof Rat)
             return RAT_DEATH_SCREAMS[Random.IntRange( 0, RAT_DEATH_SCREAMS.length - 1 )];
+        if(this instanceof com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Rat || this instanceof Crab || this instanceof Skeleton)
+            return PET_FAREWELL[Random.IntRange( 0, PET_FAREWELL.length - 1 )];
         return MOB_DEATH_SCREAMS[Random.IntRange( 0, MOB_DEATH_SCREAMS.length - 1 )];
     }
 
@@ -144,6 +160,8 @@ public abstract class Char extends Actor {
 	private static final String POS			= "pos";
 	private static final String TAG_HP		= "HP";
 	private static final String TAG_HT		= "HT";
+    private static final String TAG_MP		= "MP";
+    private static final String TAG_MT		= "MT";
 	private static final String BUFFS		= "buffs";
 	
 	@Override
@@ -154,6 +172,8 @@ public abstract class Char extends Actor {
 		bundle.put( POS, pos );
 		bundle.put( TAG_HP, HP );
 		bundle.put( TAG_HT, HT );
+        bundle.put( TAG_MP, MP );
+        bundle.put( TAG_MT, MMP );
 		bundle.put( BUFFS, buffs );
 	}
 	
@@ -165,7 +185,9 @@ public abstract class Char extends Actor {
 		pos = bundle.getInt( POS );
 		HP = bundle.getInt( TAG_HP );
 		HT = bundle.getInt( TAG_HT );
-		
+        MP = bundle.getInt( TAG_MP );
+        MMP = bundle.getInt( TAG_MT );
+
 		for (Bundlable b : bundle.getCollection( BUFFS )) {
 			if (b != null) {
 				((Buff)b).attachTo( this );
@@ -190,14 +212,75 @@ public abstract class Char extends Actor {
 			int dmg = damageRoll();
 
             if(enemy == Dungeon.hero)
+            {
                 dmg *= Dungeon.currentDifficulty.damageModifier();
+                dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier(); //  <--- Warrior Toughness if present
+                dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg); // <--- Mage SpiritArmor if present
+            }
+            else
+            {
+                if(this == Dungeon.hero && Dungeon.hero.rangedWeapon == null)
+                {
+                    dmg *= Dungeon.hero.heroSkills.passiveB2.damageModifier(); //  <--- Warrior Aggression if present
+                    dmg *= Dungeon.hero.heroSkills.active1.damageModifier(); //  <--- Warrior Smash if present and active
+                    dmg *= Dungeon.hero.heroSkills.active2.damageModifier(); //  <--- Warrior Knockback if present and active
+                    dmg *= Dungeon.hero.heroSkills.active3.damageModifier(); //  <--- Warrior Rampage if present and active
+
+                    if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.heroSkills.active2.knocksBack()) //  <--- Warrior KnockBack if present and active
+                    {
+                        int newPos = 0;
+                        if(this.pos % Level.WIDTH == enemy.pos % Level.WIDTH + 1) // From the right
+                            newPos += -2;
+                        else if(this.pos % Level.WIDTH == enemy.pos % Level.WIDTH - 1) // From the left
+                            newPos += 2;
+                        if(this.pos - this.pos % Level.WIDTH == enemy.pos - enemy.pos % Level.WIDTH + Level.WIDTH) // From the bottom
+                            newPos += -2 * Level.WIDTH;
+                        else if(this.pos - this.pos % Level.WIDTH == enemy.pos - enemy.pos % Level.WIDTH - Level.WIDTH)// From the top
+                            newPos += 2 * Level.WIDTH;
+
+                        //Buff.prolong(enemy, Paralysis.class, 1f);
+                        if(newPos != 0 && ((Mob)enemy).canBeKnockedBackInto(enemy.pos + newPos))
+                        {
+                            ((Mob) enemy).sprite.showStatus(CharSprite.NEUTRAL, "...");
+                            ((Mob) enemy).move(enemy.pos + newPos);
+                        }
+                    }
+
+                    if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.heroSkills.active3.AoEDamage()) //  <--- Warrior Rampage if present and active
+                    {
+                        Dungeon.hero.heroSkills.active3.active = false; // Prevent infinite callstack
+                        for(int possibleTarget : Level.NEIGHBOURS8)
+                        {
+                            Char tmpTarget = Actor.findChar( pos + possibleTarget );
+                            if(tmpTarget != null && tmpTarget != enemy && tmpTarget instanceof Mob && !(tmpTarget instanceof NPC))
+                                attack(tmpTarget);
+                        }
+                        Dungeon.hero.heroSkills.active3.active = true; // Should be safe now
+                    }
+
+                    if(!Bestiary.isBoss( enemy ) && enemy instanceof Mob && ((Mob)enemy).state instanceof Mob.Sleeping && Dungeon.hero.heroSkills.passiveB3.instantKill())
+                        dmg = ((Mob) enemy).HP + dr;
+                }
+                if(this == Dungeon.hero)
+                {
+                    if(Dungeon.hero.heroSkills.passiveB1.venomousAttack()) // <--- Rogue Venom when present
+                        Buff.affect(this, Poison.class).set(Poison.durationFactor(enemy));
+                }
+            }
 
 			int effectiveDamage = Math.max( dmg - dr, 0 );
 			
 			effectiveDamage = attackProc( enemy, effectiveDamage );
 			effectiveDamage = enemy.defenseProc( this, effectiveDamage );
 			enemy.damage( effectiveDamage, this );
-			
+
+
+            if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.heroSkills.active2.damageBonus(enemy.HP) > 0 && Dungeon.hero.rangedWeapon instanceof Shuriken) // <-- Rogue Deadeye when present
+                enemy.damage( Dungeon.hero.heroSkills.active2.damageBonus(enemy.HP, true), this );
+
+            if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.heroSkills.passiveB2.cripple() && Dungeon.hero.rangedWeapon != null) // <-- Huntress knee shot when present
+                Buff.prolong( enemy, Cripple.class, Cripple.DURATION );
+
 			if (visibleFight) {
 				Sample.INSTANCE.play( Assets.SND_HIT, 1, 1, Random.Float( 0.8f, 1.25f ) );
 			}
@@ -275,7 +358,7 @@ public abstract class Char extends Actor {
 					GLog.i( TXT_SMB_MISSED, enemy.name, defense, name );
 				}
 				
-				Sample.INSTANCE.play( Assets.SND_MISS );
+				Sample.INSTANCE.play(Assets.SND_MISS);
 			}
 			
 			return false;
@@ -286,6 +369,10 @@ public abstract class Char extends Actor {
 	public static boolean hit( Char attacker, Char defender, boolean magic ) {
 		float acuRoll = Random.Float( attacker.attackSkill( defender ) );
 		float defRoll = Random.Float( defender.defenseSkill( attacker ) );
+
+        if(defender instanceof Hero && Level.distance( attacker.pos, defender.pos ) > 1 && ((Hero)defender).heroSkills.passiveA3.dodgeChance()) // <--- Huntress Awareness if present
+            return false;
+
 		return (magic ? acuRoll * 2 : acuRoll) >= defRoll;
 	}
 

@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Lightning;
 import com.bilboldev.pixeldungeonskills.effects.particles.SparkParticle;
@@ -64,6 +65,10 @@ public class WandOfLightning extends Wand {
 		if (ch == Dungeon.hero) {
 			Camera.main.shake( 2, 0.3f );
 		}
+        else if(ch instanceof Mob)
+        {
+            damage *= Dungeon.hero.heroSkills.passiveB2.wandDamageBonus(); // <---- Mage Sorcerer if present
+        }
 		
 		affected.add( ch );
 		ch.damage( Level.water[ch.pos] && !ch.flying ? (int)(damage * 2) : damage, LightningTrap.LIGHTNING  );

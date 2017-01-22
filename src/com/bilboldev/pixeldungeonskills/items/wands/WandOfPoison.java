@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.items.wands;
 
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -38,7 +39,7 @@ public class WandOfPoison extends Wand {
 		Char ch = Actor.findChar( cell );
 		if (ch != null) {
 
-			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5 + power()) );
+			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5 + power() *  Dungeon.hero.heroSkills.passiveB2.wandDamageBonus() ) );
 			
 		} else {
 			

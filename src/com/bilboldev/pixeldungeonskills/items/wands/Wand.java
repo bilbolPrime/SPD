@@ -489,6 +489,8 @@ public abstract class Wand extends KindOfWeapon {
 			float time2charge = ((Hero)target).heroClass == HeroClass.MAGE ? 
 				TIME_TO_CHARGE / (float)Math.sqrt( 1 + effectiveLevel() ) : 
 				TIME_TO_CHARGE;
+            if(((Hero)target).heroSkills != null && ((Hero)target).heroSkills.passiveB1 != null)
+                time2charge *= ((Hero)target).heroSkills.passiveB1.wandRechargeSpeedReduction(); // <--- Mage Wizard if present
 			spend( time2charge );
 		}
 	}

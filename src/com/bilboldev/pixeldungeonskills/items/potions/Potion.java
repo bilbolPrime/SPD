@@ -64,11 +64,12 @@ public class Potion extends Item {
 		PotionOfPurity.class,
 		PotionOfInvisibility.class,
 		PotionOfMight.class,
-		PotionOfFrost.class
+		PotionOfFrost.class,
+        PotionOfMana.class
 	};
 	private static final String[] colors = {
 		"turquoise", "crimson", "azure", "jade", "golden", "magenta", 
-		"charcoal", "ivory", "amber", "bistre", "indigo", "silver"};
+		"charcoal", "ivory", "amber", "bistre", "indigo", "silver", ""};
 	private static final Integer[] images = {
 		ItemSpriteSheet.POTION_TURQUOISE, 
 		ItemSpriteSheet.POTION_CRIMSON, 
@@ -81,7 +82,8 @@ public class Potion extends Item {
 		ItemSpriteSheet.POTION_AMBER, 
 		ItemSpriteSheet.POTION_BISTRE, 
 		ItemSpriteSheet.POTION_INDIGO, 
-		ItemSpriteSheet.POTION_SILVER};
+		ItemSpriteSheet.POTION_SILVER,
+        ItemSpriteSheet.POTION_MANA};
 	
 	private static ItemStatusHandler<Potion> handler;
 	
@@ -94,7 +96,7 @@ public class Potion extends Item {
 	
 	@SuppressWarnings("unchecked")
 	public static void initColors() {
-		handler = new ItemStatusHandler<Potion>( (Class<? extends Potion>[])potions, colors, images );
+		handler = new ItemStatusHandler<Potion>( (Class<? extends Potion>[])potions, colors, images, 1 );
 	}
 	
 	public static void save( Bundle bundle ) {

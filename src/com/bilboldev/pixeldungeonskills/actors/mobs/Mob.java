@@ -44,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
+import com.bilboldev.utils.PathFinder;
 import com.bilboldev.utils.Random;
 
 public abstract class Mob extends Char {
@@ -229,7 +230,16 @@ public abstract class Mob extends Char {
 	protected boolean canAttack( Char enemy ) {
 		return Level.adjacent( pos, enemy.pos ) && !isCharmedBy( enemy );
 	}
-	
+
+    public boolean canBeKnockedBackInto(int newPos)
+    {
+        if (rooted)
+            return false;
+
+        PathFinder.Path tmp = PathFinder.find(pos, newPos, Dungeon.passable);
+        return tmp != null && tmp.size() < 3;
+    }
+
 	protected boolean getCloser( int target ) {
 		
 		if (rooted) {
@@ -468,7 +478,7 @@ public abstract class Mob extends Char {
 		public String status();
 	}
 	
-	private class Sleeping implements AiState {
+	public class Sleeping implements AiState {
 		
 		public static final String TAG	= "SLEEPING";
 		

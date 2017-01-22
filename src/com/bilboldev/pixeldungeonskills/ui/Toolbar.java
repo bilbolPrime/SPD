@@ -42,11 +42,15 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndSkills;
+import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
 public class Toolbar extends Component {
 
 	private Tool btnWait;
+    private Tool btnSkill;
+    private Tool btnKing;
 	private Tool btnSearch;
 	private Tool btnInfo;
 	private Tool btnInventory;
@@ -80,6 +84,28 @@ public class Toolbar extends Component {
 				return true;
 			};
 		} );
+
+        add( btnSkill = new Tool( 111, 7, 21, 24 ) {
+            @Override
+            protected void onClick() {
+                GameScene.show(new WndSkills(null, null));
+            };
+            protected boolean onLongClick() {
+                GameScene.show(new WndSkills(null, null));
+                return true;
+            };
+        });
+
+        add( btnKing = new Tool( 135, 7, 21, 24 ) {
+            @Override
+            protected void onClick() {
+                WndStory.showStory("You are not worthy of the Rat King...");
+            };
+            protected boolean onLongClick() {
+                GameScene.show(new WndSkills(null, null));
+                return true;
+            };
+        });
 		
 		add( btnSearch = new Tool( 20, 7, 20, 25 ) {
 			@Override
@@ -130,6 +156,8 @@ public class Toolbar extends Component {
 		btnWait.setPos( x, y );
 		btnSearch.setPos( btnWait.right(), y );
 		btnInfo.setPos( btnSearch.right(), y );
+        btnSkill.setPos( 0, 50 );
+        btnKing.setPos(0, 80);
 		btnQuick1.setPos( width - btnQuick1.width(), y );
 		if (btnQuick2.visible) {
 			btnQuick2.setPos(btnQuick1.left() - btnQuick2.width(), y );

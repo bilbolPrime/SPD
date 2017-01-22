@@ -643,56 +643,96 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.TOXIC_TRAP:
 			trap = true;
-			ToxicTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+			    ToxicTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_FIRE_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.FIRE_TRAP:
 			trap = true;
-			FireTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                FireTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_PARALYTIC_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.PARALYTIC_TRAP:
 			trap = true;
-			ParalyticTrap.trigger( cell,  ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                ParalyticTrap.trigger( cell,  ch );
 			break;
 			
 		case Terrain.SECRET_POISON_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.POISON_TRAP:
 			trap = true;
-			PoisonTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                PoisonTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_ALARM_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.ALARM_TRAP:
 			trap = true;
-			AlarmTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                AlarmTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_LIGHTNING_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.LIGHTNING_TRAP:
 			trap = true;
-			LightningTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                LightningTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_GRIPPING_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.GRIPPING_TRAP:
 			trap = true;
-			GrippingTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                GrippingTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.SECRET_SUMMONING_TRAP:
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.SUMMONING_TRAP:
 			trap = true;
-			SummoningTrap.trigger( cell, ch );
+            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            {
+
+            }
+            else
+                SummoningTrap.trigger( cell, ch );
 			break;
 			
 		case Terrain.HIGH_GRASS:

@@ -134,7 +134,7 @@ public class ItemSlot extends Button {
 				
 				if (item.levelKnown || (isWeapon && !(item instanceof MeleeWeapon))) {
 					
-					int str = isArmor ? ((Armor)item).STR : ((Weapon)item).STR;
+					int str = isArmor ? ((Armor)item).STR : ((Weapon)item).STR();
 					topRight.text( Utils.format( TXT_STRENGTH, str ) );
 					if (str > Dungeon.hero.STR()) {
 						topRight.hardlight( DEGRADED );

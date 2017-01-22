@@ -48,6 +48,7 @@ public class StatusPane extends Component {
 	private int lastTier = 0;
 	
 	private Image hp;
+    private Image mp;
 	private Image exp;
 	
 	private int lastLvl = -1;
@@ -99,7 +100,10 @@ public class StatusPane extends Component {
 		
 		hp = new Image( Assets.HP_BAR );	
 		add( hp );
-		
+
+        mp = new Image( Assets.MP_BAR );
+        add( mp );
+
 		exp = new Image( Assets.XP_BAR );
 		add( exp );
 		
@@ -145,7 +149,10 @@ public class StatusPane extends Component {
 		
 		hp.x = 30;
 		hp.y = 3;
-		
+
+        mp.x = 30;
+        mp.y = 8;
+
 		depth.x = width - 24 - depth.width()    - 18;
 		depth.y = 6;
 		
@@ -153,7 +160,7 @@ public class StatusPane extends Component {
 		
 		layoutTags();
 		
-		buffs.setPos( 32, 11 );
+		buffs.setPos( 36, 16 );
 		
 		btnMenu.setPos( width - btnMenu.width(), 1 );
 	}
@@ -209,7 +216,11 @@ public class StatusPane extends Component {
 		
 		hp.scale.x = health;
 		exp.scale.x = (width / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
-		
+
+        float mana = (float)Dungeon.hero.MP / Dungeon.hero.MMP;
+
+        mp.scale.x = mana;
+
 		if (Dungeon.hero.lvl != lastLvl) {
 			
 			if (lastLvl != -1) {

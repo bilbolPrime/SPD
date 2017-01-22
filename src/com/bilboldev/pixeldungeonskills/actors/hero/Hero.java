@@ -17,6 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+
+
+
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -40,11 +44,14 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Combo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Fletching;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Fury;
 import com.bilboldev.pixeldungeonskills.actors.buffs.GasesImmunity;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Hunting;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
+import com.bilboldev.pixeldungeonskills.actors.buffs.ManaRegeneration;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Ooze;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Paralysis;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
@@ -56,6 +63,8 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
+import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -137,10 +146,11 @@ public class Hero extends Char {
 	
 	public HeroClass heroClass = HeroClass.ROGUE;
 	public HeroSubClass subClass = HeroSubClass.NONE;
-	
+
+    public CurrentSkills heroSkills = CurrentSkills.MAGE;
+
 	private int attackSkill = 10;
 	private int defenseSkill = 5;
-	
 
 	public boolean ready = false;
 
@@ -196,14 +206,20 @@ public class Hero extends Char {
 	private static final String EXPERIENCE	= "exp";
 
     private static final String DIFFICULTY	= "editdifficulty";
-	
+
+    private static final String VERSION_SAVE = "verisionofsave";
+    private static final String SKILLS_AVAILABLE = "availableskills";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		
 		heroClass.storeInBundle( bundle );
 		subClass.storeInBundle( bundle );
-		
+
+        heroSkills.storeInBundle(bundle);
+
+        bundle.put( SKILLS_AVAILABLE,  Skill.availableSkill);
 		bundle.put( ATTACK, attackSkill );
 		bundle.put( DEFENSE, defenseSkill );
 		
@@ -213,6 +229,8 @@ public class Hero extends Char {
 		bundle.put( EXPERIENCE, exp );
 
         bundle.put( DIFFICULTY, difficulty );
+
+        bundle.put(VERSION_SAVE, Game.versionBuild);
 
 		belongings.storeInBundle( bundle );
         storage.storeInBundle(bundle);
@@ -224,6 +242,8 @@ public class Hero extends Char {
 		
 		heroClass = HeroClass.restoreInBundle( bundle );
 		subClass = HeroSubClass.restoreInBundle( bundle );
+
+
 		
 		attackSkill = bundle.getInt( ATTACK );
 		defenseSkill = bundle.getInt( DEFENSE );
@@ -240,6 +260,30 @@ public class Hero extends Char {
 
 		belongings.restoreFromBundle( bundle );
         storage.restoreFromBundle(bundle);
+
+
+        if(bundle.getInt(VERSION_SAVE) < Game.versionBuild)
+        {
+            switch (heroClass)
+            {
+                case WARRIOR: heroSkills = CurrentSkills.WARRIOR;
+                    break;
+                case MAGE: heroSkills = CurrentSkills.MAGE;
+                    break;
+                case ROGUE: heroSkills = CurrentSkills.ROGUE;
+                    break;
+                case HUNTRESS: heroSkills = CurrentSkills.HUNTRESS;
+                    break;
+            }
+            heroSkills.init(this);
+            Skill.availableSkill = Skill.STARTING_SKILL + lvl * 2;
+        }
+        else
+        {
+            heroSkills = CurrentSkills.restoreFromBundle(bundle);
+            heroSkills.init(this);
+            heroSkills.restoreSkillsFromBundle(bundle);
+        }
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
@@ -251,9 +295,12 @@ public class Hero extends Char {
 	}
 	
 	public void live() {
+        Buff.affect( this, ManaRegeneration.class );
 		Buff.affect( this, Regeneration.class );	
 		Buff.affect( this, Hunger.class );
-	}
+        Buff.affect( this, Fletching.class);
+        Buff.affect( this, Hunting.class);
+    }
 	
 	public int tier() {
 		return belongings.armor == null ? 0 : belongings.armor.tier;
@@ -267,6 +314,14 @@ public class Hero extends Char {
 		
 		return result;
 	}
+
+    public boolean shootThrough( Char enemy, MissileWeapon wep ) {
+
+        rangedWeapon = wep;
+        boolean result = attack( enemy );
+
+        return result;
+    }
 	
 	@Override
 	public int attackSkill( Char target ) {
@@ -279,9 +334,18 @@ public class Hero extends Char {
 		if (rangedWeapon != null && Level.distance( pos, target.pos ) == 1) {
 			accuracy *= 0.5f;
 		}
+
+        if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
+            accuracy *= heroSkills.passiveB1.toHitModifier(); // <--- Huntress Accuracy when present
+        }
+
 		
 		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
 		if (wep != null) {
+            if(rangedWeapon == null)
+            {
+                return (int)((attackSkill + Dungeon.hero.heroSkills.passiveB1.toHitBonus()) * accuracy * wep.acuracyFactor( this )); // <--- Warrior Firm Hand if present
+            }
 			return (int)(attackSkill * accuracy * wep.acuracyFactor( this ));
 		} else {
 			return (int)(attackSkill * accuracy);
@@ -816,7 +880,7 @@ public class Hero extends Char {
 			
 			spend( attackDelay() );
 			sprite.attack( enemy.pos );
-			
+
 			return false;
 			
 		} else {
@@ -1071,6 +1135,10 @@ public class Hero extends Char {
 			
 			HT += 5 - Dungeon.currentDifficulty.difficultyHPLevelPenalty();
 			HP += 5 - Dungeon.currentDifficulty.difficultyHPLevelPenalty();
+            MP += 5;
+            MMP += 5;
+            Skill.availableSkill += 2;
+            GLog.p("Gained 2 skill points!");
 			attackSkill++;
 			defenseSkill++;
 			
@@ -1178,6 +1246,8 @@ public class Hero extends Char {
 		for (Buff buff : buffs( RingOfShadows.Shadows.class )) {
 			stealth += ((RingOfShadows.Shadows)buff).level;
 		}
+
+        stealth += heroSkills.passiveA2.stealthBonus(); // <--- Rogue Stealth when present
 		return stealth;
 	}
 	
@@ -1284,7 +1354,7 @@ public class Hero extends Char {
 	@Override
 	public void onMotionComplete() {
 		Dungeon.observe();
-		search( false );
+		search(false);
 			
 		super.onMotionComplete();
 	}
@@ -1439,7 +1509,7 @@ public class Hero extends Char {
 		Dungeon.gold = 0;
 		exp = 0;
 		
-		belongings.resurrect( resetLevel );
+		belongings.resurrect(resetLevel);
 		
 		live();
 	}

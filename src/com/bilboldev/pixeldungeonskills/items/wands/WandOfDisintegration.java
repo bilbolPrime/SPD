@@ -86,7 +86,8 @@ public class WandOfDisintegration extends Wand {
 		int lvl = level + chars.size();
 		int dmgMin = lvl;
 		int dmgMax = 8 + lvl * lvl / 3;
-		for (Char ch : chars) {
+        dmgMax *= Dungeon.hero.heroSkills.passiveB2.wandDamageBonus();
+        for (Char ch : chars) {
 			ch.damage( Random.NormalIntRange( dmgMin, dmgMax ), this );
 			ch.sprite.centerEmitter().burst( PurpleParticle.BURST, Random.IntRange( 1, 2 ) );
 			ch.sprite.flash();

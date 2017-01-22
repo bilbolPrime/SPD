@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfElements.Resistance;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -64,8 +65,11 @@ public class Poison extends Buff implements Hero.Doom {
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
-			
-			target.damage( (int)(left / 3) + 1, this );
+
+            if(target instanceof Mob && Dungeon.hero.heroSkills.passiveB2.venomBonus() > 0)
+                target.damage( (int)(left / 3) + 1 + Dungeon.hero.heroSkills.passiveB2.venomBonus(), this );
+            else
+			    target.damage( (int)(left / 3) + 1, this );
 			spend( TICK );
 			
 			if ((left -= TICK) <= 0) {

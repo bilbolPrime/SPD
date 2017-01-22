@@ -18,12 +18,14 @@
 package com.bilboldev.pixeldungeonskills.items.weapon;
 
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.enchantments.*;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -78,7 +80,14 @@ abstract public class Weapon extends KindOfWeapon {
 	private static final String UNFAMILIRIARITY	= "unfamiliarity";
 	private static final String ENCHANTMENT		= "enchantment";
 	private static final String IMBUE			= "imbue";
-	
+
+    public int STR()
+    {
+        if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+            return STR - Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
+        return STR;
+    }
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
@@ -100,7 +109,7 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public float acuracyFactor( Hero hero ) {
 		
-		int encumbrance = STR - hero.STR();
+		int encumbrance = STR() - hero.STR();
 		
 		if (this instanceof MissileWeapon) {
 			switch (hero.heroClass) {
@@ -122,7 +131,7 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public float speedFactor( Hero hero ) {
 
-		int encumrance = STR - hero.STR();
+		int encumrance = STR() - hero.STR();
 		if (this instanceof MissileWeapon && hero.heroClass == HeroClass.HUNTRESS) {
 			encumrance -= 2;
 		}
@@ -138,7 +147,7 @@ abstract public class Weapon extends KindOfWeapon {
 		int damage = super.damageRoll( hero );
 		
 		if ((hero.rangedWeapon != null) == (hero.heroClass == HeroClass.HUNTRESS)) {
-			int exStr = hero.STR() - STR;
+			int exStr = hero.STR() - STR();
 			if (exStr > 0) {
 				damage += Random.IntRange( 0, exStr );
 			}
@@ -169,7 +178,7 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	@Override
 	public String toString() {
-		return levelKnown ? Utils.format( isBroken() ? TXT_BROKEN : TXT_TO_STRING, super.toString(), STR ) : super.toString();
+		return levelKnown ? Utils.format( isBroken() ? TXT_BROKEN : TXT_TO_STRING, super.toString(), STR() ) : super.toString();
 	}
 	
 	@Override

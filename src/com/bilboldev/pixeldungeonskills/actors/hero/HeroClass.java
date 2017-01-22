@@ -20,10 +20,13 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
+import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
@@ -31,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfHome;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSacrifice;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSkill;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
@@ -40,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Shuriken;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.utils.Bundle;
 
@@ -66,7 +71,8 @@ public enum HeroClass {
 		"Mages recharge their wands faster.",
 		"When eaten, any piece of food restores 1 charge for all wands in the inventory.",
 		"Mages can use wands as a melee weapon.",
-		"Scrolls of Identify are identified from the beginning."
+		"Scrolls of Identify are identified from the beginning.",
+         "Master of magic."
 	};
 	
 	public static final String[] ROG_PERKS = {
@@ -126,6 +132,7 @@ public enum HeroClass {
         Dungeon.hero.HT -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.currentDifficulty.difficultyStartItemBonus();
 
+        Skill.availableSkill = Skill.STARTING_SKILL;
 
         Bow tmp = new Bow(1);
         tmp.collect();
@@ -136,12 +143,18 @@ public enum HeroClass {
         new ScrollOfHome().setKnown();
         new ScrollOfSacrifice().setKnown();
         new ScrollOfBloodyRitual().setKnown();
+        new ScrollOfSkill().setKnown();
 
         new ScrollOfHome().collect();
         new ScrollOfSacrifice().collect();
         new ScrollOfBloodyRitual().collect();
+        new ScrollOfSkill().collect();
 
+        new PotionOfMana().setKnown();
 
+        new PotionOfMana().collect();
+        new PotionOfMana().collect();
+        new PotionOfMana().collect();
     }
 	
 	public Badges.Badge masteryBadge() {
@@ -160,16 +173,21 @@ public enum HeroClass {
 	
 	private static void initWarrior( Hero hero ) {
 		hero.STR = hero.STR + 1;
-		
+		hero.MP = hero.MMP = 20;
 		(hero.belongings.weapon = new ShortSword()).identify();
 		new Dart( 8 ).identify().collect();
 		
 		QuickSlot.primaryValue = Dart.class;
 		
 		new PotionOfStrength().setKnown();
+
+        hero.heroSkills = CurrentSkills.WARRIOR;
+        hero.heroSkills.init();
 	}
 	
-	private static void initMage( Hero hero ) {	
+	private static void initMage( Hero hero ) {
+        hero.MP = hero.MMP = 40;
+
 		(hero.belongings.weapon = new Knuckles()).identify();
 		
 		WandOfMagicMissile wand = new WandOfMagicMissile();
@@ -178,22 +196,29 @@ public enum HeroClass {
 		QuickSlot.primaryValue = wand;
 		
 		new ScrollOfIdentify().setKnown();
+
+        hero.heroSkills = CurrentSkills.MAGE;
+        hero.heroSkills.init();
 	}
 	
 	private static void initRogue( Hero hero ) {
+        hero.MP = hero.MMP = 30;
 		(hero.belongings.weapon = new Dagger()).identify();
 		(hero.belongings.ring1 = new RingOfShadows()).upgrade().identify();
 		new Dart( 8 ).identify().collect();
-		
+		new Shuriken(10).identify().collect();
 		hero.belongings.ring1.activate( hero );
 		
 		QuickSlot.primaryValue = Dart.class;
 		
 		new ScrollOfMagicMapping().setKnown();
+
+        hero.heroSkills = CurrentSkills.ROGUE;
+        hero.heroSkills.init();
 	}
 	
 	private static void initHuntress( Hero hero ) {
-		
+        hero.MP = hero.MMP = 35;
 		hero.HP = (hero.HT -= 5);
 		
 		(hero.belongings.weapon = new Dagger()).identify();
@@ -201,6 +226,9 @@ public enum HeroClass {
 		boomerang.identify().collect();
 		
 		QuickSlot.primaryValue = boomerang;
+
+        hero.heroSkills = CurrentSkills.HUNTRESS;
+        hero.heroSkills.init();
 	}
 	
 	public String title() {
