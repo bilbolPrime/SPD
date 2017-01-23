@@ -30,11 +30,13 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.Fireball;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+
 
 public class TitleScene extends PixelScene {
 
@@ -142,7 +144,7 @@ public class TitleScene extends PixelScene {
         version.y = h - version.height() - 9;
         add( version );
 
-        BitmapText versionPD = new BitmapText( "Vanilla PD v 1.9.2a", font1x );
+        BitmapText versionPD = new BitmapText( Game.vanillaVersion , font1x );
         versionPD.measure();
         versionPD.hardlight( 0x666666 );
         versionPD.x = w - versionPD.width();
@@ -156,7 +158,12 @@ public class TitleScene extends PixelScene {
 		ExitButton btnExit = new ExitButton();
 		btnExit.setPos( w - btnExit.width(), 0 );
 		add( btnExit );
-		
+
+        if(VersionNewsInfo.haveMessage())
+        {
+            add(VersionNewsInfo.getWelcomeWindow());
+        }
+
 		fadeIn();
 	}
 	

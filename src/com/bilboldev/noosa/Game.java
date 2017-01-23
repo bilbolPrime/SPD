@@ -28,6 +28,7 @@ import com.bilboldev.input.Keys;
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
+import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.utils.BitmapCache;
 import com.bilboldev.utils.SystemTime;
 
@@ -58,7 +59,8 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 	
 	public static String version;
     public static int versionBuild;
-	
+	public static String vanillaVersion = "Vanilla PD v 1.9.2a";
+
 	// Current scene
 	protected Scene scene;
 	// New scene we are going to switch to
@@ -105,8 +107,11 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
             versionBuild = getPackageManager().getPackageInfo( getPackageName(), 0 ).versionCode;
 		} catch (NameNotFoundException e) {
 			version = "???";
+            versionBuild = 0;
 		}
-		
+
+        VersionNewsInfo.alreadySeen = false; // Static variables tend to stick between games
+
 		setVolumeControlStream( AudioManager.STREAM_MUSIC );
 
 
