@@ -435,6 +435,9 @@ public abstract class Mob extends Char {
 
     public void champEffect(Char enemy, int damage )
     {
+        if(enemy == null) // Happens sometimes with summoned stuff and NPCs
+            return;
+
         if(champ != -1) {
             if (champ == Champ.CHAMP_VAMPERIC) {
                 int reg = Math.min(damage, HT - HP);
