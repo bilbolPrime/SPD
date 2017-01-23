@@ -5,6 +5,8 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.utils.Bundle;
 
 
@@ -32,6 +34,8 @@ public enum CurrentSkills{
     public Skill active2 = null;
     public Skill active3 = null;
 
+    public Skill lastUsed = null;
+
     private String type = "";
 
     private CurrentSkills(String type) {
@@ -46,7 +50,7 @@ public enum CurrentSkills{
     public void init(Hero hero)
     {
         hero.heroSkills = this;
-
+        lastUsed = null;
         switch (this) {
             case WARRIOR:
                 branchPA = new WarriorPassiveA();
@@ -154,6 +158,13 @@ public enum CurrentSkills{
             case ACTIVE: if(active1.level < Skill.MAX_LEVEL) { active1.requestUpgrade();} else if (active2.level < Skill.MAX_LEVEL) { active2.requestUpgrade();} else active3.requestUpgrade();
                 break;
         }
+    }
+
+
+    public void showLastUsed()
+    {
+        if(lastUsed != null)
+            GameScene.show(new WndSkill(null, lastUsed));
     }
 
     public void storeInBundle( Bundle bundle )

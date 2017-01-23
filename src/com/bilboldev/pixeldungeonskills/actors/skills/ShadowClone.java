@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
@@ -64,6 +65,7 @@ public class ShadowClone extends ActiveSkill3{
 
             hero.MP -= getManaCost();
             castTextYell();
+            Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 

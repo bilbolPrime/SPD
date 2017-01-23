@@ -71,6 +71,7 @@ public class SummonRat extends ActiveSkill1{
                 hero.MP -= getManaCost();
                 castTextYell();
             }
+            Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 

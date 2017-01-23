@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
@@ -71,6 +72,7 @@ public class SummonSkeleton extends ActiveSkill3{
                 hero.MP -= getManaCost();
                 castTextYell();
             }
+            Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 

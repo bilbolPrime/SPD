@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
@@ -70,6 +71,7 @@ public class SummonCrab extends ActiveSkill2{
                 hero.MP -= getManaCost();
                 castTextYell();
             }
+            Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 

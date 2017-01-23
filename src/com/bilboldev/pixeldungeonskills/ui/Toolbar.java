@@ -26,6 +26,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -42,6 +43,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
@@ -51,6 +53,7 @@ public class Toolbar extends Component {
 	private Tool btnWait;
     private Tool btnSkill;
     private Tool btnKing;
+    private Tool btnLastUsed;
 	private Tool btnSearch;
 	private Tool btnInfo;
 	private Tool btnInventory;
@@ -96,6 +99,7 @@ public class Toolbar extends Component {
             };
         });
 
+        /*
         add( btnKing = new Tool( 135, 7, 21, 24 ) {
             @Override
             protected void onClick() {
@@ -106,6 +110,27 @@ public class Toolbar extends Component {
                 return true;
             };
         });
+
+        */
+
+            add(btnLastUsed = new Tool(158, 7, 21, 24) {
+                @Override
+                protected void onClick() {
+                    Dungeon.hero.heroSkills.showLastUsed();
+                }
+
+                ;
+
+                protected boolean onLongClick() {
+                    Dungeon.hero.heroSkills.showLastUsed();
+                    return true;
+                }
+
+                ;
+            });
+
+
+
 		
 		add( btnSearch = new Tool( 20, 7, 20, 25 ) {
 			@Override
@@ -157,7 +182,8 @@ public class Toolbar extends Component {
 		btnSearch.setPos( btnWait.right(), y );
 		btnInfo.setPos( btnSearch.right(), y );
         btnSkill.setPos( 0, 50 );
-        btnKing.setPos(0, 80);
+       // btnKing.setPos(0, 80);
+        btnLastUsed.setPos(0, 80);
 		btnQuick1.setPos( width - btnQuick1.width(), y );
 		if (btnQuick2.visible) {
 			btnQuick2.setPos(btnQuick1.left() - btnQuick2.width(), y );
@@ -176,7 +202,10 @@ public class Toolbar extends Component {
 			
 			for (Gizmo tool : members) {
 				if (tool instanceof Tool) {
-					((Tool)tool).enable( lastEnabled );
+                    ((Tool)tool).enable( lastEnabled );
+
+                    if(tool == btnLastUsed)
+                        tool.visible = Dungeon.hero.heroSkills.lastUsed != null;
 				}
 			}
 		}

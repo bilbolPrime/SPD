@@ -57,7 +57,7 @@ public class WndSkill extends Window {
 		float y = info.y + info.height() + GAP;
 		float x = 0;
 		
-		if (Dungeon.hero.isAlive() && owner != null) {
+		if (Dungeon.hero.isAlive()) {
 			for (final String action:skill.actions( Dungeon.hero )) {
 				
 				RedButton btn = new RedButton( action ) {
@@ -65,7 +65,8 @@ public class WndSkill extends Window {
 					protected void onClick() {
                         skill.execute( Dungeon.hero, action );
 						hide();
-						owner.hide();
+                        if(owner != null)
+						    owner.hide();
 					};
 				};
 				btn.setSize( Math.max( BUTTON_WIDTH, btn.reqWidth() ), BUTTON_HEIGHT );

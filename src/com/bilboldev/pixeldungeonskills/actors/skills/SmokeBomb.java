@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -39,6 +40,7 @@ public class SmokeBomb extends ActiveSkill1{
                 CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
                 hero.MP -= getManaCost();
                 castTextYell();
+                Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 

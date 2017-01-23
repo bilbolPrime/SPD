@@ -38,6 +38,7 @@ public class SpiritArrow extends ActiveSkill1{
             CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
             hero.MP -= getManaCost();
             castTextYell();
+            Dungeon.hero.heroSkills.lastUsed = this;
         }
     }
 
