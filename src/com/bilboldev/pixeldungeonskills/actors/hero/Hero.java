@@ -210,6 +210,7 @@ public class Hero extends Char {
     private static final String VERSION_SAVE = "verisionofsave";
     private static final String SKILLS_AVAILABLE = "availableskills";
 
+    private static final int  skills_reset_version = 19;
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
@@ -262,7 +263,7 @@ public class Hero extends Char {
         storage.restoreFromBundle(bundle);
 
 
-        if(bundle.getInt(VERSION_SAVE) < Game.versionBuild)
+        if(bundle.getInt(VERSION_SAVE) < skills_reset_version)
         {
             switch (heroClass)
             {
