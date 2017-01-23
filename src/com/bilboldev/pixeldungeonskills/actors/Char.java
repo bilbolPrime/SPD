@@ -51,8 +51,11 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Rat;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Yog;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
@@ -467,7 +470,8 @@ public abstract class Char extends Actor {
 	}
 	
 	public void die( Object src ) {
-        this.sprite.showStatus(CharSprite.NEUTRAL, getDeathScream());
+        if(!(this instanceof Shopkeeper || this instanceof Imp || this instanceof Blacksmith))
+            this.sprite.showStatus(CharSprite.NEUTRAL, getDeathScream());
 		destroy();
 		sprite.die();
 	}
