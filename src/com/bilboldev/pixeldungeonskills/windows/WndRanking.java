@@ -78,7 +78,9 @@ public class WndRanking extends WndTabbed {
 			}
 		};
 		thread.start();
-		
+
+
+
 		busy = Icons.BUSY.get();	
 		busy.origin.set( busy.width / 2, busy.height / 2 );
 		busy.angularSpeed = 720;
@@ -93,6 +95,8 @@ public class WndRanking extends WndTabbed {
 		
 		if (thread != null && !thread.isAlive()) {
 			thread = null;
+            if(Dungeon.hero == null)
+                error = TXT_ERROR;
 			if (error == null) {
 				remove( busy );
 				createControls();
@@ -165,7 +169,16 @@ public class WndRanking extends WndTabbed {
 
 		public StatsTab() {
 			super();
-			
+
+            if(Dungeon.hero == null)
+            {
+                IconTitle title = new IconTitle();
+                title.label( "ERROR loading data" );
+                title.setRect( 0, 0, WIDTH, 0 );
+                add( title );
+                return;
+            }
+
 			String heroClass = Dungeon.hero.className();
 			
 			IconTitle title = new IconTitle();
@@ -236,7 +249,16 @@ public class WndRanking extends WndTabbed {
 		
 		public ItemsTab() {
 			super();
-			
+
+            if(Dungeon.hero == null)
+            {
+                IconTitle title = new IconTitle();
+                title.label( "ERROR loading data" );
+                title.setRect( 0, 0, WIDTH, 0 );
+                add( title );
+                return;
+            }
+
 			Belongings stuff = Dungeon.hero.belongings;
 			if (stuff.weapon != null) {
 				addItem( stuff.weapon );
@@ -306,7 +328,16 @@ public class WndRanking extends WndTabbed {
 		
 		public BadgesTab() {
 			super();
-			
+
+            if(Dungeon.hero == null)
+            {
+                IconTitle title = new IconTitle();
+                title.label( "ERROR loading data" );
+                title.setRect( 0, 0, WIDTH, 0 );
+                add( title );
+                return;
+            }
+
 			camera = WndRanking.this.camera;
 			
 			ScrollPane list = new BadgesList( false );

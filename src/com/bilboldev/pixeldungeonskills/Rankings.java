@@ -44,7 +44,10 @@ public enum Rankings {
 	public int lastRecord;
 	public int totalNumber;
 	public int wonNumber;
-	
+
+
+
+
 	public void submit( boolean win ) {
 		
 		load();
@@ -132,9 +135,11 @@ public enum Rankings {
 			InputStream input = Game.instance.openFileInput( RANKINGS_FILE );
 			Bundle bundle = Bundle.read( input );
 			input.close();
-			
+
+
 			for (Bundlable record : bundle.getCollection( RECORDS )) {
-				records.add( (Record)record );
+                if(record != null)
+				    records.add( (Record)record );
 			}			
 			lastRecord = bundle.getInt( LATEST );
 			
