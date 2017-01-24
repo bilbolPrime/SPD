@@ -5,7 +5,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class Spirituality extends PassiveSkillA2{
+public class Spirituality extends PassiveSkillA1{
 
 
     {

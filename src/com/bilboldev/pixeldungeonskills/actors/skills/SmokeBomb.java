@@ -41,6 +41,9 @@ public class SmokeBomb extends ActiveSkill1{
                 hero.MP -= getManaCost();
                 castTextYell();
                 Dungeon.hero.heroSkills.lastUsed = this;
+                hero.spend( TIME_TO_USE );
+                hero.busy();
+                hero.sprite.operate( hero.pos );
         }
     }
 

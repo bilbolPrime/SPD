@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.Wound;
@@ -381,6 +382,9 @@ public abstract class Mob extends Char {
 	public void die( Object cause ) {
 		
 		super.die( cause );
+
+        if(this instanceof SummonedPet)
+            SummonedPet.summonedPets--;
 
         if(champ > 0)
             dropLootGuaranteed();

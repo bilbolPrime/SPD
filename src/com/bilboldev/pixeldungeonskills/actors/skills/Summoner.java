@@ -28,7 +28,7 @@ public class Summoner extends PassiveSkillB3{
     @Override
     public String info()
     {
-        return "Summons an extra minion per level.\n"
+        return "Summoning limit increases by 1 per level.\n"
                 + costUpgradeInfo();
     }
 }

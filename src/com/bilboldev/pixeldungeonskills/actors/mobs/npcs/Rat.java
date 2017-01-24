@@ -29,6 +29,7 @@ import com.bilboldev.utils.Random;
 
 import java.util.HashSet;
 
+/* Retired class, use SummonedPet.java*/
 public class Rat extends NPC {
 	
 	{

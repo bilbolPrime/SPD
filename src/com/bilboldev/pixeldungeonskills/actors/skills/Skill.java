@@ -33,6 +33,8 @@ public class Skill{
 
     public static int availableSkill = STARTING_SKILL;
 
+    public static final float TIME_TO_USE = 1f;
+
     public String name = "Skill";
     public String castText = "";
     public int level = 0;

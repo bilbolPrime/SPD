@@ -50,13 +50,11 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Rat;
-import com.bilboldev.pixeldungeonskills.actors.mobs.Yog;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
@@ -149,7 +147,7 @@ public abstract class Char extends Actor {
             return HERO_DEATH_SCREAM[Random.IntRange( 0, HERO_DEATH_SCREAM.length - 1 )];
         if(this instanceof Rat)
             return RAT_DEATH_SCREAMS[Random.IntRange( 0, RAT_DEATH_SCREAMS.length - 1 )];
-        if(this instanceof com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Rat || this instanceof Crab || this instanceof Skeleton)
+        if(this instanceof SummonedPet)
             return PET_FAREWELL[Random.IntRange( 0, PET_FAREWELL.length - 1 )];
         return MOB_DEATH_SCREAMS[Random.IntRange( 0, MOB_DEATH_SCREAMS.length - 1 )];
     }

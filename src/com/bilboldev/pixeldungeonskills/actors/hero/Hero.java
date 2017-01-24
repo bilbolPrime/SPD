@@ -284,6 +284,7 @@ public class Hero extends Char {
             heroSkills = CurrentSkills.restoreFromBundle(bundle);
             heroSkills.init(this);
             heroSkills.restoreSkillsFromBundle(bundle);
+            Skill.availableSkill = bundle.getInt( SKILLS_AVAILABLE);
         }
 	}
 	

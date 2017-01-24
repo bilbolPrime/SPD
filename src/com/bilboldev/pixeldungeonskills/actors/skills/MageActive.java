@@ -36,6 +36,7 @@ public class MageActive extends BranchSkill{
     public String info()
     {
         return "Mages rely on summoned creatures to do their bidding.\n"
+                + "Limited to 3  (+" + Dungeon.hero.heroSkills.passiveB3.summoningLimitBonus() + " bonus from the Summoner skill) active summons\n"
                 + "You have invested a total of " + totalSpent() + " points in this branch.\n"
                 + (canUpgrade() ? "Next advancement will cost you " + nextUpgradeCost() + " skill point.\n" : "You can no longer advance in this line");
     }

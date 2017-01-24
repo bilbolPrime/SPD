@@ -5,7 +5,7 @@ import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Rat;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -40,7 +40,7 @@ public class SummonRat extends ActiveSkill1{
         if(action == Skill.AC_SUMMON)
         {
             boolean spawned = false;
-            for (int nu = 0; nu < 1 + hero.heroSkills.passiveB3.summoningLimitBonus(); nu++) { // <--- Mage Summoner when present
+            for (int nu = 0; nu < 1 ; nu++) {
                 int newPos = hero.pos;
                 if (Actor.findChar(newPos) != null) {
                     ArrayList<Integer> candidates = new ArrayList<Integer>();
@@ -55,9 +55,8 @@ public class SummonRat extends ActiveSkill1{
                     newPos = candidates.size() > 0 ? Random.element(candidates) : -1;
                     if (newPos != -1) {
                         spawned = true;
-                            Rat rat = new Rat();
-                            rat.spawn(level * 5 + 5);
-                            rat.HP = rat.HT;
+                            SummonedPet rat = new SummonedPet(SummonedPet.PET_TYPES.RAT);
+                            rat.spawn(level);
                             rat.pos = newPos;
                             GameScene.add(rat);
                             Actor.addDelayed(new Pushing(rat, hero.pos, newPos), -1);
@@ -70,6 +69,9 @@ public class SummonRat extends ActiveSkill1{
             if(spawned == true) {
                 hero.MP -= getManaCost();
                 castTextYell();
+                hero.spend( TIME_TO_USE );
+                hero.busy();
+                hero.sprite.operate( hero.pos );
             }
             Dungeon.hero.heroSkills.lastUsed = this;
         }
