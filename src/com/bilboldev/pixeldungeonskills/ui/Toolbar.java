@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -42,6 +43,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
+import com.bilboldev.pixeldungeonskills.windows.WndMerc;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
@@ -52,7 +54,7 @@ public class Toolbar extends Component {
 
 	private Tool btnWait;
     private Tool btnSkill;
-    private Tool btnKing;
+    private Tool btnMerc;
     private Tool btnLastUsed;
 	private Tool btnSearch;
 	private Tool btnInfo;
@@ -129,6 +131,22 @@ public class Toolbar extends Component {
                 ;
             });
 
+        add(btnMerc = new Tool(252, 7, 20, 24) {
+            @Override
+            protected void onClick() {
+                if(Dungeon.hero.hiredMerc == null)
+                    GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
+                else
+                    GameScene.show(new WndMerc(null, null));
+            };
+            protected boolean onLongClick() {
+                if(Dungeon.hero.hiredMerc == null)
+                    GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
+                else
+                    GameScene.show(new WndMerc(null, null));
+                return true;
+            };});
+
 
 
 		
@@ -181,9 +199,10 @@ public class Toolbar extends Component {
 		btnWait.setPos( x, y );
 		btnSearch.setPos( btnWait.right(), y );
 		btnInfo.setPos( btnSearch.right(), y );
-        btnSkill.setPos( 0, 50 );
+        btnMerc.setPos( 0, 50 );
+        btnSkill.setPos( 0, 80 );
        // btnKing.setPos(0, 80);
-        btnLastUsed.setPos(0, 80);
+        btnLastUsed.setPos(0, 110);
 		btnQuick1.setPos( width - btnQuick1.width(), y );
 		if (btnQuick2.visible) {
 			btnQuick2.setPos(btnQuick1.left() - btnQuick2.width(), y );

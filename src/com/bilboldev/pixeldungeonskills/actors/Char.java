@@ -51,6 +51,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Rat;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
@@ -118,6 +119,11 @@ public abstract class Char extends Actor {
             "I just wanted some love..."
     };
 
+    private String[] MERC_FAREWELL = {
+            "I didn't sign up for this...",
+            "I want a raise..."
+    };
+
 	public int pos = 0;
 	
 	public CharSprite sprite;
@@ -149,6 +155,8 @@ public abstract class Char extends Actor {
             return RAT_DEATH_SCREAMS[Random.IntRange( 0, RAT_DEATH_SCREAMS.length - 1 )];
         if(this instanceof SummonedPet)
             return PET_FAREWELL[Random.IntRange( 0, PET_FAREWELL.length - 1 )];
+        if(this instanceof HiredMerc)
+            return MERC_FAREWELL[Random.IntRange( 0, MERC_FAREWELL.length - 1 )];
         return MOB_DEATH_SCREAMS[Random.IntRange( 0, MOB_DEATH_SCREAMS.length - 1 )];
     }
 
@@ -470,6 +478,7 @@ public abstract class Char extends Actor {
 	public void die( Object src ) {
         if(!(this instanceof Shopkeeper || this instanceof Imp || this instanceof Blacksmith))
             this.sprite.showStatus(CharSprite.NEUTRAL, getDeathScream());
+
 		destroy();
 		sprite.die();
 	}

@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.items.Honeypot;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
@@ -30,6 +31,7 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfHome;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
@@ -155,6 +157,8 @@ public enum HeroClass {
         new PotionOfMana().collect();
         new PotionOfMana().collect();
         new PotionOfMana().collect();
+
+        new ScrollOfEnchantment().identify().collect();
     }
 	
 	public Badges.Badge masteryBadge() {

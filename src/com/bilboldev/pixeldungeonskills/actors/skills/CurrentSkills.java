@@ -36,6 +36,8 @@ public enum CurrentSkills{
 
     public Skill lastUsed = null;
 
+    public static Negotiations mercMenu = new Negotiations();
+
     private String type = "";
 
     private CurrentSkills(String type) {

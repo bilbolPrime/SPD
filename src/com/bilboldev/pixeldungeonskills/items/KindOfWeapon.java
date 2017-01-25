@@ -21,6 +21,7 @@ import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
@@ -94,6 +95,10 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public int damageRoll( Hero owner ) {
 		return Random.NormalIntRange( min(), max() );
 	}
+
+    public int damageRoll( HiredMerc merc ) {
+        return Random.NormalIntRange( min(), max() );
+    }
 	
 	public float acuracyFactor( Hero hero ) {
 		return 1f;

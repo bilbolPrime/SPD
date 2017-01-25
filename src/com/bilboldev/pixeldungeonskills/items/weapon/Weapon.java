@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.enchantments.*;
@@ -155,6 +156,20 @@ abstract public class Weapon extends KindOfWeapon {
 		
 		return damage;
 	}
+
+    @Override
+    public int damageRoll( HiredMerc merc ) {
+
+        int damage = super.damageRoll( merc );
+
+            int exStr = merc.mercType.getStrength(level) - STR();
+            if (exStr > 0) {
+                damage += Random.IntRange( 0, exStr );
+            }
+
+
+        return damage;
+    }
 	
 	public Item upgrade( boolean enchant ) {		
 		if (enchantment != null) {

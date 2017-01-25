@@ -230,6 +230,8 @@ public class Skill{
         return false;
     }
 
+    public void mercSummon() {}
+
     public void storeInBundle(Bundle bundle)
     {
         bundle.put( SKILL_LEVEL + " " + tag, level );

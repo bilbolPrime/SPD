@@ -146,6 +146,8 @@ public class SummonedPet extends NPC {
         defenseSkill = petType.getDefence(level);
 
         spriteClass = petType.getSprite();
+
+        name = petType.getName();
     }
 
     public void spawn( int level, int maintainHP) {
@@ -156,6 +158,8 @@ public class SummonedPet extends NPC {
         defenseSkill = petType.getDefence(level);
 
         spriteClass = petType.getSprite();
+
+        name = petType.getName();
     }
 
     @Override

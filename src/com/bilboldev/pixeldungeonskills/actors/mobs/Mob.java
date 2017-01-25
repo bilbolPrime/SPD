@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -237,8 +238,14 @@ public abstract class Mob extends Char {
         if (rooted)
             return false;
 
-        PathFinder.Path tmp = PathFinder.find(pos, newPos, Dungeon.passable);
-        return tmp != null && tmp.size() < 3;
+        try {
+            PathFinder.Path tmp = PathFinder.find(pos, newPos, Dungeon.passable);
+            return tmp != null && tmp.size() < 3;
+        }
+        catch (Exception ex)
+        {
+            return false; // Prevents crash if out of bounds
+        }
     }
 
 	protected boolean getCloser( int target ) {
@@ -442,19 +449,27 @@ public abstract class Mob extends Char {
         if(enemy == null) // Happens sometimes with summoned stuff and NPCs
             return;
 
-        if(champ != -1) {
-            if (champ == Champ.CHAMP_VAMPERIC) {
-                int reg = Math.min(damage, HT - HP);
+        if(enemy instanceof NPC)
+            return;
+        try {
+            if (champ != -1) {
+                if (champ == Champ.CHAMP_VAMPERIC) {
+                    int reg = Math.min(damage, HT - HP);
 
-                if (reg > 0) {
-                    HP += reg;
-                    sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+                    if (reg > 0) {
+                        HP += reg;
+                        sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+                    }
+                } else if (champ == Champ.CHAMP_CURSED) {
+                    Buff.affect(enemy, Weakness.class, 5);
+                } else if (champ == Champ.CHAMP_FOUL) {
+                    Buff.affect(enemy, Poison.class).set(5);
                 }
-            } else if (champ == Champ.CHAMP_CURSED) {
-                Buff.affect(enemy, Weakness.class, 5);
-            } else if (champ == Champ.CHAMP_FOUL) {
-                Buff.affect(enemy, Poison.class).set(5);
             }
+        }
+        catch (Exception ex)
+        {
+
         }
     }
 

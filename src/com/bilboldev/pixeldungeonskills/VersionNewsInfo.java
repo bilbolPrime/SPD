@@ -12,12 +12,11 @@ public class VersionNewsInfo {
     public static String message = "Welcome to Skillful PixelDungeon!\n \n \n"
             + "The game has been given a complete makeover in terms of class skills and balance.\n \n"
             + "Old ranking details cannot be displayed at this time, but rest assured they are not lost.\n \n"
-            + "As of 0.2.2b (Build 25): \n"
-            + "- Fixed an exploit allowing infinite skill points... You rascals you..\n"
-            + "- Fixed bug preventing Spirituality skill from saving its level properly.\n"
-            + "- Mage summoned units are weaker but last longer, limited to 3 + Summoner level.\n"
-            + "- Summoner skill no longer increases number of summoned units on casting Summon.\n"
-            + "- Skills that are cast or summon spend some time.\n \n"
+            + "As of 0.2.3b (Build 28): \n"
+            + "- Mercs added\n"
+            + "- You cannot hire the merc equivalent to your class.\n"
+            + "- Merc equiped weapon and armor affect their stat.\n"
+            + "- Enchanted weapons and armors equiped onto mercs take full effect.\n"
             + "Have fun :D";
 
     public static boolean alreadySeen = false;

@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import com.bilboldev.noosa.Game;
+import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -34,9 +35,13 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Rage;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
+import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
+import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
+import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
@@ -60,6 +65,7 @@ import com.bilboldev.pixeldungeonskills.levels.SewerBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.SewerLevel;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
+import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.BArray;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -264,7 +270,8 @@ public class Dungeon {
 		
 		Dungeon.level = level;
 		Actor.init();
-		
+
+
 		Actor respawner = level.respawner();
 		if (respawner != null) {
 			Actor.add( level.respawner() );
@@ -276,6 +283,8 @@ public class Dungeon {
 		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
 		
 		observe();
+
+       hero.hackFix = true;
 	}
 	
 	public static void dropToChasm( Item item ) {

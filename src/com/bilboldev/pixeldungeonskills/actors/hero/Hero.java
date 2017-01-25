@@ -62,8 +62,10 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
+import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
@@ -148,6 +150,8 @@ public class Hero extends Char {
 	public HeroSubClass subClass = HeroSubClass.NONE;
 
     public CurrentSkills heroSkills = CurrentSkills.MAGE;
+
+    public HiredMerc hiredMerc = null;
 
 	private int attackSkill = 10;
 	private int defenseSkill = 5;
@@ -284,7 +288,7 @@ public class Hero extends Char {
             heroSkills = CurrentSkills.restoreFromBundle(bundle);
             heroSkills.init(this);
             heroSkills.restoreSkillsFromBundle(bundle);
-            Skill.availableSkill = bundle.getInt( SKILLS_AVAILABLE);
+            Skill.availableSkill = bundle.getInt(SKILLS_AVAILABLE);
         }
 	}
 	
@@ -448,12 +452,19 @@ public class Hero extends Char {
 		spend( time );
 		next();
 	}
-	
+
+    public boolean hackFix = false;
 	@Override
 	public boolean act() {
 		
 		super.act();
-		
+
+if(hackFix == true)
+{
+    new Negotiations().restoreMerc(this);
+    hackFix = false;
+}
+
 		if (paralysed) {
 			
 			curAction = null;
@@ -1156,7 +1167,12 @@ public class Hero extends Char {
 			GLog.p( TXT_NEW_LEVEL, lvl );
 			sprite.showStatus( CharSprite.POSITIVE, TXT_LEVEL_UP );
 			Sample.INSTANCE.play( Assets.SND_LEVELUP );
-			
+
+            if(hiredMerc != null)
+            {
+                hiredMerc.level();
+            }
+
 			Badges.validateLevelReached();
 		}
 		
