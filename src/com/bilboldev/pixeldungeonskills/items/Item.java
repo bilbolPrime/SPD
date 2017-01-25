@@ -30,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.effects.Degradation;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
@@ -617,6 +618,43 @@ public class Item implements Bundlable {
 				}
 			} );
 	}
+
+    public void cast( final HiredMerc user, int dst ) {
+
+        final int cell = Ballistica.cast( user.pos, dst, false, true );
+        user.sprite.zap( cell );
+        //user.busy();
+
+        Sample.INSTANCE.play( Assets.SND_MISS, 0.6f, 0.6f, 1.5f );
+
+        Char enemy = Actor.findChar( cell );
+        QuickSlot.target( this, enemy );
+
+        // FIXME!!!
+        float delay = TIME_TO_THROW;
+        if (this instanceof MissileWeapon) {
+           // delay *= ((MissileWeapon)this).speedFactor( user );
+            if (enemy != null) {
+                SnipersMark mark = user.buff( SnipersMark.class );
+                if (mark != null) {
+                    if (mark.object == enemy.id()) {
+                        delay *= 0.5f;
+                    }
+                    user.remove( mark );
+                }
+            }
+        }
+        final float finalDelay = delay;
+
+        ((MissileSprite)user.sprite.parent.recycle( MissileSprite.class )).
+                reset( user.pos, cell, this, new Callback() {
+                    @Override
+                    public void call() {
+                      //  Item.this.detach( user.belongings.backpack ).onThrow( cell );
+                        //user.spendAndNext( finalDelay );
+                    }
+                } );
+    }
 
     public void castSPD( final Hero user, int dst, int skip ) {
 

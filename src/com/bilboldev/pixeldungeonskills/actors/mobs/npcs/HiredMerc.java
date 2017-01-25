@@ -1,30 +1,33 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
-import com.bilboldev.noosa.tweeners.AlphaTweener;
+
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
-import com.bilboldev.pixeldungeonskills.actors.mobs.Brute;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.skills.Endurance;
+import com.bilboldev.pixeldungeonskills.actors.skills.KneeShot;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercBruteSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercThiefSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercWizardSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
-import com.bilboldev.pixeldungeonskills.actors.skills.SummonRat;
-import com.bilboldev.pixeldungeonskills.effects.Pushing;
+import com.bilboldev.pixeldungeonskills.actors.skills.SpiritArrow;
+import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
+import com.bilboldev.pixeldungeonskills.effects.particles.PurpleParticle;
 import com.bilboldev.pixeldungeonskills.items.Item;
-import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
@@ -38,7 +41,7 @@ public class HiredMerc extends NPC {
 
     public static enum MERC_TYPES
     {
-        Brute("Brute"), Wizard("Wizard"), Thief("Thief");
+        Brute("Brute"), Wizard("Wizard"), Thief("Thief"), ArcherMaiden("ArcherMaiden");
         public String type = "Brute";
         MERC_TYPES(String type) {this.type = type;}
 
@@ -54,6 +57,7 @@ public class HiredMerc extends NPC {
                 case Brute: return 20 + level * 3;
                 case Wizard: return 10 + level;
                 case Thief: return 15 + level * 2;
+                case ArcherMaiden: return 15 + level * 2;
             }
 
             return 1;
@@ -71,6 +75,7 @@ public class HiredMerc extends NPC {
                 case Brute: return 2 *level;
                 case Wizard: return  level;
                 case Thief: return 3 * level;
+                case ArcherMaiden: return 3 * level;
             }
             return 1;
         }
@@ -82,6 +87,7 @@ public class HiredMerc extends NPC {
                 case Brute: return "Brutes are strong  but slow but can tank a lot of damage.";
                 case Wizard: return "Wizards cast spells but cannot take a lot of punishment. They are also weak.";
                 case Thief: return "Thieves are very agile and have admirable strength.";
+                case ArcherMaiden: return "ArcherMaidens support from a distance.";
             }
             return "";
         }
@@ -94,6 +100,7 @@ public class HiredMerc extends NPC {
                 case Brute: return 0.7f;
                 case Wizard: return 1f;
                 case Thief: return 1.5f;
+                case ArcherMaiden: return 1.2f;
             }
             return 1f;
         }
@@ -105,6 +112,7 @@ public class HiredMerc extends NPC {
                 case Brute: return 0;
                 case Wizard: return 24;
                 case Thief: return 48;
+                case ArcherMaiden: return 72;
             }
             return 0;
         }
@@ -126,9 +134,22 @@ public class HiredMerc extends NPC {
                 case Brute: return new MercBruteSkillA();
                 case Wizard: return new MercWizardSkillA();
                 case Thief: return new MercThiefSkillA();
+                case ArcherMaiden: return new KneeShot();
             }
 
             return new Endurance();
+        }
+
+        public void setSkills(HiredMerc merc)
+        {
+            merc.skill =  new MercBruteSkillA();
+            switch (this)
+            {
+                case Brute: merc.skill = new MercBruteSkillA(); break;
+                case Wizard: merc.skill = new MercWizardSkillA(); break;
+                case Thief: merc.skill = new MercThiefSkillA(); break;
+                case ArcherMaiden: merc.skill = new KneeShot(); merc.skillb = new SpiritArrow(); break;
+            }
         }
 
         public int getStrength(int level)
@@ -138,6 +159,7 @@ public class HiredMerc extends NPC {
                 case Brute: return 13 + (int) (level / 3);
                 case Wizard: return 10 + (int) (level / 5);
                 case Thief: return 13 + (int) (level / 4);
+                case ArcherMaiden: return 11 + (int) (level / 4);
             }
             return 0;
         }
@@ -163,6 +185,7 @@ public class HiredMerc extends NPC {
     public int skillCounter = 90;
 
     public Skill skill = null;
+    public Skill skillb = null;
 
     public Item weapon = null;
     public Item armor = null;
@@ -198,7 +221,8 @@ public class HiredMerc extends NPC {
     public HiredMerc(MERC_TYPES merc)
     {
         this.mercType = merc;
-        skill = mercType.getSkill();
+        //skill = mercType.getSkill();
+        mercType.setSkills(this);
         skill.level++;
     }
 
@@ -390,6 +414,20 @@ public class HiredMerc extends NPC {
 
         return ((MeleeWeapon)weapon).damageRoll(this);
     }
+
+
+
+
+    @Override
+    protected boolean canAttack( Char enemy ) {
+
+        if(mercType != MERC_TYPES.ArcherMaiden)
+            return super.canAttack(enemy);
+
+        return Ballistica.cast( pos, enemy.pos, false, true ) == enemy.pos;
+    }
+
+
 
 
 

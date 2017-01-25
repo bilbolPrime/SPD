@@ -23,6 +23,9 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
+import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.utils.Callback;
 
 public class MercSprite extends MobSprite {
 
@@ -51,6 +54,9 @@ public class MercSprite extends MobSprite {
                 case Thief:
                     texture(Assets.ROGUE);
                     break;
+                case ArcherMaiden:
+                    texture(Assets.HUNTRESS);
+                    break;
             }
 
 
@@ -71,6 +77,9 @@ public class MercSprite extends MobSprite {
         die = new Animation( 20, false );
         die.frames( film, 8, 9, 10, 11, 12, 11 );
 
+
+        operate = new Animation( 8, false );
+        operate.frames( film, 16, 17, 16, 17 );
 
         idle();
 	}
@@ -104,9 +113,59 @@ public class MercSprite extends MobSprite {
         die = new Animation( 20, false );
         die.frames( film, 8, 9, 10, 11, 12, 11 );
 
+        zap = attack.clone();
+
         attack = new Animation( 15, false );
         attack.frames( film, 13, 14, 15, 0 );
 
+        operate = new Animation( 8, false );
+        operate.frames( film, 16, 17, 16, 17 );
+
         idle();
+    }
+
+    private int cellToAttack;
+
+    @Override
+    public void attack( int cell ) {
+        if(type != HiredMerc.MERC_TYPES.ArcherMaiden)
+        {
+            super.attack(cell);
+            return;
+        }
+        if (!Level.adjacent(cell, ch.pos)) {
+
+            cellToAttack = cell;
+            turnTo( ch.pos , cell );
+            play( zap );
+
+        } else {
+
+            super.attack( cell );
+
+        }
+    }
+
+    @Override
+    public void onComplete( Animation anim ) {
+        if(type != HiredMerc.MERC_TYPES.ArcherMaiden)
+        {
+            super.onComplete(anim);
+            return;
+        }
+
+        if (anim == zap) {
+            idle();
+
+            ((MissileSprite)parent.recycle( MissileSprite.class )).
+                    reset( ch.pos, cellToAttack, new Dart(), new Callback() {
+                        @Override
+                        public void call() {
+                            ch.onAttackComplete();
+                        }
+                    } );
+        } else {
+            super.onComplete( anim );
+        }
     }
 }

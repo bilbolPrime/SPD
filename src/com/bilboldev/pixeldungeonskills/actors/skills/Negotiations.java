@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import android.net.PskKeyManager;
+
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -26,6 +28,7 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
     public static final String TXT_HIRE_BRUTE = "Brute";
     public static final String TXT_HIRE_THIEF = "Thief";
     public static final String TXT_HIRE_WIZARD = "Wizard";
+    public static final String TXT_HIRE_ARCHER_MAIDEN = "ArcherMaiden";
 
     {
         name = "Hire A Mercenary";
@@ -43,6 +46,8 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
                 actions.add(TXT_HIRE_THIEF);
             if(hero.heroClass != HeroClass.MAGE)
                 actions.add(TXT_HIRE_WIZARD);
+            if(hero.heroClass != HeroClass.HUNTRESS)
+                actions.add(TXT_HIRE_ARCHER_MAIDEN);
         }
         return actions;
     }
@@ -50,7 +55,7 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == TXT_HIRE_BRUTE || action == TXT_HIRE_THIEF || action == TXT_HIRE_WIZARD)
+        if(action == TXT_HIRE_BRUTE || action == TXT_HIRE_THIEF || action == TXT_HIRE_WIZARD || action == TXT_HIRE_ARCHER_MAIDEN)
         {
             if(Dungeon.gold < getGoldCost())
             {
@@ -73,7 +78,10 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
                     }
                     newPos = candidates.size() > 0 ? Random.element(candidates) : -1;
                     if (newPos != -1) {
-                        hero.hiredMerc = action == TXT_HIRE_BRUTE ? new HiredMerc(HiredMerc.MERC_TYPES.Brute): (action == TXT_HIRE_THIEF ? new HiredMerc(HiredMerc.MERC_TYPES.Thief) : new HiredMerc(HiredMerc.MERC_TYPES.Wizard));
+                        if(action == TXT_HIRE_ARCHER_MAIDEN)
+                            hero.hiredMerc = new HiredMerc(HiredMerc.MERC_TYPES.ArcherMaiden);
+                        else
+                            hero.hiredMerc = action == TXT_HIRE_BRUTE ? new HiredMerc(HiredMerc.MERC_TYPES.Brute): (action == TXT_HIRE_THIEF ? new HiredMerc(HiredMerc.MERC_TYPES.Thief) : new HiredMerc(HiredMerc.MERC_TYPES.Wizard));
                         hero.hiredMerc.spawn(Dungeon.hero.lvl);
                         hero.hiredMerc.pos = newPos;
                         GameScene.add(hero.hiredMerc);
