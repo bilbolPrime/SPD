@@ -279,7 +279,7 @@ public class Dungeon {
 
         hero.checkMerc = true;
         Actor mercRespawn = level.mercRespawner();
-        if (respawner != null) {
+        if (mercRespawn != null) {
             Actor.add( mercRespawn );
         }
 
