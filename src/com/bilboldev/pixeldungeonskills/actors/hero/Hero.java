@@ -183,6 +183,8 @@ public class Hero extends Char {
 
     public int difficulty = 0;
 
+    public boolean checkMerc = true;
+
 	private ArrayList<Mob> visibleEnemies; 
 	
 	public Hero() {
@@ -453,17 +455,11 @@ public class Hero extends Char {
 		next();
 	}
 
-    public boolean hackFix = false;
 	@Override
 	public boolean act() {
 		
 		super.act();
 
-if(hackFix == true)
-{
-    new Negotiations().restoreMerc(this);
-    hackFix = false;
-}
 
 		if (paralysed) {
 			

@@ -276,15 +276,19 @@ public class Dungeon {
 		if (respawner != null) {
 			Actor.add( level.respawner() );
 		}
-		
-		hero.pos = pos != -1 ? pos : level.exit;
+
+        hero.checkMerc = true;
+        Actor mercRespawn = level.mercRespawner();
+        if (respawner != null) {
+            Actor.add( mercRespawn );
+        }
+
+        hero.pos = pos != -1 ? pos : level.exit;
 		
 		Light light = hero.buff( Light.class );
 		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
 		
 		observe();
-
-       hero.hackFix = true;
 	}
 	
 	public static void dropToChasm( Item item ) {

@@ -25,6 +25,7 @@ import java.util.HashSet;
 
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.audio.Sample;
+import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -44,6 +45,8 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlowParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.WindParticle;
 import com.bilboldev.pixeldungeonskills.items.Generator;
@@ -67,6 +70,7 @@ import com.bilboldev.pixeldungeonskills.levels.traps.*;
 import com.bilboldev.pixeldungeonskills.mechanics.ShadowCaster;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundlable;
 import com.bilboldev.utils.Bundle;
@@ -391,6 +395,47 @@ public abstract class Level implements Bundlable {
 		};
 	}
 
+    public Actor mercRespawner() {
+        return new Actor() {
+            @Override
+            protected boolean act() {
+                if(Dungeon.hero.hiredMerc != null && Dungeon.hero.checkMerc == true)
+                {
+
+                    for (int nu = 0; nu < 1 ; nu++) {
+                        int newPos = Dungeon.hero.pos;
+                        if (Actor.findChar(newPos) != null) {
+                            ArrayList<Integer> candidates = new ArrayList<Integer>();
+                            boolean[] passable = Level.passable;
+
+                            for (int n : Level.NEIGHBOURS4) {
+                                int c = Dungeon.hero.pos + n;
+                                if (passable[c] && Actor.findChar(c) == null) {
+                                    candidates.add(c);
+                                }
+                            }
+                            newPos = candidates.size() > 0 ? Random.element(candidates) : -1;
+                            if (newPos != -1) {
+                                HiredMerc tmp = new HiredMerc(Dungeon.hero.hiredMerc.mercType);
+                                tmp.spawn(Dungeon.hero.lvl);
+                                tmp.pos = newPos;
+                                GameScene.add(tmp);
+                                Actor.addDelayed(new Pushing(tmp, Dungeon.hero.pos, newPos), -1);
+                                tmp.weapon = Dungeon.hero.hiredMerc.weapon;
+                                tmp.armor = Dungeon.hero.hiredMerc.armor;
+                                ((MercSprite) tmp.sprite).updateArmor();
+                                Dungeon.hero.hiredMerc = tmp;
+                                Dungeon.hero.checkMerc = false;
+                            }
+                        }
+                    }
+
+                }
+                spend( Dungeon.nightMode || Statistics.amuletObtained ? TIME_TO_RESPAWN / 2 : TIME_TO_RESPAWN );
+                return true;
+            }
+        };
+    }
 	
 	public int randomRespawnCell() {
 		int cell;
