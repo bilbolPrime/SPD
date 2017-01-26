@@ -423,6 +423,7 @@ public abstract class Char extends Actor {
 			return;
 		}
 
+        /*
         if(src instanceof Hero) {
             Hero heroSrc = (Hero) src;
             if (heroSrc.rangedWeapon instanceof Arrow && heroSrc.belongings.bow instanceof Bow) {
@@ -433,7 +434,9 @@ public abstract class Char extends Actor {
         }
         else
 		    Buff.detach( this, Frost.class );
-		
+
+        */
+
 		Class<?> srcClass = src.getClass();
 		if (immunities().contains( srcClass )) {
 			dmg = 0;

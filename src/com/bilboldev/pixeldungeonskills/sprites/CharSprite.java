@@ -58,7 +58,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	private static final float FLASH_INTERVAL	= 0.05f;	
 	
 	public enum State {
-		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHAMPRED, CHAMPBLACK, CHAMPWHITE, CHAMPYELLOW
+		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHAMPRED, CHAMPBLACK, CHAMPWHITE, CHAMPYELLOW, ARCHERMAIDEN
 	}
 	
 	protected Animation idle;
@@ -82,6 +82,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
     public ChampYellowHalo champYellowHalo;
     public ChampBlackHalo champBlackHalo;
     public ChampWhiteHalo champWhiteHalo;
+
 
 	protected EmoIcon emo;
 	
@@ -308,6 +309,9 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
         case CHAMPYELLOW:
             GameScene.effect( champYellowHalo = new ChampYellowHalo( this ) );
             break;
+        case ARCHERMAIDEN:
+               // GameScene.effect( champYellowHalo = new ChampYellowHalo( this ) );
+                break;
 		}
 	}
 	

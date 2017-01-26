@@ -214,4 +214,7 @@ public class ItemSpriteSheet {
     public static final int GemStone	= SPD_OFFSET + 29;
     public static final int GemStoneFull = SPD_OFFSET + 30;
     public static final int GemStonePart = SPD_OFFSET + 31;
+
+    public static final int POTION_EMPTY= SPD_OFFSET + 32;
+    public static final int POTION_PLACEHOLDER = SPD_OFFSET + 33;
 }

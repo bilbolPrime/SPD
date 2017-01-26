@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+import android.util.Log;
+
 import java.util.Iterator;
 
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -48,6 +50,7 @@ public class Belongings implements Iterable<Item> {
 	public Ring ring2 = null;
 	public Bow bow = null;
 
+
 	public Belongings( Hero owner ) {
 		this.owner = owner;
 		
@@ -60,6 +63,9 @@ public class Belongings implements Iterable<Item> {
 	
 	private static final String WEAPON		= "weapon";
 	private static final String ARMOR		= "armor";
+    private static final String MERC_WEAPON		= "mercweapon";
+    private static final String MERC_ARMOR		= "mercarmor";
+    private static final String MERC_ITEM		= "mercitem";
 	private static final String RING1		= "ring1";
 	private static final String RING2		= "ring2";
     private static final String BOW		= "bow";
@@ -70,6 +76,11 @@ public class Belongings implements Iterable<Item> {
 		
 		bundle.put( WEAPON, weapon );
 		bundle.put( ARMOR, armor );
+        if(owner.hiredMerc != null) {
+            bundle.put(MERC_WEAPON, Dungeon.hero.hiredMerc.weapon);
+            bundle.put(MERC_ARMOR, Dungeon.hero.hiredMerc.armor);
+            bundle.put(MERC_ITEM, Dungeon.hero.hiredMerc.carrying);
+        }
 		bundle.put( RING1, ring1 );
 		bundle.put( RING2, ring2 );
         bundle.put( BOW, bow );
@@ -79,7 +90,7 @@ public class Belongings implements Iterable<Item> {
 		
 		backpack.clear();
 		backpack.restoreFromBundle( bundle );
-		
+
 		weapon = (KindOfWeapon)bundle.get( WEAPON );
 		if (weapon != null) {
 			weapon.activate( owner );
@@ -91,7 +102,15 @@ public class Belongings implements Iterable<Item> {
 		if (ring1 != null) {
 			ring1.activate( owner );
 		}
-		
+
+
+        if(owner.hiredMerc != null) {
+            owner.hiredMerc.weapon = (KindOfWeapon)bundle.get( MERC_WEAPON );
+            owner.hiredMerc.armor = (Armor)bundle.get( MERC_ARMOR );
+            owner.hiredMerc.carrying = (Item)bundle.get( MERC_ITEM);
+        }
+
+
 		ring2 = (Ring)bundle.get( RING2 );
 		if (ring2 != null) {
 			ring2.activate( owner );

@@ -37,9 +37,12 @@ import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
+import com.bilboldev.pixeldungeonskills.items.potions.Potion;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.plants.Plant.Seed;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -62,7 +65,10 @@ public class WndBag extends WndTabbed {
 		ARMOR,
 		ENCHANTABLE,
 		WAND,
-		SEED
+		SEED,
+        BOW,
+        HEALING_POTION,
+        BRUTE_HOLD
 	}
 	
 	protected static final int COLS_P	= 4;
@@ -392,13 +398,20 @@ public class WndBag extends WndTabbed {
 						mode == Mode.FOR_SALE && (item.price() > 0) && (!item.isEquipped( Dungeon.hero ) || !item.cursed) ||
 						mode == Mode.UPGRADEABLE && item.isUpgradable() || 
 						mode == Mode.UNIDENTIFED && !item.isIdentified() ||
-						mode == Mode.WEAPON && (item instanceof MeleeWeapon || item instanceof Boomerang) ||
+                        mode == Mode.WEAPON && (item instanceof MeleeWeapon || item instanceof Boomerang) ||
 						mode == Mode.ARMOR && (item instanceof Armor) ||
 						mode == Mode.ENCHANTABLE && (item instanceof MeleeWeapon || item instanceof Boomerang || item instanceof Armor) ||
 						mode == Mode.WAND && (item instanceof Wand) ||
 						mode == Mode.SEED && (item instanceof Seed) ||
 						mode == Mode.ALL
 					);
+
+                    if(mode == Mode.BOW)
+                        enable(item instanceof Bow && Dungeon.hero.belongings.bow != item);
+                    if(mode == Mode.HEALING_POTION)
+                        enable(item instanceof PotionOfHealing && ((Potion)item).isKnown());
+                    if(mode == Mode.BRUTE_HOLD)
+                        enable(!(item instanceof Bag) && item != Dungeon.hero.belongings.weapon && item != Dungeon.hero.belongings.armor && item != Dungeon.hero.belongings.ring1 && item != Dungeon.hero.belongings.ring2 && item != Dungeon.hero.belongings.bow);
 				}
 			} else {
 				bg.color( NORMAL );

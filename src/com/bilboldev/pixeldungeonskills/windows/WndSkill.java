@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
@@ -75,7 +76,14 @@ public class WndSkill extends Window {
 					y += BUTTON_HEIGHT + GAP;
 				}
 				btn.setPos( x, y );
-				add( btn );
+
+
+                if (action == Negotiations.TXT_HIRE_ARCHER_MAIDEN) {
+                    btn.textColor( TITLE_COLOR );
+                }
+
+
+                add( btn );
 
 				x += btn.width() + GAP;
 			}

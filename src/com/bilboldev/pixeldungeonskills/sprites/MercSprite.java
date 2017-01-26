@@ -19,12 +19,12 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
+import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Callback;
 
 public class MercSprite extends MobSprite {
@@ -33,6 +33,10 @@ public class MercSprite extends MobSprite {
 	private static final int FRAME_HEIGHT	= 15;
 
     private HiredMerc.MERC_TYPES type = HiredMerc.MERC_TYPES.Brute;
+
+    public boolean hasHalo = false;
+
+    public ArcherMaidenHalo halo = null;
 
 	public MercSprite() {
 		super();
@@ -54,13 +58,15 @@ public class MercSprite extends MobSprite {
                 case Thief:
                     texture(Assets.ROGUE);
                     break;
+                case Archer:  texture(Assets.HUNTRESS);
+                    break;
                 case ArcherMaiden:
-                    texture(Assets.HUNTRESS);
+                    texture(Assets.ARCHER_MAIDEN);
                     break;
             }
 
 
-		TextureFilm film = new TextureFilm( HeroSprite.tiers(), 6, FRAME_WIDTH, FRAME_HEIGHT );
+		TextureFilm film = new TextureFilm( HeroSprite.tiers(), type != HiredMerc.MERC_TYPES.ArcherMaiden ? 6 : 0, FRAME_WIDTH, FRAME_HEIGHT );
 		
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -87,6 +93,12 @@ public class MercSprite extends MobSprite {
     public void updateArmor( ) {
 
 
+        if(false && hasHalo == false)
+        {
+            hasHalo = true;
+            add(State.ARCHERMAIDEN);
+            GameScene.effect(halo = new ArcherMaidenHalo(this));
+        }
 
 
         switch (type) {
@@ -102,7 +114,7 @@ public class MercSprite extends MobSprite {
         }
 
 
-        TextureFilm film = new TextureFilm( HeroSprite.tiers(), ((HiredMerc)ch).getArmorTier(), FRAME_WIDTH, FRAME_HEIGHT );
+        TextureFilm film = new TextureFilm( HeroSprite.tiers(), type != HiredMerc.MERC_TYPES.ArcherMaiden ? ((HiredMerc)ch).getArmorTier() : 0, FRAME_WIDTH, FRAME_HEIGHT );
 
         idle = new Animation( 1, true );
         idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -128,7 +140,7 @@ public class MercSprite extends MobSprite {
 
     @Override
     public void attack( int cell ) {
-        if(type != HiredMerc.MERC_TYPES.ArcherMaiden)
+        if(type != HiredMerc.MERC_TYPES.Archer && type != HiredMerc.MERC_TYPES.ArcherMaiden)
         {
             super.attack(cell);
             return;
@@ -148,7 +160,7 @@ public class MercSprite extends MobSprite {
 
     @Override
     public void onComplete( Animation anim ) {
-        if(type != HiredMerc.MERC_TYPES.ArcherMaiden)
+        if(type != HiredMerc.MERC_TYPES.Archer && type != HiredMerc.MERC_TYPES.ArcherMaiden)
         {
             super.onComplete(anim);
             return;
@@ -158,7 +170,7 @@ public class MercSprite extends MobSprite {
             idle();
 
             ((MissileSprite)parent.recycle( MissileSprite.class )).
-                    reset( ch.pos, cellToAttack, new Dart(), new Callback() {
+                    reset( ch.pos, cellToAttack, new Arrow(), new Callback() {
                         @Override
                         public void call() {
                             ch.onAttackComplete();

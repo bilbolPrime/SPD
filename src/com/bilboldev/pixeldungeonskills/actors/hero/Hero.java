@@ -21,6 +21,8 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 
 
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -183,7 +185,8 @@ public class Hero extends Char {
 
     public int difficulty = 0;
 
-    public boolean checkMerc = true;
+    public boolean checkMerc = false;
+
 
 	private ArrayList<Mob> visibleEnemies; 
 	
@@ -216,11 +219,18 @@ public class Hero extends Char {
     private static final String VERSION_SAVE = "verisionofsave";
     private static final String SKILLS_AVAILABLE = "availableskills";
 
+    private static final String MERC_TYPE = "merctype";
+    private static final String MERC_HEALTH = "merchealth";
+    private static final String MERC_SKILL = "mercskill";
+
     private static final int  skills_reset_version = 19;
 	@Override
 	public void storeInBundle( Bundle bundle ) {
+
+
 		super.storeInBundle( bundle );
-		
+
+
 		heroClass.storeInBundle( bundle );
 		subClass.storeInBundle( bundle );
 
@@ -229,7 +239,7 @@ public class Hero extends Char {
         bundle.put( SKILLS_AVAILABLE,  Skill.availableSkill);
 		bundle.put( ATTACK, attackSkill );
 		bundle.put( DEFENSE, defenseSkill );
-		
+
 		bundle.put( STRENGTH, STR );
 		
 		bundle.put( LEVEL, lvl );
@@ -239,22 +249,29 @@ public class Hero extends Char {
 
         bundle.put(VERSION_SAVE, Game.versionBuild);
 
+        if(hiredMerc != null)
+        {
+            bundle.put(MERC_TYPE, hiredMerc.mercType);
+            bundle.put(MERC_HEALTH, hiredMerc.HP);
+            bundle.put(MERC_SKILL, hiredMerc.skill.level);
+        }
+
 		belongings.storeInBundle( bundle );
+
         storage.storeInBundle(bundle);
+
 	}
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
-		
 		heroClass = HeroClass.restoreInBundle( bundle );
 		subClass = HeroSubClass.restoreInBundle( bundle );
-
 
 		
 		attackSkill = bundle.getInt( ATTACK );
 		defenseSkill = bundle.getInt( DEFENSE );
-		
+
 		STR = bundle.getInt( STRENGTH );
 		updateAwareness();
 		
@@ -265,9 +282,28 @@ public class Hero extends Char {
         Dungeon.difficulty = difficulty;
         Dungeon.currentDifficulty = Difficulties.values()[difficulty];
 
-		belongings.restoreFromBundle( bundle );
-        storage.restoreFromBundle(bundle);
 
+
+        String tmp = bundle.getString(MERC_TYPE);
+        if(tmp != null && tmp != "")
+        {
+            try
+            {
+                HiredMerc.MERC_TYPES tmpType = HiredMerc.MERC_TYPES.valueOf(tmp);
+                hiredMerc = new HiredMerc(tmpType);
+                checkMerc = true;
+                hiredMerc.spawn(lvl, bundle.getInt(MERC_HEALTH));
+                hiredMerc.skillLevel( bundle.getInt(MERC_SKILL));
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+
+        belongings.restoreFromBundle( bundle );
+        storage.restoreFromBundle(bundle);
 
         if(bundle.getInt(VERSION_SAVE) < skills_reset_version)
         {

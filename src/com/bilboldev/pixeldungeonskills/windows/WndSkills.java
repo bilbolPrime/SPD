@@ -239,7 +239,7 @@ public class WndSkills extends WndTabbed {
 
             durability = new ColorBlock[Skill.MAX_LEVEL];
 
-            if(skill != null && skill.name != null && skill.level > 0) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
                 for (int i = 0; i < skill.level; i++) {
                     durability[i] = new ColorBlock(2, 2, 0xFF00EE00);
                     add(durability[i]);
@@ -268,7 +268,7 @@ public class WndSkills extends WndTabbed {
 			bg.y = y;
 
 
-            if(skill != null && skill.name != null && skill.level > 0) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
                 for (int i = 0; i < Skill.MAX_LEVEL; i++) {
                     durability[i].x = x + width - 9 + i * 3;
                     durability[i].y = y + 3;

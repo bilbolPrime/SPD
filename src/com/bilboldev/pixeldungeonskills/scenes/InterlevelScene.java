@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import android.util.Log;
+
 import java.io.FileNotFoundException;
 
 import com.bilboldev.noosa.BitmapText;
@@ -147,7 +149,7 @@ public class InterlevelScene extends PixelScene {
 					
 				} catch (Exception e ) {
 					
-					error = ERR_GENERIC;
+					error = ERR_GENERIC + " in " + mode + "\n" + e;
 					
 				}
 				
@@ -267,7 +269,6 @@ public class InterlevelScene extends PixelScene {
 		Actor.fixTime();
 		
 		GameLog.wipe();
-		
 		Dungeon.loadGame( StartScene.curClass );
 		if (Dungeon.depth == -1) {
 			Dungeon.depth = Statistics.deepestFloor;

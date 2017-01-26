@@ -402,6 +402,10 @@ public abstract class Level implements Bundlable {
                 if(Dungeon.hero.hiredMerc != null && Dungeon.hero.checkMerc == true)
                 {
 
+                    HiredMerc mercCheck = checkMerc();
+                    if(mercCheck!=null){mercCheck.destroy();mercCheck.sprite.killAndErase();}
+
+
                     for (int nu = 0; nu < 1 ; nu++) {
                         int newPos = Dungeon.hero.pos;
                         if (Actor.findChar(newPos) != null) {
@@ -423,6 +427,9 @@ public abstract class Level implements Bundlable {
                                 Actor.addDelayed(new Pushing(tmp, Dungeon.hero.pos, newPos), -1);
                                 tmp.weapon = Dungeon.hero.hiredMerc.weapon;
                                 tmp.armor = Dungeon.hero.hiredMerc.armor;
+                                tmp.HP = Dungeon.hero.hiredMerc.HP;
+                                tmp.skill.level = Dungeon.hero.hiredMerc.skill.level;
+                                tmp.carrying = Dungeon.hero.hiredMerc.carrying;
                                 ((MercSprite) tmp.sprite).updateArmor();
                                 Dungeon.hero.hiredMerc = tmp;
                                 Dungeon.hero.checkMerc = false;
@@ -431,10 +438,22 @@ public abstract class Level implements Bundlable {
                     }
 
                 }
-                spend( Dungeon.nightMode || Statistics.amuletObtained ? TIME_TO_RESPAWN / 2 : TIME_TO_RESPAWN );
+                spend( 1 );
                 return true;
             }
         };
+    }
+
+    private HiredMerc checkMerc()
+    {
+
+        for (Mob mob : Dungeon.level.mobs) {
+            if(mob instanceof HiredMerc) {
+                return (HiredMerc) mob;
+            }
+        }
+
+        return null;
     }
 	
 	public int randomRespawnCell() {

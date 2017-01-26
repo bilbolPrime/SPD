@@ -30,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Storage;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.skills.BranchSkill;
 import com.bilboldev.pixeldungeonskills.actors.skills.Endurance;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
@@ -41,10 +42,12 @@ import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.plants.Plant.Seed;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -135,12 +138,30 @@ public class WndMerc extends WndTabbed {
         info.y = titlebar.bottom() + GAP;
         add( info );
 
-        add( new ItemButton( Dungeon.hero.hiredMerc.weapon == null ? new Placeholder( Dungeon.hero.hiredMerc.mercType.getWeaponPlaceHolder() ) :  Dungeon.hero.hiredMerc.weapon ).setPos( SLOT_MARGIN, info.y + info.height() + GAP) );
+        //if(Dungeon.hero.hiredMerc.mercType != HiredMerc.MERC_TYPES.ArcherMaiden && Dungeon.hero.hiredMerc.mercType != HiredMerc.MERC_TYPES.Archer)
+        add( new ItemButton( Dungeon.hero.hiredMerc.weapon == null ? new Placeholder( Dungeon.hero.hiredMerc.mercType.getWeaponPlaceHolder() ) :  Dungeon.hero.hiredMerc.weapon , false).setPos( SLOT_MARGIN, info.y + info.height() + GAP) );
 
-        add( new ItemButton( Dungeon.hero.hiredMerc.armor == null ? new Placeholder( Dungeon.hero.hiredMerc.mercType.getArmorPlaceHolder() ) :  Dungeon.hero.hiredMerc.armor).setPos( SLOT_SIZE + SLOT_MARGIN  + GAP, info.y + info.height() + GAP) );
+        if(Dungeon.hero.hiredMerc.mercType != HiredMerc.MERC_TYPES.ArcherMaiden)
+        {
+            add( new ItemButton( Dungeon.hero.hiredMerc.armor == null ? new Placeholder( Dungeon.hero.hiredMerc.mercType.getArmorPlaceHolder() ) :  Dungeon.hero.hiredMerc.armor, false).setPos( SLOT_SIZE + 2 * SLOT_MARGIN , info.y + info.height() + GAP) );
+            if(Dungeon.hero.hiredMerc.mercType != HiredMerc.MERC_TYPES.Brute)
+                add( new ItemButton( Dungeon.hero.hiredMerc.carrying == null ? new Placeholder( ItemSpriteSheet.POTION_PLACEHOLDER ) : Dungeon.hero.hiredMerc.carrying , false) .setPos( 2 * SLOT_SIZE + 3 * SLOT_MARGIN, info.y + info.height() + GAP) );
+            else
+                add( new ItemButton( Dungeon.hero.hiredMerc.carrying == null ? new Placeholder( ItemSpriteSheet.SMTH ) : Dungeon.hero.hiredMerc.carrying , true) .setPos( 2 * SLOT_SIZE + 3 * SLOT_MARGIN, info.y + info.height() + GAP) );
+        }
+        else
+        {
+            add( new ItemButton( Dungeon.hero.hiredMerc.carrying == null ? new Placeholder( ItemSpriteSheet.POTION_PLACEHOLDER ) : Dungeon.hero.hiredMerc.carrying , false) .setPos( SLOT_SIZE + 2 * SLOT_MARGIN , info.y + info.height() + GAP) );
+        }
 
 
-        add( new SkillButton(Dungeon.hero.hiredMerc.skill).setPos(WIDTH - SLOT_SIZE - SLOT_MARGIN - GAP, info.y + info.height() + GAP) );
+        if(Dungeon.hero.hiredMerc.mercType != HiredMerc.MERC_TYPES.ArcherMaiden)
+            add( new SkillButton(Dungeon.hero.hiredMerc.skill).setPos(WIDTH - SLOT_SIZE - SLOT_MARGIN, info.y + info.height() + GAP) );
+        else
+        {
+            add( new SkillButton(Dungeon.hero.hiredMerc.skill).setPos(WIDTH - 2 * (SLOT_SIZE + SLOT_MARGIN) , info.y + info.height() + GAP) );
+            add( new SkillButton(Dungeon.hero.hiredMerc.skillb).setPos(WIDTH - SLOT_SIZE - SLOT_MARGIN, info.y + info.height() + GAP) );
+        }
 
 		resize( WIDTH, (int) info.y + (int)info.height() + SLOT_SIZE + (int)GAP );
 
@@ -257,10 +278,13 @@ public class WndMerc extends WndTabbed {
 		private ColorBlock bg;
 		
 		private ColorBlock durability[];
-		
-		public ItemButton( Item item ) {
-			
+
+        public  boolean holdOnly = false;
+		public ItemButton( Item item , boolean holdOnly) {
+
 			super( item );
+
+            this.holdOnly = holdOnly;
 
 			this.item = item;
 			if (item instanceof Gold) {
@@ -322,14 +346,28 @@ public class WndMerc extends WndTabbed {
 		
 		@Override
 		protected void onClick() {
-            GameScene.selectItem(this, (item instanceof Weapon || item.image() == ItemSpriteSheet.WEAPON) ? WndBag.Mode.WEAPON : WndBag.Mode.ARMOR, "Equip On Merc");
+            if(holdOnly)
+                GameScene.selectItem(this, WndBag.Mode.BRUTE_HOLD, "Ask Brute To Hold");
+            else if(item instanceof Bow || item.image() == ItemSpriteSheet.EMPTY_BOW)
+                GameScene.selectItem(this, WndBag.Mode.BOW, "Equip Bow On Merc");
+            else  if(item instanceof Weapon || item.image() == ItemSpriteSheet.WEAPON)
+                GameScene.selectItem(this, WndBag.Mode.WEAPON, "Equip Weapon On Merc");
+            else  if(item instanceof Armor || item.image() == ItemSpriteSheet.ARMOR)
+                GameScene.selectItem(this, WndBag.Mode.ARMOR, "Equip Armor On Merc");
+            else  if(item instanceof PotionOfHealing || item.image() == ItemSpriteSheet.POTION_PLACEHOLDER)
+                GameScene.selectItem(this, WndBag.Mode.HEALING_POTION, "Give Potion Of Healing");
 		}
 		
 		@Override
 		protected boolean onLongClick() {
             //GameScene.selectItem(this, (item instanceof Weapon || item.image() == ItemSpriteSheet.WEAPON) ? WndBag.Mode.WEAPON : WndBag.Mode.ARMOR, "Equip On Merc");
             WndMerc.this.hide();
-            if(item instanceof Weapon || item.image() == ItemSpriteSheet.WEAPON)
+            if(holdOnly || item instanceof PotionOfHealing)
+            {
+                Dungeon.hero.hiredMerc.unEquipItem();
+                return true;
+            }
+            if(item instanceof Weapon)
             {
                 Dungeon.hero.hiredMerc.unEquipWeapon();
             }
@@ -337,32 +375,39 @@ public class WndMerc extends WndTabbed {
             {
                 Dungeon.hero.hiredMerc.unEquipArmor();
             }
-
             return true;
-
 		}
 
         @Override
         public void onSelect( Item item ) {
             if (item != null) {
-                if (item instanceof Weapon) {
+                if (item instanceof Weapon && holdOnly == false) {
                     if (Dungeon.hero.belongings.weapon == item) {
                         Dungeon.hero.belongings.weapon = null;
                     } else {
                         item.detach(Dungeon.hero.belongings.backpack);
                     }
                     Dungeon.hero.hiredMerc.equipWeapon(item);
-                } else if (item instanceof Armor) {
+                } else if (item instanceof Armor && holdOnly == false) {
                     if (Dungeon.hero.belongings.armor == item) {
                         Dungeon.hero.belongings.armor = null;
                     } else {
                         item.detach(Dungeon.hero.belongings.backpack);
                     }
                     Dungeon.hero.hiredMerc.equipArmor(item);
+                }  else if(item instanceof PotionOfHealing) {
+                    item.detach(Dungeon.hero.belongings.backpack);
+
+                    Dungeon.hero.hiredMerc.equipItem(new PotionOfHealing());
+                }
+                else
+                {
+                    Dungeon.hero.hiredMerc.equipItem(item.detachAll(Dungeon.hero.belongings.backpack ));
                 }
             }
             ((HeroSprite)Dungeon.hero.sprite).updateArmor();
             ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
+            Dungeon.hero.spend(1f);
             WndMerc.this.hide();
         }
 	}
@@ -389,7 +434,7 @@ public class WndMerc extends WndTabbed {
 
             durability = new ColorBlock[Skill.MAX_LEVEL];
 
-            if(skill != null && skill.name != null && skill.level > 0) {
+            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MAX_LEVEL) {
                 for (int i = 0; i < skill.level; i++) {
                     durability[i] = new ColorBlock(2, 2, 0xFF00EE00);
                     add(durability[i]);
@@ -418,7 +463,7 @@ public class WndMerc extends WndTabbed {
             bg.y = y;
 
 
-            if(skill != null && skill.name != null && skill.level > 0) {
+            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MAX_LEVEL) {
                 for (int i = 0; i < Skill.MAX_LEVEL; i++) {
                     durability[i].x = x + width - 9 + i * 3;
                     durability[i].y = y + 3;
@@ -450,14 +495,14 @@ public class WndMerc extends WndTabbed {
 
             } else {
 
-                add( new WndSkill( null, skill ) );
+                GameScene.show( ( new WndSkill( null, skill ) ));
 
             }
         }
 
         @Override
         protected boolean onLongClick() {
-            return true;
+            GameScene.show( ( new WndSkill( null, skill ) ));return true;
         }
     }
 

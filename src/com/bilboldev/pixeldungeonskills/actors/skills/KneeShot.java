@@ -36,7 +36,7 @@ public class KneeShot extends PassiveSkillB2{
     @Override
     public String info()
     {
-        return "Aims for weakspots crippling targets.\n"
+        return "Aims for weak spots crippling targets.\n"
                 + costUpgradeInfo();
     }
 }

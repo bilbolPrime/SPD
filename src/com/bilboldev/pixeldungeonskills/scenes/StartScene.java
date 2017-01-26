@@ -220,7 +220,7 @@ public class StartScene extends PixelScene {
 				pos += line.height(); 
 			}
 		}
-        // huntressUnlocked = true;
+        huntressUnlocked = true; // Just let it go... let it go... bla bla bla
 		ExitButton btnExit = new ExitButton();
 		btnExit.setPos( Camera.main.width - btnExit.width(), 0 );
 		add( btnExit );

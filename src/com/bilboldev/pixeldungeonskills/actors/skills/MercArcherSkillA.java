@@ -7,7 +7,7 @@ import com.bilboldev.utils.Random;
 /**
  * Created by Moussa on 25-Jan-17.
  */
-public class MercThiefSkillA extends Venom {
+public class MercArcherSkillA extends KneeShot {
     {
         tag = "mercA";
     }
@@ -15,16 +15,6 @@ public class MercThiefSkillA extends Venom {
     @Override
     protected boolean upgrade()
     {
-        return false;
-    }
-
-    @Override
-    public boolean venomousAttack()
-    {
-        if(Random.Int(100) < 5 * level + 15)
-        {
-            return true;
-        }
         return false;
     }
 
@@ -39,6 +29,6 @@ public class MercThiefSkillA extends Venom {
     @Override
     public String info()
     {
-        return "Chance to poison target.\n";
+        return "Aims for weak spots crippling targets.\n";
     }
 }

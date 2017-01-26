@@ -451,6 +451,10 @@ public abstract class Mob extends Char {
 
         if(enemy instanceof NPC)
             return;
+
+        if(!(enemy instanceof Hero))
+            return;
+
         try {
             if (champ != -1) {
                 if (champ == Champ.CHAMP_VAMPERIC) {
