@@ -71,12 +71,19 @@ public class FlameBow extends Bow {
     @Override
     public void bowSpecial(Char target)
     {
-        if (Random.Int(2) == 1)
+        try
         {
-            Buff.affect(target, Burning.class).reignite(target);
-            GLog.p("Target catches fire!");
+            if (Random.Int(2) == 1)
+            {
+                Buff.affect(target, Burning.class).reignite(target);
+                GLog.p("Target catches fire!");
 
-            target.sprite.showStatus( CharSprite.NEUTRAL, "Hot!" );
+                target.sprite.showStatus( CharSprite.NEUTRAL, "Hot!" );
+            }
+        }
+        catch (Exception ex)
+        {
+
         }
     }
 }

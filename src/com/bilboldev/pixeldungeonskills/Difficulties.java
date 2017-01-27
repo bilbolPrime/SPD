@@ -7,7 +7,7 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 
 public enum Difficulties {
 
-    NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 3 );
+    NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 4 ) , JUSTKILLME( 5 );
 
     private int difficulty;
 
@@ -18,7 +18,7 @@ public enum Difficulties {
     public static final String[] EASY_DESC = {
             "- Start with 2 extra rations.",
             "- Start with 2 potions of healing.",
-            "- Potion of healing identified from the start.",
+            "- Start with 200 Gold.",
             "- Mobs are Weak, do 25% less damage and have 15% less HP.",
             "- Champion spawn rate set to 10%."
     };
@@ -50,6 +50,14 @@ public enum Difficulties {
             "- Hero gains 3 less maxHP on leveling."
     };
 
+    public static final String[] JUST_KILL_ME_DESC = {
+            "- Potion of healing heals 10% max hp.",
+            "- Mobs are Deities, do 60% more damage and have 75% more HP.",
+            "- Champion spawn rate set to 100%.",
+            "- Hero starts with 8 less maxHP.",
+            "- Hero gains 3 less maxHP on leveling."
+    };
+
 
     public String title() {
 
@@ -64,6 +72,8 @@ public enum Difficulties {
                 return "Hell!";
             case SUICIDE:
                 return "Suicide!!";
+            case JUSTKILLME:
+                return "Just Kill Me";
         }
         return "";
     }
@@ -81,6 +91,8 @@ public enum Difficulties {
                 return join("\n", HELL_DESC);
             case SUICIDE:
                 return join("\n", SUICIDE_DESC);
+            case JUSTKILLME:
+                return join("\n", JUST_KILL_ME_DESC);
         }
         return "";
     }
@@ -98,6 +110,8 @@ public enum Difficulties {
                 return "Immortal ";
             case SUICIDE:
                 return "Godlike ";
+            case JUSTKILLME:
+                return "Deity ";
         }
         return "";
     }
@@ -137,6 +151,8 @@ public enum Difficulties {
                 return 4;
             case SUICIDE:
                 return 5;
+            case JUSTKILLME:
+                return 10;
         }
         return 0;
     }
@@ -154,6 +170,8 @@ public enum Difficulties {
                 return 1.25f;
             case SUICIDE:
                 return 1.45f;
+            case JUSTKILLME:
+                return 1.6f;
         }
         return 1f;
     }
@@ -171,6 +189,8 @@ public enum Difficulties {
                 return 1.35f;
             case SUICIDE:
                 return 1.6f;
+            case JUSTKILLME:
+                return 1.75f;
         }
         return 1f;
     }
@@ -187,6 +207,8 @@ public enum Difficulties {
                 return 50;
             case SUICIDE:
                 return 25;
+            case JUSTKILLME:
+                return 15;
         }
         return 100;
     }
@@ -217,6 +239,8 @@ public enum Difficulties {
                 return 1;
             case SUICIDE:
                 return 3;
+            case JUSTKILLME:
+                return 3;
         }
         return 0;
     }
@@ -232,6 +256,8 @@ public enum Difficulties {
                 return 4;
             case SUICIDE:
                 return 8;
+            case JUSTKILLME:
+                return 8;
         }
         return 0;
     }
@@ -244,6 +270,7 @@ public enum Difficulties {
                 new PotionOfHealing().identify().collect();
                 new Food().identify().collect();
                 new Food().identify().collect();
+                Dungeon.gold = 200;
         }
     }
 

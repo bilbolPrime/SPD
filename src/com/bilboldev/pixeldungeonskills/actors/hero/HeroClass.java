@@ -27,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
@@ -152,6 +153,8 @@ public enum HeroClass {
         new ScrollOfBloodyRitual().collect();
         new ScrollOfSkill().collect();
 
+
+        new PotionOfHealing().setKnown();
         new PotionOfMana().setKnown();
 
         new PotionOfMana().collect();

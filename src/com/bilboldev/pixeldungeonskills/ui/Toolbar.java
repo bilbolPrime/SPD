@@ -44,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMerc;
+import com.bilboldev.pixeldungeonskills.windows.WndMercs;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
@@ -135,9 +136,15 @@ public class Toolbar extends Component {
             @Override
             protected void onClick() {
                 if(Dungeon.hero.hiredMerc == null)
-                    GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
+                {
+                    //GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
+                    GameScene.show(new WndMercs(WndMercs.Mode.ALL));
+                }
                 else
-                    GameScene.show(new WndMerc(null, null));
+                {
+                   GameScene.show(new WndMerc(null, null));
+                }
+
             };
             protected boolean onLongClick() {
                 if(Dungeon.hero.hiredMerc == null)

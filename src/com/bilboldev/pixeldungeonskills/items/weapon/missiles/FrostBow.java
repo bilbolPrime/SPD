@@ -74,14 +74,18 @@ public class FrostBow extends Bow {
     @Override
     public void bowSpecial(Char target)
     {
-        if (Random.Int(2) == 1)
-        {
-            Buff.prolong(target, Frost.class, Frost.duration(target) * Random.Float(1f, 2f));
-            GLog.p("Target frozen!");
+        try {
+            if (Random.Int(5) == 1) {
+                Buff.prolong(target, Frost.class, Frost.duration(target) * Random.Float(1f, 2f));
+                GLog.p("Target frozen!");
 
-            target.sprite.showStatus( CharSprite.NEUTRAL, "Brrrr..." );
+                target.sprite.showStatus(CharSprite.NEUTRAL, "Brrrr...");
+            } else
+                Buff.affect(target, Frost.class);
         }
-        else
-            Buff.affect(target, Frost.class);
+        catch (Exception ex)
+        {
+
+        }
     }
 }

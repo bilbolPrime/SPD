@@ -53,7 +53,17 @@ public enum Icons {
     RESUME,
     SKILL_NOT_AVAILABLE,
     SKILL_AVAILABLE,
-    SKILLS;
+    SKILLS,
+    ARCHER_MAIDEN,
+    BRUTE,
+    THIEF,
+    WIZARD,
+    ARCHER,
+    ARCHER_MAIDEN_SKILL,
+    ARCHER_MAIDEN_SKILL_B,
+    ARCHER_MAIDEN_BOW,
+    ARCHER_MAIDEN_POTION,
+    ALL_MERCS;
 	
 	public Image get() {
 		return get( this );
@@ -155,6 +165,36 @@ public enum Icons {
         case SKILLS:
             icon.frame( icon.texture.uvRect( 87, 48, 101, 60 ) );
             break;
+        case ARCHER_MAIDEN_SKILL:
+            icon.frame( icon.texture.uvRect( 0, 62, 18, 78 ) );
+            break;
+        case ARCHER_MAIDEN:
+        icon.frame( icon.texture.uvRect( 22, 62, 34, 78 ) );
+        break;
+        case ARCHER_MAIDEN_SKILL_B:
+        icon.frame( icon.texture.uvRect( 38, 62, 47, 78 ) );
+        break;
+        case ARCHER_MAIDEN_BOW:
+        icon.frame( icon.texture.uvRect( 51, 62, 67, 78 ) );
+        break;
+        case ARCHER_MAIDEN_POTION:
+        icon.frame( icon.texture.uvRect( 72, 62, 82, 78 ) );
+        break;
+        case BRUTE:
+        icon.frame( icon.texture.uvRect( 2, 83, 13, 97 ) );
+        break;
+        case ARCHER:
+        icon.frame( icon.texture.uvRect( 16, 83, 27, 97 ) );
+        break;
+        case WIZARD:
+        icon.frame( icon.texture.uvRect( 30, 83, 41, 97 ) );
+        break;
+       case THIEF:
+        icon.frame( icon.texture.uvRect( 43, 83, 54, 97 ) );
+       break;
+       case ALL_MERCS:
+        icon.frame( icon.texture.uvRect( 54, 83, 71, 97 ) );
+        break;
 		}
 		return icon;
 	}

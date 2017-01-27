@@ -79,26 +79,32 @@ public class PathFinder {
 	}
 	
 	public static int getStep( int from, int to, boolean[] passable ) {
-		
-		if (!buildDistanceMap( from, to, passable )) {
-			return -1;
-		}
-		
-		// From the starting position we are making one step downwards
-		int minD = distance[from];
-		int best = from;
-		
-		int step, stepD;
-		
-		for (int i=0; i < dir.length; i++) {
 
-			if ((stepD = distance[step = from + dir[i]]) < minD) {
-				minD = stepD;
-				best = step;
-			}
-		}
+        try {
+            if (!buildDistanceMap(from, to, passable)) {
+                return -1;
+            }
 
-		return best;
+            // From the starting position we are making one step downwards
+            int minD = distance[from];
+            int best = from;
+
+            int step, stepD;
+
+            for (int i = 0; i < dir.length; i++) {
+
+                if ((stepD = distance[step = from + dir[i]]) < minD) {
+                    minD = stepD;
+                    best = step;
+                }
+            }
+
+            return best;
+        }
+        catch (Exception ex)
+        {
+            return -1;
+        }
 	}
 	
 	public static int getStepBack( int cur, int from, boolean[] passable ) {

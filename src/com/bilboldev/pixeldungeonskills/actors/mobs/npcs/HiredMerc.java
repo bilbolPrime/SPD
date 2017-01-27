@@ -8,22 +8,26 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.skills.Endurance;
-import com.bilboldev.pixeldungeonskills.actors.skills.KneeShot;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercArcherSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercArcherSkillB;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercBruteSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercThiefSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.MercWizardSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
-import com.bilboldev.pixeldungeonskills.actors.skills.SpiritArrow;
-import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
+import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
+import com.bilboldev.pixeldungeonskills.items.armor.LeatherArmor;
+import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
@@ -95,7 +99,7 @@ public class HiredMerc extends NPC {
         {
             switch (this)
             {
-                case Brute: return "Brutes are strong  but slow but can tank a lot of damage.";
+                case Brute: return "Brutes are strong and slow but can tank a lot of damage.";
                 case Wizard: return "Wizards cast spells but cannot take a lot of punishment. They are also weak.";
                 case Thief: return "Thieves are very agile and have admirable strength.";
                 case Archer: return "Archers support from a distance.";
@@ -126,7 +130,7 @@ public class HiredMerc extends NPC {
                 case Wizard: return 24;
                 case Thief: return 48;
                 case Archer: return 72;
-                case ArcherMaiden:r: return 104;
+                case ArcherMaiden: return 104;
             }
             return 0;
         }
@@ -170,6 +174,31 @@ public class HiredMerc extends NPC {
             }
         }
 
+        public void setEquipment(HiredMerc merc)
+        {
+            switch (this)
+            {
+                case Brute:
+                    merc.weapon = new Mace().identify();
+                    merc.armor = new LeatherArmor().identify();
+                    merc.carrying = new ChargrilledMeat();
+                    break;
+                case Wizard:
+                merc.weapon = new Knuckles().identify();
+                merc.armor = new ClothArmor().identify();
+                merc.carrying = new PotionOfHealing();
+                    break;
+                case Thief:    merc.weapon = new Dagger().identify();
+                    merc.armor = new ClothArmor().identify();
+                    merc.carrying = new PotionOfHealing();
+                    break;
+                case Archer:   merc.weapon = new Bow(1);
+                    merc.armor = new ClothArmor().identify();
+                    merc.carrying = new PotionOfHealing();break;
+                case ArcherMaiden: merc.weapon = new FrostBow(1);  merc.carrying = new PotionOfHealing().identify(); break;
+            }
+        }
+
         public int getStrength(int level)
         {
             switch (this)
@@ -194,7 +223,7 @@ public class HiredMerc extends NPC {
     }
 
     public static boolean archerMaidenUnlocked = false;
-
+    public static final String MAIDEN_UNLOCK_BY= "Please consider donating to unlock this feature.";
     public static final int COST_RATE = 15;
 
     public static final String TXT_LEVEL_UP = "Stronger by the second...";
@@ -247,6 +276,7 @@ public class HiredMerc extends NPC {
         this.mercType = merc;
         //skill = mercType.getSkill();
         mercType.setSkills(this);
+       // mercType.setEquipment(this); // done in hiring phase now
         //skill.level++;
     }
 
@@ -352,8 +382,13 @@ public class HiredMerc extends NPC {
                 ((Mob)enemy).aggro( this );
         }
         try {
-        if(weapon != null)
+        if(weapon != null && !(weapon instanceof Bow))
             ((Weapon)weapon).proc( this, enemy, damage );
+
+            if(weapon instanceof Bow)
+            {
+                ((Bow) weapon).bowSpecial(enemy);
+            }
         }
         catch (Exception ex)
         {
