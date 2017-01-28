@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
+import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
@@ -131,6 +132,12 @@ public class Bow extends MissileWeapon {
         }
 
         return actions;
+    }
+
+    @Override
+    public Bow enchant()
+    {
+        return Random.Int(10) < 8 ? new FrostBow() : new FlameBow();
     }
 
     @Override

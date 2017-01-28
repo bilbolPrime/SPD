@@ -49,6 +49,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlowParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.WindParticle;
+import com.bilboldev.pixeldungeonskills.items.Bomb;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Heap;
@@ -62,6 +63,9 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.scrolls.Scroll;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfUpgrade;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.CupidArrow;
 import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
 import com.bilboldev.pixeldungeonskills.levels.features.Door;
 import com.bilboldev.pixeldungeonskills.levels.features.HighGrass;
@@ -166,6 +170,13 @@ public abstract class Level implements Bundlable {
 		plants = new SparseArray<Plant>();
 		
 		if (!Dungeon.bossLevel()) {
+            addItemToSpawn( new Arrow().random() );
+            if(Random.Int(2) == 0)
+                addItemToSpawn( new BombArrow(1) );
+            if(Random.Int(5) == 0)
+                addItemToSpawn( new CupidArrow(1) );
+
+
 			addItemToSpawn( Generator.random( Generator.Category.FOOD ) );
 			if (Dungeon.posNeeded()) {
 				addItemToSpawn( new PotionOfStrength() );
@@ -448,7 +459,7 @@ public abstract class Level implements Bundlable {
     {
 
         for (Mob mob : Dungeon.level.mobs) {
-            if(mob instanceof HiredMerc) {
+            if(mob instanceof HiredMerc && mob.HP > 0) {
                 return (HiredMerc) mob;
             }
         }

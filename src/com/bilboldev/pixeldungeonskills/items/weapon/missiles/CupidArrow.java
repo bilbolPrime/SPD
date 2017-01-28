@@ -23,9 +23,12 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Paralysis;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
+import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.BlastParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.SmokeParticle;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -37,34 +40,44 @@ import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
-public class BombArrow extends Arrow {
+public class CupidArrow extends Arrow {
 
 	{
-		name = "bomb arrow";
-		image = ItemSpriteSheet.BombArrow;
+		name = "cupid arrow";
+		image = ItemSpriteSheet.CupidArrow;
 
         stackable = true;
 	}
 
-	public BombArrow() {
+	public CupidArrow() {
 		this( 1 );
 	}
 
-	public BombArrow(int number) {
+	public CupidArrow(int number) {
 		super();
 		quantity = number;
 	}
 
     @Override
     public Item random() {
-        quantity = Random.Int(1, 3);
+        quantity = Random.Int(3, 5);
         return this;
+    }
+
+    @Override
+    public void arrowEffect(Char attacker, Char defender)
+    {
+        if(Bestiary.isBoss(defender))
+            return;
+        int duration = Random.IntRange( 5, 10 );
+        Buff.affect( defender, Charm.class, Charm.durationFactor( defender ) * duration ).object = attacker.id();
+        defender.sprite.centerEmitter().start( Speck.factory(Speck.HEART), 0.2f, 5 );
     }
 
 	@Override
 	public String desc() {
 		return 
-			"An arrow with an attached bomb. Keep your distance..";
+			"An arrow believed to belong to cupid. Careful who you aim at.";
 	}
 	
 
@@ -85,50 +98,5 @@ public class BombArrow extends Arrow {
         actions.remove(AC_EQUIP);
 
         return actions;
-    }
-
-
-    @Override
-    protected void onThrow( int cell ) {
-        if (Level.pit[cell]) {
-            super.onThrow( cell );
-        } else {
-            Sample.INSTANCE.play( Assets.SND_BLAST, 2 );
-
-            if (Dungeon.visible[cell]) {
-                CellEmitter.center(cell).burst( BlastParticle.FACTORY, 30 );
-            }
-
-            boolean terrainAffected = false;
-            for (int n : Level.NEIGHBOURS9) {
-                int c = cell + n;
-                if (c >= 0 && c < Level.LENGTH) {
-                    if (Dungeon.visible[c]) {
-                        CellEmitter.get( c ).burst( SmokeParticle.FACTORY, 4 );
-                    }
-
-                    if (Level.flamable[c]) {
-                        Level.set( c, Terrain.EMBERS );
-                        GameScene.updateMap(c);
-                        terrainAffected = true;
-                    }
-
-                    Char ch = Actor.findChar(c);
-                    if (ch != null) {
-                        int dmg = Random.Int( 1 + Dungeon.depth, 10 + Dungeon.depth * 2 ) - Random.Int( ch.dr() );
-                        if (dmg > 0) {
-                            ch.damage( dmg, this );
-                            if (ch.isAlive()) {
-                                Buff.prolong(ch, Paralysis.class, 2);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (terrainAffected) {
-                Dungeon.observe();
-            }
-        }
     }
 }

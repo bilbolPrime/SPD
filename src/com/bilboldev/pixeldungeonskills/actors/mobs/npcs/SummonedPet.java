@@ -3,10 +3,13 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Eye;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CrabSprite;
+import com.bilboldev.pixeldungeonskills.sprites.EyeSprite;
 import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkeletonSprite;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -22,7 +25,7 @@ public class SummonedPet extends NPC {
 
     public static enum PET_TYPES
     {
-        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton");
+        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton"), SPECIAL("Special");
         public String type = "Rat";
         PET_TYPES(String type) {this.type = type;}
 
@@ -98,7 +101,15 @@ public class SummonedPet extends NPC {
 
     public int degradeCounter = 1;
 
+    public int range = 1;
+
     public static final String PET_TYPE = "pettype";
+    public static final String NAME = "name";
+    public static final String SKILL = "skill";
+    public static final String SPRITE = "sprite";
+    public static final String MAX_HEALTH = "maxhealth";
+    public static final String HEALTH = "health";
+    public static final String RANGE = "range";
 
     {
         name = "Summoned Rat";
@@ -117,10 +128,27 @@ public class SummonedPet extends NPC {
     private static final String LEVEL	= "level";
 
 
+    public SummonedPet()
+    {
+        super();
+    }
+
     public SummonedPet(PET_TYPES pet)
     {
         this.petType = pet;
         summonedPets++;
+    }
+
+    public SummonedPet(Class<? extends CharSprite> spriteClass)
+    {
+        this.petType = PET_TYPES.SPECIAL;
+        this.spriteClass = spriteClass;
+        level = 1;
+
+        if(spriteClass == EyeSprite.class)
+        {
+            range = 10;
+        }
     }
 
     @Override
@@ -128,6 +156,12 @@ public class SummonedPet extends NPC {
         super.storeInBundle( bundle );
         bundle.put( LEVEL, level );
         bundle.put( PET_TYPE, petType );
+        bundle.put( NAME, name );
+        bundle.put( SKILL, defenseSkill );
+        bundle.put( HEALTH, HP );
+        bundle.put( MAX_HEALTH, HT );
+        bundle.put( RANGE, range );
+        bundle.put( SPRITE, spriteClass.toString().replace("class ","" ) );
         summonedPets = 0; // Game is saving, set summoned pets to 0
     }
 
@@ -135,7 +169,25 @@ public class SummonedPet extends NPC {
     public void restoreFromBundle( Bundle bundle ) {
         super.restoreFromBundle( bundle );
         petType = PET_TYPES.valueOf(bundle.getString( PET_TYPE ));
-        spawn( bundle.getInt( LEVEL) , HP);
+        level = bundle.getInt( LEVEL );
+        name = bundle.getString( NAME );
+        defenseSkill = bundle.getInt(SKILL);
+
+        try {
+            spriteClass = (Class<? extends CharSprite>)Class.forName(bundle.getString(SPRITE));
+        }
+        catch (Exception ex)
+        {
+            spriteClass = RatSprite.class;
+        }
+        if(petType != PET_TYPES.SPECIAL)
+            summonedPets++; // Recover limit
+
+        spawn(level);
+
+        HP = bundle.getInt( HEALTH );
+        HT =  bundle.getInt( MAX_HEALTH );
+        range =   bundle.getInt( RANGE);
     }
 
     public void spawn( int level ) {
@@ -145,9 +197,10 @@ public class SummonedPet extends NPC {
         HP = HT;
         defenseSkill = petType.getDefence(level);
 
-        spriteClass = petType.getSprite();
-
-        name = petType.getName();
+        if(petType != PET_TYPES.SPECIAL) {
+            spriteClass = petType.getSprite();
+            name = petType.getName();
+        }
     }
 
     public void spawn( int level, int maintainHP) {
@@ -169,25 +222,40 @@ public class SummonedPet extends NPC {
 
     @Override
     public int damageRoll() {
-        return petType.getDamage(level);
+        if(petType != PET_TYPES.SPECIAL)
+            return petType.getDamage(level);
+        else
+            return Random.Int(defenseSkill / 3, defenseSkill);
     }
 
     @Override
     public int attackProc( Char enemy, int damage ) {
         if (enemy instanceof Mob) {
+            if(Level.distance(pos, enemy.pos) < 2)
             ((Mob)enemy).aggro( this );
         }
         return damage;
     }
 
     @Override
+    protected boolean canAttack( Char enemy ) {
+
+        if(Level.distance(pos, enemy.pos) > range)
+            return super.canAttack(enemy);
+
+        return Ballistica.cast( pos, enemy.pos, false, true ) == enemy.pos;
+    }
+
+    @Override
     protected boolean act() {
         degradeCounter++;
-        if(degradeCounter % DEGRADE_RATE == 0)
-            HP--;
+        if(petType != PET_TYPES.SPECIAL) {
+            if (degradeCounter % DEGRADE_RATE == 0)
+                HP--;
 
-        if(summonedPets > SUMMONED_PETS_LIMIT + Dungeon.hero.heroSkills.passiveB3.summoningLimitBonus())
-            HP = 0;
+            if (summonedPets > SUMMONED_PETS_LIMIT + Dungeon.hero.heroSkills.passiveB3.summoningLimitBonus())
+                HP = 0;
+        }
 
         if (HP <= 0) {
             die( null );
@@ -264,7 +332,7 @@ public class SummonedPet extends NPC {
 
         @Override
         public String status() {
-            return Utils.format("This %s is wandering", petType.getName());
+            return Utils.format("This %s is wandering", name);
         }
     }
 

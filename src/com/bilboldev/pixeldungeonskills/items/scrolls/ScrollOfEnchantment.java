@@ -23,13 +23,14 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 
 public class ScrollOfEnchantment extends InventoryScroll {
 
 	private static final String TXT_GLOWS	= "your %s glows in the dark";
-	
+    private static final String TXT_BOW	= "your bow is now a %s";
 	{
 		name = "Scroll of Enchantment";
 		inventoryTitle = "Select an enchantable item";
@@ -40,8 +41,22 @@ public class ScrollOfEnchantment extends InventoryScroll {
 	protected void onItemSelected( Item item ) {
 
 		ScrollOfRemoveCurse.uncurse( Dungeon.hero, item );
-		
-		if (item instanceof Weapon) {
+
+
+        if (item instanceof Bow) {
+
+            Bow newBow =  ((Bow)item).enchant();
+            if(curUser.belongings.bow != null)
+                curUser.belongings.bow = newBow;
+            else
+            {
+                item.detach(Dungeon.hero.belongings.backpack);
+                newBow.collect();
+            }
+
+            GLog.w(TXT_BOW, newBow.name());
+        }
+        else if (item instanceof Weapon) {
 			
 			((Weapon)item).enchant();
 			
@@ -54,8 +69,10 @@ public class ScrollOfEnchantment extends InventoryScroll {
 		item.fix();
 		
 		curUser.sprite.emitter().start( Speck.factory( Speck.LIGHT ), 0.1f, 5 );
-		Enchanting.show( curUser, item );
-		GLog.w( TXT_GLOWS, item.name() );
+        if (!(item instanceof Bow)) {
+            Enchanting.show(curUser, item);
+            GLog.w(TXT_GLOWS, item.name());
+        }
 	}
 	
 	@Override

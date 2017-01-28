@@ -155,6 +155,10 @@ public class Arrow extends MissileWeapon {
             miss( cell );
     }
 
+    public void arrowEffect(Char attacker, Char defender)
+    {
+
+    }
 
 	@Override
 	public String desc() {

@@ -23,6 +23,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.items.Honeypot;
+import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
@@ -45,9 +46,12 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.ShortSword;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.CupidArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Shuriken;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.SoulCrystal;
+import com.bilboldev.pixeldungeonskills.sprites.EyeSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.utils.Bundle;
 
@@ -141,7 +145,7 @@ public enum HeroClass {
         tmp.collect();
         tmp.doEquip(hero);
         new Arrow(15).collect();
-        new BombArrow(3).collect();
+        new CupidArrow(5).collect();
 
         new ScrollOfHome().setKnown();
         new ScrollOfSacrifice().setKnown();
@@ -162,6 +166,9 @@ public enum HeroClass {
         new PotionOfMana().collect();
 
         new ScrollOfEnchantment().identify().collect();
+
+        new SoulCrystal(3).collect();
+        new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();
     }
 	
 	public Badges.Badge masteryBadge() {

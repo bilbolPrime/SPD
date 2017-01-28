@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
 
 public class MercSprite extends MobSprite {
@@ -91,7 +92,6 @@ public class MercSprite extends MobSprite {
 	}
 
     public void updateArmor( ) {
-
 
         if(false && hasHalo == false)
         {

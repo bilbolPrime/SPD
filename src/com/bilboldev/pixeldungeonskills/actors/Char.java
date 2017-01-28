@@ -235,25 +235,7 @@ public abstract class Char extends Actor {
                     dmg *= Dungeon.hero.heroSkills.active2.damageModifier(); //  <--- Warrior Knockback if present and active
                     dmg *= Dungeon.hero.heroSkills.active3.damageModifier(); //  <--- Warrior Rampage if present and active
 
-                    if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.heroSkills.active2.knocksBack()) //  <--- Warrior KnockBack if present and active
-                    {
-                        int newPos = 0;
-                        if(this.pos % Level.WIDTH == enemy.pos % Level.WIDTH + 1) // From the right
-                            newPos += -2;
-                        else if(this.pos % Level.WIDTH == enemy.pos % Level.WIDTH - 1) // From the left
-                            newPos += 2;
-                        if(this.pos - this.pos % Level.WIDTH == enemy.pos - enemy.pos % Level.WIDTH + Level.WIDTH) // From the bottom
-                            newPos += -2 * Level.WIDTH;
-                        else if(this.pos - this.pos % Level.WIDTH == enemy.pos - enemy.pos % Level.WIDTH - Level.WIDTH)// From the top
-                            newPos += 2 * Level.WIDTH;
 
-                        //Buff.prolong(enemy, Paralysis.class, 1f);
-                        if(newPos != 0 && ((Mob)enemy).canBeKnockedBackInto(enemy.pos + newPos))
-                        {
-                            ((Mob) enemy).sprite.showStatus(CharSprite.NEUTRAL, "...");
-                            ((Mob) enemy).move(enemy.pos + newPos);
-                        }
-                    }
 
                     if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.heroSkills.active3.AoEDamage()) //  <--- Warrior Rampage if present and active
                     {
@@ -457,6 +439,7 @@ public abstract class Char extends Actor {
             Hero heroSrc = (Hero) src;
             if (heroSrc.rangedWeapon instanceof Arrow && heroSrc.belongings.bow instanceof Bow) {
                 heroSrc.belongings.bow.bowSpecial(this);
+                ((Arrow) heroSrc.rangedWeapon).arrowEffect(heroSrc, this);
             }
         }
 

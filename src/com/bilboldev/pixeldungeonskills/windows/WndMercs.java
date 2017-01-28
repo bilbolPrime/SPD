@@ -96,8 +96,8 @@ public class WndMercs extends WndTabbed {
             + "Each class has one skill with the exception of the Archer Maiden who knows two.\n"
             + "Skills level with the mercenary and are capped at level 3. \n"
             + "Mercenaries have the same level as the hero and level with him. \n \n"
-            + "You can unequip an item from a merc by tapping ont it and holding down. \n \n"
-            + "Mercs will consume any healing potion equiped on them if about to die. \n \n"
+            + "You can unequip an item from a merc by tapping on it and holding down. \n \n"
+            + "Mercs will consume any healing potion equipped on them if about to die. \n \n"
             + "You cannot hire the mercenary equivalent of your class.";
 
 

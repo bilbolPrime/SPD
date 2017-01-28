@@ -188,8 +188,9 @@ public class ItemSpriteSheet {
     public static final int Bow	= SPD_OFFSET + 1;
     public static final int ForstBow	= SPD_OFFSET + 2;
     public static final int FlameBow	= SPD_OFFSET + 3;
-    public static final int Arrow	= SPD_OFFSET + 4;
-    public static final int BombArrow	= SPD_OFFSET + 5;
+    public static final int Arrow	= SPD_OFFSET + 5;
+    public static final int BombArrow	= SPD_OFFSET + 6;
+    public static final int CupidArrow = SPD_OFFSET + 7;
 
     public static final int SCROLL_SKILLPOINT	= SPD_OFFSET + 8;
     public static final int SCROLL_SKILLRESETACTIVE		= SPD_OFFSET + 9;
@@ -217,4 +218,7 @@ public class ItemSpriteSheet {
 
     public static final int POTION_EMPTY= SPD_OFFSET + 32;
     public static final int POTION_PLACEHOLDER = SPD_OFFSET + 33;
+
+    public static final int CRYSTAL_EMPTY = SPD_OFFSET + 40;
+    public static final int CRYSTAL_FULL = SPD_OFFSET + 41;
 }

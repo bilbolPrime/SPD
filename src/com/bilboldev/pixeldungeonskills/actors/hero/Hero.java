@@ -63,6 +63,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
@@ -71,6 +72,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
+import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Amulet;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
@@ -987,6 +989,30 @@ public class Hero extends Char {
 			default:
 			}
 		}
+
+        if(!(Bestiary.isBoss(enemy)) && rangedWeapon == null && heroSkills.active2.knocksBack()) //  <--- Warrior KnockBack if present and active
+        {
+            for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
+                int ofs = Level.NEIGHBOURS8[i];
+                if (pos - enemy.pos  == ofs) {
+                    int newPos = enemy.pos - ofs;
+                    if ((Level.passable[newPos] || Level.avoid[newPos]) && Actor.findChar( newPos ) == null) {
+
+                        Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
+
+                        enemy.pos = newPos;
+                        // FIXME
+                        if (enemy instanceof Mob) {
+                            Dungeon.level.mobPress( (Mob)enemy );
+                        } else {
+                            Dungeon.level.press( newPos, enemy );
+                        }
+
+                    }
+                    break;
+                }
+            }
+        }
 		
 		return damage;
 	}

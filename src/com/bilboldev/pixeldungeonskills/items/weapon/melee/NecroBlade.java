@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.items.weapon.melee;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
@@ -132,6 +133,14 @@ public class NecroBlade extends MeleeWeapon {
         }
     }
 
+    @Override
+    public int damageRoll( Hero hero ) {
+        int damage = super.damageRoll( hero );
+        damage += (int) (charge / 8);
+        return damage;
+    }
+
+
     public void updateCharge(int change)
     {
         charge += change;
@@ -171,6 +180,7 @@ public class NecroBlade extends MeleeWeapon {
     @Override
 	public String desc() {
 		return "A blade forged from dark magic. NecroBlades consume the souls of those who perish by them. The more they consume, the stronger they become.\n" +
-                "NecroBlade energy at " + charge + "/100";
+                "NecroBlade energy at " + charge + "/100\n"
+                + "The energy stored within increases damage by " + ((int) (charge / 8)) + ".";
 	}
 }

@@ -219,11 +219,9 @@ public enum Difficulties {
             case EASY:
             case NORMAL:
                 return "Your wounds heal completely.";
-            case HARD:
-            case SUICIDE:
-                return "Your wounds are partially healed.";
+
         }
-        return "";
+        return "Your wounds are partially healed.";
     }
 
 
