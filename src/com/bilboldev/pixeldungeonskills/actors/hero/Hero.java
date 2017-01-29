@@ -21,8 +21,6 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 
 
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,11 +62,11 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
-import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
@@ -539,45 +537,50 @@ public class Hero extends Char {
 				
 				return actInteract( (HeroAction.Interact)curAction );
 				
-			} else 
+			} else
+            if (curAction instanceof HeroAction.Discuss) {
+
+                return actDiscuss((HeroAction.Discuss) curAction);
+
+            } else
 			if (curAction instanceof HeroAction.Buy) {
 				
-				return actBuy( (HeroAction.Buy)curAction );
+				return actBuy((HeroAction.Buy) curAction);
 				
 			}else 
 			if (curAction instanceof HeroAction.PickUp) {
 				
-				return actPickUp( (HeroAction.PickUp)curAction );
+				return actPickUp((HeroAction.PickUp) curAction);
 				
 			} else 
 			if (curAction instanceof HeroAction.OpenChest) {
 				
-				return actOpenChest( (HeroAction.OpenChest)curAction );
+				return actOpenChest((HeroAction.OpenChest) curAction);
 				
 			} else 
 			if (curAction instanceof HeroAction.Unlock) {
 				
-				return actUnlock( (HeroAction.Unlock)curAction );
+				return actUnlock((HeroAction.Unlock) curAction);
 				
 			} else 
 			if (curAction instanceof HeroAction.Descend) {
 				
-				return actDescend( (HeroAction.Descend)curAction );
+				return actDescend((HeroAction.Descend) curAction);
 				
 			} else
 			if (curAction instanceof HeroAction.Ascend) {
 				
-				return actAscend( (HeroAction.Ascend)curAction );
+				return actAscend((HeroAction.Ascend) curAction);
 				
 			} else
 			if (curAction instanceof HeroAction.Attack) {
 
-				return actAttack( (HeroAction.Attack)curAction );
+				return actAttack((HeroAction.Attack) curAction);
 				
 			} else
 			if (curAction instanceof HeroAction.Cook) {
 
-				return actCook( (HeroAction.Cook)curAction );
+				return actCook((HeroAction.Cook) curAction);
 				
 			}
             else
@@ -656,6 +659,31 @@ public class Hero extends Char {
 			
 		}
 	}
+
+    private boolean actDiscuss( HeroAction.Discuss action ) {
+
+        ColdGirl coldGirl = action.coldGirl;
+
+        if (Level.adjacent( pos, coldGirl.pos )) {
+
+            ready();
+            sprite.turnTo( pos, coldGirl.pos );
+            coldGirl.discuss();
+            return false;
+
+        } else {
+
+            if (Level.fieldOfView[coldGirl.pos] && getCloser( coldGirl.pos )) {
+
+                return true;
+
+            } else {
+                ready();
+                return false;
+            }
+
+        }
+    }
 	
 	private boolean actBuy( HeroAction.Buy action ) {
 		int dst = action.dst;
@@ -1150,9 +1178,11 @@ public class Hero extends Char {
 			
 			if (ch instanceof NPC) {
 				curAction = new HeroAction.Interact( (NPC)ch );
-			} else {
-				curAction = new HeroAction.Attack( ch );
-			}
+			} else if (ch instanceof ColdGirl && ((((ColdGirl.ColdGirlAI)((ColdGirl) ch).state).aiStatus == ColdGirl.PASSIVE) || (((ColdGirl.ColdGirlAI)((ColdGirl) ch).state).aiStatus == ColdGirl.DONE_MODE))) {
+                curAction = new HeroAction.Discuss( (ColdGirl)ch );
+            } else {
+                curAction = new HeroAction.Attack( ch );
+            }
 			
 		} else if (Level.fieldOfView[cell] && (heap = Dungeon.level.heaps.get( cell )) != null && heap.type != Heap.Type.HIDDEN) {
 

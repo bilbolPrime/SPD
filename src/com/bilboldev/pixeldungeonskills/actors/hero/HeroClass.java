@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfFrostLevel;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfHome;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
@@ -151,12 +152,13 @@ public enum HeroClass {
         new ScrollOfSacrifice().setKnown();
         new ScrollOfBloodyRitual().setKnown();
         new ScrollOfSkill().setKnown();
+        new ScrollOfFrostLevel().setKnown();
 
         new ScrollOfHome().collect();
         new ScrollOfSacrifice().collect();
         new ScrollOfBloodyRitual().collect();
         new ScrollOfSkill().collect();
-
+        new ScrollOfFrostLevel().collect();
 
         new PotionOfHealing().setKnown();
         new PotionOfMana().setKnown();
@@ -169,6 +171,8 @@ public enum HeroClass {
 
         new SoulCrystal(3).collect();
         new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();
+
+
     }
 	
 	public Badges.Badge masteryBadge() {

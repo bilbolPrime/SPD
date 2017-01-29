@@ -37,6 +37,7 @@ import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.BlobEmitter;
@@ -87,6 +88,8 @@ public class GameScene extends PixelScene {
 	private static final String TXT_SECRETS	= "The atmosphere hints that this floor hides many secrets.";
 
     private static final String TXT_WARN_DEGRADATION = "Your items will wear down with time. You can disable item degradation from settings.";
+
+    private static final String TXT_FROST			= "The portal spits you out in a cold domain...";
 
 	static GameScene scene;
 	
@@ -296,8 +299,15 @@ public class GameScene extends PixelScene {
 			if (Dungeon.depth < Statistics.deepestFloor) {
 				GLog.h( TXT_WELCOME_BACK, Dungeon.depth );
 			} else {
-				GLog.h( TXT_WELCOME, Dungeon.depth );
-				Sample.INSTANCE.play( Assets.SND_DESCEND );
+                if(Dungeon.depth != ColdGirl.FROST_DEPTH) {
+                    GLog.h(TXT_WELCOME, Dungeon.depth);
+                    Sample.INSTANCE.play(Assets.SND_DESCEND);
+                }
+                else
+                {
+                    GLog.h(TXT_FROST);
+                    Sample.INSTANCE.play(Assets.SND_TELEPORT);
+                }
 			}
 			switch (Dungeon.level.feeling) {
 				case CHASM:

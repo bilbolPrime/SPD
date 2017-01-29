@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 
 public class HeroAction {
@@ -54,6 +55,13 @@ public class HeroAction {
 			this.npc = npc;
 		}
 	}
+
+    public static class Discuss extends HeroAction {
+        public ColdGirl coldGirl;
+        public Discuss( ColdGirl coldGirl) {
+            this.coldGirl = coldGirl;
+        }
+    }
 	
 	public static class Unlock extends HeroAction {
 		public Unlock( int door ) {

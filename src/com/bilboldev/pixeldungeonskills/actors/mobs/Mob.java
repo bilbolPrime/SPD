@@ -671,4 +671,5 @@ public abstract class Mob extends Char {
 			return Utils.format( "This %s is passive", name );
 		}
 	}
+
 }

@@ -30,6 +30,7 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.BloodParticle;
 import com.bilboldev.pixeldungeonskills.items.keys.IronKey;
@@ -110,8 +111,11 @@ public class StatusPane extends Component {
 		level = new BitmapText( PixelScene.font1x );
 		level.hardlight( 0xFFEBA4 );
 		add( level );
-		
-		depth = new BitmapText( Integer.toString( Dungeon.depth ), PixelScene.font1x );
+
+        if(Dungeon.depth != ColdGirl.FROST_DEPTH)
+		    depth = new BitmapText( Integer.toString( Dungeon.depth ), PixelScene.font1x );
+        else
+            depth = new BitmapText( "??" , PixelScene.font1x );
 		depth.hardlight( 0xCACFC2 );
 		depth.measure();
 		add( depth );

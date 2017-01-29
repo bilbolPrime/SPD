@@ -320,7 +320,8 @@ public class HiredMerc extends NPC {
         {
             Dungeon.level.drop( armor, pos ).sprite.drop();
             armor = null;
-            ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
+            if(HP > 0)
+                ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
         }
     }
 

@@ -27,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Heap;
@@ -232,6 +233,8 @@ public class Toolbar extends Component {
 
                     if(tool == btnLastUsed)
                         tool.visible = Dungeon.hero.heroSkills.lastUsed != null;
+                    if(tool == btnMerc && Dungeon.depth == ColdGirl.FROST_DEPTH)
+                        ((Tool)tool).enable(false);
 				}
 			}
 		}

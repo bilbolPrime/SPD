@@ -327,12 +327,12 @@ public class PixelDungeon extends Game {
 		return Preferences.INSTANCE.getBoolean( Preferences.KEY_BRIGHTNESS, false );
 	}
 	
-	public static void donated( String value ) {
+	public static void donated( int value ) {
 		Preferences.INSTANCE.put( Preferences.KEY_DONATED, value );
 	}
 	
-	public static String donated() {
-		return Preferences.INSTANCE.getString( Preferences.KEY_DONATED, "" );
+	public static int donated() {
+		return Preferences.INSTANCE.getInt( Preferences.KEY_DONATED, 0 );
 	}
 
     public static void maidenUnlocked( Boolean value ) {

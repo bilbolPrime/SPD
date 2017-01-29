@@ -58,6 +58,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
+import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
@@ -203,7 +204,8 @@ public abstract class Char extends Actor {
 			}
 		}
 	}
-	
+
+
 	public boolean attack( Char enemy ) {
 		
 		boolean visibleFight = Dungeon.visible[pos] || Dungeon.visible[enemy.pos];
@@ -263,7 +265,9 @@ public abstract class Char extends Actor {
 			
 			effectiveDamage = attackProc( enemy, effectiveDamage );
 			effectiveDamage = enemy.defenseProc( this, effectiveDamage );
-			enemy.damage( effectiveDamage, this );
+            if(effectiveDamage < 0)
+			    return true;
+            enemy.damage( effectiveDamage, this );
 
 
             if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.heroSkills.active2.damageBonus(enemy.HP) > 0 && Dungeon.hero.rangedWeapon instanceof Shuriken) // <-- Rogue Deadeye when present

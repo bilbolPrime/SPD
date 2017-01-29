@@ -42,6 +42,7 @@ public class Assets {
 	public static final String ROGUE	= "rogue.png";
 	public static final String HUNTRESS	= "ranger.png";
     public static final String ARCHER_MAIDEN	= "archer_maiden.png";
+    public static final String COLD_GIRL = "cold_girl.png";
 	public static final String AVATARS	= "avatars.png";
 	public static final String PET		= "pet.png";
 	
@@ -98,6 +99,7 @@ public class Assets {
 	public static final String TILES_CAVES	= "tiles2.png";
 	public static final String TILES_CITY	= "tiles3.png";
 	public static final String TILES_HALLS	= "tiles4.png";
+    public static final String TILES_SNOW	= "tilessnow.png";
 	
 	public static final String WATER_SEWERS	= "water0.png";
 	public static final String WATER_PRISON	= "water1.png";

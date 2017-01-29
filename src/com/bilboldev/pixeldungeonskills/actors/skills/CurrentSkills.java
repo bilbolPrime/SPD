@@ -18,6 +18,7 @@ public enum CurrentSkills{
     public enum BRANCHES {PASSIVEA, PASSIVEB, ACTIVE}
 
     public static final String TYPE = "TYPE";
+    public static final String UNLOCKED = "unlocked";
 
     public Skill branchPA = null;
     public Skill passiveA1 = null;
@@ -35,6 +36,8 @@ public enum CurrentSkills{
     public Skill active3 = null;
 
     public Skill lastUsed = null;
+
+    public boolean skillUnlocked = false;
 
     public static Negotiations mercMenu = new Negotiations();
 
@@ -172,6 +175,7 @@ public enum CurrentSkills{
     public void storeInBundle( Bundle bundle )
     {
         bundle.put( TYPE, toString() );
+        bundle.put(UNLOCKED, skillUnlocked);
         passiveA1.storeInBundle(bundle);
         passiveA2.storeInBundle(bundle);
         passiveA3.storeInBundle(bundle);
@@ -202,5 +206,29 @@ public enum CurrentSkills{
         active1.restoreInBundle(bundle);
         active2.restoreInBundle(bundle);
         active3.restoreInBundle(bundle);
+        skillUnlocked = bundle.getBoolean(UNLOCKED);
+        if(skillUnlocked)
+            unlockSkill();
+    }
+
+    public void unlockSkill()
+    {
+        skillUnlocked = true;
+        switch (this) {
+            case WARRIOR:
+                int preserveLevel = active1.level;
+                active1 = new Smite();
+                active1.level = preserveLevel;
+        }
+    }
+
+    public String unlockableSkillName()
+    {
+        switch (this) {
+            case WARRIOR:
+               return "Smite";
+        }
+
+        return "";
     }
 }

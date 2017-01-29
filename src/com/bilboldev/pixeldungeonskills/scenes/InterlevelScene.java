@@ -30,7 +30,9 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.items.Generator;
+import com.bilboldev.pixeldungeonskills.levels.FrostLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
 import com.bilboldev.pixeldungeonskills.windows.WndError;
@@ -46,12 +48,13 @@ public class InterlevelScene extends PixelScene {
 	private static final String TXT_RESURRECTING= "Resurrecting...";
 	private static final String TXT_RETURNING	= "Returning...";
 	private static final String TXT_FALLING		= "Falling...";
+    private static final String TXT_TELEPORTING		= "A weird portal sucks you in...";
 	
 	private static final String ERR_FILE_NOT_FOUND	= "File not found. For some reason.";
 	private static final String ERR_GENERIC			= "Something went wrong..."	;	
 	
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK
 	};
 	public static Mode mode;
 	
@@ -97,6 +100,10 @@ public class InterlevelScene extends PixelScene {
 		case FALL:
 			text = TXT_FALLING;
 			break;
+        case TELEPORT:
+        case TELEPORT_BACK:
+            text = TXT_TELEPORTING;
+            break;
 		default:
 		}
 		
@@ -136,6 +143,12 @@ public class InterlevelScene extends PixelScene {
 					case FALL:
 						fall();
 						break;
+                    case TELEPORT:
+                        teleport();
+                     break;
+                    case TELEPORT_BACK:
+                        teleport_back();
+                         break;
 					default:
 					}
 
@@ -244,6 +257,26 @@ public class InterlevelScene extends PixelScene {
 		}
 		Dungeon.switchLevel( level, fallIntoPit ? level.pitCell() : level.randomRespawnCell() );
 	}
+
+    private void teleport() throws Exception {
+
+        Actor.fixTime();
+        Dungeon.saveLevel();
+
+        Dungeon.depth = ColdGirl.FROST_DEPTH - 1;
+        Level level = Dungeon.newLevel();
+        int pos = level.randomRespawnCell();
+        Dungeon.switchLevel(level, level.randomRespawnCell() );
+    }
+
+    private void teleport_back() throws Exception {
+        Actor.fixTime();
+
+        Dungeon.saveLevel();
+        Dungeon.depth = ColdGirl.cameFrom;
+        Level level = Dungeon.loadLevel( Dungeon.hero.heroClass );
+        Dungeon.switchLevel( level, ColdGirl.cameFromPos );
+    }
 	
 	private void ascend() throws Exception {
 		Actor.fixTime();

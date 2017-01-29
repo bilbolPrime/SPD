@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.HashSet;
 
 import com.bilboldev.noosa.Game;
-import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -36,14 +35,11 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Rage;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
-import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
-import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
-import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
@@ -55,6 +51,7 @@ import com.bilboldev.pixeldungeonskills.levels.CavesLevel;
 import com.bilboldev.pixeldungeonskills.levels.CityBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.CityLevel;
 import com.bilboldev.pixeldungeonskills.levels.DeadEndLevel;
+import com.bilboldev.pixeldungeonskills.levels.FrostLevel;
 import com.bilboldev.pixeldungeonskills.levels.HallsBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.HallsLevel;
 import com.bilboldev.pixeldungeonskills.levels.LastLevel;
@@ -67,7 +64,6 @@ import com.bilboldev.pixeldungeonskills.levels.SewerBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.SewerLevel;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
-import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.BArray;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -167,7 +163,7 @@ public class Dungeon {
 		Actor.clear();
 
 		depth++;
-		if (depth > Statistics.deepestFloor) {
+		if (depth % ColdGirl.FROST_DEPTH > Statistics.deepestFloor) {
 			Statistics.deepestFloor = depth;
 
 			if (Statistics.qualifiedForNoKilling) {
@@ -231,6 +227,9 @@ public class Dungeon {
 		case 26:
 			level = new LastLevel();
 			break;
+        case ColdGirl.FROST_DEPTH:
+            level = new FrostLevel();
+            break;
 		default:
 			level = new DeadEndLevel();
 			Statistics.deepestFloor--;
@@ -262,7 +261,7 @@ public class Dungeon {
 	}
 
 	public static boolean bossLevel( int depth ) {
-		return depth == 5 || depth == 10 || depth == 15 || depth == 20 || depth == 25;
+		return depth == 5 || depth == 10 || depth == 15 || depth == 20 || depth == 25 || depth == ColdGirl.FROST_DEPTH;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -281,11 +280,12 @@ public class Dungeon {
 
        if(hero.hiredMerc != null)
             hero.checkMerc = true;
-        Actor mercRespawn = level.mercRespawner();
-        if (mercRespawn != null) {
-            Actor.add( mercRespawn );
+        if(depth != ColdGirl.FROST_DEPTH) {
+            Actor mercRespawn = level.mercRespawner();
+            if (mercRespawn != null) {
+                Actor.add(mercRespawn);
+            }
         }
-
         hero.pos = pos != -1 ? pos : level.exit;
 
 		Light light = hero.buff( Light.class );

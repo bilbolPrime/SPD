@@ -197,7 +197,7 @@ public class ItemSpriteSheet {
     public static final int SCROLL_GOHOME	= SPD_OFFSET + 10;
     public static final int SCROLL_SACRIFICE	= SPD_OFFSET + 11;
     public static final int SCROLL_BLOODY	= SPD_OFFSET + 12;
-
+    public static final int SCROLL_FROST	= SPD_OFFSET + 13;
 
     public static final int NecroBlade0	= SPD_OFFSET + 16;
     public static final int NecroBlade1	= SPD_OFFSET + 17;
