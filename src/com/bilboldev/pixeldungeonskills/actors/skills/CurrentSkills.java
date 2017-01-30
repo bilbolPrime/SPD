@@ -170,6 +170,7 @@ public enum CurrentSkills{
     {
         if(lastUsed != null)
             GameScene.show(new WndSkill(null, lastUsed));
+
     }
 
     public void storeInBundle( Bundle bundle )

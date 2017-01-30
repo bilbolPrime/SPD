@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items.potions;
 
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class PotionOfMana extends Potion {
@@ -32,6 +33,7 @@ public class PotionOfMana extends Potion {
 
         GLog.p( "You feel your spiritual energy being replenished." );
         hero.MP = hero.MMP;
+        StatusPane.manaDropping = 0;
 	}
 	
 

@@ -63,7 +63,10 @@ public enum Icons {
     ARCHER_MAIDEN_SKILL_B,
     ARCHER_MAIDEN_BOW,
     ARCHER_MAIDEN_POTION,
-    ALL_MERCS;
+    ALL_MERCS,
+    RAT_KING,
+    MOB,
+    CHAMP_HALO;
 	
 	public Image get() {
 		return get( this );
@@ -195,6 +198,15 @@ public enum Icons {
        case ALL_MERCS:
         icon.frame( icon.texture.uvRect( 54, 83, 71, 97 ) );
         break;
+       case RAT_KING:
+        icon.frame( icon.texture.uvRect( 1, 102, 12, 117 ) );
+          break;
+       case CHAMP_HALO:
+          icon.frame( icon.texture.uvRect( 17, 104, 26, 115 ) );
+          break;
+       case MOB:
+           icon.frame( icon.texture.uvRect( 28, 101, 39, 116 ) );
+           break;
 		}
 		return icon;
 	}

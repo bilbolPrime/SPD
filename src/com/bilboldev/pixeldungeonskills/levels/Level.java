@@ -425,6 +425,9 @@ public abstract class Level implements Bundlable {
 
                             for (int n : Level.NEIGHBOURS4) {
                                 int c = Dungeon.hero.pos + n;
+                                if(c < 0 || c >= Level.passable.length)
+                                    continue;
+
                                 if (passable[c] && Actor.findChar(c) == null) {
                                     candidates.add(c);
                                 }

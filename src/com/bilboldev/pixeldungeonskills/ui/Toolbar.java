@@ -26,7 +26,6 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
-import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
@@ -38,6 +37,7 @@ import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndCatalogus;
+import com.bilboldev.pixeldungeonskills.windows.WndDonations;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
@@ -47,9 +47,9 @@ import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMerc;
 import com.bilboldev.pixeldungeonskills.windows.WndMercs;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
-import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
 public class Toolbar extends Component {
@@ -58,8 +58,9 @@ public class Toolbar extends Component {
     private Tool btnSkill;
     private Tool btnMerc;
     private Tool btnLastUsed;
-	private Tool btnSearch;
-	private Tool btnInfo;
+	//private Tool btnSearch;
+    private Tool btnKing;
+	private Tool btnInfoSearch;
 	private Tool btnInventory;
 	private Tool btnQuick1;
 	private Tool btnQuick2;
@@ -92,7 +93,7 @@ public class Toolbar extends Component {
 			};
 		} );
 
-        add( btnSkill = new Tool( 111, 7, 21, 24 ) {
+        add( btnSkill = new Tool( 20, 7, 20, 25 ) {
             @Override
             protected void onClick() {
                 GameScene.show(new WndSkills(null, null));
@@ -103,21 +104,21 @@ public class Toolbar extends Component {
             };
         });
 
-        /*
-        add( btnKing = new Tool( 135, 7, 21, 24 ) {
+
+        add( btnKing = new Tool( 135, 7, 21, 25 ) {
             @Override
             protected void onClick() {
-                WndStory.showStory("You are not worthy of the Rat King...");
+                GameScene.show(new WndRatKing(WndRatKing.Mode.NORMAL));
             };
             protected boolean onLongClick() {
-                GameScene.show(new WndSkills(null, null));
+                GameScene.show(new WndRatKing(WndRatKing.Mode.NORMAL));
                 return true;
             };
         });
 
-        */
 
-            add(btnLastUsed = new Tool(158, 7, 21, 24) {
+
+            add(btnLastUsed = new Tool(40, 7, 20, 25) {
                 @Override
                 protected void onClick() {
                     Dungeon.hero.heroSkills.showLastUsed();
@@ -133,7 +134,7 @@ public class Toolbar extends Component {
                 ;
             });
 
-        add(btnMerc = new Tool(252, 7, 20, 24) {
+        add(btnMerc = new Tool(252, 7, 20, 25) {
             @Override
             protected void onClick() {
                 if(Dungeon.hero.hiredMerc == null)
@@ -157,19 +158,24 @@ public class Toolbar extends Component {
 
 
 
-		
+		/*
 		add( btnSearch = new Tool( 20, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
 				Dungeon.hero.search( true );
 			}
 		} );
-		
-		add( btnInfo = new Tool( 40, 7, 21, 25 ) {
+
+        */
+		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
 				GameScene.selectCell( informer );
 			}
+            @Override
+            protected boolean onLongClick() {
+                Dungeon.hero.search(true); return true;
+            }
 		} );
 		
 		add( btnInventory = new Tool( 60, 7, 23, 25 ) {
@@ -205,12 +211,12 @@ public class Toolbar extends Component {
 	@Override
 	protected void layout() {
 		btnWait.setPos( x, y );
-		btnSearch.setPos( btnWait.right(), y );
-		btnInfo.setPos( btnSearch.right(), y );
-        btnMerc.setPos( 0, 50 );
-        btnSkill.setPos( 0, 80 );
-       // btnKing.setPos(0, 80);
-        btnLastUsed.setPos(0, 110);
+		//btnSearch.setPos( btnWait.right(), y );
+		btnInfoSearch.setPos( 0, 70 );
+        btnMerc.setPos( 0, 40 );
+        btnSkill.setPos(btnWait.right(), y);
+        btnKing.setPos(0, 100);
+        btnLastUsed.setPos(btnSkill.right(), y);
 		btnQuick1.setPos( width - btnQuick1.width(), y );
 		if (btnQuick2.visible) {
 			btnQuick2.setPos(btnQuick1.left() - btnQuick2.width(), y );
@@ -310,7 +316,7 @@ public class Toolbar extends Component {
 		}	
 		@Override
 		public String prompt() {
-			return "Select a cell to examine";
+			return "Select a cell to examine.";
 		}
 	};
 	

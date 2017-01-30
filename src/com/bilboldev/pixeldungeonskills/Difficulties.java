@@ -1,8 +1,11 @@
 package com.bilboldev.pixeldungeonskills;
 
 
+import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+
+import java.util.ArrayList;
 
 
 public enum Difficulties {
@@ -11,8 +14,22 @@ public enum Difficulties {
 
     private int difficulty;
 
+    public static boolean canDisableChampions = false;
+
+    private int championOffset = 0;
+    public float hpOffset = 0;
+    public float attOffset = 0;
+    public float defOffset = 0;
+
+    private ArrayList<Integer> disabledChampions = new ArrayList<>();
+
     private Difficulties( int difficulty ) {
         this.difficulty = difficulty;
+        championOffset = 0;
+        hpOffset = 0;
+        attOffset = 0;
+        defOffset = 0;
+        disabledChampions.clear();
     }
 
     public static final String[] EASY_DESC = {
@@ -139,6 +156,10 @@ public enum Difficulties {
     }
 
     public int championChance() {
+        return championChanceNatural() + championOffset;
+    }
+
+    public int championChanceNatural() {
 
         switch (this) {
             case EASY:
@@ -157,7 +178,12 @@ public enum Difficulties {
         return 0;
     }
 
-    public float damageModifier() {
+    public float damageModifier()
+    {
+        return naturalDamageModifier() + attOffset;
+    }
+
+    public float naturalDamageModifier() {
 
         switch (this) {
             case EASY:
@@ -177,6 +203,11 @@ public enum Difficulties {
     }
 
     public float mobHPModifier() {
+
+        return naturalMobHPModifier() + hpOffset;
+    }
+
+    public float naturalMobHPModifier() {
 
         switch (this) {
             case EASY:
@@ -272,6 +303,58 @@ public enum Difficulties {
         }
     }
 
+
+    public void reset()
+    {
+        championOffset = 0;
+        disabledChampions.clear();
+    }
+
+    public void changeChampionOffset(int change)
+    {
+        championOffset += change;
+        if(championChance() < championChanceNatural())
+            championOffset = 0;
+        if(championChance() > 10)
+            championOffset = 10 - championChanceNatural();
+    }
+
+    public void changeHPOffset(float change)
+    {
+        hpOffset += change;
+        if(mobHPModifier() < naturalMobHPModifier())
+            hpOffset = 0;
+        if(mobHPModifier() > 2f)
+            hpOffset = 2f - naturalMobHPModifier();
+    }
+
+    public void changeDamageOffset(float change)
+    {
+        attOffset += change;
+        if(damageModifier() < naturalDamageModifier())
+            attOffset = 0;
+        if(damageModifier() > 2f)
+            attOffset = 2f - naturalDamageModifier();
+    }
+
+    public boolean disableChampion(int champType)
+    {
+        return disabledChampions.contains(champType);
+    }
+
+    public boolean disableChampion(int champType, boolean disable)
+    {
+        if(disable && disabledChampions.size() == 3)
+            return false;
+
+        if(disable && disableChampion(champType) == false)
+            disabledChampions.add(champType);
+
+        if(!disable && disableChampion(champType))
+            disabledChampions.remove((Object) champType);
+
+        return true;
+    }
 
     public static int getNormalizedDifficulty(int diff)
     {

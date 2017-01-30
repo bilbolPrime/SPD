@@ -342,6 +342,14 @@ public class PixelDungeon extends Game {
     public static boolean maidenUnlocked() {
         return Preferences.INSTANCE.getBoolean( Preferences.KEY_ARCHER_MAIDEN, false );
     }
+
+    public static void disableChampionsUnlocked( Boolean value ) {
+        Preferences.INSTANCE.put( Preferences.KEY_DISABLE_CHAMPIONS, value );
+    }
+
+    public static boolean disableChampionsUnlocked() {
+        return Preferences.INSTANCE.getBoolean( Preferences.KEY_DISABLE_CHAMPIONS, false );
+    }
 	
 	public static void lastClass( int value ) {
 		Preferences.INSTANCE.put( Preferences.KEY_LAST_CLASS, value );

@@ -5,6 +5,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 import java.util.ArrayList;
 
@@ -37,6 +38,7 @@ public class SpiritArrow extends ActiveSkill1{
             Dungeon.level.drop( arrow, hero.pos ).sprite.drop();
             CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
             hero.MP -= getManaCost();
+            StatusPane.manaDropping += getManaCost();
             castTextYell();
             Dungeon.hero.heroSkills.lastUsed = this;
             hero.spend( TIME_TO_USE );

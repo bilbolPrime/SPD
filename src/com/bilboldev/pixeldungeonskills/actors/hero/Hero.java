@@ -116,6 +116,7 @@ import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
@@ -281,7 +282,7 @@ public class Hero extends Char {
         difficulty = bundle.getInt( DIFFICULTY );
         Dungeon.difficulty = difficulty;
         Dungeon.currentDifficulty = Difficulties.values()[difficulty];
-
+        Dungeon.currentDifficulty.reset();
 
 
         String tmp = bundle.getString(MERC_TYPE);
@@ -1072,6 +1073,8 @@ public class Hero extends Char {
 	public void damage( int dmg, Object src ) {		
 		restoreHealth = false;
 		super.damage( dmg, src );
+
+        StatusPane.takingDamage += dmg;
 		
 		if (subClass == HeroSubClass.BERSERKER && 0 < HP && HP <= HT * Fury.LEVEL) {
 			Buff.affect( this, Fury.class );

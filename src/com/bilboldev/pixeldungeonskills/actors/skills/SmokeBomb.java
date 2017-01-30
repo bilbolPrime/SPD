@@ -7,6 +7,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 import java.util.ArrayList;
 
@@ -39,6 +40,7 @@ public class SmokeBomb extends ActiveSkill1{
                 Buff.affect(hero, Invisibility.class, Invisibility.DURATION * (0.5f * level));
                 CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
                 hero.MP -= getManaCost();
+                StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 Dungeon.hero.heroSkills.lastUsed = this;
                 hero.spend( TIME_TO_USE );

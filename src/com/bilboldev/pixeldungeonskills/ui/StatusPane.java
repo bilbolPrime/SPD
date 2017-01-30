@@ -49,9 +49,18 @@ public class StatusPane extends Component {
 	private int lastTier = 0;
 	
 	private Image hp;
+    private Image hp_dropping;
+    private Image mp_dropping;
     private Image mp;
 	private Image exp;
-	
+
+    public static float takingDamage = 0;
+    public static float manaDropping = 0;
+
+    private int takingDamageCooldownCounter = 0;
+    private int manaDroppingCooldownCounter = 0;
+    private static final int TAKING_DAMAGE_COOLDOWN_INTERVAL = 3;
+
 	private int lastLvl = -1;
 	private int lastKeys = -1;
 	
@@ -102,8 +111,14 @@ public class StatusPane extends Component {
 		hp = new Image( Assets.HP_BAR );	
 		add( hp );
 
+        hp_dropping = new Image( Assets.HP_BAR_DROPPING );
+        add( hp_dropping );
+
         mp = new Image( Assets.MP_BAR );
         add( mp );
+
+        mp_dropping = new Image( Assets.MP_BAR_DROPPING );
+        add( mp_dropping );
 
 		exp = new Image( Assets.XP_BAR );
 		add( exp );
@@ -136,6 +151,9 @@ public class StatusPane extends Component {
 		
 		buffs = new BuffIndicator( Dungeon.hero );
 		add( buffs );
+
+        takingDamage = 0;
+        manaDropping = 0;
 	}
 	
 	@Override
@@ -153,9 +171,12 @@ public class StatusPane extends Component {
 		
 		hp.x = 30;
 		hp.y = 3;
-
+        hp_dropping.x = 30;
+        hp_dropping.y = 3;
         mp.x = 30;
         mp.y = 8;
+        mp_dropping.x = 30;
+        mp_dropping.y = 8;
 
 		depth.x = width - 24 - depth.width()    - 18;
 		depth.y = 6;
@@ -205,8 +226,20 @@ public class StatusPane extends Component {
 			layoutTags();
 		}
 		
-		float health = (float)Dungeon.hero.HP / Dungeon.hero.HT;
-		
+		float health = (float)(Dungeon.hero.HP) / Dungeon.hero.HT;
+
+        if(Dungeon.hero.HP == 0)
+            takingDamage = 0;
+
+        float health_drop = takingDamage / Dungeon.hero.HT;
+
+        if(takingDamage > 0)
+        {
+            takingDamageCooldownCounter++;
+            if(takingDamageCooldownCounter % TAKING_DAMAGE_COOLDOWN_INTERVAL == 0)
+                takingDamage -= 0.1f;
+        }
+
 		if (health == 0) {
 			avatar.tint( 0x000000, 0.6f );
 			blood.on = false;
@@ -219,11 +252,28 @@ public class StatusPane extends Component {
 		}
 		
 		hp.scale.x = health;
+        hp_dropping.x = hp.x + hp.width() - 20 * health;
+        hp_dropping.scale.x = health_drop;
+
 		exp.scale.x = (width / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
 
         float mana = (float)Dungeon.hero.MP / Dungeon.hero.MMP;
 
+        float mana_drop = manaDropping / Dungeon.hero.MMP;
+
         mp.scale.x = mana;
+        mp_dropping.x = mp.x + mp.width() - 20 * mana;
+        mp_dropping.scale.x = mana_drop;
+
+        if(Dungeon.hero.MMP == 0)
+            manaDropping = 0;
+
+        if(manaDropping > 0)
+        {
+            manaDroppingCooldownCounter++;
+            if(manaDroppingCooldownCounter % TAKING_DAMAGE_COOLDOWN_INTERVAL == 0)
+                manaDropping -= 0.1f;
+        }
 
 		if (Dungeon.hero.lvl != lastLvl) {
 			

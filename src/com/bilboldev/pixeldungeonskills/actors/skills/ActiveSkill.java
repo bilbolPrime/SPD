@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class ActiveSkill extends Skill {
 
     @Override
     public void execute( Hero hero, String action ) {
+        Dungeon.hero.heroSkills.lastUsed = this;
         if(action == Skill.AC_ACTIVATE)
         {
             active = true;

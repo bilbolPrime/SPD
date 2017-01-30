@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 /**
  * Created by Moussa on 20-Jan-17.
@@ -34,6 +35,7 @@ public class DeadEye extends ActiveSkill2{
             {
                 castTextYell();
                 Dungeon.hero.MP -= getManaCost();
+                StatusPane.manaDropping += getManaCost();
             }
 
             return (int)(hp * 0.1f * level);

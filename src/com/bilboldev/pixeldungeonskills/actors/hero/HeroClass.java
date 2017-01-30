@@ -158,7 +158,7 @@ public enum HeroClass {
         new ScrollOfSacrifice().collect();
         new ScrollOfBloodyRitual().collect();
         new ScrollOfSkill().collect();
-        new ScrollOfFrostLevel().collect();
+        //new ScrollOfFrostLevel().collect();
 
         new PotionOfHealing().setKnown();
         new PotionOfMana().setKnown();

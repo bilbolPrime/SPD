@@ -24,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
@@ -51,6 +52,7 @@ public class ScrollOfBloodyRitual extends Scroll {
 
         Dungeon.hero.HT -= damage;
         Dungeon.hero.HP = Dungeon.hero.HT;
+        StatusPane.takingDamage = 0;
 
         GLog.n("Scroll of bloody ritual took away " + damage + " of your max hp!");
         GLog.p("A dark aura heals all your wounds... but you are not comfortable with the aura around you...");

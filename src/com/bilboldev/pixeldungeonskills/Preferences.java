@@ -39,6 +39,7 @@ enum Preferences {
 	public static final String KEY_BRIGHTNESS	= "brightness";
     public static final String KEY_DEGRADATION	= "nodegradation";
     public static final String KEY_ARCHER_MAIDEN	= "archermaiden";
+    public static final String KEY_DISABLE_CHAMPIONS	= "disablechampions";
 
 	private SharedPreferences prefs;
 	

@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 /**
  * Created by Moussa on 20-Jan-17.
@@ -51,6 +52,7 @@ public class Smite extends Smash{
         {
             castTextYell();
             Dungeon.hero.MP -= getManaCost();
+            StatusPane.manaDropping += getManaCost();
             return 1f + 0.2f * level;
         }
     }

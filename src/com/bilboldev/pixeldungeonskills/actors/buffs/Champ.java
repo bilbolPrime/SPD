@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.utils.Bundle;
@@ -32,7 +33,7 @@ public class Champ extends Buff {
     public static final int CHAMP_FOUL = 3;
     public static final int CHAMP_VAMPERIC = 4;
 
-    public int type = Random.Int(1, 5);
+    public int type = Random.Int(1, 4);
 
     private  boolean bonusApplied = false;
 
@@ -61,6 +62,12 @@ public class Champ extends Buff {
             this.target.champ = type;
             bonusApplied = true;
             haloApplied = true;
+            do
+            {
+                type = Random.Int(1, 4);
+            }
+            while(Dungeon.currentDifficulty.disableChampion(type) == true);
+
             switch(type)
             {
                 case 5: type = CHAMP_VAMPERIC;

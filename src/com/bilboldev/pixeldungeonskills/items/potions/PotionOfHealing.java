@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class PotionOfHealing extends Potion {
@@ -47,7 +48,7 @@ public class PotionOfHealing extends Potion {
 		Buff.detach( hero, Cripple.class );
 		Buff.detach( hero, Weakness.class );
 		Buff.detach( hero, Bleeding.class );
-		
+        StatusPane.takingDamage = 0;
 		hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
 	}
 

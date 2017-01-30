@@ -9,6 +9,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
@@ -48,6 +49,8 @@ public class SummonCrab extends ActiveSkill2{
 
                     for (int n : Level.NEIGHBOURS4) {
                         int c = hero.pos + n;
+                        if(c < 0 || c >= Level.passable.length)
+                            continue;
                         if (passable[c] && Actor.findChar(c) == null) {
                             candidates.add(c);
                         }
@@ -68,6 +71,7 @@ public class SummonCrab extends ActiveSkill2{
 
             if(spawned == true) {
                 hero.MP -= getManaCost();
+                StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 hero.spend( TIME_TO_USE );
                 hero.busy();

@@ -11,6 +11,7 @@ import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ public class ShadowClone extends ActiveSkill3{
 
             for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
                 int p = hero.pos + Level.NEIGHBOURS8[i];
+                if(p < 0 || p >= Level.passable.length)
+                    continue;
                 if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
                     respawnPoints.add(p);
                 }
@@ -64,6 +67,7 @@ public class ShadowClone extends ActiveSkill3{
             }
 
             hero.MP -= getManaCost();
+            StatusPane.manaDropping += getManaCost();
             castTextYell();
             Dungeon.hero.heroSkills.lastUsed = this;
             hero.spend( TIME_TO_USE );

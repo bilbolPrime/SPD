@@ -336,6 +336,7 @@ public class StartScene extends PixelScene {
         diff = Difficulties.getNormalizedDifficulty(diff);
         Dungeon.difficulty = diff;
         Dungeon.currentDifficulty = Difficulties.values()[diff];
+        Dungeon.currentDifficulty.reset();
 		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
 		
 		if (PixelDungeon.intro()) {

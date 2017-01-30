@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 import java.util.ArrayList;
 
@@ -53,6 +54,7 @@ public class Smash extends ActiveSkill1{
         {
             castTextYell();
             Dungeon.hero.MP -= getManaCost();
+            StatusPane.manaDropping += getManaCost();
             return 1f + 0.1f * level;
         }
     }
