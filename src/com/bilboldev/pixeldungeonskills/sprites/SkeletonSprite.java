@@ -21,9 +21,14 @@ import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MobProjectile;
+import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.utils.Callback;
 
 public class SkeletonSprite extends MobSprite {
-	
+
+    private int cellToAttack = 0;
 	public SkeletonSprite() {
 		super();
 		
@@ -39,7 +44,9 @@ public class SkeletonSprite extends MobSprite {
 		
 		attack = new Animation( 15, false );
 		attack.frames( frames, 14, 15, 16 );
-		
+
+        zap = attack.clone();
+
 		die = new Animation( 12, false );
 		die.frames( frames, 10, 11, 12, 13 );
 		
@@ -53,7 +60,39 @@ public class SkeletonSprite extends MobSprite {
 			emitter().burst( Speck.factory( Speck.BONE ), 6 );
 		}
 	}
-	
+
+    @Override
+    public void attack( int cell ) {
+        if (!Level.adjacent(cell, ch.pos)) {
+
+            cellToAttack = cell;
+            turnTo( ch.pos , cell );
+            play( zap );
+
+        } else {
+
+            super.attack( cell );
+
+        }
+    }
+
+    @Override
+    public void onComplete( Animation anim ) {
+        if (anim == zap) {
+            idle();
+
+            ((MissileSprite)parent.recycle( MissileSprite.class )).
+                    reset( ch.pos, cellToAttack, new Arrow(), new Callback() {
+                        @Override
+                        public void call() {
+                            ch.onAttackComplete();
+                        }
+                    } );
+        } else {
+            super.onComplete( anim );
+        }
+    }
+
 	@Override
 	public int blood() {
 		return 0xFFcccccc;

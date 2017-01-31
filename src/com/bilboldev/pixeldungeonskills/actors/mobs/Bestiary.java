@@ -185,6 +185,6 @@ public class Bestiary {
 			mob instanceof Tengu || 
 			mob instanceof DM300 || 
 			mob instanceof King || 
-			mob instanceof Yog || mob instanceof BurningFist || mob instanceof RottingFist;
+			mob instanceof Yog || mob instanceof BurningFist || mob instanceof RottingFist  || mob instanceof ColdGirl;
 	}
 }

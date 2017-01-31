@@ -186,6 +186,14 @@ public class Item implements Bundlable {
 			heap.sprite.drop( cell );
 		}
 	}
+
+    public void onThrowColdGirl( int cell ) {
+        Heap heap = Dungeon.level.drop( this, cell );
+        if (!heap.isEmpty()) {
+            heap.sprite.drop( cell );
+        }
+        Dungeon.hero.belongings.weapon = null;
+    }
 	
 	public boolean collect( Bag container ) {
 		
@@ -608,13 +616,16 @@ public class Item implements Bundlable {
 			}
 		}
 		final float finalDelay = delay;
-		
+		final int dstFinal = dst;
 		((MissileSprite)user.sprite.parent.recycle( MissileSprite.class )).
 			reset( user.pos, cell, this, new Callback() {			
 				@Override
 				public void call() {
 					Item.this.detach( user.belongings.backpack ).onThrow( cell );
-					user.spendAndNext( finalDelay );
+                    if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
+                        curItem.cast( curUser, dstFinal );
+                    else
+					    user.spendAndNext( finalDelay );
 				}
 			} );
 	}
@@ -700,8 +711,6 @@ public class Item implements Bundlable {
 		public void onSelect( Integer target ) {
 			if (target != null) {
 				curItem.cast( curUser, target );
-                if(curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
-                    curItem.cast( curUser, target );
 			}
 		}
 		@Override

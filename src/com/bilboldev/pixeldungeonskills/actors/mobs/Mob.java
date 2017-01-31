@@ -42,6 +42,7 @@ import com.bilboldev.pixeldungeonskills.effects.Wound;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -86,7 +87,9 @@ public abstract class Mob extends Char {
 	
 	private static final String STATE	= "state";
 	private static final String TARGET	= "target";
-	
+
+    public int range = 0;
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		
@@ -230,7 +233,7 @@ public abstract class Mob extends Char {
 	}
 	
 	protected boolean canAttack( Char enemy ) {
-		return Level.adjacent( pos, enemy.pos ) && !isCharmedBy( enemy );
+		return (Level.adjacent( pos, enemy.pos ) || (Level.distance(pos, enemy.pos) <= range  &&  Ballistica.cast(pos, enemy.pos, false, true) == enemy.pos)) && !isCharmedBy( enemy );
 	}
 
     public boolean canBeKnockedBackInto(int newPos)

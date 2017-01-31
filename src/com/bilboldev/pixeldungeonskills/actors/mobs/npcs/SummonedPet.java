@@ -25,7 +25,7 @@ public class SummonedPet extends NPC {
 
     public static enum PET_TYPES
     {
-        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton"), SPECIAL("Special");
+        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton"), SKELETON_ARCHER("Skeleton Archer"), SPECIAL("Special");
         public String type = "Rat";
         PET_TYPES(String type) {this.type = type;}
 
@@ -40,6 +40,7 @@ public class SummonedPet extends NPC {
             {
                 case RAT: return 7 + level;
                 case CRAB: return 10 + 2 * level;
+                case SKELETON_ARCHER:
                 case SKELETON: return 15 + 3 * level;
             }
 
@@ -52,6 +53,7 @@ public class SummonedPet extends NPC {
             {
                 case RAT: return Random.NormalIntRange(1, 5) + level;
                 case CRAB: return Random.NormalIntRange(2, 7) + level;
+                case SKELETON_ARCHER:
                 case SKELETON: return Random.NormalIntRange(3, 10) + level;
             }
             return 1;
@@ -63,6 +65,7 @@ public class SummonedPet extends NPC {
             {
                 case RAT: return level;
                 case CRAB: return 2 * level;
+                case SKELETON_ARCHER:
                 case SKELETON: return 3 * level;
             }
             return 1;
@@ -74,6 +77,7 @@ public class SummonedPet extends NPC {
             {
                 case RAT: return "Summoned rats will protect their master mage.";
                 case CRAB: return "Summoned crabs will protect their master mage.";
+                case SKELETON_ARCHER: return "Summoned skeleton archers will protect their master mage.";
                 case SKELETON: return "Summoned skeletons will protect their master mage.";
             }
             return "";
@@ -85,6 +89,7 @@ public class SummonedPet extends NPC {
             {
                 case RAT: return RatSprite.class;
                 case CRAB: return CrabSprite.class;
+                case SKELETON_ARCHER:
                 case SKELETON: return SkeletonSprite.class;
             }
             return RatSprite.class;
@@ -201,6 +206,9 @@ public class SummonedPet extends NPC {
             spriteClass = petType.getSprite();
             name = petType.getName();
         }
+
+        if(petType == PET_TYPES.SKELETON_ARCHER)
+            range = 4;
     }
 
     public void spawn( int level, int maintainHP) {

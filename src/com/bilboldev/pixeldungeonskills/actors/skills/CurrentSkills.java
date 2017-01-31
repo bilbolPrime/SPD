@@ -215,11 +215,27 @@ public enum CurrentSkills{
     public void unlockSkill()
     {
         skillUnlocked = true;
+        int preserveLevel = 0;
         switch (this) {
             case WARRIOR:
-                int preserveLevel = active1.level;
+                preserveLevel = active1.level;
                 active1 = new Smite();
                 active1.level = preserveLevel;
+                break;
+            case HUNTRESS:
+                preserveLevel = active2.level;
+                active2 = new TripleShot();
+                active2.level = preserveLevel;
+                break;
+            case MAGE:
+                preserveLevel = active3.level;
+                active3 = new SummonSkeletonArcher();
+                active3.level = preserveLevel;
+                break;
+            case ROGUE:
+                preserveLevel = passiveB2.level;
+                passiveB2 = new KOArrow();
+                passiveB2.level = preserveLevel;
         }
     }
 
@@ -228,6 +244,12 @@ public enum CurrentSkills{
         switch (this) {
             case WARRIOR:
                return "Smite";
+            case MAGE:
+                return "Summon Skeleton Archer";
+            case ROGUE:
+                return "KO Arrow";
+            case HUNTRESS:
+                return "Triple Shot";
         }
 
         return "";

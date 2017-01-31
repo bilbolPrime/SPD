@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Honeypot;
 import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
@@ -155,11 +156,13 @@ public enum HeroClass {
         new ScrollOfFrostLevel().setKnown();
 
         new ScrollOfHome().collect();
-        new ScrollOfSacrifice().collect();
-        new ScrollOfBloodyRitual().collect();
+       // new ScrollOfSacrifice().collect();
+       // new ScrollOfBloodyRitual().collect();
         new ScrollOfSkill().collect();
-        //new ScrollOfFrostLevel().collect();
+       // new ScrollOfMagicMapping().identify().collect();
+        new ScrollOfFrostLevel().collect();
 
+       // new Ankh().collect();
         new PotionOfHealing().setKnown();
         new PotionOfMana().setKnown();
 
@@ -167,7 +170,7 @@ public enum HeroClass {
         new PotionOfMana().collect();
         new PotionOfMana().collect();
 
-        new ScrollOfEnchantment().identify().collect();
+       // new ScrollOfEnchantment().identify().collect();
 
         new SoulCrystal(3).collect();
         new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();

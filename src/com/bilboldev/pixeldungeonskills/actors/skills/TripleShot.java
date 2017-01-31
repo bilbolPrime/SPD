@@ -7,18 +7,18 @@ import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class DoubleShot extends ActiveSkill2{
+public class TripleShot extends ActiveSkill2{
 
 
     {
-        name = "Double Shot";
-        castText = "Two for one";
-        image = 90;
+        name = "Triple Shot";
+        castText = "Catch Sweetie";
+        image = 92;
         tier = 2;
         mana = 5;
     }
 
-    private boolean onDouble = false; // prevent infinite loop
+    private int count = 0; // prevent infinite loop
 
     @Override
     public void execute( Hero hero, String action ) {
@@ -34,15 +34,17 @@ public class DoubleShot extends ActiveSkill2{
     {
         if(active == false || Dungeon.hero.MP < getManaCost())
             return false;
-        else if(onDouble == false)
+        else if(count < 2)
         {
-            onDouble = true;
-            castTextYell();
-            Dungeon.hero.MP -= getManaCost();
-            StatusPane.manaDropping += getManaCost();
+            count++;
+            if(count == 1) {
+                castTextYell();
+                Dungeon.hero.MP -= getManaCost();
+                StatusPane.manaDropping += getManaCost();
+            }
             return true;
         }
-        onDouble = false;
+        count = 0;
         return false;
     }
 
@@ -56,7 +58,7 @@ public class DoubleShot extends ActiveSkill2{
     @Override
     public String info()
     {
-        return "Shoots three arrows at the same time.\n"
+        return "Shoots two arrows at the same time.\n"
                 + costUpgradeInfo();
     }
 }

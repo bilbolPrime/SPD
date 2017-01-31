@@ -19,9 +19,15 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MobProjectile;
+import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.utils.Callback;
 
 public class RatSprite extends MobSprite {
-	
+
+    private int cellToAttack;
+
 	public RatSprite() {
 		super();
 		
@@ -37,10 +43,44 @@ public class RatSprite extends MobSprite {
 		
 		attack = new Animation( 15, false );
 		attack.frames( frames, 2, 3, 4, 5, 0 );
-		
+
+        zap = attack.clone();
+
 		die = new Animation( 10, false );
 		die.frames( frames, 11, 12, 13, 14 );
 		
 		play( idle );
 	}
+
+    @Override
+    public void attack( int cell ) {
+        if (!Level.adjacent(cell, ch.pos)) {
+
+            cellToAttack = cell;
+            turnTo( ch.pos , cell );
+            play( zap );
+
+        } else {
+
+            super.attack( cell );
+
+        }
+    }
+
+    @Override
+    public void onComplete( Animation anim ) {
+        if (anim == zap) {
+            idle();
+
+            ((MissileSprite)parent.recycle( MissileSprite.class )).
+                    reset( ch.pos, cellToAttack, new MobProjectile(), new Callback() {
+                        @Override
+                        public void call() {
+                            ch.onAttackComplete();
+                        }
+                    } );
+        } else {
+            super.onComplete( anim );
+        }
+    }
 }

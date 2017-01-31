@@ -221,4 +221,6 @@ public class ItemSpriteSheet {
 
     public static final int CRYSTAL_EMPTY = SPD_OFFSET + 40;
     public static final int CRYSTAL_FULL = SPD_OFFSET + 41;
+
+    public static final int MOB_PROJECTILE = SPD_OFFSET + 42;
 }

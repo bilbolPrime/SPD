@@ -232,6 +232,9 @@ public class HiredMerc extends NPC {
     public MERC_TYPES mercType = MERC_TYPES.Brute;
 
 
+    public int rangedAttackCooldown = 0;
+    public static final int RANGED_COOLDOWN = 5;
+
     public int skillCounter = 90;
 
     public Skill skill = null;
@@ -378,6 +381,9 @@ public class HiredMerc extends NPC {
 
     @Override
     public int attackProc( Char enemy, int damage ) {
+
+        rangedAttackCooldown = 0;
+
         if (enemy instanceof Mob) {
             if(mercType != MERC_TYPES.Archer && mercType != MERC_TYPES.ArcherMaiden  || Level.adjacent( pos, enemy.pos ))
                 ((Mob)enemy).aggro( this );
@@ -524,6 +530,22 @@ public class HiredMerc extends NPC {
     }
 
 
+    @Override
+    public boolean doAttack(Char enemy)
+    {
+        if(Level.adjacent(pos, enemy.pos) || mercType != MERC_TYPES.Archer && mercType != MERC_TYPES.ArcherMaiden)
+            return super.doAttack(enemy);
+
+        if(rangedAttackCooldown < RANGED_COOLDOWN)
+        {
+            sprite.showStatus(CharSprite.NEUTRAL, "Reloading Sir");
+            spend( attackDelay() );
+            next();
+            return false;
+        }
+
+        return super.doAttack(enemy);
+    }
 
 
 
@@ -533,6 +555,7 @@ public class HiredMerc extends NPC {
       //  if(skillCounter % DEGRADE_RATE == 0)
       //      HP--;
 
+        rangedAttackCooldown++;
 
         if(hackFix == false)
         {

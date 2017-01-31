@@ -22,6 +22,7 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -44,10 +45,14 @@ import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CursePersonificationSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ColdGirlSprite;
+import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
 import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.pixeldungeonskills.windows.PersistentWndOptions;
 import com.bilboldev.utils.Bundle;
+import com.bilboldev.utils.Callback;
+import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
@@ -59,7 +64,7 @@ public class ColdGirl extends Mob {
 		name = "Cold Girl";
 		spriteClass = ColdGirlSprite.class;
 
-        HP = HT = 15;
+        HP = HT = 30;
         EXP = 20;
         defenseSkill = 1;
         baseSpeed = 3;
@@ -67,6 +72,9 @@ public class ColdGirl extends Mob {
         state = new ColdGirlAI();
         champ = 1;
 	}
+
+    private static final String TXT_SMB_MISSED	= "%s %s %s's attack";
+    public static final String TXT_DEATH =  "Killed in the ice cave";
 
     public static final int PASSIVE = 0;
     public static final int HUNTING = 1;
@@ -84,6 +92,7 @@ public class ColdGirl extends Mob {
     public boolean firstDamage = true;
     public boolean firstComplaint = true;
     public boolean firstTroll = true;
+    public boolean firstFetch = true;
 
     public static final int FROST_DEPTH = 1000;
 
@@ -204,8 +213,8 @@ public class ColdGirl extends Mob {
         if(enemy instanceof Mob && !(enemy instanceof HiredMerc))
         {
 
-            if(firstTroll)
-                speak("I have not time for fodder");
+            //if(firstTroll)
+                speak("I have no time for fodder");
             //GameScene.flash( 0x0042ff );
             //Sample.INSTANCE.play( Assets.SND_BLAST );
             firstTroll = false;
@@ -247,9 +256,42 @@ public class ColdGirl extends Mob {
                     speak("Erg...");
                     firstComplaint = false;
                 }
+
+                return super.defenseProc(enemy, damage);
             }
         }
-        return super.defenseProc(enemy, damage);
+        else if(firstFetch || ((ColdGirlAI)state).aiStatus == GOD_MODE)
+        {
+            if(Dungeon.hero.belongings.weapon != null) {
+
+                int throwAt = 0;
+
+                do{
+                    throwAt = pos +  3 * Level.NEIGHBOURS8[Random.Int(Level.NEIGHBOURS8.length -1)];
+                }
+                while(throwAt < 0 || throwAt > Level.passable.length || Level.passable[throwAt] == false);
+
+
+                final int throwAtFinal = throwAt;
+                ((MissileSprite) this.sprite.parent.recycle(MissileSprite.class)).
+                        reset(ColdGirl.this.pos, throwAt, Dungeon.hero.belongings.weapon, new Callback() {
+                            @Override
+                            public void call() {
+                                Dungeon.hero.belongings.weapon.detach(Dungeon.hero.belongings.backpack).onThrowColdGirl(throwAtFinal);
+
+                            }
+                        });
+
+
+                firstFetch = false;
+                speak("Go Fetch");
+                heroSpeak("Wha..");
+                spend(1f);
+            }
+            return -1;
+        }
+        else
+            return super.defenseProc(enemy, damage);
     }
 
     private void trollMinion(Char minion)
@@ -287,8 +329,8 @@ public class ColdGirl extends Mob {
 
         if(((ColdGirlAI)state).aiStatus == HUNTING)
         {
-            HT = 80;
-            HP = 80;
+            HT = 100;
+            HP = 100;
             defenseSkill = 11;
             ((ColdGirlAI)state).aiStatus = SUPER_HUNTING;
             GameScene.flash( 0x0042ff );
@@ -345,7 +387,7 @@ public class ColdGirl extends Mob {
 
             HT = 10000;
             HP = 10000;
-            defenseSkill = 100;
+            defenseSkill = 1000;
             if(Level.adjacent(pos, enemy.pos) == true)  // Knockback
             {
                 for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
@@ -378,7 +420,9 @@ public class ColdGirl extends Mob {
             return;
         }
 
-		super.die( cause );
+
+        HP = 10000;
+        speak("In your dreams fool");
 
 	}
 
@@ -434,7 +478,94 @@ public class ColdGirl extends Mob {
 	static {
 
 	}
-	
+
+    @Override
+    public boolean attack( Char enemy ) {
+        boolean visibleFight = Dungeon.visible[pos] || Dungeon.visible[enemy.pos];
+
+        if (hit( this, enemy, false )) {
+
+            if (visibleFight) {
+                GLog.i( TXT_HIT, name, enemy.name );
+            }
+
+            int dmg = damageRoll();
+
+            if(enemy == Dungeon.hero)
+            {
+                dmg *= Dungeon.currentDifficulty.damageModifier();
+                dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier(); //  <--- Warrior Toughness if present
+                dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg); // <--- Mage SpiritArmor if present
+            }
+
+
+            int effectiveDamage = Math.max( dmg, 0 );
+
+            effectiveDamage = attackProc( enemy, effectiveDamage );
+            effectiveDamage = enemy.defenseProc( this, effectiveDamage );
+            if(effectiveDamage < 0)
+                return true;
+            enemy.damage( effectiveDamage, this );
+
+
+            if (visibleFight) {
+                Sample.INSTANCE.play( Assets.SND_HIT, 1, 1, Random.Float( 0.8f, 1.25f ) );
+            }
+
+            if (enemy == Dungeon.hero) {
+                Dungeon.hero.interrupt();
+                if (effectiveDamage > enemy.HT / 4) {
+                    Camera.main.shake( GameMath.gate(1, effectiveDamage / (enemy.HT / 4), 5), 0.3f );
+                }
+            }
+
+            enemy.sprite.bloodBurstA( sprite.center(), effectiveDamage );
+            enemy.sprite.flash();
+
+
+
+
+
+            if (!enemy.isAlive() && visibleFight) {
+                if (enemy == Dungeon.hero) {
+
+                    if (Dungeon.hero.killerGlyph != null) {
+
+                        // FIXME
+                        //	Dungeon.fail( Utils.format( ResultDescriptions.GLYPH, Dungeon.hero.killerGlyph.name(), Dungeon.depth ) );
+                        //	GLog.n( TXT_KILL, Dungeon.hero.killerGlyph.name() );
+
+                    } else {
+
+                            Dungeon.fail( Utils.format( TXT_DEATH) );
+
+
+                        GLog.n( TXT_KILL, name );
+                    }
+
+                } else {
+                    GLog.i( TXT_DEFEAT, name, enemy.name );
+                }
+            }
+
+            return true;
+
+        } else {
+
+            if (visibleFight) {
+                String defense = enemy.defenseVerb();
+                enemy.sprite.showStatus( CharSprite.NEUTRAL, defense );
+                 GLog.i( TXT_SMB_MISSED, enemy.name, defense, name );
+
+
+                Sample.INSTANCE.play(Assets.SND_MISS);
+            }
+
+            return false;
+
+        }
+    }
+
 	@Override
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;
@@ -503,6 +634,8 @@ public class ColdGirl extends Mob {
                 break;
             case DISCUSSION_DEAD + 3 * DISCUSSION_STEP:
                 sendBack();
+                Dungeon.hero.heroSkills.unlockSkill();
+                GLog.p("Fighting that weird girl inspired you into learning " +   Dungeon.hero.heroSkills.unlockableSkillName());
                 break;
             default:
                 discuss(); // fallback to prevent getting stuck

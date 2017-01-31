@@ -58,6 +58,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Regeneration;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Roots;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
@@ -102,6 +103,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfUpgrade;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
@@ -1042,6 +1044,12 @@ public class Hero extends Char {
                 }
             }
         }
+
+        if(!(Bestiary.isBoss(enemy)) && rangedWeapon != null && rangedWeapon instanceof Arrow && enemy instanceof Mob && !(enemy instanceof NPC) && heroSkills.passiveB2.goToSleep()) //  <--- Warrior KnockBack if present and active
+        {
+            Buff.affect(enemy, Sleep.class);
+            return -1;
+        }
 		
 		return damage;
 	}
@@ -1372,17 +1380,29 @@ public class Hero extends Char {
 		}
 		
 		Actor.fixTime();
+
+
+
 		super.die( cause );
-		
+
+
+
 		Ankh ankh = (Ankh)belongings.getItem( Ankh.class );
 		if (ankh == null) {
 			
 			reallyDie( cause );
 			
 		} else {
-			
-			Dungeon.deleteGame( Dungeon.hero.heroClass, false );
-			GameScene.show( new WndResurrect( ankh, cause ) );
+
+            if(Dungeon.depth == ColdGirl.FROST_DEPTH)
+            {
+                GLog.n("The girl saps away the power of your Ankh... no coming back");
+                reallyDie( cause );
+            }
+            else {
+                Dungeon.deleteGame(Dungeon.hero.heroClass, false);
+                GameScene.show(new WndResurrect(ankh, cause));
+            }
 			
 		}
 	}

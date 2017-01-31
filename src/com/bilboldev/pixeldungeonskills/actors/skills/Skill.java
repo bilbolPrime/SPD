@@ -232,6 +232,11 @@ public class Skill{
 
     public void mercSummon() {}
 
+    public boolean goToSleep()
+    {
+        return false;
+    }
+
     public void storeInBundle(Bundle bundle)
     {
         bundle.put( SKILL_LEVEL + " " + tag, level );

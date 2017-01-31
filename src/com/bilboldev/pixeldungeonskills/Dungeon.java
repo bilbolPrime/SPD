@@ -606,7 +606,10 @@ public class Dungeon {
 
 	public static void fail( String desc ) {
 		resultDescription = desc;
-		if (hero.belongings.getItem( Ankh.class ) == null) {
+		if (hero.belongings.getItem( Ankh.class ) == null || Dungeon.depth == ColdGirl.FROST_DEPTH) {
+            if(Dungeon.depth == ColdGirl.FROST_DEPTH)
+                resultDescription = ColdGirl.TXT_DEATH;
+
 			Rankings.INSTANCE.submit( false );
 		}
 	}
