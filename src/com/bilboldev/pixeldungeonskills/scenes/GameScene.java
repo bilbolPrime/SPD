@@ -51,6 +51,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.levels.RegularLevel;
 import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
@@ -121,8 +122,15 @@ public class GameScene extends PixelScene {
 	
 	@Override
 	public void create() {
-		Music.INSTANCE.play( Assets.TUNE, true );
-		Music.INSTANCE.volume( 1f );
+        if(Dungeon.depth != 0 && Dungeon.depth != ColdGirl.FROST_DEPTH) {
+            Music.INSTANCE.play(Assets.TUNE, true);
+            Music.INSTANCE.volume(1f);
+        }
+        else
+        {
+            Music.INSTANCE.play(Assets.TUNE_SPECIAL, true);
+            Music.INSTANCE.volume(1f);
+        }
 		
 		PixelDungeon.lastClass( Dungeon.hero.heroClass.ordinal() );
 		
@@ -194,52 +202,53 @@ public class GameScene extends PixelScene {
 		add( fog );
 		
 		brightness( PixelDungeon.brightness() );
-		
+
+
 		spells = new Group();
 		add( spells );
-		
+
 		statuses = new Group();
 		add( statuses );
-		
+
 		add( emoicons );
-		
+
 		hero = new HeroSprite();
 		hero.place( Dungeon.hero.pos );
 		hero.updateArmor();
 		mobs.add( hero );
 
 		add( new HealthIndicator() );
-		
+
 		add( cellSelector = new CellSelector( tiles ) );
-		
+
 		StatusPane sb = new StatusPane();
 		sb.camera = uiCamera;
 		sb.setSize( uiCamera.width, 0 );
 		add( sb );
-		
+
 		toolbar = new Toolbar();
 		toolbar.camera = uiCamera;
 		toolbar.setRect( 0,uiCamera.height - toolbar.height(), uiCamera.width, toolbar.height() );
 		add( toolbar );
-		
+
 		AttackIndicator attack = new AttackIndicator();
 		attack.camera = uiCamera;
-		attack.setPos( 
-			uiCamera.width - attack.width(), 
+		attack.setPos(
+			uiCamera.width - attack.width(),
 			toolbar.top() - attack.height() );
 		add( attack );
-		
+
 		log = new GameLog();
 		log.camera = uiCamera;
 		log.setRect( 0, toolbar.top(), attack.left(),  0 );
 		add( log );
-		
+
 		busy = new BusyIndicator();
 		busy.camera = uiCamera;
 		busy.x = 1;
 		busy.y = sb.bottom() + 1;
 		add( busy );
-		
+
 		switch (InterlevelScene.mode) {
 		case RESURRECT:
 			WandOfBlink.appear( Dungeon.hero, Dungeon.level.entrance );
@@ -295,7 +304,7 @@ public class GameScene extends PixelScene {
 		
 		Camera.main.target = hero;
 
-		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
+		if (InterlevelScene.mode != InterlevelScene.Mode.NONE && Dungeon.depth != 0) {
 			if (Dungeon.depth < Statistics.deepestFloor) {
 				GLog.h( TXT_WELCOME_BACK, Dungeon.depth );
 			} else {
@@ -374,7 +383,14 @@ public class GameScene extends PixelScene {
 	
 	@Override
 	protected void onBackPressed() {
-		if (!cancel()) {
+        if(Dungeon.depth == 0 && Dungeon.level instanceof MovieLevel)
+        {
+            Music.INSTANCE.enable(PixelDungeon.music());
+            InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+            Game.switchScene(InterlevelScene.class);
+            Dungeon.observe();
+        }
+		else if (!cancel()) {
 			add( new WndGame() );
 		}
 	}

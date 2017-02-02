@@ -19,11 +19,10 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 
-public class ColdGirlSprite extends MobSprite {
+public class VanguardWarriorSprite extends MobSprite {
 
     protected static final int FRAME_WIDTH	= 12;
     protected static final int FRAME_HEIGHT	= 15;
@@ -33,23 +32,21 @@ public class ColdGirlSprite extends MobSprite {
     public ArcherMaidenHalo halo = null;
     public boolean hasHalo = false;
 
-    public boolean isSister = false;
 
 
-	public ColdGirlSprite() {
+
+	public VanguardWarriorSprite() {
 		super();
 
 
-        if(isSister)
-            texture( Assets.COLD_GIRL_SISTER);
-        else
-		    texture( Assets.COLD_GIRL);
+
+		 texture( Assets.VANGUARD_WARRIOR);
 		
 		TextureFilm frames = new TextureFilm( texture, FRAME_WIDTH, FRAME_HEIGHT );
 
 
         idle = new Animation( 1, true );
-        idle.frames( frames, 0, 0, 0, 1, 0, 0, 1, 1 );
+        idle.frames( frames, 0, 0, 0 );
 
         run = new Animation( RUN_FRAMERATE, true );
         run.frames( frames, 2, 3, 4, 5, 6, 7 );
@@ -65,30 +62,7 @@ public class ColdGirlSprite extends MobSprite {
 		play( idle );
 	}
 
-    public void turnToSis()
-    {
-        isSister = true;
 
-        texture( Assets.COLD_GIRL_SISTER);
-        TextureFilm frames = new TextureFilm( texture, FRAME_WIDTH, FRAME_HEIGHT );
-
-
-        idle = new Animation( 1, true );
-        idle.frames( frames, 0, 0, 0, 1, 0, 0, 1, 1 );
-
-        run = new Animation( RUN_FRAMERATE, true );
-        run.frames( frames, 2, 3, 4, 5, 6, 7 );
-
-        die = new Animation( 20, false );
-        die.frames( frames, 8, 9, 10, 11, 12, 11 );
-
-        attack = new Animation( 15, false );
-        attack.frames( frames, 13, 14, 15, 0 );
-
-        zap = attack.clone();
-
-        play( idle );
-    }
 
     public void haloUp()
     {

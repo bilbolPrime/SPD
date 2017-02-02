@@ -64,7 +64,7 @@ public class WndRatKing extends WndTabbed {
 
     private RedButton btMobHP;
     private RedButton btMobAtt;
-
+    private RedButton btMobDef;
 
     protected static final int TAB_WIDTH	= 25;
 
@@ -264,12 +264,32 @@ public class WndRatKing extends WndTabbed {
             };
             add(btMobAtt.setRect(w, btMobHP.bottom()  + GAP, WIDTH - 2 * w, BTN_HEIGHT));
 
-            CheckBox tmp = new CheckBox("Coming Soon");
-            add(tmp.setRect(0,  btMobAtt.bottom() + GAP , WIDTH, BTN_HEIGHT));
-            tmp.enable(false);
+            add(new RedButton(TXT_MINUS) {
+                @Override
+                protected void onClick() {
+                    Dungeon.currentDifficulty.changeDefenceOffset(0.1f);
+                    updateMobStats();
+                }
+            }.setRect(0,  btMobAtt.bottom() + GAP, w, BTN_HEIGHT));
+
+            add(new RedButton(TXT_PLUS) {
+                @Override
+                protected void onClick() {
+                    Dungeon.currentDifficulty.changeDefenceOffset(-0.1f);
+                    updateMobStats();
+                }
+            }.setRect(WIDTH - w,  btMobAtt.bottom() + GAP, w, BTN_HEIGHT));
+
+            btMobDef = new RedButton("Def: 100" + "%") {
+                @Override
+                protected void onClick() {
+
+                }
+            };
+            add(btMobDef.setRect(w, btMobAtt.bottom()  + GAP, WIDTH - 2 * w, BTN_HEIGHT));
 
             CheckBox tmp2 = new CheckBox("Coming Soon");
-            add(tmp2.setRect(0,  tmp.bottom() + GAP , WIDTH, BTN_HEIGHT));
+            add(tmp2.setRect(0,  btMobDef.bottom() + GAP , WIDTH, BTN_HEIGHT));
             tmp2.enable(false);
 
             if(maxHeight < (int) tmp2.bottom() )
@@ -317,6 +337,7 @@ public class WndRatKing extends WndTabbed {
     {
         btMobHP.text(String.format("HP: %s", ((int)(Dungeon.currentDifficulty.mobHPModifier() * 100) + "%")));
         btMobAtt.text(String.format("ATT: %s", ((int)(Dungeon.currentDifficulty.damageModifier() * 100) + "%")));
+        btMobDef.text(String.format("Def: %s", ((int)((2 - Dungeon.currentDifficulty.mobDefenceModifier()) * 100) + "%")));
     }
 	
 

@@ -34,7 +34,9 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.levels.FrostLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndError;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 
@@ -54,7 +56,7 @@ public class InterlevelScene extends PixelScene {
 	private static final String ERR_GENERIC			= "Something went wrong..."	;	
 	
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT
 	};
 	public static Mode mode;
 	
@@ -104,6 +106,12 @@ public class InterlevelScene extends PixelScene {
         case TELEPORT_BACK:
             text = TXT_TELEPORTING;
             break;
+        case MOVIE:
+            text = "10 years ago...";
+            break;
+        case MOVIE_OUT:
+            text = "The true story has yet to begin";
+            break;
 		default:
 		}
 		
@@ -115,7 +123,10 @@ public class InterlevelScene extends PixelScene {
 		
 		phase = Phase.FADE_IN;
 		timeLeft = TIME_TO_FADE;
-		
+
+        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT)
+            timeLeft = 10 * TIME_TO_FADE;
+
 		thread = new Thread() {
 			@Override
 			public void run() {
@@ -125,6 +136,10 @@ public class InterlevelScene extends PixelScene {
 					Generator.reset();
 					
 					switch (mode) {
+                    case MOVIE:
+                        runMovie();
+                        break;
+                    case MOVIE_OUT:
 					case DESCEND:
 						descend();
 						break;
@@ -180,9 +195,12 @@ public class InterlevelScene extends PixelScene {
 		super.update();
 		
 		float p = timeLeft / TIME_TO_FADE;
+        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT)
+            p /= 10;
+
 		
 		switch (phase) {
-		
+
 		case FADE_IN:
 			message.alpha( 1 - p );
 			if ((timeLeft -= Game.elapsed) <= 0) {
@@ -196,7 +214,9 @@ public class InterlevelScene extends PixelScene {
 			break;
 			
 		case FADE_OUT:
-			message.alpha( p );
+             message.alpha( p );
+
+
 			if (mode == Mode.CONTINUE || (mode == Mode.DESCEND && Dungeon.depth == 1)) {
 				Music.INSTANCE.volume( p );
 			}
@@ -207,18 +227,57 @@ public class InterlevelScene extends PixelScene {
 			
 		case STATIC:
 			if (error != null) {
-				add( new WndError( error ) {
-					public void onBackPressed() {
-						super.onBackPressed();
-						Game.switchScene( StartScene.class );
-					};
-				} );
-				error = null;
-			}
+                if (mode != Mode.MOVIE && mode != Mode.MOVIE_OUT) {
+                    add(new WndError(error) {
+                        public void onBackPressed() {
+                            super.onBackPressed();
+                            Game.switchScene(StartScene.class);
+                        }
+
+                        ;
+                    });
+                    error = null;
+                }
+                else
+                {
+                    add(new WndError("Something went wrong with your movie... but the game continues") {
+                        public void onBackPressed() {
+                            super.onBackPressed();
+                            InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+                            Game.switchScene(InterlevelScene.class);
+                        }
+
+                        ;
+                    });
+                    error = null;
+                }
+            }
 			break;
 		}
 	}
-	
+
+    private void runMovie() throws Exception {
+
+        try {
+            GameLog.wipe();
+        }
+        catch (Exception ex)
+        {
+            // Could have been causing issues
+        }
+
+        Actor.fixTime();
+        Actor.clear();
+        if (Dungeon.hero == null)
+            Dungeon.init();
+
+
+        Level level = new MovieLevel();
+        Dungeon.level = level;
+        level.create();
+        Dungeon.switchLevel( level, level.randomRespawnCell() );
+    }
+
 	private void descend() throws Exception {
 		
 		Actor.fixTime();

@@ -45,6 +45,10 @@ public class Assets {
 	public static final String HUNTRESS	= "ranger.png";
     public static final String ARCHER_MAIDEN	= "archer_maiden.png";
     public static final String COLD_GIRL = "cold_girl.png";
+    public static final String RED_GIRL = "red_girl.png";
+    public static final String VANGUARD_WARRIOR = "vanguard_warrior.png";
+    public static final String SOLDIER_WARRIOR = "soldier_warrior.png";
+    public static final String COLD_GIRL_SISTER = "cold_girl_sister.png";
 	public static final String AVATARS	= "avatars.png";
 	public static final String PET		= "pet.png";
 	
@@ -122,6 +126,7 @@ public class Assets {
 	
 	public static final String THEME	= "theme.mp3";
 	public static final String TUNE		= "game.mp3";
+    public static final String TUNE_SPECIAL		= "special.mp3";
 	public static final String HAPPY	= "surface.mp3";
 	
 	public static final String SND_CLICK	= "snd_click.mp3";

@@ -216,7 +216,12 @@ public class StatusPane extends Component {
 	@Override
 	public void update() {
 		super.update();
-		
+
+        if(Dungeon.depth == 0)
+        {
+            this.visible = false;
+        }
+
 		if (tagDanger != danger.visible || tagLoot != loot.visible || tagResume != resume.visible) {
 			
 			tagDanger = danger.visible;

@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.keys.SkeletonKey;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfFrostLevel;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfPsionicBlast;
 import com.bilboldev.pixeldungeonskills.items.weapon.enchantments.Death;
@@ -99,7 +100,8 @@ public class Tengu extends Mob {
 		if (!Badges.isUnlocked( badgeToCheck ) || Dungeon.hero.subClass != HeroSubClass.NONE) {
 			Dungeon.level.drop( new TomeOfMastery(), pos ).sprite.drop();
 		}
-		
+
+        Dungeon.level.drop( new ScrollOfFrostLevel(), pos ).sprite.drop();
 		GameScene.bossSlain();
 		Dungeon.level.drop( new SkeletonKey(), pos ).sprite.drop();
 		super.die( cause );

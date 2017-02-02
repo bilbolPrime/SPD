@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.NinePatch;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Chrome;
@@ -30,7 +31,7 @@ public class Toast extends Component {
 	
 	protected NinePatch bg;
 	protected SimpleButton close;
-	protected BitmapText text;
+	protected BitmapTextMultiline text;
 	
 	public Toast( String text ) {
 		super();
@@ -53,8 +54,7 @@ public class Toast extends Component {
 			};
 		};
 		add( close );
-		
-		text = PixelScene.createText( 8 );
+		text = PixelScene.createMultiline( 8 );
 		add( text );
 	}
 	

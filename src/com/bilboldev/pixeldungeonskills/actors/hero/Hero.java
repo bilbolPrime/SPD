@@ -106,6 +106,7 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.features.AlchemyPot;
 import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
@@ -499,6 +500,14 @@ public class Hero extends Char {
 		
 		super.act();
 
+
+        if(Dungeon.level instanceof MovieLevel)
+        {
+            spendAndNext( TICK );
+
+            sprite.visible = false;
+            return false;
+        }
 
 		if (paralysed) {
 			
@@ -1050,6 +1059,8 @@ public class Hero extends Char {
             Buff.affect(enemy, Sleep.class);
             return -1;
         }
+
+        damage *= Dungeon.currentDifficulty.mobDefenceModifier();
 		
 		return damage;
 	}

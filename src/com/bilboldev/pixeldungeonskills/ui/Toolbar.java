@@ -68,9 +68,12 @@ public class Toolbar extends Component {
 	private PickedUpItem pickedUp;
 	
 	private boolean lastEnabled = true;
-	
+
+    public static boolean tapAgainToSearch = false;
+
 	private static Toolbar instance;
-	
+
+
 	public Toolbar() {
 		super();
 		
@@ -170,7 +173,14 @@ public class Toolbar extends Component {
 		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
-				GameScene.selectCell( informer );
+                if(tapAgainToSearch == false) {
+                    GameScene.selectCell(informer);
+                }
+                else
+                {
+                    Dungeon.hero.search(true);
+                }
+                tapAgainToSearch = !tapAgainToSearch;
 			}
             @Override
             protected boolean onLongClick() {
@@ -229,7 +239,12 @@ public class Toolbar extends Component {
 	@Override
 	public void update() {
 		super.update();
-		
+
+        if(Dungeon.depth == 0)
+        {
+            this.visible = false;
+        }
+
 		if (lastEnabled != Dungeon.hero.ready) {
 			lastEnabled = Dungeon.hero.ready;
 			
@@ -270,7 +285,9 @@ public class Toolbar extends Component {
 	private static CellSelector.Listener informer = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
-			
+
+            tapAgainToSearch = false;
+
 			if (cell == null) {
 				return;
 			}
@@ -316,7 +333,7 @@ public class Toolbar extends Component {
 		}	
 		@Override
 		public String prompt() {
-			return "Select a cell to examine.";
+			return "Select a cell to examine.\nTap again to search.";
 		}
 	};
 	

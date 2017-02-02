@@ -20,6 +20,7 @@ public enum Difficulties {
     public float hpOffset = 0;
     public float attOffset = 0;
     public float defOffset = 0;
+    public float defenceOffset = 0;
 
     private ArrayList<Integer> disabledChampions = new ArrayList<>();
 
@@ -36,7 +37,7 @@ public enum Difficulties {
             "- Start with 2 extra rations.",
             "- Start with 2 potions of healing.",
             "- Start with 200 Gold.",
-            "- Mobs are Weak, do 25% less damage and have 15% less HP.",
+            "- Mobs are Weak, do 25% less damage, take 10% more damage and have 15% less HP.",
             "- Champion spawn rate set to 10%."
     };
 
@@ -47,13 +48,13 @@ public enum Difficulties {
 
     public static final String[] HARD_DESC = {
             "- Potion of healing heals 75% max hp.",
-            "- Mobs are Strong, do 10% extra damage and have 20% more HP.",
+            "- Mobs are Strong, do 10% extra damage, take 10% less damage and have 20% more HP.",
             "- Champion spawn rate set to 30%."
     };
 
     public static final String[] HELL_DESC = {
             "- Potion of healing heals 50% max hp.",
-            "- Mobs are Immortal, do 25% more damage and have 35% more HP.",
+            "- Mobs are Immortal, do 25% more damage, take 20% less damage and have 35% more HP.",
             "- Champion spawn rate set to 40%.",
             "- Hero starts with 4 less maxHP.",
             "- Hero gains 1 less maxHP on leveling."
@@ -61,7 +62,7 @@ public enum Difficulties {
 
     public static final String[] SUICIDE_DESC = {
             "- Potion of healing heals 25% max hp.",
-            "- Mobs are Godlike, do 45% more damage and have 60% more HP.",
+            "- Mobs are Godlike, do 45% more damage, take 30% less damage and have 60% more HP.",
             "- Champion spawn rate set to 50%.",
             "- Hero starts with 8 less maxHP.",
             "- Hero gains 3 less maxHP on leveling."
@@ -69,7 +70,7 @@ public enum Difficulties {
 
     public static final String[] JUST_KILL_ME_DESC = {
             "- Potion of healing heals 10% max hp.",
-            "- Mobs are Deities, do 60% more damage and have 75% more HP.",
+            "- Mobs are Deities, do 60% more damage, take 40% less damage and have 75% more HP.",
             "- Champion spawn rate set to 100%.",
             "- Hero starts with 8 less maxHP.",
             "- Hero gains 3 less maxHP on leveling."
@@ -202,6 +203,31 @@ public enum Difficulties {
         return 1f;
     }
 
+
+    public float mobDefenceModifier() {
+
+        return naturalMobDefenceModifier() + defenceOffset;
+    }
+
+    public float naturalMobDefenceModifier() { // dmg *= this
+
+        switch (this) {
+            case EASY:
+                return 1.1f;
+            case NORMAL:
+                return 1f;
+            case HARD:
+                return 0.9f;
+            case HELL:
+                return 0.8f;
+            case SUICIDE:
+                return 0.7f;
+            case JUSTKILLME:
+                return 0.6f;
+        }
+        return 1f;
+    }
+
     public float mobHPModifier() {
 
         return naturalMobHPModifier() + hpOffset;
@@ -307,7 +333,19 @@ public enum Difficulties {
     public void reset()
     {
         championOffset = 0;
+        defenceOffset = 0;
+        hpOffset = 0;
+        attOffset = 0;
         disabledChampions.clear();
+    }
+
+    public void changeDefenceOffset(float change)
+    {
+        defenceOffset += change;
+        if(mobDefenceModifier() > naturalMobDefenceModifier())
+            defenceOffset = 0;
+        if(mobDefenceModifier() < 0.1f)
+            defenceOffset = 0.1f - naturalMobDefenceModifier();
     }
 
     public void changeChampionOffset(int change)

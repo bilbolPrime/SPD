@@ -58,7 +58,7 @@ public class Hunger extends Buff implements Hero.Doom {
 	
 	@Override
 	public boolean act() {
-		if (target.isAlive()) {
+		if (target.isAlive() && target.sprite.visible == true) {
 			
 			Hero hero = (Hero)target;
 			

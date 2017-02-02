@@ -510,7 +510,10 @@ public class HiredMerc extends NPC {
         if(weapon instanceof Bow)
             return (int)(mercType.getDamage(level) * 1.2f);
 
-        return ((MeleeWeapon)weapon).damageRoll(this);
+        if(weapon instanceof MeleeWeapon)
+            return ((MeleeWeapon)weapon).damageRoll(this);
+
+        return ((Weapon) weapon).damageRoll(this);
     }
 
 

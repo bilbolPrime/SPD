@@ -73,6 +73,8 @@ public class ColdGirl extends Mob {
         champ = 1;
 	}
 
+    public boolean isSister = false;
+
     private static final String TXT_SMB_MISSED	= "%s %s %s's attack";
     public static final String TXT_DEATH =  "Killed in the ice cave";
 
@@ -99,6 +101,13 @@ public class ColdGirl extends Mob {
     public static int cameFrom = 1;
     public static int cameFromPos = 1;
     public int skillCharge = 5;
+
+
+    public void turnToSis()
+    {
+        isSister = true;
+        ((ColdGirlSprite)sprite).turnToSis();
+    }
 
 	@Override
 	public int damageRoll() {
@@ -142,6 +151,56 @@ public class ColdGirl extends Mob {
             }
 
             damage(damage, this);
+        }
+
+        if(damage < enemy.HP && Random.Int(5) < 2 && (((ColdGirlAI)ColdGirl.this.state).aiStatus == SUPER_HUNTING) && Level.adjacent(pos, enemy.pos) == true)
+        {
+            ArrayList<Integer> skelSpawns = new ArrayList<>();
+            for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
+                int ofs = Level.NEIGHBOURS8[i];
+                if (pos - enemy.pos  == ofs) {
+                    int maxTrollPush = 2;
+                    int actualPush = ofs;
+                    while(maxTrollPush > 0 && enemy.pos - actualPush > 0 && enemy.pos - actualPush < Level.passable.length && ((Level.passable[enemy.pos - actualPush] || Level.avoid[enemy.pos - actualPush]) && Actor.findChar(enemy.pos - actualPush) == null))
+                    {
+                        skelSpawns.add(enemy.pos - actualPush);
+                        actualPush += ofs;
+                        maxTrollPush--;
+                    }
+
+                    int newPos = enemy.pos - actualPush;
+                    if ((Level.passable[newPos] || Level.avoid[newPos]) && Actor.findChar(newPos) == null) {
+
+                        Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
+
+                        enemy.pos = newPos;
+                        // FIXME
+                        if (enemy instanceof Mob) {
+                            Dungeon.level.mobPress( (Mob)enemy );
+                        } else {
+                            Dungeon.level.press( newPos, enemy );
+                        }
+
+                        enemy.sprite.bloodBurstA( sprite.center(), enemy.HP );
+                    }
+
+                    for(int s = 0; s < skelSpawns.size(); s++)
+                    {
+                        ColdGirlSkel slave = new ColdGirlSkel();
+                        slave.pos = skelSpawns.get(s);
+                        Sample.INSTANCE.play( Assets.SND_GHOST );
+
+                        GameScene.add( slave );
+                        Actor.addDelayed( new Pushing( slave, pos, slave.pos ), -1 );
+                        slave.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
+                    }
+
+                    if(skelSpawns.size() > 0)
+                        speak("This is you once I am done");
+                    Dungeon.observe();
+                    break;
+                }
+            }
         }
 
         if(damage >= enemy.HP && enemy instanceof Hero)
@@ -671,6 +730,39 @@ public class ColdGirl extends Mob {
         InterlevelScene.mode = InterlevelScene.Mode.TELEPORT_BACK;
         Game.switchScene(InterlevelScene.class);
         Dungeon.observe();
+    }
+
+    public class ColdGirlSkel extends Skeleton
+    {
+        {
+            HP = HT  = 10;
+            defenseSkill = 1;
+            EXP = 0;
+            state = HUNTING;
+        }
+
+        @Override
+        public boolean act()
+        {
+            if(((ColdGirlAI)ColdGirl.this.state).aiStatus != SUPER_HUNTING)
+            {
+                die(null);
+                return true;
+            }
+            return super.act();
+        }
+
+        @Override
+        public void die( Object cause ) {
+            if(cause != null)
+                ColdGirl.this.speak("What a waste of mana");
+            super.die(cause);
+        }
+        @Override
+        public String description() {
+            return "Me in the future...";
+
+        }
     }
 
     public class Slaves extends EnslavedSouls {
