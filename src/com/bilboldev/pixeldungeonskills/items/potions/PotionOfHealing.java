@@ -39,6 +39,7 @@ public class PotionOfHealing extends Potion {
 		setKnown();
 		heal( Dungeon.hero, Dungeon.currentDifficulty.healingPotionLimit() );
 		GLog.p( Dungeon.currentDifficulty.healingPotionMessage() );
+        StatusPane.takingDamage = 0;
 	}
 	
 	public static void heal( Hero hero ) {
@@ -48,7 +49,6 @@ public class PotionOfHealing extends Potion {
 		Buff.detach( hero, Cripple.class );
 		Buff.detach( hero, Weakness.class );
 		Buff.detach( hero, Bleeding.class );
-        StatusPane.takingDamage = 0;
 		hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
 	}
 
