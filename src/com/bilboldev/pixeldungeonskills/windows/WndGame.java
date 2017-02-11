@@ -22,6 +22,7 @@ import java.io.IOException;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.RankingsScene;
@@ -68,7 +69,7 @@ public class WndGame extends Window {
 			} );
 		}
 		
-		if (!Dungeon.hero.isAlive()) {
+		if (!Dungeon.hero.isAlive() && !(Dungeon.hero instanceof Legend)) {
 			
 			RedButton btnStart;
 			addButton( btnStart = new RedButton( TXT_START ) {

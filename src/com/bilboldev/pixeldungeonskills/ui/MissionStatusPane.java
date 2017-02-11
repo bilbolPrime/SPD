@@ -35,12 +35,13 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.BloodParticle;
 import com.bilboldev.pixeldungeonskills.items.keys.IronKey;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 
-public class StatusPane extends Component {
+public class MissionStatusPane extends Component {
 	
 	private NinePatch shield;
 	private Image avatar;
@@ -62,24 +63,20 @@ public class StatusPane extends Component {
     private static final int TAKING_DAMAGE_COOLDOWN_INTERVAL = 3;
 
 	private int lastLvl = -1;
-	private int lastKeys = -1;
-	
-	private BitmapText level;
-	private BitmapText depth;
-	private BitmapText keys;
+
 	
 	private DangerIndicator danger;
 	private LootIndicator loot;
 	private ResumeButton resume;
 	private BuffIndicator buffs;
-	private Compass compass;
+
 	
 	private MenuButton btnMenu;
-
+	
 	@Override
 	protected void createChildren() {
 		
-		shield = new NinePatch( Assets.STATUS, 80, 0, 30   + 18, 0 );
+		shield = new NinePatch( Assets.STATUS_MISSION, 80, 0, 30   + 18, 0 );
 		add( shield );
 		
 		add( new TouchArea( 0, 1, 30, 30 ) {
@@ -96,7 +93,7 @@ public class StatusPane extends Component {
 		btnMenu = new MenuButton();
 		add( btnMenu );
 		
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
+		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, 0 );
 		add( avatar );
 		
 		blood = new BitmaskEmitter( avatar );
@@ -105,8 +102,7 @@ public class StatusPane extends Component {
 		blood.on = false;
 		add( blood );
 		
-		compass = new Compass( Dungeon.level.exit );
-		add( compass );
+
 		
 		hp = new Image( Assets.HP_BAR );	
 		add( hp );
@@ -122,23 +118,11 @@ public class StatusPane extends Component {
 
 		exp = new Image( Assets.XP_BAR );
 		add( exp );
+		
 
-		level = new BitmapText( PixelScene.font1x );
-		level.hardlight( 0xFFEBA4 );
-		add( level );
 
-        if(Dungeon.depth != ColdGirl.FROST_DEPTH)
-		    depth = new BitmapText( Integer.toString( Dungeon.depth ), PixelScene.font1x );
-        else
-            depth = new BitmapText( "??" , PixelScene.font1x );
-		depth.hardlight( 0xCACFC2 );
-		depth.measure();
-		add( depth );
+		
 
-		Dungeon.hero.belongings.countIronKeys();
-		keys = new BitmapText( PixelScene.font1x );
-		keys.hardlight( 0xCACFC2 );
-		add( keys );
 		
 		danger = new DangerIndicator();
 		add( danger );
@@ -166,8 +150,7 @@ public class StatusPane extends Component {
 		avatar.x = PixelScene.align( camera(), shield.x + 15 - avatar.width / 2 );
 		avatar.y = PixelScene.align( camera(), shield.y + 16 - avatar.height / 2 );
 		
-		compass.x = avatar.x + avatar.width / 2 - compass.origin.x;
-		compass.y = avatar.y + avatar.height / 2 - compass.origin.y;
+
 		
 		hp.x = 30;
 		hp.y = 3;
@@ -178,10 +161,7 @@ public class StatusPane extends Component {
         mp_dropping.x = 30;
         mp_dropping.y = 8;
 
-		depth.x = width - 24 - depth.width()    - 18;
-		depth.y = 6;
 
-		keys.y = 6;
 		
 		layoutTags();
 		
@@ -216,6 +196,7 @@ public class StatusPane extends Component {
 	@Override
 	public void update() {
 		super.update();
+        visible = !MissionScene.scenePause;
 
 		if (tagDanger != danger.visible || tagLoot != loot.visible || tagResume != resume.visible) {
 			
@@ -265,7 +246,7 @@ public class StatusPane extends Component {
         mp_dropping.x = mp.x + mp.width() - 20 * mana;
         mp_dropping.scale.x = mana_drop;
 
-        if(Dungeon.hero.MP == 0)
+        if(Dungeon.hero.MMP == 0)
             manaDropping = 0;
 
         if(manaDropping > 0)
@@ -285,25 +266,12 @@ public class StatusPane extends Component {
 			}
 			
 			lastLvl = Dungeon.hero.lvl;
-			level.text( Integer.toString( lastLvl ) );
-			level.measure();
-			level.x = PixelScene.align( 27.5f - level.width() / 2 );
-			level.y = PixelScene.align( 28.0f - level.baseLine() / 2 );
-		}
 
-		int k = IronKey.curDepthQuantity;
-		if (k != lastKeys) {
-			lastKeys = k;
-			keys.text( Integer.toString( lastKeys ) );
-			keys.measure();
-			keys.x = width - 8 - keys.width()    - 18;
 		}
+		
 
-		int tier = Dungeon.hero.tier();
-		if (tier != lastTier) {
-			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
-		}
+		
+
 	}
 	
 	private static class MenuButton extends Button {
@@ -321,7 +289,7 @@ public class StatusPane extends Component {
 		protected void createChildren() {
 			super.createChildren();
 			
-			image = new Image( Assets.STATUS, 114, 3, 12, 11 );
+			image = new Image( Assets.STATUS_MISSION, 114, 3, 12, 11 );
 			add( image );
 		}
 		

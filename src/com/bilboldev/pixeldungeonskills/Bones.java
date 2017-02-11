@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.bilboldev.noosa.Game;
+import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
@@ -79,6 +80,10 @@ public class Bones {
 	}
 	
 	public static Item get() {
+
+        if(depth == ColdGirl.FROST_DEPTH || depth == 0)
+            return null;
+
 		if (depth == -1) {
 			
 			try {

@@ -22,8 +22,6 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
-import com.bilboldev.pixeldungeonskills.items.Ankh;
-import com.bilboldev.pixeldungeonskills.items.Honeypot;
 import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
@@ -34,7 +32,6 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
-import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfFrostLevel;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfHome;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
@@ -46,7 +43,6 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.ShortSword;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.BombArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.CupidArrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
@@ -59,7 +55,7 @@ import com.bilboldev.utils.Bundle;
 
 public enum HeroClass {
 
-	WARRIOR( "warrior" ), MAGE( "mage" ), ROGUE( "rogue" ), HUNTRESS( "huntress" );
+	WARRIOR( "warrior" ), MAGE( "mage" ), ROGUE( "rogue" ), HUNTRESS( "huntress" ), HATSUNE("hatsune");
 	
 	private String title;
 	
@@ -100,6 +96,14 @@ public enum HeroClass {
 		"Huntresses gain more health from dewdrops.",
 		"Huntresses sense neighbouring monsters even if they are hidden behind obstacles."
 	};
+
+    public static final String[] LEGEND_PERKS = {
+            "Hatsune is believed to be a descendant of an Avatar who broke the rules and interacted with mortals.",
+            "She is best known for leading the failed defence of the town of Boonamai.",
+            "She is the first to give birth to twin daughters instead of one. A first in a lineage of over 10 generations.",
+            "She excels in tactics and has mastered both light and dark arts.",
+            "Her hair has turned blue from her massive spiritual strength."
+    };
 	
 	public void initHero( Hero hero ) {
 		
@@ -155,6 +159,7 @@ public enum HeroClass {
         new ScrollOfSkill().setKnown();
         new ScrollOfFrostLevel().setKnown();
 
+
         new ScrollOfHome().collect();
        // new ScrollOfSacrifice().collect();
        // new ScrollOfBloodyRitual().collect();
@@ -174,8 +179,6 @@ public enum HeroClass {
 
         new SoulCrystal(3).collect();
         new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();
-
-
     }
 	
 	public Badges.Badge masteryBadge() {
@@ -267,6 +270,8 @@ public enum HeroClass {
 			return Assets.ROGUE;
 		case HUNTRESS:
 			return Assets.HUNTRESS;
+        case HATSUNE:
+            return Assets.LEGEND;
 		}
 		
 		return null;
@@ -283,6 +288,8 @@ public enum HeroClass {
 			return ROG_PERKS;
 		case HUNTRESS:
 			return HUN_PERKS;
+        case HATSUNE:
+             return LEGEND_PERKS;
 		}
 		
 		return null;

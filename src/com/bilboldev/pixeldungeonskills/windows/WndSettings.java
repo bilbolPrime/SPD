@@ -20,7 +20,9 @@ package com.bilboldev.pixeldungeonskills.windows;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.CheckBox;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
@@ -136,59 +138,65 @@ public class WndSettings extends Window {
 		btnSound.setRect( 0, btnMusic.bottom() + GAP, WIDTH, BTN_HEIGHT );
 		btnSound.checked( PixelDungeon.soundFx() );
 		add( btnSound );
-		
-		if (inGame) {
 
-            CheckBox btnDeg = new CheckBox( "No Degradation" ) {
-                @Override
-                protected void onClick() {
-                    super.onClick();
-                    PixelDungeon.itemDeg( checked() );
-                    //Sample.INSTANCE.play( Assets.SND_CLICK );
-                }
-            };
-            btnDeg.setRect( 0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT );
-            btnDeg.checked( PixelDungeon.itemDeg() );
-            add( btnDeg );
+        if(!(Dungeon.hero instanceof Legend)) {
+            if (inGame) {
 
-			CheckBox btnBrightness = new CheckBox( TXT_BRIGHTNESS ) {
-				@Override
-				protected void onClick() {
-					super.onClick();
-					PixelDungeon.brightness( checked() );
-				}
-			};
-			btnBrightness.setRect( 0, btnDeg.bottom() + GAP, WIDTH, BTN_HEIGHT );
-			btnBrightness.checked( PixelDungeon.brightness() );
-			add( btnBrightness );
-			
-			CheckBox btnQuickslot = new CheckBox( TXT_QUICKSLOT ) {
-				@Override
-				protected void onClick() {
-					super.onClick();
-					Toolbar.secondQuickslot( checked() );
-				}
-			};
-			btnQuickslot.setRect( 0, btnBrightness.bottom() + GAP, WIDTH, BTN_HEIGHT );
-			btnQuickslot.checked( Toolbar.secondQuickslot() );
-			add( btnQuickslot );
-			
-			resize( WIDTH, (int)btnQuickslot.bottom() );
-			
-		} else {
-			
-			RedButton btnOrientation = new RedButton( orientationText() ) {
-				@Override
-				protected void onClick() {
-					PixelDungeon.landscape( !PixelDungeon.landscape() );
-				}
-			};
-			btnOrientation.setRect( 0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT );
-			add( btnOrientation );
-			
-			resize( WIDTH, (int)btnOrientation.bottom() );
-			
-		}
+                CheckBox btnDeg = new CheckBox("No Degradation") {
+                    @Override
+                    protected void onClick() {
+                        super.onClick();
+                        PixelDungeon.itemDeg(checked());
+                        //Sample.INSTANCE.play( Assets.SND_CLICK );
+                    }
+                };
+                btnDeg.setRect(0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT);
+                btnDeg.checked(PixelDungeon.itemDeg());
+                add(btnDeg);
+
+                CheckBox btnBrightness = new CheckBox(TXT_BRIGHTNESS) {
+                    @Override
+                    protected void onClick() {
+                        super.onClick();
+                        PixelDungeon.brightness(checked());
+                    }
+                };
+                btnBrightness.setRect(0, btnDeg.bottom() + GAP, WIDTH, BTN_HEIGHT);
+                btnBrightness.checked(PixelDungeon.brightness());
+                add(btnBrightness);
+
+                CheckBox btnQuickslot = new CheckBox(TXT_QUICKSLOT) {
+                    @Override
+                    protected void onClick() {
+                        super.onClick();
+                        Toolbar.secondQuickslot(checked());
+                    }
+                };
+                btnQuickslot.setRect(0, btnBrightness.bottom() + GAP, WIDTH, BTN_HEIGHT);
+                btnQuickslot.checked(Toolbar.secondQuickslot());
+                add(btnQuickslot);
+
+                resize(WIDTH, (int) btnQuickslot.bottom());
+
+            } else {
+
+                RedButton btnOrientation = new RedButton(orientationText()) {
+                    @Override
+                    protected void onClick() {
+                        PixelDungeon.landscape(!PixelDungeon.landscape());
+                    }
+                };
+                btnOrientation.setRect(0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT);
+                add(btnOrientation);
+
+                resize(WIDTH, (int) btnOrientation.bottom());
+
+            }
+        }
+        else
+        {
+            resize(WIDTH, (int) btnSound.bottom());
+        }
 	}
 	
 	private void zoom( float value ) {

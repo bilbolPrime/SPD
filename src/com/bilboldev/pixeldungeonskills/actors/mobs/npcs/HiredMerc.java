@@ -263,7 +263,7 @@ public class HiredMerc extends NPC {
         state = WANDERING;
     }
 
-    private int level;
+    public int level;
 
     private static final String LEVEL	= "level";
     private static final String WEAPON		= "weapon";
@@ -492,7 +492,8 @@ public class HiredMerc extends NPC {
     @Override
     public CharSprite sprite() {
         CharSprite s = super.sprite();
-        ((MercSprite)s).updateArmor( mercType );
+        if(s instanceof MercSprite)
+            ((MercSprite)s).updateArmor( mercType );
         return s;
     }
 
@@ -676,7 +677,7 @@ public class HiredMerc extends NPC {
 
         @Override
         public String status() {
-            return Utils.format("This %s is wandering", mercType.getName());
+            return Utils.format("This %s is wandering", name);
         }
     }
 

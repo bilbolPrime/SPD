@@ -41,6 +41,7 @@ import com.bilboldev.pixeldungeonskills.items.keys.SkeletonKey;
 import com.bilboldev.pixeldungeonskills.levels.painters.Painter;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
+import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ColdGirlSisterSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CursePersonificationSprite;
@@ -95,18 +96,12 @@ public class MovieLevel extends Level {
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle( bundle );
-		bundle.put( DOOR, arenaDoor );
-		bundle.put( ENTERED, enteredArena );
-		bundle.put( DROPPED, keyDropped );
+
 	}
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		arenaDoor = bundle.getInt( DOOR );
-		enteredArena = bundle.getBoolean( ENTERED );
-		keyDropped = bundle.getBoolean( DROPPED );
+
 	}
 	
 	@Override
@@ -198,14 +193,7 @@ public class MovieLevel extends Level {
 	
 	@Override
 	protected void createItems() {
-		Item item = Bones.get();
-		if (item != null) {
-			int pos;
-			do {
-				pos = Random.IntRange( ROOM_LEFT, ROOM_RIGHT ) + Random.IntRange( ROOM_TOP + 1, ROOM_BOTTOM ) * WIDTH;
-			} while (pos == entrance || map[pos] == Terrain.SIGN);
-			drop( item, pos ).type = Heap.Type.SKELETON;
-		}
+
 	}
 	
 	@Override
@@ -221,46 +209,18 @@ public class MovieLevel extends Level {
 
 	@Override
 	public void press( int cell, Char hero ) {
-		
-		super.press( cell, hero );
 
-        if(enteredArena == false)
-        {
-            enteredArena = true;
-            Mob boss = new ColdGirl();
-            do {
-                boss.pos = Random.Int( LENGTH );
-            } while (
-                    !passable[boss.pos] ||
-                            !outsideEntraceRoom( boss.pos ) ||
-                            Dungeon.visible[boss.pos]);
-                GameScene.add(boss);
-        }
 	}
 	
 	@Override
 	public Heap drop( Item item, int cell ) {
 		
-		if (!keyDropped && item instanceof SkeletonKey) {
-			
-			keyDropped = true;
-			
-			CellEmitter.get( arenaDoor ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
-			
-			set( arenaDoor, Terrain.EMPTY_DECO );
-			GameScene.updateMap( arenaDoor );
-			Dungeon.observe();
-		}
+
 		
 		return super.drop( item, cell );
 	}
 	
-	private boolean outsideEntraceRoom( int cell ) {
-		int cx = cell % WIDTH;
-		int cy = cell / WIDTH;
-		return cx < ROOM_LEFT-1 || cx > ROOM_RIGHT+1 || cy < ROOM_TOP-1 || cy > ROOM_BOTTOM+1;
-	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -304,6 +264,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = ColdGirlSisterSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
         @Override
@@ -330,6 +291,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = RedGirlSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
         public Char tmp = null;
@@ -365,6 +327,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = VanguardWarriorSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
 
@@ -391,6 +354,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = SoldierWarriorSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
 
@@ -417,6 +381,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = SkeletonSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
 
@@ -443,6 +408,7 @@ public class MovieLevel extends Level {
         {
             spriteClass = CursePersonificationSprite.class;
             state = HUNTING;
+            hostile = false;
         }
 
 
@@ -467,6 +433,10 @@ public class MovieLevel extends Level {
         static final int END_MOVIE = 632;
         int counter = 0;
 
+        {
+            hostile = false;
+        }
+
 
         MovieGirl actress;
         MovieMaiden actress2;
@@ -490,61 +460,61 @@ public class MovieLevel extends Level {
                 */
                 actress2 = new MovieMaiden();
                 actress2.pos = (HEIGHT + 1) * WIDTH / 2 - WIDTH * 3;
-                GameScene.add(actress2);
+                MissionScene.add(actress2);
                 //actress2.turnToSis();
 
 
                 vanguard = new VanguardWarrior();
                 vanguard.pos  = (HEIGHT + 1) * WIDTH / 2 - WIDTH  - WIDTH;
-                GameScene.add(vanguard);
+                MissionScene.add(vanguard);
 
                 soldier1 = new SoldierWarrior();
                 soldier1.pos  = (HEIGHT + 1) * WIDTH / 2 - 2  - WIDTH;
-                GameScene.add(soldier1);
+                MissionScene.add(soldier1);
 
                 soldier2 = new SoldierWarrior();
                 soldier2.pos  = (HEIGHT + 1) * WIDTH / 2 - 1  - WIDTH;
-                GameScene.add(soldier2);
+                MissionScene.add(soldier2);
 
                 soldier3 = new SoldierWarrior();
                 soldier3.pos  = (HEIGHT + 1) * WIDTH / 2  - WIDTH;
-                GameScene.add(soldier3);
+                MissionScene.add(soldier3);
 
                 soldier4 = new SoldierWarrior();
                 soldier4.pos  = (HEIGHT + 1) * WIDTH / 2 + 1  - WIDTH;
-                GameScene.add(soldier4);
+                MissionScene.add(soldier4);
 
                 soldier5 = new SoldierWarrior();
                 soldier5.pos  = (HEIGHT + 1) * WIDTH / 2 + 2  - WIDTH;
-                GameScene.add(soldier5);
+                MissionScene.add(soldier5);
 
                 skeleton1 = new SkelEnemy();
                 skeleton1.pos  = (HEIGHT + 1) * WIDTH / 2 - 3 + 3 * WIDTH;
-                GameScene.add(skeleton1);
+                MissionScene.add(skeleton1);
 
                 skeleton2 = new SkelEnemy();
                 skeleton2.pos  = (HEIGHT + 1) * WIDTH / 2 - 2 + 2 * WIDTH;
-                GameScene.add(skeleton2);
+                MissionScene.add(skeleton2);
 
                 skeleton3 = new SkelEnemy();
                 skeleton3.pos  = (HEIGHT + 1) * WIDTH / 2 - 1 + 3 * WIDTH;
-                GameScene.add(skeleton3);
+                MissionScene.add(skeleton3);
 
                 skeleton4 = new SkelEnemy();
                 skeleton4.pos  = (HEIGHT + 1) * WIDTH / 2 + 3 * WIDTH;
-                GameScene.add(skeleton4);
+                MissionScene.add(skeleton4);
 
                 skeleton5 = new SkelEnemy();
                 skeleton5.pos  = (HEIGHT + 1) * WIDTH / 2 + 1 + 3 * WIDTH;
-                GameScene.add(skeleton5);
+                MissionScene.add(skeleton5);
 
                 skeleton6 = new SkelEnemy();
                 skeleton6.pos  = (HEIGHT + 1) * WIDTH / 2 + 2 + 2 * WIDTH;
-                GameScene.add(skeleton6);
+                MissionScene.add(skeleton6);
 
                 skeleton7 = new SkelEnemy();
                 skeleton7.pos  = (HEIGHT + 1) * WIDTH / 2 + 3 + 3 * WIDTH;
-                GameScene.add(skeleton7);
+                MissionScene.add(skeleton7);
 
                 sprite.visible = false;
                 Music.INSTANCE.enable(true);
@@ -650,7 +620,7 @@ public class MovieLevel extends Level {
                     WraithEnemy tmp = new WraithEnemy();
                     Sample.INSTANCE.play( Assets.SND_GHOST );
                     tmp.pos = actress2.pos;
-                    GameScene.add(tmp);
+                    MissionScene.add(tmp);
                     tmp.sprite.emitter().burst(ShadowParticle.CURSE, 5);
                     soldier4.sprite.showStatus(CharSprite.NEUTRAL, "She was possessed!");
                     actress2.sprite.die();
@@ -669,7 +639,7 @@ public class MovieLevel extends Level {
                             tmp.pos = vanguard.pos - WIDTH - Random.Int(3) * WIDTH + i;
                         }while(tmp.pos == ((HEIGHT + 1) * WIDTH / 2));
 
-                        GameScene.add( tmp );
+                        MissionScene.add( tmp );
                         tmp.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
                         listWraiths.add(tmp);
 
@@ -679,7 +649,7 @@ public class MovieLevel extends Level {
                             tmp.pos = vanguard.pos + WIDTH + Random.Int(3) * WIDTH + i;
                         }while(tmp.pos == ((HEIGHT + 1) * WIDTH / 2));
 
-                        GameScene.add( tmp );
+                        MissionScene.add( tmp );
                         tmp.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
 
                         listWraiths.add(tmp);
@@ -695,10 +665,10 @@ public class MovieLevel extends Level {
                 }
                 if(counter == 400)
                 {
-                    GameScene.flash( 0x0042ff );
+                  //  GameScene.flash( 0x0042ff );
                     actress = new MovieGirl();
                     actress.pos = (HEIGHT + 1) * WIDTH / 2;
-                    GameScene.add(actress);
+                    MissionScene.add(actress);
                     actress.sprite.emitter().burst( ShadowParticle.CURSE, 5 );
                     actress.sprite.showStatus(CharSprite.NEUTRAL, "A bit dramatic are we not now?");
                 }
@@ -713,7 +683,7 @@ public class MovieLevel extends Level {
                 if(counter == 490)
                 {
                     Camera.main.shake( 5, 0.07f * (30) );
-                    GameScene.flash( 0x0042ff );
+                 //   GameScene.flash( 0x0042ff );
                     ((ColdGirlSisterSprite)actress.sprite).haloUp();
                     for(int i = 0; i < listWraiths.size(); i++)
                         listWraiths.get(i).sprite.die();
@@ -745,7 +715,7 @@ public class MovieLevel extends Level {
                 Music.INSTANCE.enable(PixelDungeon.music());
                 InterlevelScene.mode = InterlevelScene.Mode.MOVIE_OUT;
                 Game.switchScene(InterlevelScene.class);
-                Dungeon.observe();
+                //Dungeon.observe();
             }
 
             counter++;

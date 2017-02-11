@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 
 public class BusyIndicator extends Image {
 	
@@ -33,6 +34,6 @@ public class BusyIndicator extends Image {
 	@Override
 	public void update() {
 		super.update();
-		visible = Dungeon.hero.isAlive() && !Dungeon.hero.ready && Dungeon.hero.sprite.visible;
+		visible = Dungeon.hero.isAlive() && !Dungeon.hero.ready && MissionScene.scenePause == false;
 	}
 }

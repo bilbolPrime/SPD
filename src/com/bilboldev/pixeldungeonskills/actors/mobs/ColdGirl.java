@@ -441,7 +441,7 @@ public class ColdGirl extends Mob {
         }
         else if(((ColdGirlAI)state).aiStatus == SUPER_HUNTING)
         {
-            ((ColdGirlAI)state).aiStatus = GOD_MODE;
+            ((ColdGirlAI)state).aiStatus = DONE_MODE;
             ((ColdGirlSprite)sprite).haloUp();
 
             HT = 10000;

@@ -27,6 +27,7 @@ import com.bilboldev.noosa.tweeners.Tweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampBlackHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampRedHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampWhiteHalo;
@@ -82,7 +83,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
     public ChampYellowHalo champYellowHalo;
     public ChampBlackHalo champBlackHalo;
     public ChampWhiteHalo champWhiteHalo;
-
+    public ArcherMaidenHalo archerMaidenHalo;
 
 	protected EmoIcon emo;
 	

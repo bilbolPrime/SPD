@@ -35,11 +35,13 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Rage;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
+import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
@@ -153,6 +155,57 @@ public class Dungeon {
 
 	}
 
+    public static void initLegend() {
+
+        challenges = PixelDungeon.challenges();
+
+        Actor.clear();
+
+        PathFinder.setMapSize( Level.WIDTH, Level.HEIGHT );
+
+        Scroll.initLabels();
+        Potion.initColors();
+        Wand.initWoods();
+        Ring.initGems();
+
+        Statistics.reset();
+        Journal.reset();
+
+        depth = 0;
+        gold = 0;
+
+        droppedItems = new SparseArray<ArrayList<Item>>();
+
+        potionOfStrength = 0;
+        scrollsOfUpgrade = 0;
+        scrollsOfEnchantment = 0;
+        dewVial = true;
+
+        chapters = new HashSet<Integer>();
+
+        Ghost.Quest.reset();
+        Wandmaker.Quest.reset();
+        Blacksmith.Quest.reset();
+        Imp.Quest.reset();
+
+        Room.shuffleTypes();
+
+        QuickSlot.primaryValue = null;
+        QuickSlot.secondaryValue = null;
+
+        hero = new Legend();
+        hero.difficulty = difficulty;
+        hero.live();
+
+        Badges.reset();
+
+        StartScene.curClass = HeroClass.HATSUNE;
+        StartScene.curClass.initHero( hero );
+        hero.heroSkills = CurrentSkills.HATSUNE;
+        hero.heroSkills.init();
+
+    }
+
 	public static boolean isChallenged( int mask ) {
 		return (challenges & mask) != 0;
 	}
@@ -261,7 +314,7 @@ public class Dungeon {
 	}
 
 	public static boolean bossLevel( int depth ) {
-		return depth == 5 || depth == 10 || depth == 15 || depth == 20 || depth == 25 || depth == ColdGirl.FROST_DEPTH;
+		return depth == 5 || depth == 10 || depth == 15 || depth == 20 || depth == 25 || depth == ColdGirl.FROST_DEPTH || depth == 0;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -280,7 +333,7 @@ public class Dungeon {
 
        if(hero.hiredMerc != null)
             hero.checkMerc = true;
-        if(depth != ColdGirl.FROST_DEPTH) {
+        if(depth != ColdGirl.FROST_DEPTH && depth != 0) {
             Actor mercRespawn = level.mercRespawner();
             if (mercRespawn != null) {
                 Actor.add(mercRespawn);

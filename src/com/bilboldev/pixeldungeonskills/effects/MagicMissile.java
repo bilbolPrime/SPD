@@ -155,6 +155,13 @@ public class MagicMissile extends Emitter {
 		missile.size( 4 );
 		missile.pour( ShadowParticle.MISSILE, 0.01f );
 	}
+
+    public static void shadow( Group group, int from, int to, Callback callback, int size ) {
+        MagicMissile missile = ((MagicMissile)group.recycle( MagicMissile.class ));
+        missile.reset( from, to, callback );
+        missile.size( size);
+        missile.pour( ShadowParticle.MISSILE, 0.01f );
+    }
 	
 	@Override
 	public void update() {

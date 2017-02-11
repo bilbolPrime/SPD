@@ -31,6 +31,7 @@ public class Assets {
 	public static final String CHROME	= "chrome.png";
 	public static final String ICONS	= "icons.png";
 	public static final String STATUS	= "status_pane.png";
+    public static final String STATUS_MISSION	= "status_pane_mission.png";
 	public static final String HP_BAR	= "hp_bar.png";
     public static final String HP_BAR_DROPPING	= "hp_bar_dropping.png";
     public static final String MP_BAR	= "mana_bar.png";
@@ -43,6 +44,7 @@ public class Assets {
 	public static final String MAGE		= "mage.png";
 	public static final String ROGUE	= "rogue.png";
 	public static final String HUNTRESS	= "ranger.png";
+    public static final String LEGEND	= "legend_1.png";
     public static final String ARCHER_MAIDEN	= "archer_maiden.png";
     public static final String COLD_GIRL = "cold_girl.png";
     public static final String RED_GIRL = "red_girl.png";
@@ -50,6 +52,7 @@ public class Assets {
     public static final String SOLDIER_WARRIOR = "soldier_warrior.png";
     public static final String COLD_GIRL_SISTER = "cold_girl_sister.png";
 	public static final String AVATARS	= "avatars.png";
+    public static final String AVATARS_MISSION	= "avatars_mission.png";
 	public static final String PET		= "pet.png";
 	
 	public static final String SURFACE	= "surface.png";

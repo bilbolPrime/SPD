@@ -7,6 +7,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.Eye;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
+import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CrabSprite;
 import com.bilboldev.pixeldungeonskills.sprites.EyeSprite;
@@ -256,6 +257,14 @@ public class SummonedPet extends NPC {
 
     @Override
     protected boolean act() {
+
+        if(MissionScene.scenePause == true)
+        {
+            spend(1f);
+            next();
+            return false;
+        }
+
         degradeCounter++;
         if(petType != PET_TYPES.SPECIAL) {
             if (degradeCounter % DEGRADE_RATE == 0)

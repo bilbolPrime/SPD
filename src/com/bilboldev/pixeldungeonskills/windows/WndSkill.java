@@ -19,8 +19,10 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.skills.BranchSkill;
 import com.bilboldev.pixeldungeonskills.actors.skills.Negotiations;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
@@ -67,7 +69,11 @@ public class WndSkill extends Window {
                         skill.execute( Dungeon.hero, action );
 						hide();
                         if(owner != null)
-						    owner.hide();
+                        {
+                            owner.hide();
+                            if(skill instanceof BranchSkill)
+                                GameScene.show(new WndSkills(null, null));
+                        }
 					};
 				};
 				btn.setSize( Math.max( BUTTON_WIDTH, btn.reqWidth() ), BUTTON_HEIGHT );

@@ -17,8 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
-import java.util.HashMap;
-
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
@@ -37,8 +35,8 @@ import com.bilboldev.pixeldungeonskills.GamesInProgress;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
-import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites.Type;
+import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
@@ -51,13 +49,15 @@ import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Callback;
 
-public class StartScene extends PixelScene {
+import java.util.HashMap;
+
+public class MissionStartScene extends PixelScene {
 
 	private static final float BUTTON_HEIGHT	= 24;
 	private static final float GAP				= 2;
 	
 	private static final String TXT_LOAD	= "Load Game";
-	private static final String TXT_NEW		= "New Game";
+	private static final String TXT_NEW		= "Choose Scenario";
 	
 	private static final String TXT_ERASE		= "Erase current game";
 	private static final String TXT_DPTH_LVL	= "Depth: %d, level: %d";
@@ -128,14 +128,13 @@ public class StartScene extends PixelScene {
 		buttonX = left;
 		buttonY = bottom - BUTTON_HEIGHT;
 
-
         ResumeButton btnResume = new ResumeButton(){
 
-         @Override
-        public void onClick()
-         {
-             Game.switchScene(MissionStartScene.class);
-         }
+            @Override
+            public void onClick()
+            {
+                Game.switchScene(StartScene.class);
+            }
 
             @Override
             public void update() {
@@ -153,36 +152,19 @@ public class StartScene extends PixelScene {
 		btnNewGame = new GameButton( TXT_NEW ) {
 			@Override
 			protected void onClick() {
-				if (GamesInProgress.check( curClass ) != null) {
-					StartScene.this.add( new WndOptions( TXT_REALLY, TXT_WARNING, TXT_YES, TXT_NO ) {
-						@Override
-						protected void onSelect( int index ) {
-							if (index == 0) {
-                                chooseDifficulty();
-							}
-						}
-					} );
-					
-				} else {
-                    chooseDifficulty();
-				}
+
+                    chooseMission();
+
 			}
 		};
 		add( btnNewGame );
 
-		btnLoad = new GameButton( TXT_LOAD ) {	
-			@Override
-			protected void onClick() {
-				InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
-				Game.switchScene( InterlevelScene.class );
-			}
-		};
-		add( btnLoad );	
+
 		
 		float centralHeight = buttonY - title.y - title.height();
 		
 		HeroClass[] classes = {
-			HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE, HeroClass.HUNTRESS	
+			HeroClass.HATSUNE
 		};
 		for (HeroClass cl : classes) {
 			ClassShield shield = new ClassShield( cl );
@@ -256,34 +238,34 @@ public class StartScene extends PixelScene {
 		Badges.loadingListener = new Callback() {
 			@Override
 			public void call() {
-				if (Game.scene() == StartScene.this) {
-					PixelDungeon.switchNoFade( StartScene.class );
+				if (Game.scene() == MissionStartScene.this) {
+					PixelDungeon.switchNoFade( MissionStartScene.class );
 				}
 			}
 		};
 	}
 
 
-    private void chooseDifficulty()
+    private void chooseMission()
     {
-        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HARD.title(), Difficulties.HELL.title(), Difficulties.SUICIDE.title() , Difficulties.JUSTKILLME.title() ) {
+        MissionStartScene.this.add( new WndOptions( "The Defence Of Boonamai", "Select Mission", "First Wave" ) {
             @Override
             protected void onSelect( int index ) {
-                chooseDifficultyFinal(index);
+                chooseMissionFinal(index);
             }
         } );
 
 
     }
 
-    private void chooseDifficultyFinal(int index)
+    private void chooseMissionFinal(int index)
     {
         String title = "";
-        String Description = Difficulties.description(Difficulties.getNormalizedDifficulty(index));
+        String Description = "Dark forces have caught the defences off guard.\n Moral is low and so are the resources at hand. \nHold the line...";
         final int diff = index;
 
 
-        StartScene.this.add( new WndOptions( title, Description, "Yes", "No" ) {
+        MissionStartScene.this.add( new WndOptions( title, Description, "Start", "Back" ) {
 
             @Override
             protected void onSelect( int index ) {
@@ -306,8 +288,8 @@ public class StartScene extends PixelScene {
 	
 	private void updateClass( HeroClass cl ) {
 
-        if(cl == HeroClass.HATSUNE)
-            cl = HeroClass.WARRIOR;
+        if(cl != HeroClass.HATSUNE)
+            cl = HeroClass.HATSUNE;
 
 
 		if (curClass == cl) {
@@ -320,38 +302,21 @@ public class StartScene extends PixelScene {
 		}
 		shields.get( curClass = cl ).highlight( true );
 		
-		if (cl != HeroClass.HUNTRESS || huntressUnlocked) {
+		if (true) {
 		
 			unlock.visible = false;
 			
-			GamesInProgress.Info info = GamesInProgress.check( curClass );
-			if (info != null) {
-				
-				btnLoad.visible = true;
-				btnLoad.secondary( Utils.format( TXT_DPTH_LVL, info.depth, info.level ), info.challenges );
-				
-				btnNewGame.visible = true;
-				btnNewGame.secondary( TXT_ERASE, false );
-				
-				float w = (Camera.main.width - GAP) / 2 - buttonX;
-				
-				btnLoad.setRect(
-					buttonX, buttonY, w, BUTTON_HEIGHT );
-				btnNewGame.setRect(
-					btnLoad.right() + GAP, buttonY, w, BUTTON_HEIGHT );
-				
-			} else {
-				btnLoad.visible = false;
+
 				
 				btnNewGame.visible = true;
 				btnNewGame.secondary( null, false );
 				btnNewGame.setRect( buttonX, buttonY, Camera.main.width - buttonX * 2, BUTTON_HEIGHT );
-			}
+
 			
 		} else {
 			
 			unlock.visible = true;
-			btnLoad.visible = false;
+
 			btnNewGame.visible = false;
 			
 		}
@@ -360,18 +325,18 @@ public class StartScene extends PixelScene {
 	private void startNewGame(int diff) {
 
 		Dungeon.hero = null;
-        diff = Difficulties.getNormalizedDifficulty(diff);
-        Dungeon.difficulty = diff;
-        Dungeon.currentDifficulty = Difficulties.values()[diff];
+       // diff = Difficulties.getNormalizedDifficulty(diff);
+        Dungeon.difficulty = 0;
+        Dungeon.currentDifficulty = Difficulties.values()[0];
         Dungeon.currentDifficulty.reset();
-		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+		InterlevelScene.mode = InterlevelScene.Mode.MISSION;
 		
-		if (PixelDungeon.intro()) {
-			PixelDungeon.intro( false );
-			Game.switchScene( IntroScene.class );
-		} else {
+		//if (PixelDungeon.intro()) {
+		//	PixelDungeon.intro( false );
+		//	Game.switchScene( IntroScene.class );
+		//} else {
 			Game.switchScene( InterlevelScene.class );
-		}	
+	//	}
 	}
 	
 	@Override
@@ -452,16 +417,13 @@ public class StartScene extends PixelScene {
 		
 			this.cl = cl;
 			
-			avatar.frame( cl.ordinal() * WIDTH, 0, WIDTH, HEIGHT );
+			avatar.frame( (cl.ordinal() - 4) * WIDTH, 0, WIDTH, HEIGHT );
 			avatar.scale.set( SCALE );
 			
-			if (Badges.isUnlocked( cl.masteryBadge() )) {
-				normal = MASTERY_NORMAL;
-				highlighted = MASTERY_HIGHLIGHTED;
-			} else {
+
 				normal = BASIC_NORMAL;
 				highlighted = BASIC_HIGHLIGHTED;
-			}
+
 			
 			name.text( cl.name() );
 			name.measure();
@@ -476,7 +438,7 @@ public class StartScene extends PixelScene {
 			
 			super.createChildren();
 			
-			avatar = new Image( Assets.AVATARS );
+			avatar = new Image( Assets.AVATARS_MISSION );
 			add( avatar );
 			
 			name = PixelScene.createText( 9 );
@@ -571,7 +533,7 @@ public class StartScene extends PixelScene {
 		@Override
 		protected void onClick() {
 			if (Badges.isUnlocked( Badges.Badge.VICTORY )) {
-				StartScene.this.add( new WndChallenges( PixelDungeon.challenges(), true ) {
+				MissionStartScene.this.add( new WndChallenges( PixelDungeon.challenges(), true ) {
 					public void onBackPressed() {
 						super.onBackPressed();
 						image.copy( Icons.get( PixelDungeon.challenges() > 0 ? 
@@ -579,7 +541,7 @@ public class StartScene extends PixelScene {
 					};
 				} );
 			} else {
-				StartScene.this.add( new WndMessage( TXT_WIN_THE_GAME ) );
+				MissionStartScene.this.add( new WndMessage( TXT_WIN_THE_GAME ) );
 			}
 		}
 		

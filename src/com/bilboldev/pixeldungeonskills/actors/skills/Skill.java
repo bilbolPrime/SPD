@@ -54,7 +54,7 @@ public class Skill{
             {
                 level++;
                 availableSkill -= tier;
-                WndStory.showStory("You have gained a level in " + name);
+               // WndStory.showStory("You have gained a level in " + name);
                 return true;
             }
         }

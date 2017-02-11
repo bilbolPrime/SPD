@@ -32,6 +32,7 @@ import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.items.Generator;
+import com.bilboldev.pixeldungeonskills.levels.Campaigns.FirstWave;
 import com.bilboldev.pixeldungeonskills.levels.FrostLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
@@ -56,7 +57,7 @@ public class InterlevelScene extends PixelScene {
 	private static final String ERR_GENERIC			= "Something went wrong..."	;	
 	
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION
 	};
 	public static Mode mode;
 	
@@ -112,6 +113,9 @@ public class InterlevelScene extends PixelScene {
         case MOVIE_OUT:
             text = "The true story has yet to begin";
             break;
+        case MISSION:
+             text = "10 years ago...";
+             break;
 		default:
 		}
 		
@@ -124,7 +128,7 @@ public class InterlevelScene extends PixelScene {
 		phase = Phase.FADE_IN;
 		timeLeft = TIME_TO_FADE;
 
-        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT)
+        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT || mode == Mode.MISSION)
             timeLeft = 10 * TIME_TO_FADE;
 
 		thread = new Thread() {
@@ -136,10 +140,15 @@ public class InterlevelScene extends PixelScene {
 					Generator.reset();
 					
 					switch (mode) {
+                    case MISSION:
+                        runMission();
+                         break;
                     case MOVIE:
                         runMovie();
                         break;
                     case MOVIE_OUT:
+                       endMovie();
+                        break;
 					case DESCEND:
 						descend();
 						break;
@@ -195,7 +204,7 @@ public class InterlevelScene extends PixelScene {
 		super.update();
 		
 		float p = timeLeft / TIME_TO_FADE;
-        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT)
+        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT || mode == Mode.MISSION)
             p /= 10;
 
 		
@@ -221,7 +230,13 @@ public class InterlevelScene extends PixelScene {
 				Music.INSTANCE.volume( p );
 			}
 			if ((timeLeft -= Game.elapsed) <= 0) {
-				Game.switchScene( GameScene.class );
+                if(mode == Mode.MOVIE || mode == Mode.MISSION)
+                    //Game.switchScene( TitleScene.class );
+                    Game.switchScene( MissionScene.class );
+                else if(mode == Mode.MOVIE_OUT)
+                    Game.switchScene(TitleScene.class);
+                else
+				    Game.switchScene( GameScene.class );
 			}
 			break;
 			
@@ -256,6 +271,27 @@ public class InterlevelScene extends PixelScene {
 		}
 	}
 
+    private void runMission() throws Exception {
+
+        try {
+            GameLog.wipe();
+        }
+        catch (Exception ex)
+        {
+            // Could have been causing issues
+        }
+
+
+        if (Dungeon.hero == null)
+            Dungeon.initLegend();
+
+        MissionScene.scenePause = true;
+        Level level = new FirstWave();
+        Dungeon.level = level;
+        level.create();
+        Dungeon.switchLevel( level, level.randomRespawnCell() );
+    }
+
     private void runMovie() throws Exception {
 
         try {
@@ -266,16 +302,21 @@ public class InterlevelScene extends PixelScene {
             // Could have been causing issues
         }
 
-        Actor.fixTime();
-        Actor.clear();
+
         if (Dungeon.hero == null)
-            Dungeon.init();
+            Dungeon.initLegend();
 
 
         Level level = new MovieLevel();
         Dungeon.level = level;
         level.create();
         Dungeon.switchLevel( level, level.randomRespawnCell() );
+    }
+
+    private void endMovie() throws Exception {
+
+        //Actor.fixTime();
+       // Game.switchScene(TitleScene.class);
     }
 
 	private void descend() throws Exception {

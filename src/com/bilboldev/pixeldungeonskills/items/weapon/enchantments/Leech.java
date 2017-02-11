@@ -18,11 +18,13 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.enchantments;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
+import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.utils.Random;
 
 public class Leech extends Weapon.Enchantment {
@@ -47,7 +49,10 @@ public class Leech extends Weapon.Enchantment {
 			attacker.HP += effValue;
 			attacker.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 1 );
 			attacker.sprite.showStatus( CharSprite.POSITIVE, Integer.toString( effValue ) );
-			
+
+            if(attacker instanceof Hero)
+                StatusPane.takingDamage = 0;
+
 			return true;
 			
 		} else {

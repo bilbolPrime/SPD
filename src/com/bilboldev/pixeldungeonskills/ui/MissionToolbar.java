@@ -35,15 +35,16 @@ import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
+import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndCatalogus;
-import com.bilboldev.pixeldungeonskills.windows.WndDonations;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
-import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMerc;
 import com.bilboldev.pixeldungeonskills.windows.WndMercs;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
@@ -52,29 +53,29 @@ import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
-public class Toolbar extends Component {
+public class MissionToolbar extends Component {
 
 	private Tool btnWait;
     private Tool btnSkill;
     private Tool btnMerc;
     private Tool btnLastUsed;
 	//private Tool btnSearch;
-    private Tool btnKing;
+   // private Tool btnKing;
 	private Tool btnInfoSearch;
 	private Tool btnInventory;
 	private Tool btnQuick1;
 	private Tool btnQuick2;
-	
+
 	private PickedUpItem pickedUp;
-	
+
 	private boolean lastEnabled = true;
 
     public static boolean tapAgainToSearch = false;
 
-	private static Toolbar instance;
+	private static MissionToolbar instance;
 
 
-	public Toolbar() {
+	public MissionToolbar() {
 		super();
 		
 		instance = this;
@@ -108,16 +109,6 @@ public class Toolbar extends Component {
         });
 
 
-        add( btnKing = new Tool( 135, 7, 21, 25 ) {
-            @Override
-            protected void onClick() {
-                GameScene.show(new WndRatKing(WndRatKing.Mode.NORMAL));
-            };
-            protected boolean onLongClick() {
-                GameScene.show(new WndRatKing(WndRatKing.Mode.NORMAL));
-                return true;
-            };
-        });
 
 
 
@@ -140,22 +131,11 @@ public class Toolbar extends Component {
         add(btnMerc = new Tool(252, 7, 20, 25) {
             @Override
             protected void onClick() {
-                if(Dungeon.hero.hiredMerc == null)
-                {
-                    //GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
-                    GameScene.show(new WndMercs(WndMercs.Mode.ALL));
-                }
-                else
-                {
-                   GameScene.show(new WndMerc(null, null));
-                }
+               Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
 
             };
             protected boolean onLongClick() {
-                if(Dungeon.hero.hiredMerc == null)
-                    GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
-                else
-                    GameScene.show(new WndMerc(null, null));
+                Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
                 return true;
             };});
 
@@ -225,7 +205,7 @@ public class Toolbar extends Component {
 		btnInfoSearch.setPos( 0, 70 );
         btnMerc.setPos( 0, 40 );
         btnSkill.setPos(btnWait.right(), y);
-        btnKing.setPos(0, 100);
+
         btnLastUsed.setPos(btnSkill.right(), y);
 		btnQuick1.setPos( width - btnQuick1.width(), y );
 		if (btnQuick2.visible) {
@@ -240,7 +220,16 @@ public class Toolbar extends Component {
 	public void update() {
 		super.update();
 
-		if (lastEnabled != Dungeon.hero.ready) {
+        visible = !MissionScene.scenePause;
+
+        btnInventory.visible = false;
+        btnInventory.enable(false);
+        btnQuick1.visible = false;
+        btnQuick1.enable(false);
+        btnQuick2.visible = false;
+        btnQuick2.enable(false);
+
+        if (lastEnabled != Dungeon.hero.ready) {
 			lastEnabled = Dungeon.hero.ready;
 			
 			for (Gizmo tool : members) {
@@ -253,10 +242,6 @@ public class Toolbar extends Component {
                         ((Tool)tool).enable(false);
 				}
 			}
-		}
-		
-		if (!Dungeon.hero.isAlive()) {
-			btnInventory.enable( true );
 		}
 	}
 	

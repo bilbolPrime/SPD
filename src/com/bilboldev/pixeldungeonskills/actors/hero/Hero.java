@@ -73,6 +73,7 @@ import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.effects.Stab;
 import com.bilboldev.pixeldungeonskills.items.Amulet;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.DewVial;
@@ -159,8 +160,8 @@ public class Hero extends Char {
 
     public HiredMerc hiredMerc = null;
 
-	private int attackSkill = 10;
-	private int defenseSkill = 5;
+	protected int attackSkill = 10;
+    protected int defenseSkill = 5;
 
 	public boolean ready = false;
 
@@ -500,14 +501,6 @@ public class Hero extends Char {
 		
 		super.act();
 
-
-        if(Dungeon.level instanceof MovieLevel)
-        {
-            spendAndNext( TICK );
-
-            sprite.visible = false;
-            return false;
-        }
 
 		if (paralysed) {
 			
@@ -996,7 +989,12 @@ public class Hero extends Char {
 	public int attackProc( Char enemy, int damage ) {
 		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
 		if (wep != null) {
-			
+
+            if(wep instanceof MeleeWeapon)
+            {
+                Stab.show(this, enemy, wep);
+            }
+
 			wep.proc( this, enemy, damage );
 			
 			switch (subClass) {

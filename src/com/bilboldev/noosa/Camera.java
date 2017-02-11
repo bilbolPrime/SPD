@@ -183,7 +183,8 @@ public class Camera extends Gizmo {
 	public void focusOn( PointF point ) {
 		focusOn( point.x, point.y );
 	}
-	
+
+
 	public void focusOn( Visual visual ) {
 		focusOn( visual.center() );
 	}
@@ -207,7 +208,8 @@ public class Camera extends Gizmo {
 	public float screenHeight() {
 		return height * zoom; 
 	}
-	
+
+
 	protected void updateMatrix() {
 
 	/*	Matrix.setIdentity( matrix );

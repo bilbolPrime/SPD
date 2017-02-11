@@ -66,7 +66,9 @@ public enum Icons {
     ALL_MERCS,
     RAT_KING,
     MOB,
-    CHAMP_HALO;
+    CHAMP_HALO,
+    GAME,
+    VIDEO;
 	
 	public Image get() {
 		return get( this );
@@ -205,8 +207,15 @@ public enum Icons {
           icon.frame( icon.texture.uvRect( 17, 104, 26, 115 ) );
           break;
        case MOB:
-           icon.frame( icon.texture.uvRect( 28, 101, 39, 116 ) );
+          icon.frame( icon.texture.uvRect( 28, 101, 39, 116 ) );
            break;
+        case GAME:
+            icon.frame( icon.texture.uvRect( 88, 65, 103, 77 ) );
+            break;
+        case VIDEO:
+            icon.frame( icon.texture.uvRect( 73, 83, 93, 96 ) );
+            break;
+
 		}
 		return icon;
 	}

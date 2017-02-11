@@ -32,15 +32,15 @@ import com.bilboldev.utils.Callback;
 
 public class HeroSprite extends CharSprite {
 	
-	private static final int FRAME_WIDTH	= 12;
-	private static final int FRAME_HEIGHT	= 15;
-	
-	private static final int RUN_FRAMERATE	= 20;
-	
-	private static TextureFilm tiers;
-	
-	private Animation fly;
-	private Animation read;
+	protected static final int FRAME_WIDTH	= 12;
+    protected static final int FRAME_HEIGHT	= 15;
+
+    protected static final int RUN_FRAMERATE	= 20;
+
+    protected static TextureFilm tiers;
+
+    protected Animation fly;
+    protected Animation read;
 	
 	public HeroSprite() {
 		super();

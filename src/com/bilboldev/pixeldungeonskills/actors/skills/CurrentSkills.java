@@ -12,7 +12,7 @@ import com.bilboldev.utils.Bundle;
 
 public enum CurrentSkills{
 
-    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress");
+    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress") , HATSUNE("hatsune");
 
 
     public enum BRANCHES {PASSIVEA, PASSIVEB, ACTIVE}
@@ -115,6 +115,31 @@ public enum CurrentSkills{
                 active1 = new SpiritArrow();
                 active2 = new DoubleShot();
                 active3 = new Bombvoyage();
+                break;
+            case HATSUNE:
+                branchPA = new LegendPassiveA();
+                passiveA1 = new Spirituality();
+                passiveA1.level = 10;
+                passiveA2 = new Meditation();
+                passiveA2.level = 10;
+                passiveA3 = new SpiritArmor();
+                passiveA3.level = 10;
+                passiveA3.active = true;
+                branchPB = new LegendActiveA();
+                passiveB1 = new SummonSkeletonArcher();
+                passiveB1.level = 10;
+                passiveB2 = new DarkBolt();
+                passiveB2.level = 10;
+                passiveB3 = new Dominance();
+                passiveB3.level = 10;
+                branchA = new LegendActiveA();
+                active1 = new Echo();
+                active1.level = 10;
+                active2 = new SoulSpark();
+                active2.level = 10;
+                active3 = new SoulFury();
+                active3.level = 10;
+                Skill.availableSkill = 0;
                 break;
         }
     }

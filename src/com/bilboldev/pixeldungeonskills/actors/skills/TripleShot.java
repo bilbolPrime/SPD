@@ -58,7 +58,7 @@ public class TripleShot extends ActiveSkill2{
     @Override
     public String info()
     {
-        return "Shoots two arrows at the same time.\n"
+        return "Shoots three arrows at the same time.\n"
                 + costUpgradeInfo();
     }
 }

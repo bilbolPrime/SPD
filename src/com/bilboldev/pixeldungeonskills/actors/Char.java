@@ -86,6 +86,8 @@ public abstract class Char extends Actor {
 	
 	private static final String TXT_OUT_OF_PARALYSIS	= "The pain snapped %s out of paralysis";
 
+    public boolean screams = true;
+
     private String[] MOB_DEATH_SCREAMS =  {
             "...",
             "I will haunt your dreams...",
@@ -466,7 +468,7 @@ public abstract class Char extends Actor {
 	}
 	
 	public void die( Object src ) {
-        if(!(this instanceof Shopkeeper || this instanceof Imp || this instanceof Blacksmith))
+        if(!(this instanceof Shopkeeper || this instanceof Imp || this instanceof Blacksmith) && screams)
             this.sprite.showStatus(CharSprite.NEUTRAL, getDeathScream());
 
 		destroy();
