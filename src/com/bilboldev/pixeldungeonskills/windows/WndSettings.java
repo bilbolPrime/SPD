@@ -139,7 +139,7 @@ public class WndSettings extends Window {
 		btnSound.checked( PixelDungeon.soundFx() );
 		add( btnSound );
 
-        if(!(Dungeon.hero instanceof Legend)) {
+        if(Dungeon.hero == null || !(Dungeon.hero instanceof Legend)) {
             if (inGame) {
 
                 CheckBox btnDeg = new CheckBox("No Degradation") {
@@ -196,6 +196,19 @@ public class WndSettings extends Window {
         else
         {
             resize(WIDTH, (int) btnSound.bottom());
+            if (!inGame) {
+                RedButton btnOrientation = new RedButton(orientationText()) {
+                    @Override
+                    protected void onClick() {
+                        PixelDungeon.landscape(!PixelDungeon.landscape());
+                    }
+                };
+                btnOrientation.setRect(0, btnSound.bottom() + GAP, WIDTH, BTN_HEIGHT);
+                add(btnOrientation);
+
+
+                resize(WIDTH, (int) btnOrientation.bottom());
+            }
         }
 	}
 	

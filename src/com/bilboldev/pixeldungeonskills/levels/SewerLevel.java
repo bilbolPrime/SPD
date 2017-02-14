@@ -95,7 +95,7 @@ public class SewerLevel extends RegularLevel {
 		
 		while (true) {
 			int pos = roomEntrance.random();
-			if (pos != entrance) {
+			if (pos != entrance && pos != storage) {
 				map[pos] = Terrain.SIGN;
 				break;
 			}

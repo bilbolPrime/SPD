@@ -123,6 +123,12 @@ public class CityBossLevel extends Level {
             safety++;
         }while((arenaStorage == entrance || arenaStorage != (arenaDoor + WIDTH + 1)) && safety < 100);
 
+        for(int i = 0; i < Level.NEIGHBOURS8.length; i++)
+        {
+            if(map[entrance + Level.NEIGHBOURS8[i]] == Terrain.EMPTY)
+                arenaStorage = entrance + Level.NEIGHBOURS8[i];
+        }
+
         map[arenaStorage] = Terrain.STORAGE;
 
 		return true;

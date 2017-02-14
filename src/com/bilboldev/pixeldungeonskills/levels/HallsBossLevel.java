@@ -122,6 +122,12 @@ public class HallsBossLevel extends Level {
             safety++;
         }while(arenaStorage == entrance && safety < 100);
 
+        for(int i = 0; i < Level.NEIGHBOURS8.length; i++)
+        {
+            if(map[entrance + Level.NEIGHBOURS8[i]] == Terrain.EMPTY)
+                arenaStorage = entrance + Level.NEIGHBOURS8[i];
+        }
+
         map[arenaStorage] = Terrain.STORAGE;
 
 		boolean[] patch = Patch.generate( 0.45f, 6 );

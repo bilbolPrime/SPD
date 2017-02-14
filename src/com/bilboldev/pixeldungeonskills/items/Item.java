@@ -623,7 +623,14 @@ public class Item implements Bundlable {
 				public void call() {
 					Item.this.detach( user.belongings.backpack ).onThrow( cell );
                     if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
-                        curItem.cast( curUser, dstFinal );
+                    {
+                        if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
+                        {
+                            curItem.castSPD(curUser, dstFinal, Dungeon.hero.heroSkills.passiveB3.passThroughTargets(true));
+                        }
+                        else
+                            curItem.cast( curUser, dstFinal );
+                    }
                     else
 					    user.spendAndNext( finalDelay );
 				}
@@ -693,13 +700,23 @@ public class Item implements Bundlable {
             }
         }
         final float finalDelay = delay;
-
+        final int dstFinal = dst;
         ((MissileSprite)user.sprite.parent.recycle( MissileSprite.class )).
                 reset( user.pos, cell, this, new Callback() {
                     @Override
                     public void call() {
                         Item.this.detach( user.belongings.backpack ).onThrow( cell );
-                        user.spendAndNext( finalDelay );
+                        if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
+                        {
+                            if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
+                            {
+                                curItem.castSPD(curUser, dstFinal, Dungeon.hero.heroSkills.passiveB3.passThroughTargets(true));
+                            }
+                            else
+                                curItem.cast( curUser, dstFinal );
+                        }
+                        else
+                            user.spendAndNext( finalDelay );
                     }
                 } );
     }

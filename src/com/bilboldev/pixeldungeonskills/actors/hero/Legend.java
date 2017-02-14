@@ -63,6 +63,12 @@ public class Legend extends Hero {
         belongings.armor = (Armor)tmp;
     }
 
+    @Override
+    public void die(Object reason)
+    {
+        super.die(reason);
+        MissionScene.scenePause = true;
+    }
 
     @Override
     public void storeInBundle( Bundle bundle ) {

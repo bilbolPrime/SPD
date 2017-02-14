@@ -40,6 +40,13 @@ public class EntrancePainter extends Painter {
         }
         while((level.storage == level.entrance || level.map[level.storage]== Terrain.SIGN) && safety < 100); // Still bugged, need a guaranteed way without risking infinte loops
 		set( level, level.entrance, Terrain.ENTRANCE );
+
+        for(int i = 0; i < Level.NEIGHBOURS8.length; i++)
+        {
+            if( level.map[level.entrance + Level.NEIGHBOURS8[i]] == Terrain.EMPTY)
+                level.storage = level.entrance + Level.NEIGHBOURS8[i];
+        }
+
         set(level, level.storage, Terrain.STORAGE);
 	}
 	

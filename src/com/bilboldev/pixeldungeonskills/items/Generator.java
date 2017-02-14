@@ -95,8 +95,9 @@ public class Generator {
 			ScrollOfEnchantment.class,
                 ScrollOfHome.class,
                 ScrollOfSacrifice.class,
-                ScrollOfBloodyRitual.class};
-		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5 };
+                ScrollOfBloodyRitual.class,
+                ScrollOfSkill.class};
+		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5, 10 };
 		
 		Category.POTION.classes = new Class<?>[]{ 
 			PotionOfHealing.class, 
@@ -157,7 +158,7 @@ public class Generator {
                 NecroBlade.class,
                 DualSwords.class
                 };
-		Category.WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 1 };
+		Category.WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 3, 3 };
 		
 		Category.ARMOR.classes = new Class<?>[]{ 
 			ClothArmor.class, 

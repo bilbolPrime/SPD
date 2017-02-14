@@ -33,7 +33,7 @@ public class Champ extends Buff {
     public static final int CHAMP_FOUL = 3;
     public static final int CHAMP_VAMPERIC = 4;
 
-    public int type = Random.Int(1, 4);
+    public int type = Random.Int(1, 5);
 
     private  boolean bonusApplied = false;
 
@@ -59,14 +59,18 @@ public class Champ extends Buff {
 
         if(bonusApplied == false)
         {
-            this.target.champ = type;
+
             bonusApplied = true;
             haloApplied = true;
             do
             {
-                type = Random.Int(1, 4);
+                type = Random.Int(1, 5);
+                if(type == 5)
+                    type = 4;
             }
             while(Dungeon.currentDifficulty.disableChampion(type) == true);
+
+            this.target.champ = type;
 
             switch(type)
             {

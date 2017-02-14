@@ -248,7 +248,7 @@ public class MissionStartScene extends PixelScene {
 
     private void chooseMission()
     {
-        MissionStartScene.this.add( new WndOptions( "The Defence Of Boonamai", "Select Mission", "First Wave" ) {
+        MissionStartScene.this.add( new WndOptions( "The Defence Of Boonamai", "Select Mission", "First Wave" , "Betrayal" ) {
             @Override
             protected void onSelect( int index ) {
                 chooseMissionFinal(index);
@@ -260,20 +260,32 @@ public class MissionStartScene extends PixelScene {
 
     private void chooseMissionFinal(int index)
     {
-        String title = "";
-        String Description = "Dark forces have caught the defences off guard.\n Moral is low and so are the resources at hand. \nHold the line...";
-        final int diff = index;
+        if(index == 0) {
+            String title = "";
+            String Description = "Dark forces have caught the defences off guard.\n Moral is low and so are the resources at hand. \nHold the line...";
+            final int diff = index;
 
 
-        MissionStartScene.this.add( new WndOptions( title, Description, "Start", "Back" ) {
+            MissionStartScene.this.add(new WndOptions(title, Description, "Start", "Back") {
 
-            @Override
-            protected void onSelect( int index ) {
-                if(index == 0)
-                    startNewGame(diff);
-            }
-        } );
+                @Override
+                protected void onSelect(int index) {
+                    if (index == 0)
+                        startNewGame(diff);
+                }
+            });
 
+        }
+        else
+        {
+            MissionStartScene.this.add(new WndOptions("Betrayal", "Coming soon") {
+
+                @Override
+                protected void onSelect(int index) {
+
+                }
+            });
+        }
 
     }
 
@@ -330,7 +342,7 @@ public class MissionStartScene extends PixelScene {
         Dungeon.currentDifficulty = Difficulties.values()[0];
         Dungeon.currentDifficulty.reset();
 		InterlevelScene.mode = InterlevelScene.Mode.MISSION;
-		
+        MissionScene.scenePause = true;
 		//if (PixelDungeon.intro()) {
 		//	PixelDungeon.intro( false );
 		//	Game.switchScene( IntroScene.class );

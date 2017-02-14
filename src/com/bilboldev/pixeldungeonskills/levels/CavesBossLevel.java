@@ -146,6 +146,12 @@ public class CavesBossLevel extends Level {
             safety++;
         }while(arenaStorage == entrance && safety < 10);
 
+        for(int i = 0; i < Level.NEIGHBOURS8.length; i++)
+        {
+            if(map[entrance + Level.NEIGHBOURS8[i]] == Terrain.EMPTY)
+                arenaStorage = entrance + Level.NEIGHBOURS8[i];
+        }
+
         map[arenaStorage] = Terrain.STORAGE;
 
 		boolean[] patch = Patch.generate( 0.45f, 6 );
@@ -191,7 +197,7 @@ public class CavesBossLevel extends Level {
 		int sign;
 		do {
 			sign = Random.Int( ROOM_LEFT, ROOM_RIGHT ) + Random.Int( ROOM_TOP, ROOM_BOTTOM ) * WIDTH;
-		} while (sign == entrance);
+		} while (sign == entrance ||  sign == storage);
 		map[sign] = Terrain.SIGN;
 	}
 	
