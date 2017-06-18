@@ -42,6 +42,7 @@ import com.bilboldev.pixeldungeonskills.sprites.WraithSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
+import com.bilboldev.utils.Random;
 
 public class WandOfMagicCasting extends Wand {
 
@@ -72,11 +73,15 @@ public class WandOfMagicCasting extends Wand {
                 Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
                 Dungeon.hero.heroSkills.active2.castTextYell();
                 break;
+            case SPARK:
+                Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
+                Dungeon.hero.heroSkills.active2.castTextYell();
+                break;
 
         }
     }
 
-    public enum CAST_TYPES  {DARK_BOLT, DOMINANCE, SOUL_SPARK};
+    public enum CAST_TYPES  {DARK_BOLT, DOMINANCE, SOUL_SPARK, SPARK};
     public CAST_TYPES casting = CAST_TYPES.DARK_BOLT;
 
     protected static CellSelector.Listener zapper = new  CellSelector.Listener() {
@@ -162,6 +167,10 @@ public class WandOfMagicCasting extends Wand {
                 ch.HP = ch.HT;
                 ch.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.4f, 4);
             }
+            else  if(casting == CAST_TYPES.SPARK)
+            {
+                ch.damage(Random.Int(Dungeon.hero.heroSkills.active2.level * 3, Dungeon.hero.heroSkills.active2.level * 5), Dungeon.hero);
+            }
 			
 		} else {
 			
@@ -177,6 +186,8 @@ public class WandOfMagicCasting extends Wand {
             MagicMissile.shadow(curUser.sprite.parent, curUser.pos, cell, callback, 3);
         else if(casting == CAST_TYPES.SOUL_SPARK)
             MagicMissile.whiteLight(curUser.sprite.parent, curUser.pos, cell, callback);
+        else if(casting == CAST_TYPES.SPARK)
+            MagicMissile.blueLight(curUser.sprite.parent, curUser.pos, cell, callback);
 
 		Sample.INSTANCE.play( Assets.SND_ZAP );
 	}

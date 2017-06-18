@@ -78,7 +78,7 @@ public class Arrow extends MissileWeapon {
     protected void onThrow( int cell ) {
 
 
-        if(Dungeon.hero.heroSkills.passiveB3.multiTargetActive == false) {
+        if(Dungeon.hero.heroSkills.passiveB3.multiTargetActive == false || Dungeon.hero.heroSkills.active3.active == true) { //  bombvoyage
             // Turn to bomb
             if(Dungeon.hero.heroSkills.active3.arrowToBomb() == true) {
             if (Level.pit[cell]) {
@@ -153,6 +153,8 @@ public class Arrow extends MissileWeapon {
 
         if(hitOne == false)
             miss( cell );
+
+        Dungeon.hero.rangedWeapon = null;
     }
 
     public void arrowEffect(Char attacker, Char defender)

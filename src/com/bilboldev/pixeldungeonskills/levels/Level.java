@@ -952,19 +952,26 @@ public abstract class Level implements Bundlable {
 		if (c.isAlive()) {
 			if (c.buff( MindVision.class ) != null) {
 				for (Mob mob : mobs) {
-					int p = mob.pos;
-					fieldOfView[p] = true;
-					fieldOfView[p + 1] = true;
-					fieldOfView[p - 1] = true;
-					fieldOfView[p + WIDTH + 1] = true;
-					fieldOfView[p + WIDTH - 1] = true;
-					fieldOfView[p - WIDTH + 1] = true;
-					fieldOfView[p - WIDTH - 1] = true;
-					fieldOfView[p + WIDTH] = true;
-					fieldOfView[p - WIDTH] = true;
+                    try {
+                        int p = mob.pos;
+                        fieldOfView[p] = true;
+                        fieldOfView[p + 1] = true;
+                        fieldOfView[p - 1] = true;
+                        fieldOfView[p + WIDTH + 1] = true;
+                        fieldOfView[p + WIDTH - 1] = true;
+                        fieldOfView[p - WIDTH + 1] = true;
+                        fieldOfView[p - WIDTH - 1] = true;
+                        fieldOfView[p + WIDTH] = true;
+                        fieldOfView[p - WIDTH] = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Sometimes merc respawning causes crash out if index
+                    }
 				}
 			} else if (c == Dungeon.hero && ((Hero)c).heroClass == HeroClass.HUNTRESS) {
 				for (Mob mob : mobs) {
+                    try {
 					int p = mob.pos;
 					if (distance( c.pos, p) == 2) {
 						fieldOfView[p] = true;
@@ -977,6 +984,11 @@ public abstract class Level implements Bundlable {
 						fieldOfView[p + WIDTH] = true;
 						fieldOfView[p - WIDTH] = true;
 					}
+                }
+                catch (Exception ex)
+                {
+                    // Sometimes merc respawning causes crash out if index
+                }
 				}
 			}
 			if (c.buff( Awareness.class ) != null) {

@@ -103,6 +103,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfRecharging;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfUpgrade;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
@@ -127,6 +128,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
 import com.bilboldev.pixeldungeonskills.windows.WndStorage;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 import com.bilboldev.utils.Bundle;
+import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
 
 public class Hero extends Char {
@@ -193,8 +195,9 @@ public class Hero extends Char {
     public boolean checkMerc = false;
 
 
-	private ArrayList<Mob> visibleEnemies; 
-	
+	private ArrayList<Mob> visibleEnemies;
+    public static WandOfMagicCasting haxWand = new WandOfMagicCasting();
+
 	public Hero() {
 		super();
 		name = "you";
@@ -958,8 +961,33 @@ public class Hero extends Char {
 
 		if (Level.adjacent( pos, enemy.pos ) && enemy.isAlive() && !isCharmedBy( enemy )) {
 			
-			spend( attackDelay() );
-			sprite.attack( enemy.pos );
+
+            boolean doubleAttack = false;
+            KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
+            if (wep != null) {
+
+                if (wep instanceof MeleeWeapon) {
+                    if (heroSkills.active2.doubleStab())
+                    {
+                        doubleAttack = true;
+                    }
+                }
+            }
+            spend( attackDelay() );
+
+            if(!doubleAttack)
+            {
+                sprite.attack( enemy.pos );
+
+            }
+            else
+                sprite.attack( enemy.pos, new Callback(){
+                    @Override
+                    public void call() {
+                        onAttackCompleteKeepAction();
+                    }});
+
+
 
 			return false;
 			
@@ -1496,7 +1524,29 @@ public class Hero extends Char {
 			
 		super.onMotionComplete();
 	}
-	
+
+    public void onAttackCompleteKeepAction() {
+
+        AttackIndicator.target( enemy );
+
+        attack( enemy );
+
+
+
+        if(enemy.HP > 0)
+        {
+            sprite.attack(enemy.pos);
+            heroSkills.active2.castTextYell();
+        }
+        else
+        {
+            curAction = null;
+            super.onAttackComplete();
+        }
+
+
+    }
+
 	@Override
 	public void onAttackComplete() {
 		

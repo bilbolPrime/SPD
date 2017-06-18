@@ -15,7 +15,7 @@ public class Bombvoyage extends ActiveSkill3{
         castText = "Bombvoyage";
         image = 91;
         tier = 3;
-        mana = 5;
+        mana = 15;
     }
 
     @Override
@@ -39,6 +39,12 @@ public class Bombvoyage extends ActiveSkill3{
             StatusPane.manaDropping += getManaCost();
             return true;
         }
+    }
+
+    @Override
+    public int getManaCost()
+    {
+        return mana - level * 2;
     }
 
     @Override

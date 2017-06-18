@@ -38,7 +38,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
-public class ScrollOfWipeOut extends Item {
+public class ScrollOfWipeOut extends Scroll {
 
 	private static final String TXT_BLINDED	= "You can't read a scroll while blinded";
 	
@@ -53,13 +53,7 @@ public class ScrollOfWipeOut extends Item {
 		stackable = true;		
 		defaultAction = AC_READ;
 	}
-	
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		actions.add( AC_READ );
-		return actions;
-	}
+
 	
 	@Override
 	public void execute( Hero hero, String action ) {
@@ -79,8 +73,9 @@ public class ScrollOfWipeOut extends Item {
 			
 		}
 	}
-	
-	private void doRead() {
+
+    @Override
+    protected void doRead() {
 		GameScene.flash( 0xFF6644 );
 		
 		Invisibility.dispel();

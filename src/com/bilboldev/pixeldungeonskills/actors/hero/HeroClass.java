@@ -22,13 +22,17 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.items.ArmorKit;
 import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
 import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
+import com.bilboldev.pixeldungeonskills.items.armor.ScaleArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
+import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMindVision;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
@@ -38,8 +42,10 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSacrifice;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSkill;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfWipeOut;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.ShortSword;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
@@ -179,6 +185,9 @@ public enum HeroClass {
 
         new SoulCrystal(3).collect();
         new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();
+       // new PotionOfMindVision().collect();
+        //new ArmorKit().collect();
+       // new ScrollHolder().collect();
     }
 	
 	public Badges.Badge masteryBadge() {
@@ -227,7 +236,8 @@ public enum HeroClass {
 	
 	private static void initRogue( Hero hero ) {
         hero.MP = hero.MMP = 30;
-		(hero.belongings.weapon = new Dagger()).identify();
+		//(hero.belongings.weapon = new Dagger()).identify();
+        (hero.belongings.weapon = new DualSwords()).identify();
 		(hero.belongings.ring1 = new RingOfShadows()).upgrade().identify();
 		new Dart( 8 ).identify().collect();
 		new Shuriken(10).identify().collect();

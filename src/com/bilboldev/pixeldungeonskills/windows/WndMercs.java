@@ -32,6 +32,7 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.Storage;
@@ -50,12 +51,14 @@ import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
@@ -69,6 +72,8 @@ import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+
+import java.util.ArrayList;
 
 public class WndMercs extends WndTabbed {
 
@@ -543,13 +548,30 @@ public class WndMercs extends WndTabbed {
                         if (Dungeon.gold < getGoldCost(mode)) {
                             text(TXT_NO_GOLD);
                         } else {
-                            Dungeon.gold -= getGoldCost(mode);
-                            Dungeon.hero.hiredMerc = new HiredMerc(getMercType(mode));
-                            Dungeon.hero.hiredMerc.HP = Dungeon.hero.hiredMerc.mercType.getHealth(Dungeon.hero.lvl);
-                            Dungeon.hero.hiredMerc.mercType.setEquipment(Dungeon.hero.hiredMerc);
-                            Dungeon.hero.checkMerc = true;
+
+                            //Dungeon.hero.checkMerc = true;
+                            ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+                            for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
+                                int p = Dungeon.hero.pos + Level.NEIGHBOURS8[i];
+                                if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
+                                    respawnPoints.add( p );
+                                }
+                            }
+                            if(respawnPoints.size() > 0) {
+                                Dungeon.gold -= getGoldCost(mode);
+                                Dungeon.hero.hiredMerc = new HiredMerc(getMercType(mode));
+                                Dungeon.hero.hiredMerc.spawn(Dungeon.hero.lvl);
+                                Dungeon.hero.hiredMerc.HP = Dungeon.hero.hiredMerc.mercType.getHealth(Dungeon.hero.lvl);
+                                Dungeon.hero.hiredMerc.mercType.setEquipment(Dungeon.hero.hiredMerc);
+                                Dungeon.hero.hiredMerc.pos = respawnPoints.get(0);
+                                GameScene.add( Dungeon.hero.hiredMerc );
+                                ((MercSprite) Dungeon.hero.hiredMerc.sprite).updateArmor();
+                                WandOfBlink.appear(Dungeon.hero.hiredMerc, respawnPoints.get(0));
+
+                                Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
+                            }
                             hide();
-                            WndStory.showStory("Your mercenary will arrive shortly");
+                            //WndStory.showStory("Your mercenary will arrive shortly");
                         }
 
                     }

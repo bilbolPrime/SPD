@@ -225,6 +225,11 @@ public class Skill{
         return false;
     }
 
+    public boolean doubleStab()
+    {
+        return false;
+    }
+
     public boolean arrowToBomb()
     {
         return false;

@@ -412,6 +412,8 @@ public class WndBag extends WndTabbed {
                         enable(item instanceof PotionOfHealing && ((Potion)item).isKnown());
                     if(mode == Mode.BRUTE_HOLD)
                         enable(!(item instanceof Bag) && item != Dungeon.hero.belongings.weapon && item != Dungeon.hero.belongings.armor && item != Dungeon.hero.belongings.ring1 && item != Dungeon.hero.belongings.ring2 && item != Dungeon.hero.belongings.bow);
+                    if(mode == Mode.ARMOR && title.contains("Merc") && item instanceof Armor && ((Armor)item).tier > 5)
+                        enable(false);
 				}
 			} else {
 				bg.color( NORMAL );

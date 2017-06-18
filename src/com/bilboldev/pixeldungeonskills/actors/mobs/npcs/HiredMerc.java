@@ -26,6 +26,7 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -368,13 +369,14 @@ public class HiredMerc extends NPC {
             if (armor != null) {
                 damage = ((Armor) armor).proc(enemy, this, damage);
             }
+            damage *= skill.incomingDamageModifier();
         }
         catch (Exception ex)
         {
             // Being careful
         }
 
-        damage *= skill.incomingDamageModifier();
+
 
         return damage;
     }
@@ -511,6 +513,9 @@ public class HiredMerc extends NPC {
         if(weapon instanceof Bow)
             return (int)(mercType.getDamage(level) * 1.2f);
 
+        if(weapon instanceof Boomerang)
+            return ((Boomerang)weapon).damageRoll(this);
+
         if(weapon instanceof MeleeWeapon)
             return ((MeleeWeapon)weapon).damageRoll(this);
 
@@ -555,6 +560,9 @@ public class HiredMerc extends NPC {
 
     @Override
     protected boolean act() {
+
+        spend( 0.01f ); // Fail safe to prevent complete game freeze.
+
         skillCounter++;
       //  if(skillCounter % DEGRADE_RATE == 0)
       //      HP--;
@@ -580,6 +588,7 @@ public class HiredMerc extends NPC {
             die( null );
             return true;
         } else {
+
             return super.act();
         }
     }

@@ -306,7 +306,7 @@ public class Dungeon {
 	}
 
 	public static boolean shopOnLevel() {
-		return depth == 6 || depth == 11 || depth == 16;
+        return depth == 1 || depth == 6 || depth == 11 || depth == 16;
 	}
 
 	public static boolean bossLevel() {
@@ -322,6 +322,17 @@ public class Dungeon {
 
 		nightMode = new Date().getHours() < 7;
 
+        try
+        {
+            if(Dungeon.currentDifficulty.isNight == Difficulties.isNightOverwrite.ALWAYS_NIGHT)
+                nightMode = true;
+            if(Dungeon.currentDifficulty.isNight == Difficulties.isNightOverwrite.ALWAYS_DAY)
+                nightMode = false;
+        }
+        catch (Exception e)
+        {
+
+        }
 		Dungeon.level = level;
 		Actor.init();
 

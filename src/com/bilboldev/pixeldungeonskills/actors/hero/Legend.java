@@ -24,7 +24,7 @@ public class Legend extends Hero {
         heroClass = HeroClass.HATSUNE;
     }
 
-    public static WandOfMagicCasting haxWand = new WandOfMagicCasting();
+
     @Override
     public boolean act() {
             super.act();

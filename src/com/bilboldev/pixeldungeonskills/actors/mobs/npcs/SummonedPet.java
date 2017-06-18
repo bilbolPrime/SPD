@@ -117,6 +117,7 @@ public class SummonedPet extends NPC {
     public static final String HEALTH = "health";
     public static final String RANGE = "range";
 
+
     {
         name = "Summoned Rat";
         spriteClass = RatSprite.class;
@@ -177,7 +178,7 @@ public class SummonedPet extends NPC {
         petType = PET_TYPES.valueOf(bundle.getString( PET_TYPE ));
         level = bundle.getInt( LEVEL );
         name = bundle.getString( NAME );
-        defenseSkill = bundle.getInt(SKILL);
+
 
         try {
             spriteClass = (Class<? extends CharSprite>)Class.forName(bundle.getString(SPRITE));
@@ -191,6 +192,7 @@ public class SummonedPet extends NPC {
 
         spawn(level);
 
+        defenseSkill = bundle.getInt(SKILL);
         HP = bundle.getInt( HEALTH );
         HT =  bundle.getInt( MAX_HEALTH );
         range =   bundle.getInt( RANGE);

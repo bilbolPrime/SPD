@@ -12,6 +12,7 @@ public enum Difficulties {
 
     NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 4 ) , JUSTKILLME( 5 );
 
+
     private int difficulty;
 
     public static boolean canDisableChampions = false;
@@ -21,6 +22,9 @@ public enum Difficulties {
     public float attOffset = 0;
     public float defOffset = 0;
     public float defenceOffset = 0;
+
+    public enum isNightOverwrite {DEFAULT, ALWAYS_DAY, ALWAYS_NIGHT}
+    public isNightOverwrite isNight = isNightOverwrite.DEFAULT;
 
     private ArrayList<Integer> disabledChampions = new ArrayList<>();
 
@@ -394,6 +398,60 @@ public enum Difficulties {
         return true;
     }
 
+    public void ToggleNight()
+    {
+        switch(isNight)
+        {
+            case ALWAYS_DAY:
+                isNight = isNightOverwrite.ALWAYS_NIGHT;
+                break;
+            case ALWAYS_NIGHT:
+                isNight = isNightOverwrite.DEFAULT;
+                break;
+            case DEFAULT:
+                isNight = isNightOverwrite.ALWAYS_NIGHT;
+                break;
+        }
+    }
+
+    public void ToggleNight(boolean harder)
+    {
+        if(harder) {
+            switch (isNight) {
+                case DEFAULT:
+                    isNight = isNightOverwrite.ALWAYS_NIGHT;
+                    break;
+                case ALWAYS_DAY:
+                    isNight = isNightOverwrite.DEFAULT;
+                    break;
+            }
+        }
+        else
+        {
+            switch (isNight) {
+                case DEFAULT:
+                    isNight = isNightOverwrite.ALWAYS_DAY;
+                    break;
+                case ALWAYS_NIGHT:
+                    isNight = isNightOverwrite.DEFAULT;
+                    break;
+            }
+        }
+    }
+
+    public String GetToggleNightDesc()
+    {
+        switch(isNight)
+        {
+            case ALWAYS_DAY:
+                return "Always Day";
+            case ALWAYS_NIGHT:
+                return "Always Night";
+            case DEFAULT:
+                return "Day/Night";
+        }
+        return "error";
+    }
     public static int getNormalizedDifficulty(int diff)
     {
         return diff == 0 ? 1 : (diff == 1 ? 0 : diff);

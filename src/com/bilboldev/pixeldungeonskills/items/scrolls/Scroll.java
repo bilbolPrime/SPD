@@ -55,11 +55,12 @@ public abstract class Scroll extends Item {
             ScrollOfSacrifice.class,
             ScrollOfBloodyRitual.class,
             ScrollOfSkill.class,
-            ScrollOfFrostLevel.class
+            ScrollOfFrostLevel.class,
+            ScrollOfWipeOut.class
 
     };
 	private static final String[] runes = 
-		{"KAUNAN", "SOWILO", "LAGUZ", "YNGVI", "GYFU", "RAIDO", "ISAZ", "MANNAZ", "NAUDIZ", "BERKANAN", "ODAL", "TIWAZ", "", "", "", "", ""};
+		{"KAUNAN", "SOWILO", "LAGUZ", "YNGVI", "GYFU", "RAIDO", "ISAZ", "MANNAZ", "NAUDIZ", "BERKANAN", "ODAL", "TIWAZ", "", "", "", "", "", ""};
 	private static final Integer[] images = {
 		ItemSpriteSheet.SCROLL_KAUNAN, 
 		ItemSpriteSheet.SCROLL_SOWILO, 
@@ -77,7 +78,8 @@ public abstract class Scroll extends Item {
             ItemSpriteSheet.SCROLL_SACRIFICE,
             ItemSpriteSheet.SCROLL_BLOODY,
             ItemSpriteSheet.SCROLL_SKILLPOINT,
-            ItemSpriteSheet.SCROLL_FROST
+            ItemSpriteSheet.SCROLL_FROST,
+            ItemSpriteSheet.SCROLL_WIPE_OUT
     };
 	
 	private static ItemStatusHandler<Scroll> handler;
@@ -91,7 +93,7 @@ public abstract class Scroll extends Item {
 	
 	@SuppressWarnings("unchecked")
 	public static void initLabels() {
-		handler = new ItemStatusHandler<Scroll>( (Class<? extends Scroll>[])scrolls, runes, images, 5 );
+		handler = new ItemStatusHandler<Scroll>( (Class<? extends Scroll>[])scrolls, runes, images, 6 );
 	}
 	
 	public static void save( Bundle bundle ) {

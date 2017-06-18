@@ -8,7 +8,7 @@ import com.bilboldev.utils.Random;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class KOArrow extends ActiveSkill2{
+public class KOArrow extends PassiveSkillB2{
 
 
     {

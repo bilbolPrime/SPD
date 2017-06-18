@@ -83,7 +83,8 @@ public enum CurrentSkills{
                 passiveB3 = new Summoner();
                 branchA = new MageActive();
                 active1 = new SummonRat();
-                active2 = new SummonCrab();
+                //active2 = new SummonCrab();
+                active2 = new Spark();
                 active3 = new SummonSkeleton();
                 break;
 
@@ -98,7 +99,8 @@ public enum CurrentSkills{
                 passiveB3 = new SilentDeath();
                 branchA = new RogueActive();
                 active1 = new SmokeBomb();
-                active2 = new DeadEye();
+                //active2 = new DeadEye();
+                active2 = new DoubleStab();
                 active3 = new ShadowClone();
                 break;
 

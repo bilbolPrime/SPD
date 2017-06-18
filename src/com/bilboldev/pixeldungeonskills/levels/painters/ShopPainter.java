@@ -30,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.Torch;
 import com.bilboldev.pixeldungeonskills.items.Weightstone;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
+import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
@@ -39,6 +40,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfRemoveCurse;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.*;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.SoulCrystal;
 import com.bilboldev.pixeldungeonskills.levels.LastShopLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Room;
@@ -61,10 +63,22 @@ public class ShopPainter extends Painter {
 		int per = pasWidth * 2 + pasHeight * 2;
 		
 		Item[] range = range();
-		
+
+        int skip = 0;
+        int maxItems = (room.width() - 1) *  (room.height() - 1) - 1;
+        if(range.length > maxItems) // too many items in shop, have to drop some
+            skip = range.length - maxItems;
 		int pos = xy2p( room, room.entrance() ) + (per - range.length) / 2;
 		for (int i=0; i < range.length; i++) {
-			
+
+            if(skip > 0)
+            {
+                if(range[i] instanceof Ankh == false && range[i] instanceof Bag == false)
+                {
+                    skip--;
+                    continue; // Shop can't fit item and it's not important
+                }
+            }
 			Point xy = p2xy( room, (pos + per) % per );
 			int cell = xy.x + xy.y * Level.WIDTH;
 			
@@ -73,7 +87,8 @@ public class ShopPainter extends Painter {
 					cell = room.random();
 				} while (level.heaps.get( cell ) != null);
 			}
-			
+
+
 			level.drop( range[i], cell ).type = Heap.Type.FOR_SALE;
 			
 			pos++;
@@ -91,7 +106,11 @@ public class ShopPainter extends Painter {
 		ArrayList<Item> items = new ArrayList<Item>();
 		
 		switch (Dungeon.depth) {
-		
+            case 1:
+                items.add( (new DualSwords()).identify() );
+                items.add( new NecroBlade().identify() );
+
+                break;
 		case 6:
 			items.add( (Random.Int( 2 ) == 0 ? new Quarterstaff() : new Spear()).identify() );
 			items.add( new LeatherArmor().identify() );
@@ -134,7 +153,8 @@ public class ShopPainter extends Painter {
 		for (int i=0; i < 3; i++) {
 			items.add( Generator.random( Generator.Category.POTION ) );
 		}
-		
+
+        items.add( new SoulCrystal() );
 		items.add( new ScrollOfIdentify() );
 		items.add( new ScrollOfRemoveCurse() );
 		items.add( new ScrollOfMagicMapping() );

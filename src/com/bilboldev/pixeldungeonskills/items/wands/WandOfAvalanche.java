@@ -69,7 +69,8 @@ public class WandOfAvalanche extends Wand {
 				Char ch = Actor.findChar( i );
 				if (ch != null) {
 
-					ch.sprite.flash();
+                    if(ch.sprite != null)
+					    ch.sprite.flash();
 					ch.damage( Random.Int( 2, 6 + (int)((size - d) * 2 * Dungeon.hero.heroSkills.passiveB2.wandDamageBonus())  ), this );
 
 					if (ch.isAlive() && Random.Int( 2 + d ) == 0) {

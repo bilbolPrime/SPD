@@ -65,6 +65,7 @@ public class WndRatKing extends WndTabbed {
     private RedButton btMobHP;
     private RedButton btMobAtt;
     private RedButton btMobDef;
+    private RedButton btDayNight;
 
     protected static final int TAB_WIDTH	= 25;
 
@@ -286,14 +287,35 @@ public class WndRatKing extends WndTabbed {
 
                 }
             };
+
             add(btMobDef.setRect(w, btMobAtt.bottom()  + GAP, WIDTH - 2 * w, BTN_HEIGHT));
 
-            CheckBox tmp2 = new CheckBox("Coming Soon");
-            add(tmp2.setRect(0,  btMobDef.bottom() + GAP , WIDTH, BTN_HEIGHT));
-            tmp2.enable(false);
+            add(new RedButton(TXT_MINUS) {
+                @Override
+                protected void onClick() {
+                    Dungeon.currentDifficulty.ToggleNight(false);
+                    updateMobStats();
+                }
+            }.setRect(0,  btMobDef.bottom() + GAP, w, BTN_HEIGHT));
 
-            if(maxHeight < (int) tmp2.bottom() )
-                maxHeight = (int) tmp2.bottom();
+            add(new RedButton(TXT_PLUS) {
+                @Override
+                protected void onClick() {
+                    Dungeon.currentDifficulty.ToggleNight(true);
+                    updateMobStats();
+                }
+            }.setRect(WIDTH - w,  btMobDef.bottom() + GAP, w, BTN_HEIGHT));
+
+            btDayNight = new RedButton("DAY NIGHT") {
+                @Override
+                protected void onClick() {
+
+                }
+            };
+            add(btDayNight.setRect(w, btMobDef.bottom()  + GAP, WIDTH - 2 * w, BTN_HEIGHT));
+
+            if(maxHeight < (int) btDayNight.bottom() )
+                maxHeight = (int) btDayNight.bottom();
 
             resize(WIDTH, maxHeight);
             updateMobStats();
@@ -338,6 +360,7 @@ public class WndRatKing extends WndTabbed {
         btMobHP.text(String.format("HP: %s", ((int)(Dungeon.currentDifficulty.mobHPModifier() * 100) + "%")));
         btMobAtt.text(String.format("ATT: %s", ((int)(Dungeon.currentDifficulty.damageModifier() * 100) + "%")));
         btMobDef.text(String.format("Def: %s", ((int)((2 - Dungeon.currentDifficulty.mobDefenceModifier()) * 100) + "%")));
+        btDayNight.text(Dungeon.currentDifficulty.GetToggleNightDesc());
     }
 	
 

@@ -136,7 +136,7 @@ public class NecroBlade extends MeleeWeapon {
     @Override
     public int damageRoll( Hero hero ) {
         int damage = super.damageRoll( hero );
-        damage += (int) (charge / 8);
+        damage += Random.Int((int) (charge / 8));
         return damage;
     }
 
@@ -181,6 +181,6 @@ public class NecroBlade extends MeleeWeapon {
 	public String desc() {
 		return "A blade forged from dark magic. NecroBlades consume the souls of those who perish by them. The more they consume, the stronger they become.\n" +
                 "NecroBlade energy at " + charge + "/100\n"
-                + "The energy stored within increases damage by " + ((int) (charge / 8)) + ".";
+                + "The energy stored within increases damage by 0 - " + ((int) (charge / 8)) + ".";
 	}
 }
