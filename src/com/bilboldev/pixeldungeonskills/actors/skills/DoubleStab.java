@@ -7,14 +7,14 @@ import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class DoubleStab extends ActiveSkill2{
+public class DoubleStab extends ActiveSkill1{
 
 
     {
         name = "Double Strike";
         castText = "Too slow";
         image = 61;
-        tier = 2;
+        tier = 1;
         mana = 5;
     }
 

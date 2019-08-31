@@ -4,13 +4,14 @@ package com.bilboldev.pixeldungeonskills;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.SoulCrystal;
 
 import java.util.ArrayList;
 
 
 public enum Difficulties {
 
-    NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 4 ) , JUSTKILLME( 5 );
+    NORMAL( 0 ), EASY( 1 ), HARD( 2 ), HELL( 3 ), SUICIDE( 4 ) , JUSTKILLME( 5 ), SUPEREASY( 6 );
 
 
     private int difficulty;
@@ -37,10 +38,21 @@ public enum Difficulties {
         disabledChampions.clear();
     }
 
+    public static final String[] SUPER_EASY_DESC = {
+            "- Start with 5 extra rations.",
+            "- Start with 5 potions of healing.",
+            "- Start with 500 Gold.",
+            "- Start with 3 soul crystals.",
+            "- Mobs are Pathetic, do 50% less damage, take 50% more damage and have 50% less HP.",
+            "- Champion spawn rate set to 10%."
+    };
+
     public static final String[] EASY_DESC = {
             "- Start with 2 extra rations.",
             "- Start with 2 potions of healing.",
             "- Start with 200 Gold.",
+            "- Start with 2 soul crystals.",
+            "- Bonus to discovering hidden doors and traps.",
             "- Mobs are Weak, do 25% less damage, take 10% more damage and have 15% less HP.",
             "- Champion spawn rate set to 10%."
     };
@@ -61,7 +73,8 @@ public enum Difficulties {
             "- Mobs are Immortal, do 25% more damage, take 20% less damage and have 35% more HP.",
             "- Champion spawn rate set to 40%.",
             "- Hero starts with 4 less maxHP.",
-            "- Hero gains 1 less maxHP on leveling."
+            "- Hero gains 1 less maxHP on leveling.",
+            "- Hero starts with 4 skill points."
     };
 
     public static final String[] SUICIDE_DESC = {
@@ -69,7 +82,8 @@ public enum Difficulties {
             "- Mobs are Godlike, do 45% more damage, take 30% less damage and have 60% more HP.",
             "- Champion spawn rate set to 50%.",
             "- Hero starts with 8 less maxHP.",
-            "- Hero gains 3 less maxHP on leveling."
+            "- Hero gains 3 less maxHP on leveling.",
+            "- Hero starts with 6 skill points."
     };
 
     public static final String[] JUST_KILL_ME_DESC = {
@@ -77,13 +91,16 @@ public enum Difficulties {
             "- Mobs are Deities, do 60% more damage, take 40% less damage and have 75% more HP.",
             "- Champion spawn rate set to 100%.",
             "- Hero starts with 8 less maxHP.",
-            "- Hero gains 3 less maxHP on leveling."
+            "- Hero gains 3 less maxHP on leveling.",
+            "- Hero starts with 8 skill points."
     };
 
 
     public String title() {
 
         switch (this) {
+            case SUPEREASY:
+                return "Super Easy";
             case EASY:
                 return "Easy";
             case NORMAL:
@@ -103,6 +120,8 @@ public enum Difficulties {
     public String description() {
 
         switch (this) {
+            case SUPEREASY:
+                return join("\n", SUPER_EASY_DESC);
             case EASY:
                 return join("\n", EASY_DESC);
             case NORMAL:
@@ -122,6 +141,8 @@ public enum Difficulties {
     public String mobPrefix() {
 
         switch (this) {
+            case SUPEREASY:
+                return "Pathetic ";
             case EASY:
                 return "Weak ";
             case NORMAL:
@@ -167,6 +188,7 @@ public enum Difficulties {
     public int championChanceNatural() {
 
         switch (this) {
+            case SUPEREASY:
             case EASY:
                 return 1;
             case NORMAL:
@@ -191,6 +213,8 @@ public enum Difficulties {
     public float naturalDamageModifier() {
 
         switch (this) {
+            case SUPEREASY:
+                return  0.5f;
             case EASY:
                 return 0.75f;
             case NORMAL:
@@ -216,6 +240,8 @@ public enum Difficulties {
     public float naturalMobDefenceModifier() { // dmg *= this
 
         switch (this) {
+            case SUPEREASY:
+                return  1.5f;
             case EASY:
                 return 1.1f;
             case NORMAL:
@@ -240,6 +266,8 @@ public enum Difficulties {
     public float naturalMobHPModifier() {
 
         switch (this) {
+            case SUPEREASY:
+                return 0.5f;
             case EASY:
                 return 0.85f;
             case NORMAL:
@@ -259,6 +287,7 @@ public enum Difficulties {
     public int healingPotionLimit() {
 
         switch (this) {
+            case SUPEREASY:
             case EASY:
             case NORMAL:
                 return 100;
@@ -277,6 +306,7 @@ public enum Difficulties {
     public String healingPotionMessage() {
 
         switch (this) {
+            case SUPEREASY:
             case EASY:
             case NORMAL:
                 return "Your wounds heal completely.";
@@ -290,6 +320,7 @@ public enum Difficulties {
     public int difficultyHPLevelPenalty()
     {
         switch (this) {
+            case SUPEREASY:
             case EASY:
             case NORMAL:
             case HARD:
@@ -307,6 +338,7 @@ public enum Difficulties {
     public int difficultyHPStartPenalty()
     {
         switch (this) {
+            case SUPEREASY:
             case EASY:
             case NORMAL:
             case HARD:
@@ -321,18 +353,62 @@ public enum Difficulties {
         return 0;
     }
 
+    public int difficultySkillStartBonus()
+    {
+        switch (this) {
+            case SUPEREASY:
+            case EASY:
+            case NORMAL:
+            case HARD:
+                return 0;
+            case HELL:
+                return 2;
+            case SUICIDE:
+                return 4;
+            case JUSTKILLME:
+                return 6;
+        }
+        return 0;
+    }
+
     public void difficultyStartItemBonus()
     {
         switch (this) {
+            case SUPEREASY:
+                new PotionOfHealing().identify().collect();
+                new PotionOfHealing().identify().collect();
+                new PotionOfHealing().identify().collect();
+                new PotionOfHealing().identify().collect();
+                new PotionOfHealing().identify().collect();
+                new Food().identify().collect();
+                new Food().identify().collect();
+                new Food().identify().collect();
+                new Food().identify().collect();
+                new Food().identify().collect();
+                new SoulCrystal().identify().collect();
+                new SoulCrystal().identify().collect();
+                new SoulCrystal().identify().collect();
+                Dungeon.gold = 500;
+                break;
             case EASY:
                 new PotionOfHealing().identify().collect();
                 new PotionOfHealing().identify().collect();
                 new Food().identify().collect();
                 new Food().identify().collect();
+                new SoulCrystal().identify().collect();
+                new SoulCrystal().identify().collect();
                 Dungeon.gold = 200;
         }
     }
 
+    public boolean noSecrets(){
+       switch (this){
+           case EASY:
+               return true;
+       }
+
+       return  false;
+    }
 
     public void reset()
     {
@@ -454,7 +530,19 @@ public enum Difficulties {
     }
     public static int getNormalizedDifficulty(int diff)
     {
-        return diff == 0 ? 1 : (diff == 1 ? 0 : diff);
+        if(diff == 0){
+            return 1; // Easy
+        }
+
+        if(diff == 1){
+            return 0; // Normal
+        }
+
+        if(diff == 2){
+            return  3;
+        }
+
+        return 0; // Should not happen, default to normal
     }
 
     static  String join (String delim, String ... data) {

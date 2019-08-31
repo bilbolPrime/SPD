@@ -5,19 +5,19 @@ import com.bilboldev.utils.Random;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class Awareness extends PassiveSkillA3{
+public class Awareness extends PassiveSkillA2{
 
 
     {
         name = "Awareness";
         image = 75;
-        tier = 3;
+        tier = 2;
     }
 
     @Override
     public boolean dodgeChance()
     {
-        if(Random.Int(100) < 10 * level)
+        if(Random.Int(100) < 25 * level)
         {
             castText = "Too easy..";
             castTextYell();
@@ -38,7 +38,7 @@ public class Awareness extends PassiveSkillA3{
     @Override
     public String info()
     {
-        return "10% chance per level to dodge a hostile ranged attack.\n"
+        return "25% chance per level to dodge a hostile ranged attack.\n"
                 + costUpgradeInfo();
     }
 }

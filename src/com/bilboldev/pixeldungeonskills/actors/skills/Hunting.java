@@ -3,13 +3,13 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class Hunting extends PassiveSkillA2{
+public class Hunting extends PassiveSkillA3{
 
 
     {
         name = "Hunting";
         image = 74;
-        tier = 2;
+        tier = 3;
     }
 
     @Override

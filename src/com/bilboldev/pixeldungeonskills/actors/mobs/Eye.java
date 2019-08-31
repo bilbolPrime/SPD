@@ -128,7 +128,15 @@ public class Eye extends Mob {
 			}
 			
 			if (hit( this, ch, true )) {
-				ch.damage( Random.NormalIntRange( 14, 20 ), this );
+				int dmg = Random.NormalIntRange( 14, 20 );
+				if(enemy == Dungeon.hero)
+				{
+					dmg *= Dungeon.currentDifficulty.damageModifier();
+					dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier(); //  <--- Warrior Toughness if present
+					dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg); // <--- Mage SpiritArmor if present
+				}
+
+				ch.damage( dmg, this );
 				
 				if (Dungeon.visible[pos]) {
 					ch.sprite.flash();

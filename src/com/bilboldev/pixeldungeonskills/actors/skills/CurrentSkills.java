@@ -98,23 +98,23 @@ public enum CurrentSkills{
                 passiveB2 = new Scorpion();
                 passiveB3 = new SilentDeath();
                 branchA = new RogueActive();
-                active1 = new SmokeBomb();
+                active1 = new DoubleStab();
                 //active2 = new DeadEye();
-                active2 = new DoubleStab();
-                active3 = new ShadowClone();
+                active2 = new NinjaBomb();
+                active3 = new ShadowCloneNew();
                 break;
 
             case HUNTRESS:
                 branchPA = new HuntressPassiveA();
                 passiveA1 = new Fletching();
-                passiveA2 = new Hunting();
-                passiveA3 = new Awareness();
+                passiveA2 = new Awareness();
+                passiveA3 = new Hunting();
                 branchPB = new HuntressPassiveB();
                 passiveB1 = new Accuracy();
                 passiveB2 = new KneeShot();
                 passiveB3 = new IronTip();
                 branchA = new HuntressActive();
-                active1 = new SpiritArrow();
+                active1 =  new AimedShot(); //new SpiritArrow();
                 active2 = new DoubleShot();
                 active3 = new Bombvoyage();
                 break;

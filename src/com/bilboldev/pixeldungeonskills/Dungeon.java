@@ -406,6 +406,8 @@ public class Dungeon {
 	private static final String RN_GAME_FILE	= "ranger.dat";
 	private static final String RN_DEPTH_FILE	= "ranger%d.dat";
 
+    private static final String DUMMY_GAME_FILE	= "dummygame.dat";
+    private static final String DUMMY_DEPTH_FILE	= "dummydepth%d.dat";
 	private static final String VERSION		= "version";
 	private static final String CHALLENGES	= "challenges";
 	private static final String HERO		= "hero";
@@ -429,8 +431,10 @@ public class Dungeon {
 			return MG_GAME_FILE;
 		case HUNTRESS:
 			return RN_GAME_FILE;
+        case ROGUE:
+            return RG_GAME_FILE;
 		default:
-			return RG_GAME_FILE;
+			return DUMMY_GAME_FILE;
 		}
 	}
 
@@ -442,8 +446,10 @@ public class Dungeon {
 			return MG_DEPTH_FILE;
 		case HUNTRESS:
 			return RN_DEPTH_FILE;
-		default:
+            case ROGUE:
 			return RG_DEPTH_FILE;
+        default:
+            return DUMMY_DEPTH_FILE;
 		}
 	}
 

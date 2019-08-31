@@ -267,7 +267,7 @@ public class StartScene extends PixelScene {
 
     private void chooseDifficulty()
     {
-        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HARD.title(), Difficulties.HELL.title(), Difficulties.SUICIDE.title() , Difficulties.JUSTKILLME.title() ) {
+        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HELL.title() ) {
             @Override
             protected void onSelect( int index ) {
                 chooseDifficultyFinal(index);

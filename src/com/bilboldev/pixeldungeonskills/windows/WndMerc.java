@@ -28,6 +28,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Storage;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
@@ -44,10 +45,12 @@ import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.plants.Plant.Seed;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -57,8 +60,11 @@ import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
+import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+
+import java.util.ArrayList;
 
 public class WndMerc extends WndTabbed {
 
@@ -163,7 +169,38 @@ public class WndMerc extends WndTabbed {
             add( new SkillButton(Dungeon.hero.hiredMerc.skillb).setPos(WIDTH - SLOT_SIZE - SLOT_MARGIN, info.y + info.height() + GAP) );
         }
 
-		resize( WIDTH, (int) info.y + (int)info.height() + SLOT_SIZE + (int)GAP );
+		RedButton btnHire = new RedButton("Call Merc") {
+			@Override
+			protected void onClick() {
+
+				if(Dungeon.hero.hiredMerc == null)
+					return;
+
+					//Dungeon.hero.checkMerc = true;
+					ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+					for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
+						int p = Dungeon.hero.pos + Level.NEIGHBOURS8[i];
+						if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
+							respawnPoints.add( p );
+						}
+					}
+					if(respawnPoints.size() > 0) {
+						WandOfBlink.appear(Dungeon.hero.hiredMerc, respawnPoints.get(0));
+						Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
+					}
+					hide();
+				}
+
+
+		};
+
+		btnHire.setRect((width - 120) / 2 > 0 ? (width - 120) / 2 : 0, (int) info.y + (int)info.height() + SLOT_SIZE + 3 * (int)GAP,
+				120, 20);
+		add(btnHire);
+
+
+
+		resize( WIDTH, (int) info.y + (int)info.height() + SLOT_SIZE + 23 + 2 * (int)GAP );
 
 	}
 
@@ -406,7 +443,11 @@ public class WndMerc extends WndTabbed {
                 }
             }
             ((HeroSprite)Dungeon.hero.sprite).updateArmor();
-            ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
+            try
+			{
+				((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
+			}
+            catch (Exception ex){}
             Dungeon.hero.spend(1f);
             WndMerc.this.hide();
         }

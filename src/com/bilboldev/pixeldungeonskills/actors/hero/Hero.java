@@ -170,7 +170,7 @@ public class Hero extends Char {
 	public HeroAction curAction = null;
 	public HeroAction lastAction = null;
 	
-	private Char enemy;
+	protected Char enemy;
 	
 	public Armor.Glyph killerGlyph = null;
 	
@@ -967,7 +967,7 @@ public class Hero extends Char {
             if (wep != null) {
 
                 if (wep instanceof MeleeWeapon) {
-                    if (heroSkills.active2.doubleStab())
+                    if (heroSkills.active1.doubleStab())
                     {
                         doubleAttack = true;
                     }
@@ -1156,7 +1156,7 @@ public class Hero extends Char {
 		return visibleEnemies.get( index % visibleEnemies.size() );
 	}
 	
-	private boolean getCloser( final int target ) {
+	protected boolean getCloser( final int target ) {
 		
 		if (rooted) {
 			Camera.main.shake( 1, 1f );
@@ -1536,7 +1536,7 @@ public class Hero extends Char {
         if(enemy.HP > 0)
         {
             sprite.attack(enemy.pos);
-            heroSkills.active2.castTextYell();
+            heroSkills.active1.castTextYell();
         }
         else
         {
@@ -1644,7 +1644,8 @@ public class Hero extends Char {
 						sprite.parent.addToBack( new CheckedCell( p ) );
 					}
 					
-					if (Level.secret[p] && (intentional || Random.Float() < level)) {
+					if (Level.secret[p] && ((intentional || Random.Float() < level)
+					|| Dungeon.currentDifficulty.noSecrets())) {
 						
 						int oldValue = Dungeon.level.map[p];
 						

@@ -22,24 +22,47 @@ import android.graphics.RectF;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.Statistics;
+import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
+import com.bilboldev.pixeldungeonskills.effects.Pushing;
+import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
+import com.bilboldev.pixeldungeonskills.items.food.Food;
+import com.bilboldev.pixeldungeonskills.items.food.FrozenCarpaccio;
+import com.bilboldev.pixeldungeonskills.items.food.MysteryMeat;
+import com.bilboldev.pixeldungeonskills.items.food.OverpricedRation;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
+import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
+import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.ui.CheckBox;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.Random;
+
+import java.util.ArrayList;
 
 public class WndRatKing extends WndTabbed {
+
+    private static final String TXT_NO_GOLD = "Insufficient Gold";
 
     public static enum Mode {
         NORMAL,
         CHAMPIONS,
-        HERO
+        HERO,
+        RATS,
+        SHOP
     }
 
     public Mode mode = Mode.NORMAL;
@@ -53,10 +76,19 @@ public class WndRatKing extends WndTabbed {
 
 	private static final String TXT_TRUE_KING_TITLE	= "A King.. I Think";
 
+    private static final String TXT_PEONS	= "Useless peons";
+
+    private static final String TXT_SHOP	= "Not Stolen Items";
 
 	private static final int WIDTH		= 112;
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP 		= 2;
+
+    private RedButton btnScoutRodent;
+    private RedButton btnFodderRodent;
+    private RedButton btnRangerRodent;
+
+    private RedButton btnBuyFood;
 
 	private RedButton btnZoomOut;
 	private RedButton btnZoomIn;
@@ -321,6 +353,129 @@ public class WndRatKing extends WndTabbed {
             updateMobStats();
 
         }
+        else if(mode == Mode.RATS) {
+            Component titlebar = new IconTitle(Icons.RAT_KING.get(), TXT_PEONS);
+            titlebar.setRect(0, 0, WIDTH, 0);
+            add(titlebar);
+
+            String description = "These rodents have failed me for the last time. I don't want them anymore!!\n"
+                    + "They are yours to send to their doom should you pay the proper price.\n";
+            BitmapTextMultiline txtInfo = PixelScene.createMultiline( description, 6 );
+            txtInfo.maxWidth = WIDTH;
+            txtInfo.measure();
+            txtInfo.x = titlebar.left();
+            txtInfo.y = titlebar.bottom() + GAP;
+            add( txtInfo );
+
+            int w = BTN_HEIGHT;
+
+            btnScoutRodent = new RedButton("SCOUT RODENT - 5 Gold") {
+                @Override
+                protected void onClick() {
+                    if (Dungeon.gold < 5) {
+                        text(TXT_NO_GOLD);
+                    } else {
+
+                        ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+                        for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
+                            int p = Dungeon.hero.pos + Level.NEIGHBOURS8[i];
+                            if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
+                                respawnPoints.add( p );
+                            }
+                        }
+                        if(respawnPoints.size() > 0) {
+                            Dungeon.gold -= 5;
+                            SummonedPet rat = new SummonedPet(RatSprite.class);
+                            rat.HP = rat.MP = 1;
+                            rat.pos = respawnPoints.get(0);
+                            rat.name = "Scout Rodent";
+                            rat.hunt();
+                            GameScene.add(rat);
+                            WandOfBlink.appear(rat, respawnPoints.get(0));
+                            Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
+                        }
+                        hide();
+                    }
+                }
+            };
+            add(btnScoutRodent.setRect(w/2, (int) txtInfo.y + (int)txtInfo.height()  + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+
+            btnFodderRodent = new RedButton("FODDER RODENT - 10 Gold") {
+                @Override
+                protected void onClick() {
+
+                }
+            };
+            add(btnFodderRodent.setRect(w/2, btnScoutRodent.bottom() + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+
+
+            btnRangerRodent = new RedButton("RANGER RODENT - 25 Gold") {
+                @Override
+                protected void onClick() {
+
+                }
+            };
+            add(btnRangerRodent.setRect(w/2, btnFodderRodent.bottom()  + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+
+
+            if(maxHeight < (int) btnRangerRodent.bottom() )
+                maxHeight = (int) btnRangerRodent.bottom();
+
+
+            resize(WIDTH, maxHeight);
+        }
+        else if(mode == Mode.SHOP) {
+            Component titlebar = new IconTitle(Icons.RAT_KING.get(), TXT_SHOP);
+            titlebar.setRect(0, 0, WIDTH, 0);
+            add(titlebar);
+
+            String description = "Behold some of my possessions. You are not worthy of my cheese so you must settle for what I am prepared to give you.\n\n" +
+                    "The gold you will pay will finance my plan for rodents to ru.. never mind.\n\n";
+            BitmapTextMultiline txtInfo = PixelScene.createMultiline( description, 6 );
+            txtInfo.maxWidth = WIDTH;
+            txtInfo.measure();
+            txtInfo.x = titlebar.left();
+            txtInfo.y = titlebar.bottom() + GAP;
+            add( txtInfo );
+
+            int w = BTN_HEIGHT;
+
+            final float cost = 50 + Statistics.deepestFloor * 30;
+            btnBuyFood = new RedButton("Food Scraps - " + (int)cost + " Gold") {
+                @Override
+                protected void onClick() {
+                    if (Dungeon.gold < cost) {
+                        text(TXT_NO_GOLD);
+                    } else {
+
+                        Dungeon.gold -= cost;
+
+                        Food or = new OverpricedRation();
+                        switch (Random.NormalIntRange( 0, 6 )){
+                            case 1: or = new MysteryMeat();
+                                break;
+                            case 2: or = new ChargrilledMeat();
+                                break;
+                            case 3: or = new FrozenCarpaccio();
+                                break;
+                        }
+
+
+                        Dungeon.level.drop( or, Dungeon.hero.pos ).sprite.drop();
+                        hide();
+                    }
+                }
+            };
+            add(btnBuyFood.setRect(w/2, (int) txtInfo.y + (int)txtInfo.height()  + GAP * 2, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+
+
+
+            if(maxHeight < (int) btnBuyFood.bottom() )
+                maxHeight = (int) btnBuyFood.bottom();
+
+
+            resize(WIDTH, maxHeight);
+        }
 
         StatsControl tab = new StatsControl(Mode.NORMAL);
         tab.setSize(TAB_WIDTH, tabHeight());
@@ -339,6 +494,17 @@ public class WndRatKing extends WndTabbed {
         add(tabHero);
 
         tabHero.select(mode == Mode.HERO);
+
+       // StatsControl tabRats = new StatsControl(Mode.RATS);
+       // tabRats.setSize(TAB_WIDTH, tabHeight());
+      //  add(tabRats);
+
+       // tabRats.select(mode == Mode.RATS);
+
+        StatsControl tabShop = new StatsControl(Mode.SHOP);
+        tabShop.setSize(TAB_WIDTH, tabHeight());
+        add(tabShop);
+        tabShop.select(mode == Mode.SHOP);
 	}
 
     @Override
@@ -384,6 +550,8 @@ public class WndRatKing extends WndTabbed {
             {
                 case CHAMPIONS: return Icons.CHAMP_HALO;
                 case HERO: return Icons.MOB;
+                case RATS: return Icons.CHAMP_HALO;
+                case SHOP: return Icons.SUPPORT;
             }
            return Icons.RAT_KING;
         }

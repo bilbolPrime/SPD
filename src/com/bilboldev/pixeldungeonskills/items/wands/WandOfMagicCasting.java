@@ -23,6 +23,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Blindness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
@@ -34,10 +35,12 @@ import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.NinjaBomb;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
+import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.WraithSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -77,11 +80,14 @@ public class WandOfMagicCasting extends Wand {
                 Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
                 Dungeon.hero.heroSkills.active2.castTextYell();
                 break;
-
+            case NINJA_BOMB:
+                Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
+                Dungeon.hero.heroSkills.active2.castTextYell();
+                break;
         }
     }
 
-    public enum CAST_TYPES  {DARK_BOLT, DOMINANCE, SOUL_SPARK, SPARK};
+    public enum CAST_TYPES  {DARK_BOLT, DOMINANCE, SOUL_SPARK, SPARK, NINJA_BOMB};
     public CAST_TYPES casting = CAST_TYPES.DARK_BOLT;
 
     protected static CellSelector.Listener zapper = new  CellSelector.Listener() {
@@ -169,7 +175,13 @@ public class WandOfMagicCasting extends Wand {
             }
             else  if(casting == CAST_TYPES.SPARK)
             {
-                ch.damage(Random.Int(Dungeon.hero.heroSkills.active2.level * 3, Dungeon.hero.heroSkills.active2.level * 5), Dungeon.hero);
+                ch.damage(Random.Int(Dungeon.hero.heroSkills.active2.level + Dungeon.hero.lvl / (6 -   Dungeon.hero.heroSkills.active2.level),Dungeon.hero.heroSkills.active2.level * 3 + Dungeon.hero.lvl / (5 -   Dungeon.hero.heroSkills.active2.level)), Dungeon.hero);
+                if(Random.Int(Dungeon.hero.heroSkills.active2.level) > 1)
+                {
+                    Buff.prolong( ch, Blindness.class, Random.Int( 1, 2 ) );
+                    ch.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
+                    ch.sprite.showStatus(CharSprite.WARNING, "Blinded!");
+                }
             }
 			
 		} else {
@@ -189,7 +201,15 @@ public class WandOfMagicCasting extends Wand {
         else if(casting == CAST_TYPES.SPARK)
             MagicMissile.blueLight(curUser.sprite.parent, curUser.pos, cell, callback);
 
-		Sample.INSTANCE.play( Assets.SND_ZAP );
+        if(casting != CAST_TYPES.NINJA_BOMB){
+            Sample.INSTANCE.play( Assets.SND_ZAP );
+        }
+
+        if(casting == CAST_TYPES.NINJA_BOMB){
+            NinjaBomb nb = new NinjaBomb();
+            nb.strength = Dungeon.hero.heroSkills.active2.level;
+            nb.cast(curUser, cell);
+        }
 	}
 	
 	@Override
