@@ -19,7 +19,7 @@ package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 
 public class Ripple extends Image {

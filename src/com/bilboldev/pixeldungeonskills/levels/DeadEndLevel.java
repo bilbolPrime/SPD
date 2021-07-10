@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 import java.util.Arrays;
 
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.utils.Random;
 
 public class DeadEndLevel extends Level {
@@ -33,7 +34,10 @@ public class DeadEndLevel extends Level {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CAVES;
+		if(!Difficulties.is3d)
+			return Assets.TILES_CAVES;
+
+		return Assets.TILES_CAVES_3D;
 	}
 	
 	@Override

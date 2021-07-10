@@ -15,25 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package com.bilboldev.pixeldungeonskills;
+package com.bilboldev.pixeldungeonskills.thetiles;
 
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.noosa.Tilemap;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.utils.Point;
 import com.bilboldev.utils.PointF;
 
-public class DungeonTilemap extends Tilemap {
+public class DungeonTilemapOld extends Tilemap {
 
 	public static final int SIZE = 16;
-	
-	private static DungeonTilemap instance;
-	
-	public DungeonTilemap() {
+
+	private static DungeonTilemapOld instance;
+
+	public DungeonTilemapOld() {
 		super( 
-			Dungeon.level.tilesTex(), 
+			Dungeon.level.tilesTex(),
 			new TextureFilm( Dungeon.level.tilesTex(), SIZE, SIZE ) );
 		map( Dungeon.level.map, Level.WIDTH );
 		
@@ -71,17 +72,17 @@ public class DungeonTilemap extends Tilemap {
 		} );
 	}
 	
-	public static PointF tileToWorld( int pos ) {
+	public static PointF tileToWorld(int pos ) {
 		return new PointF( pos % Level.WIDTH, pos / Level.WIDTH  ).scale( SIZE );
 	}
 	
-	public static PointF tileCenterToWorld( int pos ) {
-		return new PointF( 
-			(pos % Level.WIDTH + 0.5f) * SIZE, 
+	public static PointF tileCenterToWorld(int pos ) {
+		return new PointF(
+			(pos % Level.WIDTH + 0.5f) * SIZE,
 			(pos / Level.WIDTH + 0.5f) * SIZE );
 	}
 	
-	public static Image tile( int index ) {
+	public static Image tile(int index ) {
 		Image img = new Image( instance.texture );
 		img.frame( instance.tileset.get( index ) );
 		return img;

@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfUpgrade;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.Smite;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
@@ -49,6 +50,7 @@ public class ShortSword extends MeleeWeapon {
 	{
 		name = "short sword";
 		image = ItemSpriteSheet.SHORT_SWORD;
+        weaponEffect = new Smite();
 	}
 	
 	public ShortSword() {

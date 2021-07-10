@@ -52,7 +52,7 @@ public abstract class Wand extends KindOfWeapon {
 	public static final String AC_ZAP	= "ZAP";
 	
 	private static final String TXT_WOOD	= "This thin %s wand is warm to the touch. Who knows what it will do when used?";
-	private static final String TXT_DAMAGE	= "When this wand is used as a melee weapon, its average damage is %d points per hit.";
+	private static final String TXT_DAMAGE	= "When this wand is used as a melee weapon, its damage is _%d_ to _%d_ per hit.";
 	private static final String TXT_WEAPON	= "You can use this wand as a melee weapon.";
 			
 	private static final String TXT_FIZZLES		= "your wand fizzles; it must be out of charges for now";
@@ -135,7 +135,16 @@ public abstract class Wand extends KindOfWeapon {
 			// Wand of Magic Missile
 		}
 	}
-	
+
+	protected float wandBonusDamageModifier(){
+		try
+		{
+			return Dungeon.hero.skillTree.getWandDamageModifier();
+		}
+		catch (Exception e){
+			return 1f;
+		}
+	}
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
@@ -270,7 +279,7 @@ public abstract class Wand extends KindOfWeapon {
 			info.append( "\n\n" );
 			if (levelKnown) {
 				int min = min();
-				info.append( String.format( TXT_DAMAGE, min + (max() - min) / 2 ) );
+				info.append( String.format( TXT_DAMAGE, min, max() ) );
 			} else {
 				info.append(  String.format( TXT_WEAPON ) );
 			}
@@ -489,9 +498,24 @@ public abstract class Wand extends KindOfWeapon {
 			float time2charge = ((Hero)target).heroClass == HeroClass.MAGE ? 
 				TIME_TO_CHARGE / (float)Math.sqrt( 1 + effectiveLevel() ) : 
 				TIME_TO_CHARGE;
-            if(((Hero)target).heroSkills != null && ((Hero)target).heroSkills.passiveB1 != null)
-                time2charge *= ((Hero)target).heroSkills.passiveB1.wandRechargeSpeedReduction(); // <--- Mage Wizard if present
+           // if(((Hero)target).heroSkills != null && ((Hero)target).heroSkills.passiveB1 != null)
+           //     time2charge *= ((Hero)target).heroSkills.passiveB1.wandRechargeSpeedReduction(); // <--- Mage Wizard if present
+
+			if(((Hero)target).skillTree != null){
+				time2charge *= ((Hero)target).skillTree.getWandRechargeSpeedModifier();
+			}
+
 			spend( time2charge );
 		}
+	}
+
+	public String highlight(String input){
+		StringBuilder sb = new StringBuilder();
+		String[] data = input.split(" ");
+		for(int i = 0; i < data.length; i++){
+			sb.append("_" + data[i] + "_ ");
+		}
+
+		return sb.toString();
 	}
 }

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.levels.painters;
 
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Joe;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatKing;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Gold;
@@ -60,6 +61,10 @@ public class RatKingPainter extends Painter {
 		RatKing king = new RatKing();
 		king.pos = room.random( 1 );
 		level.mobs.add( king );
+
+		Joe joe = new Joe();
+		joe.pos = room.random( 1 );
+		level.mobs.add( joe );
 	}
 	
 	private static void addChest( Level level, int pos, int door ) {

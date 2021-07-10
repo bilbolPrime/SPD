@@ -5,6 +5,8 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
+import java.util.ArrayList;
+
 /**
  * Created by Moussa on 20-Jan-17.
  */
@@ -17,29 +19,31 @@ public class Rampage extends ActiveSkill3{
         tier = 3;
         image = 19;
         mana = 5;
+        useDelay = 5f;
     }
 
     @Override
     public float damageModifier()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost())
+        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
             return 1f;
         else
         {
-            return 0.4f + 0.2f * level;
+            return 1f + 0.1f * level;
         }
     }
 
     @Override
     public boolean AoEDamage()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost())
+        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
             return false;
         else
         {
-            castTextYell();
             Dungeon.hero.MP -= getManaCost();
             StatusPane.manaDropping += getManaCost();
+
+            castTextYell();
             return true;
         }
     }
@@ -55,11 +59,6 @@ public class Rampage extends ActiveSkill3{
         }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 1 * level));
-    }
 
     @Override
     protected boolean upgrade()
@@ -71,8 +70,44 @@ public class Rampage extends ActiveSkill3{
     @Override
     public String info()
     {
-        return "Less damage but hits all enemies around you.\n"
-                + costUpgradeInfo();
+        return "Hits all nearby targets.\n\n"
+                //    + costUpgradeInfo()
+                + extendedInfo()
+                + requiresInfo() + costString();
     }
 
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ": +" + (i * 10) + "% damage";
+
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
+
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Berserker";
+        }
+
+        return "";
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(Berserker.class);
+        return toReturn;
+    }
 }

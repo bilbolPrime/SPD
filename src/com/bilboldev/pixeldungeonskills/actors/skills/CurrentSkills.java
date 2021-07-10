@@ -5,14 +5,21 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.HuntressSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MageSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.RogueSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
+import com.bilboldev.pixeldungeonskills.windows.WndSkillNew;
+import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.utils.Bundle;
 
 
 public enum CurrentSkills{
 
-    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress") , HATSUNE("hatsune");
+    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress") , HATSUNE("hatsune"), ONLINE("online");
 
 
     public enum BRANCHES {PASSIVEA, PASSIVEB, ACTIVE}
@@ -143,7 +150,42 @@ public enum CurrentSkills{
                 active3.level = 10;
                 Skill.availableSkill = 0;
                 break;
+            case ONLINE:
+                branchPA = new LegendPassiveA();
+                passiveA1 = new Spirituality();
+                passiveA1.level = 10;
+                passiveA2 = new Meditation();
+                passiveA2.level = 10;
+                passiveA3 = new SpiritArmor();
+                passiveA3.level = 10;
+                passiveA3.active = true;
+                branchPB = new LegendActiveA();
+                passiveB1 = new SummonSkeletonArcher();
+                passiveB1.level = 10;
+                passiveB2 = new DarkBolt();
+                passiveB2.level = 10;
+                passiveB3 = new Dominance();
+                passiveB3.level = 10;
+                branchA = new LegendActiveA();
+                active1 = new Echo();
+                active1.level = 10;
+                active2 = new SoulSpark();
+                active2.level = 10;
+                active3 = new SoulFury();
+                active3.level = 10;
+                Skill.availableSkill = 0;
+                break;
         }
+    }
+
+    public SkillTree getSkillTree(){
+        switch (this){
+            case HUNTRESS: return new HuntressSkillTree(0, 0).build();
+            case ROGUE: return new RogueSkillTree(0, 0).build();
+            case MAGE: return new MageSkillTree(0, 0).build();
+        }
+
+        return new WarriorSkillTree(0,0 ).build();
     }
 
     public int totalSpent(BRANCHES branch)
@@ -195,8 +237,15 @@ public enum CurrentSkills{
 
     public void showLastUsed()
     {
-        if(lastUsed != null)
-            GameScene.show(new WndSkill(null, lastUsed));
+        if(lastUsed != null) {
+            if(lastUsed.quickCast && lastUsed.canCast()){
+                lastUsed.execute(Dungeon.hero, Skill.AC_CAST);
+            }
+            else {
+                WndSkillsNew tmp = null;
+                GameScene.show(new WndSkillNew(tmp, lastUsed));
+            }
+        }
 
     }
 

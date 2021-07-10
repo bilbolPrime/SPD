@@ -22,6 +22,7 @@ public class AimedShot extends ActiveSkill1{
         image = 93;
         tier = 1;
         mana = 3;
+        useDelay = 4f;
     }
 
     @Override
@@ -38,26 +39,28 @@ public class AimedShot extends ActiveSkill1{
     public float rangedDamageModifier()
     {
         float toReturn = 1f;
-        toReturn += cast ? 0.2f * level : 0;
+        toReturn += cast ? 0.05f * level : 0;
         cast = false;
         return toReturn;
     }
 
     @Override
-    public boolean aimedShot()
+    public int aimedShot()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost())
+        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
         {
             cast = false;
-            return false;
+            return 0;
         }
 
         cast = true;
 
-        castTextYell();
+
         Dungeon.hero.MP -= getManaCost();
         StatusPane.manaDropping += getManaCost();
-        return true;
+
+        castTextYell();
+        return level * 2;
     }
 
     @Override
@@ -70,7 +73,43 @@ public class AimedShot extends ActiveSkill1{
     @Override
     public String info()
     {
-        return "Stronger ranged attack that never misses.\n"
-                + costUpgradeInfo();
+        return "A very accurate strong attack.\n\n"
+                + extendedInfo()
+                + requiresInfo() + costString();
+    }
+
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ":  +" + (int)(2 * i) + " attack skill, +" + (int)(i * 5f) + "% damage.";
+
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
+
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Accuracy";
+        }
+
+        return "";
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(Accuracy.class);
+        return toReturn;
     }
 }

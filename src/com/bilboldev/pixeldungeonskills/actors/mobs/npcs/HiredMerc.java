@@ -377,7 +377,7 @@ public class HiredMerc extends NPC {
         }
 
 
-
+        standGuard = false;
         return damage;
     }
 
@@ -480,9 +480,13 @@ public class HiredMerc extends NPC {
         level++;
         HT = mercType.getHealth(level);
         HP = HT;
-        sprite.showStatus( CharSprite.POSITIVE, TXT_LEVEL_UP );
+        try
+        {
+            sprite.showStatus( CharSprite.POSITIVE, TXT_LEVEL_UP );
 
-        if(skill.level < Skill.MAX_LEVEL)
+        }
+      catch (Exception e){}
+        if(skill.level < Skill.MERC_MAX_LEVEL)
             skill.level++;
     }
 
@@ -557,6 +561,17 @@ public class HiredMerc extends NPC {
     }
 
 
+    private boolean standGuard = false;
+
+    public void standGuard(boolean standGuard){
+        this.standGuard = standGuard;
+        if(sprite != null)
+            sprite.showStatus(CharSprite.NEUTRAL, standGuard? "Standing Guard" : "Got your back");
+    }
+
+    public boolean getStandGuard(){
+        return standGuard;
+    }
 
     @Override
     protected boolean act() {
@@ -588,8 +603,13 @@ public class HiredMerc extends NPC {
             die( null );
             return true;
         } else {
-
-            return super.act();
+            if(!standGuard)
+                return super.act();
+            else
+            {
+                spend( TICK );
+                return true;
+            }
         }
     }
 

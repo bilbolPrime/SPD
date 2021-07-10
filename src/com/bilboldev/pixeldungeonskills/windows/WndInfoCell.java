@@ -19,12 +19,15 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 
 public class WndInfoCell extends Window {
@@ -52,7 +55,7 @@ public class WndInfoCell extends Window {
 			water.frame( 0, 0, DungeonTilemap.SIZE, DungeonTilemap.SIZE );
 			titlebar.icon( water );
 		} else {
-			titlebar.icon( DungeonTilemap.tile( tile ) );
+			titlebar.icon(Difficulties.is3d ? DungeonTerrainTilemap.tile( cell, tile ) :  DungeonTilemapOld.tile( tile ));
 		}
 		titlebar.label( Dungeon.level.tileName( tile ) );
 		titlebar.setRect( 0, 0, WIDTH, 0 );

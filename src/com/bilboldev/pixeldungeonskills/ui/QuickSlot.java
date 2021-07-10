@@ -19,8 +19,10 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
@@ -31,6 +33,7 @@ import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.utils.Bundle;
 
@@ -216,7 +219,7 @@ public class QuickSlot extends Button implements WndBag.Listener {
 		if (targeting) {
 			if (Actor.all().contains( lastTarget )) {
 				lastTarget.sprite.parent.add( crossM );
-				crossM.point( DungeonTilemap.tileToWorld( lastTarget.pos ) );
+				crossM.point(Difficulties.is3d ? DungeonTerrainTilemap.raisedTileToWorld( lastTarget.pos ) :  DungeonTilemapOld.tileToWorld( lastTarget.pos ));
 				crossB.visible = true;
 			} else {
 				lastTarget = null;

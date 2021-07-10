@@ -35,7 +35,7 @@ public class Hunting extends Buff {
 
 
 
-            if(hero.heroSkills.passiveA2.hunting() < 1)// Huntress Hunting if present
+            if(hero.skillTree.hunting() < 1)// Huntress Hunting if present
             {
                 spend( 100 );
                 return true;
@@ -46,7 +46,7 @@ public class Hunting extends Buff {
                   MysteryMeat steak = new MysteryMeat();
                   Dungeon.level.drop( steak, hero.pos ).sprite.drop();
 
-                spend( 100 - 10 * hero.heroSkills.passiveA2.hunting() );
+                spend( 100 - hero.skillTree.hunting() );
 
 		} else {
 

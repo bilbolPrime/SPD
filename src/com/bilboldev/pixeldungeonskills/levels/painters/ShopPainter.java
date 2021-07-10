@@ -107,9 +107,9 @@ public class ShopPainter extends Painter {
 		
 		switch (Dungeon.depth) {
             case 1:
-                items.add( (new DualSwords()).identify() );
-                items.add( new NecroBlade().identify() );
-
+                //items.add( (new DualSwords()).identify() );
+                //items.add( new NecroBlade().identify() );
+				items.add( new OverpricedRation() );
                 break;
 		case 6:
 			items.add( (Random.Int( 2 ) == 0 ? new Quarterstaff() : new Spear()).identify() );
@@ -158,8 +158,12 @@ public class ShopPainter extends Painter {
 		items.add( new ScrollOfIdentify() );
 		items.add( new ScrollOfRemoveCurse() );
 		items.add( new ScrollOfMagicMapping() );
-		items.add( Generator.random( Generator.Category.SCROLL ) );
-		
+
+		if(Dungeon.depth != 1){
+			items.add( Generator.random( Generator.Category.SCROLL ) );
+		}
+
+
 		items.add( new OverpricedRation() );
 		items.add( new OverpricedRation() );
 		

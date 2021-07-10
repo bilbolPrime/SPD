@@ -24,7 +24,8 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
@@ -37,7 +38,6 @@ import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndCatalogus;
-import com.bilboldev.pixeldungeonskills.windows.WndDonations;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
@@ -50,6 +50,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
+import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
 public class Toolbar extends Component {
@@ -72,7 +73,6 @@ public class Toolbar extends Component {
     public static boolean tapAgainToSearch = false;
 
 	private static Toolbar instance;
-
 
 	public Toolbar() {
 		super();
@@ -97,14 +97,29 @@ public class Toolbar extends Component {
 		} );
 
         add( btnSkill = new Tool( 20, 7, 20, 25 ) {
+			private SkillsIndicator skillsIndicator;
             @Override
             protected void onClick() {
-                GameScene.show(new WndSkills(null, null));
+                //GameScene.show(new WndSkills(null, null));
+				GameScene.show(new WndSkillsNew(null, null));
             };
             protected boolean onLongClick() {
-                GameScene.show(new WndSkills(null, null));
+                //GameScene.show(new WndSkills(null, null));
+				GameScene.show(new WndSkillsNew(null, null));
                 return true;
             };
+
+			@Override
+			protected void createChildren() {
+				super.createChildren();
+				skillsIndicator = new SkillsIndicator();
+				add( skillsIndicator );
+			};
+			@Override
+			protected void layout() {
+				super.layout();
+				skillsIndicator.fill( this );
+			};
         });
 
 
@@ -122,6 +137,7 @@ public class Toolbar extends Component {
 
 
             add(btnLastUsed = new Tool(40, 7, 20, 25) {
+				private SkillsIndicator skillsIndicator;
                 @Override
                 protected void onClick() {
                     Dungeon.hero.heroSkills.showLastUsed();
@@ -134,7 +150,18 @@ public class Toolbar extends Component {
                     return true;
                 }
 
-                ;
+				@Override
+				protected void createChildren() {
+					super.createChildren();
+					skillsIndicator = new SkillsIndicator();
+					skillsIndicator.skillCooldown = true;
+					add( skillsIndicator );
+				};
+				@Override
+				protected void layout() {
+					super.layout();
+					skillsIndicator.fill( this );
+				};
             });
 
         add(btnMerc = new Tool(252, 7, 20, 25) {

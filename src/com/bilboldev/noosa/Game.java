@@ -18,17 +18,20 @@
 package com.bilboldev.noosa;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import com.bilboldev.glscripts.Script;
 import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.glwrap.Vertexbuffer;
 import com.bilboldev.input.Keys;
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
+import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.utils.BitmapCache;
 import com.bilboldev.utils.SystemTime;
 
@@ -50,6 +53,7 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 
 	public static Game instance;
 	
+    public static Context mContext;
 	// Actual size of the screen
 	public static int width;
 	public static int height;
@@ -96,6 +100,7 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
 		
+        mContext = this;
 		BitmapCache.context = TextureCache.context = instance = this;
 		
 		DisplayMetrics m = new DisplayMetrics();
@@ -240,8 +245,16 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		GLES20.glEnable( GL10.GL_SCISSOR_TEST );
 		
 		TextureCache.reload();
+		RenderedText.reloadCache();
+		//RenderedText.reloadCache();
+		Vertexbuffer.refreshAllBuffers();
 	}
-	
+	public void reloadCache(){
+		TextureCache.reload();
+		RenderedText.reloadCache();
+		//RenderedText.reloadCache();
+		Vertexbuffer.refreshAllBuffers();
+	}
 	protected void destroyGame() {
 		if (scene != null) {
 			scene.destroy();
@@ -315,5 +328,17 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 	
 	public static void vibrate( int milliseconds ) {
 		((Vibrator)instance.getSystemService( VIBRATOR_SERVICE )).vibrate( milliseconds );
+	}
+	public void showWindow(Window w){
+		try
+		{
+
+		if(scene != null){
+			scene.add(w);
+		}
+		}
+		catch (Exception e){
+
+		}
 	}
 }

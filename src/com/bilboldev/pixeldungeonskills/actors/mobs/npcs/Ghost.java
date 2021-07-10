@@ -60,7 +60,7 @@ public class Ghost extends NPC {
 		spriteClass = GhostSprite.class;
 		
 		flying = true;
-		
+		screams = false;
 		state = WANDERING;
 	}
 	

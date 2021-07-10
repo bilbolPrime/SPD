@@ -68,7 +68,14 @@ public enum Icons {
     MOB,
     CHAMP_HALO,
     GAME,
-    VIDEO;
+    VIDEO,
+    RAT_KING_FLAG,
+    ARROW_DOWN,
+	DISCORD,
+	POTION_HOLDER,
+	SOUL_FURY,
+	SWITCH_3D,
+	SKILL_ACTIVE;
 	
 	public Image get() {
 		return get( this );
@@ -140,6 +147,9 @@ public enum Icons {
 		case WAND_HOLSTER:
 			icon.frame( icon.texture.uvRect( 88, 0, 98, 10 ) );
 			break;
+			case POTION_HOLDER:
+			icon.frame( icon.texture.uvRect( 94, 85, 104, 95 ) );
+				break;
 		case KEYRING:
 			icon.frame( icon.texture.uvRect( 64, 29, 74, 39 ) );
 			break;
@@ -185,6 +195,12 @@ public enum Icons {
         case ARCHER_MAIDEN_POTION:
         icon.frame( icon.texture.uvRect( 72, 62, 82, 78 ) );
         break;
+		case SOUL_FURY:
+		icon.frame( icon.texture.uvRect( 83, 101, 94, 116 ) );
+		break;
+		case SWITCH_3D:
+		icon.frame( icon.texture.uvRect( 101, 102, 112, 114 ) );
+		break;
         case BRUTE:
         icon.frame( icon.texture.uvRect( 2, 83, 13, 97 ) );
         break;
@@ -212,10 +228,22 @@ public enum Icons {
         case GAME:
             icon.frame( icon.texture.uvRect( 88, 65, 103, 77 ) );
             break;
+			case DISCORD:
+				icon.frame( icon.texture.uvRect( 105, 65, 121, 78 ) );
+				break;
+
         case VIDEO:
             icon.frame( icon.texture.uvRect( 73, 83, 93, 96 ) );
             break;
-
+            case RAT_KING_FLAG:
+                icon.frame( icon.texture.uvRect( 58, 102, 69, 111 ) );
+                break;
+            case ARROW_DOWN:
+                icon.frame( icon.texture.uvRect( 72, 102, 79, 111 ) );
+                break;
+			case SKILL_ACTIVE:
+				icon.frame( icon.texture.uvRect( 0, 118, 16, 150 ) );
+				break;
 		}
 		return icon;
 	}

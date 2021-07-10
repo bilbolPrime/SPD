@@ -80,7 +80,8 @@ public class Arrow extends MissileWeapon {
 
         if(Dungeon.hero.heroSkills.passiveB3.multiTargetActive == false || Dungeon.hero.heroSkills.active3.active == true) { //  bombvoyage
             // Turn to bomb
-            if(Dungeon.hero.heroSkills.active3.arrowToBomb() == true) {
+            boolean bombArrow = Dungeon.hero.skillTree.arrowToBomb();
+            if(bombArrow) {
             if (Level.pit[cell]) {
                 super.onThrow(cell);
             } else {
@@ -106,11 +107,11 @@ public class Arrow extends MissileWeapon {
 
                         Char ch = Actor.findChar(c);
                         if (ch != null) {
-                            int dmg = Random.Int(1 + Dungeon.depth, 10 + Dungeon.depth * 2) - Random.Int(ch.dr());
+                            int dmg = Dungeon.hero.skillTree.arrowToBombDamage() - Random.Int(ch.dr());
                             if (dmg > 0) {
                                 ch.damage(dmg, this);
                                 if (ch.isAlive()) {
-                                    Buff.prolong(ch, Paralysis.class, 2);
+                                    Buff.prolong(ch, Paralysis.class, Dungeon.hero.skillTree.arrowToBombParalysis());
                                 }
                             }
                         }
@@ -123,6 +124,7 @@ public class Arrow extends MissileWeapon {
             }
         }
             // End turn to bomb
+
          else   super.onThrow(cell);
             return;
         }

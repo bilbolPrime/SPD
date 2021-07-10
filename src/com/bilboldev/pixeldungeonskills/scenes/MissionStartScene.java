@@ -43,6 +43,7 @@ import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.ResumeButton;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.pixeldungeonskills.windows.Wnd3dSwitch;
 import com.bilboldev.pixeldungeonskills.windows.WndChallenges;
 import com.bilboldev.pixeldungeonskills.windows.WndClass;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
@@ -164,7 +165,7 @@ public class MissionStartScene extends PixelScene {
 		float centralHeight = buttonY - title.y - title.height();
 		
 		HeroClass[] classes = {
-			HeroClass.HATSUNE
+				HeroClass.HATSUNE, HeroClass.DATENSHI
 		};
 		for (HeroClass cl : classes) {
 			ClassShield shield = new ClassShield( cl );
@@ -243,26 +244,40 @@ public class MissionStartScene extends PixelScene {
 				}
 			}
 		};
+
+		if(Difficulties.is3d){
+			Difficulties.swap3D();
+			Difficulties.isShow3dWindow();
+			add(Wnd3dSwitch.campaign3DWarning());
+		}
 	}
 
 
     private void chooseMission()
     {
-        MissionStartScene.this.add( new WndOptions( "The Defence Of Boonamai", "Select Mission", "First Wave" , "Betrayal" ) {
-            @Override
-            protected void onSelect( int index ) {
-                chooseMissionFinal(index);
-            }
-        } );
-
-
+    	if(curClass == HeroClass.HATSUNE){
+			MissionStartScene.this.add( new WndOptions( "The Defence Of Boonamai", "Select Mission", "First Wave" , "Betrayal", "Soul Fury" ) {
+				@Override
+				protected void onSelect( int index ) {
+					chooseMissionFinal(index);
+				}
+			} );
+		}
+		else {
+			MissionStartScene.this.add( new WndOptions( "Mother Dearest", "Select Mission", "The Escape" ) {
+				@Override
+				protected void onSelect( int index ) {
+					chooseMissionFinalD(index);
+				}
+			} );
+		}
     }
 
     private void chooseMissionFinal(int index)
     {
         if(index == 0) {
             String title = "";
-            String Description = "Dark forces have caught the defences off guard.\n Moral is low and so are the resources at hand. \nHold the line...";
+            String Description = "Dark forces have caught the defences off guard.\n Morale is low and so are the resources at hand. \nHold the line...";
             final int diff = index;
 
 
@@ -271,23 +286,42 @@ public class MissionStartScene extends PixelScene {
                 @Override
                 protected void onSelect(int index) {
                     if (index == 0)
-                        startNewGame(diff);
+                        startNewGame(0);
                 }
             });
 
         }
-        else
-        {
-            MissionStartScene.this.add(new WndOptions("Betrayal", "Coming soon") {
+        else  if(index == 1) {
+			{
+				MissionStartScene.this.add(new WndOptions("Betrayal", "The militia are losing ground. No choice but to rely on mercs...", "Start", "Back") {
 
-                @Override
-                protected void onSelect(int index) {
+					@Override
+					protected void onSelect(int index) {
+						if (index == 0)
+							startNewGame(1);
+					}
+				});
+			}
+		}
+		else
+			{
+				MissionStartScene.this.add(new WndOptions("Soul Fury", "Hatsune stands her ground as Boonamai gets evacuated.", "Start", "Back") {
 
-                }
-            });
-        }
+					@Override
+					protected void onSelect(int index) {
+						if (index == 0)
+							startNewGame(2);
+					}
+				});
+
+		}
 
     }
+
+	private void chooseMissionFinalD(int index)
+	{
+		MissionStartScene.this.add(new WndOptions("The Escape", "They do not understand, they never did.\nAll they do is whine about their pain.\nI have to save her.\n(In the works)"));
+	}
 
 	@Override
 	public void destroy() {
@@ -300,7 +334,7 @@ public class MissionStartScene extends PixelScene {
 	
 	private void updateClass( HeroClass cl ) {
 
-        if(cl != HeroClass.HATSUNE)
+        if(cl != HeroClass.HATSUNE && cl != HeroClass.DATENSHI)
             cl = HeroClass.HATSUNE;
 
 
@@ -342,6 +376,7 @@ public class MissionStartScene extends PixelScene {
         Dungeon.currentDifficulty = Difficulties.values()[0];
         Dungeon.currentDifficulty.reset();
 		InterlevelScene.mode = InterlevelScene.Mode.MISSION;
+		InterlevelScene.missionChosen = diff;
         MissionScene.scenePause = true;
 		//if (PixelDungeon.intro()) {
 		//	PixelDungeon.intro( false );

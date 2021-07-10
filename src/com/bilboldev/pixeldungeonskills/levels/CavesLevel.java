@@ -22,8 +22,9 @@ import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.levels.Room.Type;
 import com.bilboldev.pixeldungeonskills.levels.painters.Painter;
@@ -42,7 +43,10 @@ public class CavesLevel extends RegularLevel {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CAVES;
+		if(!Difficulties.is3d)
+			return Assets.TILES_CAVES;
+
+		return Assets.TILES_CAVES_3D;
 	}
 	
 	@Override

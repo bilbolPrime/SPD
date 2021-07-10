@@ -61,6 +61,9 @@ public class GameLog extends Component implements Signal.Listener<String> {
 	@Override
 	public void onSignal( String text ) {
 
+		try {
+
+
 		int color = CharSprite.DEFAULT;
 		if (text.startsWith( GLog.POSITIVE )) {
 			text = text.substring( GLog.POSITIVE.length() );
@@ -88,7 +91,10 @@ public class GameLog extends Component implements Signal.Listener<String> {
 			lastEntry.text( lastMessage.length() == 0 ? text : lastMessage + " " + text );
 			lastEntry.measure();
 
-			entries.get( entries.size() - 1 ).text = lastEntry.text();
+			if(entries.size() > 0){
+				entries.get( entries.size() - 1 ).text = lastEntry.text();
+			}
+
 			
 		} else {
 			
@@ -119,7 +125,8 @@ public class GameLog extends Component implements Signal.Listener<String> {
 				lastEntry = null;
 			}
 		}
-		
+		}
+		catch (Exception e){}
 		layout();
 	}
 	

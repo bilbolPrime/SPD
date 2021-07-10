@@ -19,8 +19,10 @@ package com.bilboldev.pixeldungeonskills.scenes;
 
 import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.TouchArea;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.PointF;
 
@@ -32,7 +34,7 @@ public class CellSelector extends TouchArea {
 	
 	private float dragThreshold;
 	
-	public CellSelector( DungeonTilemap map ) {
+	public CellSelector( DungeonTilemapOld map ) {
 		super( map );
 		camera = map.camera();
 		
@@ -46,10 +48,20 @@ public class CellSelector extends TouchArea {
 			dragging = false;
 			
 		} else {
-			
-			select( ((DungeonTilemap)target).screenToTile( 
-				(int)touch.current.x, 
-				(int)touch.current.y ) );
+
+			if(target instanceof DungeonTerrainTilemap)
+			{
+				select( ((DungeonTerrainTilemap)target).screenToTile(
+						(int)touch.current.x,
+						(int)touch.current.y ) );
+			}
+			else
+			{
+				select( ((DungeonTilemapOld)target).screenToTile(
+						(int)touch.current.x,
+						(int)touch.current.y ) );
+			}
+
 		}
 	}
 	

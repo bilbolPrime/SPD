@@ -19,7 +19,7 @@ package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.utils.Random;
 

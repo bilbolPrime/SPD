@@ -17,8 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
-import android.util.Log;
-
 import java.io.FileNotFoundException;
 
 import com.bilboldev.noosa.BitmapText;
@@ -27,17 +25,22 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.items.Generator;
+import com.bilboldev.pixeldungeonskills.levels.Campaigns.Betrayal;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.FirstWave;
-import com.bilboldev.pixeldungeonskills.levels.FrostLevel;
+import com.bilboldev.pixeldungeonskills.levels.Campaigns.SoulFury;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
+import com.bilboldev.pixeldungeonskills.levels.Online.BetaRoomsLevel;
+import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletLevel;
+import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletLevel2;
+import com.bilboldev.pixeldungeonskills.online.OnlineSync;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
-import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndError;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 
@@ -52,12 +55,13 @@ public class InterlevelScene extends PixelScene {
 	private static final String TXT_RETURNING	= "Returning...";
 	private static final String TXT_FALLING		= "Falling...";
     private static final String TXT_TELEPORTING		= "A weird portal sucks you in...";
-	
+    private static final String TXT_ONLINE		= "Connecting...";
+
 	private static final String ERR_FILE_NOT_FOUND	= "File not found. For some reason.";
 	private static final String ERR_GENERIC			= "Something went wrong..."	;	
 	
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT
 	};
 	public static Mode mode;
 	
@@ -78,7 +82,9 @@ public class InterlevelScene extends PixelScene {
 	
 	private Thread thread;
 	private String error = null;
-	
+
+	public static int missionChosen = 0;
+
 	@Override
 	public void create() {
 		super.create();
@@ -116,6 +122,15 @@ public class InterlevelScene extends PixelScene {
         case MISSION:
              text = "10 years ago...";
              break;
+            case PLAY_ONLINE:
+                text = TXT_ONLINE;
+                break;
+			case GUANTLET:
+				text = "Entering arena...";
+				break;
+			case GUANTLET_NEXT:
+				text = "You survived...";
+				break;
 		default:
 		}
 		
@@ -141,8 +156,12 @@ public class InterlevelScene extends PixelScene {
 					
 					switch (mode) {
                     case MISSION:
-                        runMission();
+                        runMission(missionChosen);
                          break;
+						case GUANTLET:
+						case GUANTLET_NEXT:
+							runGauntlet();
+							break;
                     case MOVIE:
                         runMovie();
                         break;
@@ -173,6 +192,9 @@ public class InterlevelScene extends PixelScene {
                     case TELEPORT_BACK:
                         teleport_back();
                          break;
+                    case PLAY_ONLINE:
+                        runOnline();
+                        break;
 					default:
 					}
 
@@ -233,8 +255,17 @@ public class InterlevelScene extends PixelScene {
                 if(mode == Mode.MOVIE || mode == Mode.MISSION)
                     //Game.switchScene( TitleScene.class );
                     Game.switchScene( MissionScene.class );
+                else if(mode == Mode.PLAY_ONLINE)
+                    Game.switchScene( OnlineScene.class );
                 else if(mode == Mode.MOVIE_OUT)
                     Game.switchScene(TitleScene.class);
+                else if (mode == Mode.GUANTLET){
+					GauntletScene.level = 1;
+					Game.switchScene(GauntletScene.class);
+				}
+				else if (mode == Mode.GUANTLET_NEXT){
+					Game.switchScene(GauntletScene.class);
+				}
                 else
 				    Game.switchScene( GameScene.class );
 			}
@@ -271,7 +302,7 @@ public class InterlevelScene extends PixelScene {
 		}
 	}
 
-    private void runMission() throws Exception {
+    private void runMission(int missionChosen) throws Exception {
 
         try {
             GameLog.wipe();
@@ -287,6 +318,56 @@ public class InterlevelScene extends PixelScene {
 
         MissionScene.scenePause = true;
         Level level = new FirstWave();
+        if(missionChosen == 1){
+			level = new Betrayal();
+		}
+
+		if(missionChosen == 2){
+			level = new SoulFury();
+		}
+        Dungeon.level = level;
+        level.create();
+        Dungeon.switchLevel( level, level.randomRespawnCell() );
+    }
+
+	private void runGauntlet() throws Exception {
+		if (Dungeon.hero == null)
+		{
+			Dungeon.initGauntlet();
+			try {
+				GameLog.wipe();
+			}
+			catch (Exception ex)
+			{
+				// Could have been causing issues
+			}
+		}
+
+		Difficulties.is3d = false;
+
+		Level level = new GauntletLevel2();
+		Dungeon.level = level;
+		level.create();
+		Dungeon.switchLevel( level, level.randomRespawnCell() );
+	}
+
+    private void runOnline() throws Exception {
+
+        try {
+            GameLog.wipe();
+        }
+        catch (Exception ex)
+        {
+            // Could have been causing issues
+        }
+
+
+
+        if (Dungeon.hero == null)
+            Dungeon.initOnline();
+
+        OnlineSync.Reset();
+        Level level = new BetaRoomsLevel();
         Dungeon.level = level;
         level.create();
         Dungeon.switchLevel( level, level.randomRespawnCell() );

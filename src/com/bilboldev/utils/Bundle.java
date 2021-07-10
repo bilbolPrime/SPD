@@ -69,7 +69,15 @@ public class Bundle {
 		
 		return result;
 	}
-	
+
+    private static String SPD1_SPD2_Compatibility(String className)
+    {
+        if(className.contains("watabou.pixeldungeon") == true)
+            return className.replace("watabou.pixeldungeon", "bilboldev.pixeldungeonskills");
+        else
+            return className;
+    }
+
 	public boolean contains( String key ) {
 		return !data.isNull( key );
 	}
@@ -305,6 +313,7 @@ public class Bundle {
 			StringBuilder all = new StringBuilder();
 			String line = reader.readLine();
 			while (line != null) {
+                line = SPD1_SPD2_Compatibility(line);
 				all.append( line );
 				line = reader.readLine();
 			}

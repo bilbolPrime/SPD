@@ -29,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
+import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.effects.Degradation;
@@ -38,12 +39,15 @@ import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.Smite;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
@@ -97,7 +101,9 @@ public class Item implements Bundlable {
 	public boolean cursedKnown;
 	
 	public boolean unique = false;
-	
+
+    public WeaponEffect weaponEffect = null;
+
 	private static Comparator<Item> itemComparator = new Comparator<Item>() {	
 		@Override
 		public int compare( Item lhs, Item rhs ) {
@@ -116,6 +122,10 @@ public class Item implements Bundlable {
 
 
 	public boolean doPickUp( Hero hero ) {
+		if(hero instanceof GauntletHero){
+			return guantletPickup(hero);
+		}
+
 		if (collect( hero.belongings.backpack )) {
 			
 			GameScene.pickUp( this );
@@ -123,6 +133,19 @@ public class Item implements Bundlable {
 			hero.spendAndNext( TIME_TO_PICK_UP );
 			return true;
 			
+		} else {
+			return false;
+		}
+	}
+
+	private boolean guantletPickup(Hero hero){
+		if (collect( hero.belongings.backpack )) {
+
+			GauntletScene.pickUp( this );
+			Sample.INSTANCE.play( Assets.SND_ITEM );
+			hero.spendAndNext( TIME_TO_PICK_UP );
+			return true;
+
 		} else {
 			return false;
 		}
@@ -179,7 +202,7 @@ public class Item implements Bundlable {
 	public void execute( Hero hero ) {
 		execute( hero, defaultAction );
 	}
-	
+
 	protected void onThrow( int cell ) {
 		Heap heap = Dungeon.level.drop( this, cell );
 		if (!heap.isEmpty()) {
@@ -294,10 +317,13 @@ public class Item implements Bundlable {
 	
 	public int level()
     {
-        if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
-            return level + Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
+        //if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+        //    return level + Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
 
-        return level;
+		if(Dungeon.hero != null && Dungeon.hero.skillTree != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+			return level +  Dungeon.hero.skillTree.getWeaponLevelBonus(); // <--- Warrior Mastery if present
+
+		return level;
 	}
 	
 	public void level( int value ) {
@@ -460,6 +486,12 @@ public class Item implements Bundlable {
 	}
 	
 	public String name() {
+        if(weaponEffect != null)
+            return weaponEffect.Prefix + " " + name;
+		return name;
+	}
+
+	public String coreName() {
 		return name;
 	}
 	
@@ -554,7 +586,8 @@ public class Item implements Bundlable {
 	private static final String CURSED			= "cursed";
 	private static final String CURSED_KNOWN	= "cursedKnown";
 	private static final String DURABILITY		= "durability";
-	
+    private static final String EFFECT		= "effect";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put( QUANTITY, quantity );
@@ -562,6 +595,8 @@ public class Item implements Bundlable {
 		bundle.put( LEVEL_KNOWN, levelKnown );
 		bundle.put( CURSED, cursed );
 		bundle.put( CURSED_KNOWN, cursedKnown );
+        if(weaponEffect != null)
+            bundle.put( EFFECT, weaponEffect.Name );
 		if (isUpgradable()) {
 			bundle.put( DURABILITY, durability );
 		}
@@ -573,7 +608,11 @@ public class Item implements Bundlable {
 		quantity	= bundle.getInt( QUANTITY );
 		levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
 		cursedKnown	= bundle.getBoolean( CURSED_KNOWN );
-		
+
+        String tmp = bundle.getString(EFFECT);
+        if(tmp.equals("Smite"))
+            weaponEffect =  new Smite();
+
 		int level = bundle.getInt( LEVEL );
 		if (level > 0) {
 			upgrade( level );
@@ -622,7 +661,7 @@ public class Item implements Bundlable {
 				@Override
 				public void call() {
 					Item.this.detach( user.belongings.backpack ).onThrow( cell );
-                    if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
+                    if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.skillTree.doubleShot()) // <--- Huntress double shot
                     {
                         if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
                         {
@@ -706,7 +745,7 @@ public class Item implements Bundlable {
                     @Override
                     public void call() {
                         Item.this.detach( user.belongings.backpack ).onThrow( cell );
-                        if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.heroSkills.active2.doubleShot()) // <--- Huntress double shot
+                        if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.skillTree.doubleShot()) // <--- Huntress double shot
                         {
                             if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
                             {

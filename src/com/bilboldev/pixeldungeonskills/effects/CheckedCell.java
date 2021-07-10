@@ -20,7 +20,7 @@ package com.bilboldev.pixeldungeonskills.effects;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 
 public class CheckedCell extends Image {
 	
@@ -31,7 +31,7 @@ public class CheckedCell extends Image {
 
 		origin.set( 0.5f );
 		
-		point( DungeonTilemap.tileToWorld( pos ).offset( 
+		point( DungeonTilemap.tileToWorld( pos ).offset(
 			DungeonTilemap.SIZE / 2, 
 			DungeonTilemap.SIZE / 2 ) );
 		

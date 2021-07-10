@@ -37,8 +37,6 @@ public class Rat extends Mob {
         name = Dungeon.currentDifficulty.mobPrefix() + name;
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
-
-        range = 2;
 	}
 	
 	@Override

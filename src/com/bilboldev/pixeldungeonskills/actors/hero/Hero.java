@@ -59,6 +59,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Regeneration;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Roots;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Slow;
 import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
@@ -69,6 +70,11 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.HuntressSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MageSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.RogueSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
 import com.bilboldev.pixeldungeonskills.effects.CheckedCell;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
@@ -108,7 +114,6 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.features.AlchemyPot;
 import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
@@ -159,6 +164,8 @@ public class Hero extends Char {
 	public HeroSubClass subClass = HeroSubClass.NONE;
 
     public CurrentSkills heroSkills = CurrentSkills.MAGE;
+
+    public SkillTree skillTree = new WarriorSkillTree(0, 0).build();
 
     public HiredMerc hiredMerc = null;
 
@@ -232,6 +239,7 @@ public class Hero extends Char {
     private static final String MERC_SKILL = "mercskill";
 
     private static final int  skills_reset_version = 19;
+	private static final int  skills_3_reset_version = 118;
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
@@ -243,6 +251,7 @@ public class Hero extends Char {
 		subClass.storeInBundle( bundle );
 
         heroSkills.storeInBundle(bundle);
+		skillTree.storeInBundle(bundle);
 
         bundle.put( SKILLS_AVAILABLE,  Skill.availableSkill);
 		bundle.put( ATTACK, attackSkill );
@@ -313,7 +322,30 @@ public class Hero extends Char {
         belongings.restoreFromBundle( bundle );
         storage.restoreFromBundle(bundle);
 
-        if(bundle.getInt(VERSION_SAVE) < skills_reset_version)
+        if(bundle.getInt(VERSION_SAVE) < skills_3_reset_version)
+		{
+			switch (heroClass)
+			{
+				case WARRIOR: heroSkills = CurrentSkills.WARRIOR;
+					skillTree = new WarriorSkillTree(0,0 ).build();
+					break;
+				case MAGE: heroSkills = CurrentSkills.MAGE;
+					skillTree = new MageSkillTree(0,0 ).build();
+					break;
+				case ROGUE: heroSkills = CurrentSkills.ROGUE;
+					skillTree = new RogueSkillTree(0,0 ).build();
+					break;
+				case HUNTRESS: heroSkills = CurrentSkills.HUNTRESS;
+					skillTree = new HuntressSkillTree(0,0 ).build();
+					break;
+			}
+			heroSkills.init(this);
+			Skill.availableSkill = Skill.STARTING_SKILL + lvl - 1;
+			if(subClass != null){
+				skillTree.subclassChosen(subClass);
+			}
+		}
+        else if(bundle.getInt(VERSION_SAVE) < skills_reset_version)
         {
             switch (heroClass)
             {
@@ -334,6 +366,8 @@ public class Hero extends Char {
             heroSkills = CurrentSkills.restoreFromBundle(bundle);
             heroSkills.init(this);
             heroSkills.restoreSkillsFromBundle(bundle);
+            skillTree = heroSkills.getSkillTree();
+			skillTree.restoreSkillsFromBundle(bundle);
             Skill.availableSkill = bundle.getInt(SKILLS_AVAILABLE);
         }
 	}
@@ -387,20 +421,30 @@ public class Hero extends Char {
 			accuracy *= 0.5f;
 		}
 
-        if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
-            accuracy *= heroSkills.passiveB1.toHitModifier(); // <--- Huntress Accuracy when present
-        }
+        //if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
+        //    accuracy *= heroSkills.passiveB1.toHitModifier(); // <--- Huntress Accuracy when present
+        //}
 
 		
 		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
+        int attackSkillTmp = attackSkill;
+
+        if(wep instanceof MeleeWeapon){
+        	attackSkillTmp += skillTree.getMeleeAttackSkillBonus();
+		}
+
+		if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
+			attackSkillTmp += skillTree.getRangedAttackSkillBonus();
+		}
+
 		if (wep != null) {
             if(rangedWeapon == null)
             {
-                return (int)((attackSkill + Dungeon.hero.heroSkills.passiveB1.toHitBonus()) * accuracy * wep.acuracyFactor( this )); // <--- Warrior Firm Hand if present
+                return (int)((attackSkillTmp + Dungeon.hero.heroSkills.passiveB1.toHitBonus()) * accuracy * wep.acuracyFactor( this )); // <--- Warrior Firm Hand if present
             }
-			return (int)(attackSkill * accuracy * wep.acuracyFactor( this ));
+			return (int)(attackSkillTmp * accuracy * wep.acuracyFactor( this ));
 		} else {
-			return (int)(attackSkill * accuracy);
+			return (int)(attackSkillTmp * accuracy);
 		}
 	}
 	
@@ -417,9 +461,11 @@ public class Hero extends Char {
 		}
 		
 		int aEnc = belongings.armor != null ? belongings.armor.STR - STR() : 0;
-		
+
+		int calculatedDefenseSkill = defenseSkill + skillTree.evasionDefenceBonus();
+
 		if (aEnc > 0) {
-			return (int)(defenseSkill * evasion / Math.pow( 1.5, aEnc ));
+			return (int)(calculatedDefenseSkill * evasion / Math.pow( 1.5, aEnc ));
 		} else {
 			
 			if (heroClass == HeroClass.ROGUE) {
@@ -428,9 +474,9 @@ public class Hero extends Char {
 					evasion *= 2;
 				}
 				
-				return (int)((defenseSkill - aEnc) * evasion);
+				return (int)((calculatedDefenseSkill - aEnc) * evasion);
 			} else {
-				return (int)(defenseSkill * evasion);
+				return (int)(calculatedDefenseSkill * evasion);
 			}
 		}
 	}
@@ -454,6 +500,11 @@ public class Hero extends Char {
 		} else {
 			dmg = STR() > 10 ? Random.IntRange( 1, STR() - 9 ) : 1;
 		}
+
+		if(wep instanceof MeleeWeapon && skillTree != null){
+			dmg *= skillTree.getMeleeModifier();
+		}
+
 		return buff( Fury.class ) != null ? (int)(dmg * 1.5f) : dmg;
 	}
 	
@@ -476,7 +527,11 @@ public class Hero extends Char {
 	public float attackDelay() {
 		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
 		if (wep != null) {
-			
+
+			if(wep instanceof MeleeWeapon){
+				return wep.speedFactor( this ) / skillTree.getMeleeSpeedBonus();
+			}
+
 			return wep.speedFactor( this );
 						
 		} else {
@@ -486,6 +541,8 @@ public class Hero extends Char {
 	
 	@Override
 	public void spend( float time ) {
+		Skill.skillTrack += time;
+
 		int hasteLevel = 0;
 		for (Buff buff : buffs( RingOfHaste.Haste.class )) {
 			hasteLevel += ((RingOfHaste.Haste)buff).level;
@@ -498,6 +555,7 @@ public class Hero extends Char {
 		spend( time );
 		next();
 	}
+
 
 	@Override
 	public boolean act() {
@@ -606,7 +664,7 @@ public class Hero extends Char {
 		ready = false;
 	}
 	
-	private void ready() {
+	protected void ready() {
 		sprite.idle();
 		curAction = null;
 		ready = true;
@@ -871,7 +929,7 @@ public class Hero extends Char {
 		}
 	}
 	
-	private boolean actDescend( HeroAction.Descend action ) {
+	protected boolean actDescend( HeroAction.Descend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.exit) {
 			
@@ -897,7 +955,7 @@ public class Hero extends Char {
 		}
 	}
 
-    private boolean actStorage( HeroAction.Storage action ) {
+    protected boolean actStorage( HeroAction.Storage action ) {
         int stairs = action.dst;
         if (pos == stairs && pos == Dungeon.level.storage) {
 
@@ -915,7 +973,7 @@ public class Hero extends Char {
         }
     }
 
-	private boolean actAscend( HeroAction.Ascend action ) {
+	protected boolean actAscend( HeroAction.Ascend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.entrance) {
 			
@@ -955,7 +1013,7 @@ public class Hero extends Char {
 		}
 	}
 	
-	private boolean actAttack( HeroAction.Attack action ) {
+	protected boolean actAttack( HeroAction.Attack action ) {
 
 		enemy = action.target;
 
@@ -967,7 +1025,7 @@ public class Hero extends Char {
             if (wep != null) {
 
                 if (wep instanceof MeleeWeapon) {
-                    if (heroSkills.active1.doubleStab())
+                    if (skillTree.doubleStab())
                     {
                         doubleAttack = true;
                     }
@@ -1056,7 +1114,7 @@ public class Hero extends Char {
 			}
 		}
 
-        if(!(Bestiary.isBoss(enemy)) && rangedWeapon == null && heroSkills.active2.knocksBack()) //  <--- Warrior KnockBack if present and active
+        if(!(Bestiary.isBoss(enemy)) && rangedWeapon == null && (heroSkills.active2.knocksBack() || skillTree.canKnockBack())) //  <--- Warrior KnockBack if present and active
         {
             for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
                 int ofs = Level.NEIGHBOURS8[i];
@@ -1080,11 +1138,16 @@ public class Hero extends Char {
             }
         }
 
-        if(!(Bestiary.isBoss(enemy)) && rangedWeapon != null && rangedWeapon instanceof Arrow && enemy instanceof Mob && !(enemy instanceof NPC) && heroSkills.passiveB2.goToSleep()) //  <--- Warrior KnockBack if present and active
+        if(!(Bestiary.isBoss(enemy)) && rangedWeapon != null && rangedWeapon instanceof Arrow && enemy instanceof Mob && !(enemy instanceof NPC) && skillTree.rangedSleep())
         {
             Buff.affect(enemy, Sleep.class);
             return -1;
         }
+
+		if(!(Bestiary.isBoss(enemy)) && rangedWeapon != null && rangedWeapon instanceof Arrow && enemy instanceof Mob && !(enemy instanceof NPC) && skillTree.rangedSlow())
+		{
+			Buff.affect(enemy, Slow.class);
+		}
 
         damage *= Dungeon.currentDifficulty.mobDefenceModifier();
 		
@@ -1117,6 +1180,13 @@ public class Hero extends Char {
 	@Override
 	public void damage( int dmg, Object src ) {		
 		restoreHealth = false;
+
+		if(src == null || !(src instanceof Hunger)){
+			dmg *= skillTree.getDamageReductionModifier();
+
+			dmg -= skillTree.SpiritArmorAbsorb(dmg);
+		}
+
 		super.damage( dmg, src );
 
         StatusPane.takingDamage += dmg;
@@ -1286,8 +1356,8 @@ public class Hero extends Char {
 			HP += 5 - Dungeon.currentDifficulty.difficultyHPLevelPenalty();
             MP += 5;
             MMP += 5;
-            Skill.availableSkill += 2;
-            GLog.p("Gained 2 skill points!");
+            Skill.availableSkill += 1;
+            GLog.p("Gained 1 skill point!");
 			attackSkill++;
 			defenseSkill++;
 			
@@ -1336,7 +1406,12 @@ public class Hero extends Char {
 	}
 	
 	public boolean isStarving() {
-		return ((Hunger)buff( Hunger.class )).isStarving();
+		try {
+			return ((Hunger) buff(Hunger.class)).isStarving();
+		}
+		catch (Exception ex) {
+			return false;
+		}
 	}
 	
 	@Override
@@ -1401,7 +1476,7 @@ public class Hero extends Char {
 			stealth += ((RingOfShadows.Shadows)buff).level;
 		}
 
-        stealth += heroSkills.passiveA2.stealthBonus(); // <--- Rogue Stealth when present
+        stealth += skillTree.getStealthBonus(); // <--- Rogue Stealth when present
 		return stealth;
 	}
 	
@@ -1536,7 +1611,7 @@ public class Hero extends Char {
         if(enemy.HP > 0)
         {
             sprite.attack(enemy.pos);
-            heroSkills.active1.castTextYell();
+            //heroSkills.active1.castTextYell();
         }
         else
         {

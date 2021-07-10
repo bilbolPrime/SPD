@@ -48,9 +48,8 @@ public class WndSkill extends Window {
         titlebar.setRect( 0, 0, WIDTH, 0 );
         add(titlebar);
 		
-
-		
-		BitmapTextMultiline info = PixelScene.createMultiline( skill.info(), 6 );
+        String cooldown = "\nThis skill is on cool down";
+		BitmapTextMultiline info = PixelScene.createMultiline( skill.info() + (skill.coolDown() ? cooldown : ""), 6 );
 		info.maxWidth = WIDTH;
 		info.measure();
 		info.x = titlebar.left();
@@ -60,7 +59,7 @@ public class WndSkill extends Window {
 		float y = info.y + info.height() + GAP;
 		float x = 0;
 		
-		if (Dungeon.hero.isAlive()) {
+		if (Dungeon.hero.isAlive() && !skill.coolDown()) {
 			for (final String action:skill.actions( Dungeon.hero )) {
 				
 				RedButton btn = new RedButton( action ) {

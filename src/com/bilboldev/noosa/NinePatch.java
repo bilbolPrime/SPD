@@ -22,8 +22,8 @@ import java.nio.FloatBuffer;
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.glwrap.Quad;
+import com.bilboldev.utils.RectF;
 
-import android.graphics.RectF;
 
 public class NinePatch extends Visual {
 	

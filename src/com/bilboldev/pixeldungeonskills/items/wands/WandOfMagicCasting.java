@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
@@ -77,8 +78,8 @@ public class WandOfMagicCasting extends Wand {
                 Dungeon.hero.heroSkills.active2.castTextYell();
                 break;
             case SPARK:
-                Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
-                Dungeon.hero.heroSkills.active2.castTextYell();
+                //Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
+                Dungeon.hero.skillTree.castSpark();
                 break;
             case NINJA_BOMB:
                 Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
@@ -135,7 +136,7 @@ public class WandOfMagicCasting extends Wand {
             if(ch instanceof NPC && casting != CAST_TYPES.SOUL_SPARK)
                 return;
 
-            if(casting == CAST_TYPES.DARK_BOLT) {
+            if(!Bestiary.isBoss(ch) && casting == CAST_TYPES.DARK_BOLT) {
                 ch.sprite.emitter().burst(ShadowParticle.CURSE, 6);
                 Sample.INSTANCE.play(Assets.SND_CURSED);
                 SummonedPet minion = new SummonedPet(WraithSprite.class);
@@ -153,20 +154,23 @@ public class WandOfMagicCasting extends Wand {
             }
             else  if(casting == CAST_TYPES.DOMINANCE)
             {
-                ch.sprite.emitter().burst(ShadowParticle.CURSE, 6);
-                Sample.INSTANCE.play(Assets.SND_CURSED);
-                SummonedPet minion = new SummonedPet(ch.sprite.getClass());
-                minion.name = "Enslaved " + ch.name;
-                minion.screams = false;
-                minion.HT = ch.HT;
-                minion.HP = minion.HT;
-                minion.defenseSkill = ch.defenseSkill(Dungeon.hero);
-                minion.pos = cell;
-                GameScene.add(minion);
-                minion.sprite.alpha(0);
-                minion.sprite.parent.add(new AlphaTweener(minion.sprite, 1, 0.15f));
-                ch.sprite.visible = false;
-                ch.die(null);
+                // Abstraction at its finest (:
+                if(!ch.name.equals("Temari") && !ch.name.equals("Necromancer")){
+                    ch.sprite.emitter().burst(ShadowParticle.CURSE, 6);
+                    Sample.INSTANCE.play(Assets.SND_CURSED);
+                    SummonedPet minion = new SummonedPet(ch.sprite.getClass());
+                    minion.name = "Enslaved " + ch.name;
+                    minion.screams = false;
+                    minion.HT = ch.HT;
+                    minion.HP = minion.HT;
+                    minion.defenseSkill = ch.defenseSkill(Dungeon.hero);
+                    minion.pos = cell;
+                    GameScene.add(minion);
+                    minion.sprite.alpha(0);
+                    minion.sprite.parent.add(new AlphaTweener(minion.sprite, 1, 0.15f));
+                    ch.sprite.visible = false;
+                    ch.die(null);
+                }
             }
             else  if(casting == CAST_TYPES.SOUL_SPARK)
             {
@@ -175,10 +179,11 @@ public class WandOfMagicCasting extends Wand {
             }
             else  if(casting == CAST_TYPES.SPARK)
             {
-                ch.damage(Random.Int(Dungeon.hero.heroSkills.active2.level + Dungeon.hero.lvl / (6 -   Dungeon.hero.heroSkills.active2.level),Dungeon.hero.heroSkills.active2.level * 3 + Dungeon.hero.lvl / (5 -   Dungeon.hero.heroSkills.active2.level)), Dungeon.hero);
-                if(Random.Int(Dungeon.hero.heroSkills.active2.level) > 1)
+                int damage = (int)Dungeon.hero.skillTree.getSparkDamage();
+                ch.damage(damage, Dungeon.hero);
+                if(Dungeon.hero.skillTree.getSparkBlind())
                 {
-                    Buff.prolong( ch, Blindness.class, Random.Int( 1, 2 ) );
+                    Buff.prolong( ch, Blindness.class, Random.Int( 3, 6 ) );
                     ch.sprite.emitter().burst( Speck.factory( Speck.LIGHT ), 4 );
                     ch.sprite.showStatus(CharSprite.WARNING, "Blinded!");
                 }

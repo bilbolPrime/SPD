@@ -52,11 +52,11 @@ public class GoldIndicator extends Component {
 	public void update() {
 		super.update();
 		
-		if (visible) {
-			
+		if (visible || Dungeon.showGold) {
+			visible = true;
 			time -= Game.elapsed;
-			if (time > 0) {
-				tf.alpha( time > TIME / 2 ? 1f : time * 2 / TIME );
+			if (time > 0 || Dungeon.showGold) {
+				tf.alpha( (Dungeon.showGold || time > TIME / 2) ? 1f : time * 2 / TIME );
 			} else {
 				visible = false;
 			}
@@ -64,7 +64,7 @@ public class GoldIndicator extends Component {
 		}
 		
 		if (Dungeon.gold != lastValue) {
-			
+
 			lastValue = Dungeon.gold;
 			
 			tf.text( Integer.toString( lastValue ) );

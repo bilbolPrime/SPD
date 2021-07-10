@@ -143,5 +143,7 @@ public class TomeOfMastery extends Item {
 		if (way == HeroSubClass.BERSERKER && curUser.HP <= curUser.HT * Fury.LEVEL) {
 			Buff.affect( curUser, Fury.class );
 		}
+
+		((Hero)curUser).skillTree.subclassChosen(way);
 	}
 }

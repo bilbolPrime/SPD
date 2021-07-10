@@ -1,5 +1,9 @@
 /*
+ * Pixel Dungeon
  * Copyright (C) 2012-2015 Oleg Dolya
+ *
+ * Shattered Pixel Dungeon
+ * Copyright (C) 2014-2019 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,86 +22,112 @@
 package com.bilboldev.gltextures;
 
 import android.graphics.Bitmap;
-import android.graphics.RectF;
 
 import com.bilboldev.glwrap.Texture;
+import com.bilboldev.utils.RectF;
 
 public class SmartTexture extends Texture {
 
 	public int width;
 	public int height;
-	
+
 	public int fModeMin;
 	public int fModeMax;
-	
+
 	public int wModeH;
 	public int wModeV;
-	
+
 	public Bitmap bitmap;
-	
+
 	public Atlas atlas;
-	
-	public SmartTexture( Bitmap bitmap ) {
-		this( bitmap, NEAREST, CLAMP );
+
+	protected SmartTexture( ) {
+		//useful for subclasses which want to manage their own texture data
+		// in cases where android.graphics.bitmap isn't fast enough.
+
+		//subclasses which use this MUST also override some mix of reload/generate/bind
 	}
 
-	public SmartTexture( Bitmap bitmap, int filtering, int wrapping ) {
-		
-		super();
-		
-		bitmap( bitmap );
-		filter( filtering, filtering );
-		wrap( wrapping, wrapping );
-		
+	public SmartTexture( Bitmap bitmap ) {
+		this( bitmap, NEAREST, CLAMP, false );
 	}
-	
+
+	public SmartTexture( Bitmap bitmap, int filtering, int wrapping, boolean premultiplied ) {
+
+		this.bitmap = bitmap;
+		width = bitmap.getWidth();
+		height = bitmap.getHeight();
+		this.fModeMin = this.fModeMax = filtering;
+		this.wModeH = this.wModeV = wrapping;
+		this.premultiplied = premultiplied;
+
+	}
+
+	@Override
+	protected void generate() {
+		super.generate();
+		bitmap( bitmap, premultiplied );
+		filter( fModeMin, fModeMax );
+		wrap( wModeH, wModeV );
+	}
+
 	@Override
 	public void filter(int minMode, int maxMode) {
-		super.filter( fModeMin = minMode, fModeMax = maxMode);
+		fModeMin = minMode;
+		fModeMax = maxMode;
+		if (id != -1)
+			super.filter( fModeMin, fModeMax );
 	}
-	
+
 	@Override
 	public void wrap( int s, int t ) {
-		super.wrap( wModeH = s, wModeV = t );
+		wModeH = s;
+		wModeV = t;
+		if (id != -1)
+			super.wrap( wModeH, wModeV );
 	}
-	
+
 	@Override
 	public void bitmap( Bitmap bitmap ) {
 		bitmap( bitmap, false );
 	}
-	
+
 	public void bitmap( Bitmap bitmap, boolean premultiplied ) {
 		if (premultiplied) {
 			super.bitmap( bitmap );
 		} else {
 			handMade( bitmap, true );
 		}
-		
+
 		this.bitmap = bitmap;
 		width = bitmap.getWidth();
 		height = bitmap.getHeight();
 	}
-	
-	public void reload() {
-		id = new SmartTexture( bitmap ).id;
-		filter( fModeMin, fModeMax );
-		wrap( wModeH, wModeV );
+
+	public int getPixel( int x, int y ){
+		return bitmap.getPixel(x, y);
 	}
-	
+
+	public void reload() {
+		id = -1;
+		generate();
+	}
+
 	@Override
 	public void delete() {
-		
+
 		super.delete();
-		
-		bitmap.recycle();
+
+		if (bitmap != null)
+			bitmap.recycle();
 		bitmap = null;
 	}
-	
-	public RectF uvRect( int left, int top, int right, int bottom ) {
+
+	public RectF uvRect( float left, float top, float right, float bottom ) {
 		return new RectF(
-			(float)left		/ width,
-			(float)top		/ height,
-			(float)right	/ width,
-			(float)bottom	/ height );
+				left		/ width,
+				top		/ height,
+				right	/ width,
+				bottom	/ height );
 	}
 }

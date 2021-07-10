@@ -31,6 +31,7 @@ import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfHerbalism.Herbalism;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
+import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletLevel2;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Random;
 
@@ -51,7 +52,17 @@ public class HighGrass {
 			}
 			// Seed
 			if (herbalismLevel >= 0 && Random.Int( 18 ) <= Random.Int( herbalismLevel + 1 )) {
-				level.drop( Generator.random( Generator.Category.SEED ), pos ).sprite.drop();
+				try
+				{
+					if(!(Dungeon.level instanceof GauntletLevel2)){
+						level.drop(Generator.random(Generator.Category.SEED), pos).sprite.drop();
+					} else{
+						level.drop( new Dewdrop(), pos ).sprite.drop();
+					}
+				}
+				catch (Exception e){
+
+				}
 			}
 			
 			// Dew

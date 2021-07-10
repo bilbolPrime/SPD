@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.sprites;
 
-import android.graphics.RectF;
 
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
@@ -29,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.utils.Callback;
+import com.bilboldev.utils.RectF;
 
 public class HeroSprite extends CharSprite {
 	
@@ -115,7 +115,12 @@ public class HeroSprite extends CharSprite {
 	
 	@Override
 	public void update() {
-		sleeping = ((Hero)ch).restoreHealth;
+		try {
+			sleeping = ((Hero) ch).restoreHealth;
+		}
+		catch (Exception e){
+
+		}
 		
 		super.update();
 	}
@@ -139,7 +144,7 @@ public class HeroSprite extends CharSprite {
 		RectF patch = tiers().get( armorTier );
 		Image avatar = new Image( cl.spritesheet() );
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
-		frame.offset( patch.left, patch.top );
+		frame.shift( patch.left, patch.top );
 		avatar.frame( frame );
 		
 		return avatar;

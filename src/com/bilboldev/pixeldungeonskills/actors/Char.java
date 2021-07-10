@@ -239,7 +239,8 @@ public abstract class Char extends Actor {
                     dmg *= Dungeon.hero.heroSkills.active2.damageModifier(); //  <--- Warrior Knockback if present and active
                     dmg *= Dungeon.hero.heroSkills.active3.damageModifier(); //  <--- Warrior Rampage if present and active
 
-
+                    if(Dungeon.hero.belongings.weapon != null && Dungeon.hero.belongings.weapon.weaponEffect != null)
+                    dmg *= Dungeon.hero.belongings.weapon.weaponEffect.Effect(Dungeon.hero, enemy);
 
                     if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.heroSkills.active3.AoEDamage()) //  <--- Warrior Rampage if present and active
                     {
@@ -253,12 +254,32 @@ public abstract class Char extends Actor {
                         Dungeon.hero.heroSkills.active3.active = true; // Should be safe now
                     }
 
-                    if(!Bestiary.isBoss( enemy ) && enemy instanceof Mob && ((Mob)enemy).state instanceof Mob.Sleeping && Dungeon.hero.heroSkills.passiveB3.instantKill())
+					if(!(Bestiary.isBoss( enemy )) && Dungeon.hero.skillTree.MeleeAoEDamage()) //  <--- Warrior Rampage if present and active
+					{
+						for(int possibleTarget : Level.NEIGHBOURS8)
+						{
+							Char tmpTarget = Actor.findChar( pos + possibleTarget );
+							if(tmpTarget != null && tmpTarget != enemy && tmpTarget instanceof Mob && !(tmpTarget instanceof NPC))
+								attack(tmpTarget);
+						}
+					}
+
+                    if(!Bestiary.isBoss( enemy ) && enemy instanceof Mob && ((Mob)enemy).state instanceof Mob.Sleeping && Dungeon.hero.skillTree.instantKill())
                         dmg = ((Mob) enemy).HP + dr;
                 }
+				if(this == Dungeon.hero
+						&& Dungeon.hero.rangedWeapon != null
+						&& Dungeon.hero.rangedWeapon instanceof Arrow)
+				{
+					dmg *= Dungeon.hero.skillTree.rangedDamageModifier();
+					if(Dungeon.hero.belongings.bow != null){
+                        dmg *= Dungeon.hero.belongings.bow.damageBonus();
+                    }
+				}
+
                 if(this == Dungeon.hero)
                 {
-                    if(Dungeon.hero.heroSkills.passiveB1.venomousAttack()) // <--- Rogue Venom when present
+                    if(Dungeon.hero.skillTree.venomousAttack()) // <--- Rogue Venom when present
                         Buff.affect(enemy, Poison.class).set(Poison.durationFactor(enemy));
                 }
             }
@@ -275,7 +296,7 @@ public abstract class Char extends Actor {
             if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.heroSkills.active2.damageBonus(enemy.HP) > 0 && Dungeon.hero.rangedWeapon instanceof Shuriken) // <-- Rogue Deadeye when present
                 enemy.damage( Dungeon.hero.heroSkills.active2.damageBonus(enemy.HP, true), this );
 
-            if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.heroSkills.passiveB2.cripple() && Dungeon.hero.rangedWeapon != null) // <-- Huntress knee shot when present
+            if(!Bestiary.isBoss( enemy ) && this == Dungeon.hero && Dungeon.hero.skillTree.rangedCripple() && Dungeon.hero.rangedWeapon != null) // <-- Huntress knee shot when present
                 Buff.prolong( enemy, Cripple.class, Cripple.DURATION );
 
 			if (visibleFight) {
@@ -288,9 +309,12 @@ public abstract class Char extends Actor {
 					Camera.main.shake( GameMath.gate( 1, effectiveDamage / (enemy.HT / 4), 5), 0.3f );
 				}
 			}
-			
-			enemy.sprite.bloodBurstA( sprite.center(), effectiveDamage );
-			enemy.sprite.flash();
+			try
+			{
+				enemy.sprite.bloodBurstA( sprite.center(), effectiveDamage );
+				enemy.sprite.flash();
+			}
+			catch (Exception e){}
 
             if(this instanceof Hero && ((Hero)this).rangedWeapon == null && ((Hero)this).belongings.weapon instanceof DualSwords)
             {
@@ -345,32 +369,44 @@ public abstract class Char extends Actor {
 			return true;
 			
 		} else {
-			
-			if (visibleFight) {
-				String defense = enemy.defenseVerb();
-				enemy.sprite.showStatus( CharSprite.NEUTRAL, defense );
-				if (this == Dungeon.hero) {
-					GLog.i( TXT_YOU_MISSED, enemy.name, defense );
-				} else {
-					GLog.i( TXT_SMB_MISSED, enemy.name, defense, name );
+
+			try {
+				if (visibleFight) {
+					String defense = enemy.defenseVerb();
+					enemy.sprite.showStatus(CharSprite.NEUTRAL, defense);
+					if (this == Dungeon.hero) {
+						GLog.i(TXT_YOU_MISSED, enemy.name, defense);
+					} else {
+						GLog.i(TXT_SMB_MISSED, enemy.name, defense, name);
+					}
+
+					Sample.INSTANCE.play(Assets.SND_MISS);
 				}
-				
-				Sample.INSTANCE.play(Assets.SND_MISS);
-			}
-			
+			} catch (Exception e){}
 			return false;
 			
 		}
 	}
 	
 	public static boolean hit( Char attacker, Char defender, boolean magic ) {
-		float acuRoll = Random.Float( attacker.attackSkill( defender ) );
-		float defRoll = Random.Float( defender.defenseSkill( attacker ) );
+		try {
+			int bonusAttackSkill = 0;
+			if(attacker instanceof Hero
+					&& ((Hero) attacker).rangedWeapon instanceof Arrow){
+				bonusAttackSkill = Dungeon.hero.skillTree.aimedShot();
+			}
 
-        if(defender instanceof Hero && Level.distance( attacker.pos, defender.pos ) > 1 && ((Hero)defender).heroSkills.passiveA3.dodgeChance()) // <--- Huntress Awareness if present
-            return false;
+			float acuRoll = Random.Float(attacker.attackSkill(defender) + bonusAttackSkill);
+			float defRoll = Random.Float(defender.defenseSkill(attacker));
 
-		return (magic ? acuRoll * 2 : acuRoll) >= defRoll;
+			if (defender instanceof Hero && Level.distance(attacker.pos, defender.pos) > 1 && ((Hero) defender).skillTree.rangedDodgeChance()) // <--- Huntress Awareness if present
+				return false;
+
+
+
+			return (magic ? acuRoll * 2 : acuRoll) >= defRoll;
+		}
+		catch(Exception e){return false;}
 	}
 
 	public int attackSkill( Char target ) {
@@ -608,21 +644,27 @@ public abstract class Char extends Actor {
 	}
 	
 	public void remove( Buff buff ) {
-		
-		buffs.remove( buff );
-		Actor.remove( buff );
-		
-		if (buff instanceof Burning) {
-			sprite.remove( CharSprite.State.BURNING );
-		} else if (buff instanceof Levitation) {
-			sprite.remove( CharSprite.State.LEVITATING );
-		} else if (buff instanceof Invisibility && invisible <= 0) {
-			sprite.remove( CharSprite.State.INVISIBLE );
-		} else if (buff instanceof Paralysis) {
-			sprite.remove( CharSprite.State.PARALYSED );
-		} else if (buff instanceof Frost) {
-			sprite.remove( CharSprite.State.FROZEN );
-		} 
+
+		try
+		{
+			buffs.remove( buff );
+			Actor.remove( buff );
+
+			if (buff instanceof Burning) {
+				sprite.remove( CharSprite.State.BURNING );
+			} else if (buff instanceof Levitation) {
+				sprite.remove( CharSprite.State.LEVITATING );
+			} else if (buff instanceof Invisibility && invisible <= 0) {
+				sprite.remove( CharSprite.State.INVISIBLE );
+			} else if (buff instanceof Paralysis) {
+				sprite.remove( CharSprite.State.PARALYSED );
+			} else if (buff instanceof Frost) {
+				sprite.remove( CharSprite.State.FROZEN );
+			}
+		}
+	catch (Exception e){
+
+	}
 	}
 	
 	public void remove( Class<? extends Buff> buffClass ) {

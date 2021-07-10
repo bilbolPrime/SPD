@@ -118,8 +118,13 @@ public class Window extends Group implements Signal.Listener<Key> {
 	}
 	
 	public void hide() {
-		parent.erase( this );
-		destroy();
+		try{
+			parent.erase( this );
+			destroy();
+		}
+		catch (Exception e){
+
+		}
 	}
 	
 	@Override

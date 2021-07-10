@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Created by Moussa on 20-Jan-17.
  */
-public class Smash extends ActiveSkill1{
+public class Smash extends ActiveSkill1 {
 
 
     {
@@ -19,6 +19,7 @@ public class Smash extends ActiveSkill1{
         tier = 1;
         image = 17;
         mana = 3;
+        useDelay = 2f;
     }
 
     @Override
@@ -33,12 +34,6 @@ public class Smash extends ActiveSkill1{
 
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;
@@ -48,13 +43,14 @@ public class Smash extends ActiveSkill1{
     @Override
     public float damageModifier()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost())
+        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
             return 1f;
         else
         {
-            castTextYell();
             Dungeon.hero.MP -= getManaCost();
             StatusPane.manaDropping += getManaCost();
+
+            castTextYell();
             return 1f + 0.1f * level;
         }
     }
@@ -62,8 +58,27 @@ public class Smash extends ActiveSkill1{
     @Override
     public String info()
     {
-        return "Hits target for more damage.\n"
-                + costUpgradeInfo();
+        return "Hits a target with brute force.\n\n"
+            //    + costUpgradeInfo()
+                + extendedInfo()
+                + costString();
     }
 
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ": +" + (int)(0.1f * i * 100) + "% damage.";
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
 }

@@ -162,6 +162,12 @@ public class AttackIndicator extends Tag {
 	}
 	
 	public static void updateState() {
-		instance.checkEnemies();
+		try
+		{
+			instance.checkEnemies();
+		}
+		catch (Exception e){
+
+		}
 	}
 }

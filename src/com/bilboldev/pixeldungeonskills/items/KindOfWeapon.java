@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
@@ -31,7 +32,10 @@ abstract public class KindOfWeapon extends EquipableItem {
 	private static final String TXT_EQUIP_CURSED	= "you wince as your grip involuntarily tightens around your %s";
 	
 	protected static final float TIME_TO_EQUIP = 1f;
-	
+
+
+
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );

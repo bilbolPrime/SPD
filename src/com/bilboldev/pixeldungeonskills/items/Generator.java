@@ -19,12 +19,21 @@ package com.bilboldev.pixeldungeonskills.items;
 
 import java.util.HashMap;
 
+import com.bilboldev.noosa.audio.Sample;
+import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Statistics;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.effects.SpellSprite;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
 import com.bilboldev.pixeldungeonskills.items.bags.Bag;
+import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.food.MysteryMeat;
+import com.bilboldev.pixeldungeonskills.items.food.OverpricedRation;
 import com.bilboldev.pixeldungeonskills.items.food.Pasty;
 import com.bilboldev.pixeldungeonskills.items.potions.*;
 import com.bilboldev.pixeldungeonskills.items.rings.*;
@@ -34,6 +43,9 @@ import com.bilboldev.pixeldungeonskills.items.weapon.*;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.*;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.*;
 import com.bilboldev.pixeldungeonskills.plants.*;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
 public class Generator {
@@ -48,7 +60,8 @@ public class Generator {
 		SEED	( 5,	Plant.Seed.class ),
 		FOOD	( 0,	Food.class ),
 		GOLD	( 50,	Gold.class ),
-		MISC	( 5,	Item.class );
+		MISC	( 5,	Item.class ),
+		MELEE_WEAPON	( 15,	Weapon.class );
 		
 		public Class<?>[] classes;
 		public float[] probs;
@@ -97,7 +110,7 @@ public class Generator {
                 ScrollOfSacrifice.class,
                 ScrollOfBloodyRitual.class,
                 ScrollOfSkill.class};
-		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5, 10 };
+		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5, 5 };
 		
 		Category.POTION.classes = new Class<?>[]{ 
 			PotionOfHealing.class, 
@@ -156,9 +169,10 @@ public class Generator {
                 Arrow.class,
                 BombArrow.class,
                 NecroBlade.class,
+				SoulBlade.class,
                 DualSwords.class
                 };
-		Category.WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 3, 3 };
+		Category.WEAPON.probs = new float[]{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 10, 10, 10, 10, 0, 10, 0, 1, 1, 3, 1, 3,3, 3 };
 		
 		Category.ARMOR.classes = new Class<?>[]{ 
 			ClothArmor.class, 
@@ -204,6 +218,22 @@ public class Generator {
 			Bomb.class,
 			Honeypot.class};
 		Category.MISC.probs = new float[]{ 2, 1 };
+
+		Category.MELEE_WEAPON.classes = new Class<?>[]{
+				Dagger.class,
+				Knuckles.class,
+				Quarterstaff.class,
+				Spear.class,
+				Mace.class,
+				Sword.class,
+				Longsword.class,
+				BattleAxe.class,
+				WarHammer.class,
+				Glaive.class,
+				ShortSword.class
+		};
+
+		Category.MELEE_WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	}
 	
 	public static void reset() {
@@ -214,6 +244,232 @@ public class Generator {
 	
 	public static Item random() {
 		return random( Random.chances( categoryProbs ) );
+	}
+
+	public static Item randomConsumable() {
+		try {
+		Category cat = Category.GOLD;
+
+		if(Random.Float() < 0.5) {
+			cat = Category.FOOD;
+			if (Random.Float() < 0.65) {
+				cat = Category.SEED;
+			}
+		}
+		return ((Item)cat.classes[Random.chances( cat.probs )].newInstance()).random();
+		} catch (Exception e) {
+
+			return null;
+
+		}
+	}
+
+	public static Item randomGauntletArmor() {
+		try {
+			Armor armor = Dungeon.hero.belongings.armor;
+			if(armor == null){
+				return new ClothArmor().identify();
+			}
+
+			Armor newArmor = armor.getClass().newInstance();
+			newArmor.level = armor.level + 1;
+			newArmor.STR = armor.STR - 1;
+			newArmor.identify();
+
+			if(Random.Int(100) < newArmor.level * 15 && newArmor.tier < 5){
+				int targetTier = armor.tier + 1;
+				int safety = 20;
+				Armor betterArmor = null;
+				do{
+					safety--;
+					betterArmor = (Armor)((Item)Category.ARMOR.classes[Random.chances( Category.ARMOR.probs )].newInstance()).random();
+				}while (betterArmor.tier != targetTier && safety > 0);
+
+				if(safety != 0){
+					betterArmor.identify();
+					if(newArmor.level > 1)
+					{
+						betterArmor.level = newArmor.level - 1;
+						betterArmor.STR -= betterArmor.level - 1;
+					}
+					return betterArmor;
+				}
+			}
+
+			return newArmor;
+		} catch (Exception e) {
+
+			return new ClothArmor().identify();
+
+		}
+	}
+
+	public static Item randomGauntletWeapon() {
+		try {
+			MeleeWeapon weapon = (MeleeWeapon) Dungeon.hero.belongings.weapon;
+			if(weapon == null){
+				return new Dagger().identify();
+			}
+
+			MeleeWeapon newWeapon = weapon.getClass().newInstance();
+			newWeapon.level = weapon.level + 1;
+			newWeapon.STR = weapon.STR - 1;
+			newWeapon.identify();
+
+			// Swap weapons in same tier
+			if(Random.Int(100) < 50){
+				int targetTier = weapon.tier;
+				int safety = 20;
+				MeleeWeapon betterWeapon = null;
+				do{
+					safety--;
+					betterWeapon = (MeleeWeapon)((Item)Category.MELEE_WEAPON.classes[Random.chances( Category.MELEE_WEAPON.probs )].newInstance()).random();
+				}while (betterWeapon.tier != targetTier && safety > 0);
+
+				if(safety != 0){
+					betterWeapon.level = newWeapon.level;
+					betterWeapon.STR = newWeapon.STR;
+					betterWeapon.identify();
+					return betterWeapon;
+				}
+			}
+
+			// Better tier
+			if(Random.Int(100) < newWeapon.level * 15 && newWeapon.tier < 5){
+				int targetTier = weapon.tier + 1;
+				int safety = 20;
+				MeleeWeapon betterWeapon = null;
+				do{
+					safety--;
+					betterWeapon = (MeleeWeapon)((Item)Category.MELEE_WEAPON.classes[Random.chances( Category.MELEE_WEAPON.probs )].newInstance()).random();
+				}while (betterWeapon.tier != targetTier && safety > 0);
+
+				if(safety != 0){
+					betterWeapon.identify();
+					if(newWeapon.level > 1){
+						betterWeapon.level = newWeapon.level - 1;
+						betterWeapon.STR -= betterWeapon.level - 1;
+					}
+					return betterWeapon;
+				}
+			}
+
+			return newWeapon;
+		} catch (Exception e) {
+			return new Knuckles().identify();
+		}
+	}
+
+	public static Item randomGauntletMisc() {
+		try {
+			if(Random.Int(100) < 25){
+				return new ChargrilledMeat(){
+					@Override
+					public void execute( Hero hero, String action ) {
+						if (action.equals( AC_EAT )) {
+
+							((Hunger)hero.buff( Hunger.class )).satisfy( energy );
+							GLog.i( message );
+
+							switch (hero.heroClass) {
+								case GAUNTLET:
+								case WARRIOR:
+									if (hero.HP < hero.HT) {
+										hero.HP = Math.min( hero.HP + 5, hero.HT );
+										hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+									}
+									break;
+								case MAGE:
+									hero.belongings.charge( false );
+									ScrollOfRecharging.charge( hero );
+									break;
+								case ROGUE:
+								case HUNTRESS:
+									break;
+							}
+
+							hero.sprite.operate( hero.pos );
+							hero.busy();
+							SpellSprite.show( hero, SpellSprite.FOOD );
+							Sample.INSTANCE.play( Assets.SND_EAT );
+
+							hero.spend( 0.1f );
+
+							Statistics.foodEaten++;
+							Badges.validateFoodEaten();
+
+						} else {
+
+							super.execute( hero, action );
+
+						}
+					}
+				};
+			}
+
+			if(Random.Int(100) < 25){
+				return new ScrollOfSkill().identify();
+			}
+
+			if(Random.Int(100) < 50){
+				return new Food() {
+					@Override
+					public void execute( Hero hero, String action ) {
+						if (action.equals( AC_EAT )) {
+
+							((Hunger)hero.buff( Hunger.class )).satisfy( energy );
+							GLog.i( message );
+
+							switch (hero.heroClass) {
+								case GAUNTLET:
+								case WARRIOR:
+									if (hero.HP < hero.HT) {
+										hero.HP = Math.min( hero.HP + 5, hero.HT );
+										hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+									}
+									break;
+								case MAGE:
+									hero.belongings.charge( false );
+									ScrollOfRecharging.charge( hero );
+									break;
+								case ROGUE:
+								case HUNTRESS:
+									break;
+							}
+
+							hero.sprite.operate( hero.pos );
+							hero.busy();
+							SpellSprite.show( hero, SpellSprite.FOOD );
+							Sample.INSTANCE.play( Assets.SND_EAT );
+
+							hero.spend( 0.1f );
+
+							Statistics.foodEaten++;
+							Badges.validateFoodEaten();
+
+						} else {
+
+							super.execute( hero, action );
+
+						}
+					}
+				};
+			}
+
+
+			if(GauntletScene.level + 1> Dungeon.hero.lvl && Random.Int(100) < 50){
+				return new PotionOfExperience().identify();
+			}
+
+			if(GauntletScene.level * 2 + 10> Dungeon.hero.STR && Random.Int(100) < 50){
+				return new PotionOfStrength().identify();
+			}
+
+			return new PotionOfHealing().identify();
+
+		} catch (Exception e) {
+			return new PotionOfHealing().identify();
+		}
 	}
 	
 	public static Item random( Category cat ) {

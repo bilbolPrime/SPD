@@ -539,6 +539,13 @@ public abstract class RegularLevel extends Level {
                 Buff.affect(mob, Champ.class);
 			Actor.occupyCell( mob );
 		}
+
+		for (Mob m : mobs){
+			if (map[m.pos] == Terrain.HIGH_GRASS) {
+				map[m.pos] = Terrain.GRASS;
+				losBlocking[m.pos] = false;
+			}
+		}
 	}
 	
 	@Override
@@ -611,11 +618,22 @@ public abstract class RegularLevel extends Level {
 			default:
 				type = Heap.Type.HEAP;
 			}
-			drop( Generator.random(), randomDropCell() ).type = type;
+
+			int cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
+
+			drop( Generator.random(), cell ).type = type;
 		}
 
 		for (Item item : itemsToSpawn) {
 			int cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
 			if (item instanceof ScrollOfUpgrade) {
 				while (map[cell] == Terrain.FIRE_TRAP || map[cell] == Terrain.SECRET_FIRE_TRAP) {
 					cell = randomDropCell();
@@ -626,7 +644,12 @@ public abstract class RegularLevel extends Level {
 		
 		Item item = Bones.get();
 		if (item != null) {
-			drop( item, randomDropCell() ).type = Heap.Type.SKELETON;
+			int cell = randomDropCell();
+			if (map[cell] == Terrain.HIGH_GRASS) {
+				map[cell] = Terrain.GRASS;
+				losBlocking[cell] = false;
+			}
+			drop( item, cell).type = Heap.Type.SKELETON;
 		}
 	}
 	

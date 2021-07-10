@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
 
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.BitmapText;
@@ -34,6 +33,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
+import com.bilboldev.pixeldungeonskills.items.bags.PotionHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
@@ -52,6 +52,7 @@ import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.GameMath;
+import com.bilboldev.utils.RectF;
 
 public class WndBag extends WndTabbed {
 	
@@ -130,6 +131,7 @@ public class WndBag extends WndTabbed {
 			stuff.backpack, 
 			stuff.getItem( SeedPouch.class ), 
 			stuff.getItem( ScrollHolder.class ),
+			stuff.getItem(PotionHolder.class),
 			stuff.getItem( WandHolster.class ),
 			stuff.getItem( Keyring.class )};
 		
@@ -282,7 +284,9 @@ public class WndBag extends WndTabbed {
 				return Icons.get( Icons.SEED_POUCH );
 			} else if (bag instanceof ScrollHolder) {
 				return Icons.get( Icons.SCROLL_HOLDER );
-			} else if (bag instanceof WandHolster) {
+			} else if (bag instanceof PotionHolder) {
+				return Icons.get( Icons.POTION_HOLDER );
+			}else if (bag instanceof WandHolster) {
 				return Icons.get( Icons.WAND_HOLSTER );
 			} else if (bag instanceof Keyring) {
 				return Icons.get( Icons.KEYRING );
@@ -411,7 +415,7 @@ public class WndBag extends WndTabbed {
                     if(mode == Mode.HEALING_POTION)
                         enable(item instanceof PotionOfHealing && ((Potion)item).isKnown());
                     if(mode == Mode.BRUTE_HOLD)
-                        enable(!(item instanceof Bag) && item != Dungeon.hero.belongings.weapon && item != Dungeon.hero.belongings.armor && item != Dungeon.hero.belongings.ring1 && item != Dungeon.hero.belongings.ring2 && item != Dungeon.hero.belongings.bow);
+                        enable(!(item instanceof Gold)  && !(item instanceof Bag) && item != Dungeon.hero.belongings.weapon && item != Dungeon.hero.belongings.armor && item != Dungeon.hero.belongings.ring1 && item != Dungeon.hero.belongings.ring2 && item != Dungeon.hero.belongings.bow);
                     if(mode == Mode.ARMOR && title.contains("Merc") && item instanceof Armor && ((Armor)item).tier > 5)
                         enable(false);
 				}

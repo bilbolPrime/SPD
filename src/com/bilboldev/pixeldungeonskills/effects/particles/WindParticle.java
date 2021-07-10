@@ -23,7 +23,7 @@ import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.noosa.particles.Emitter.Factory;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.utils.PointF;
 import com.bilboldev.utils.Random;
 

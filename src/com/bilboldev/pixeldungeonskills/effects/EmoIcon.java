@@ -45,20 +45,33 @@ public class EmoIcon extends Image {
 		super.update();
 		
 		if (visible) {
-			if (growing) {
-				scale.set( scale.x + Game.elapsed * timeScale );
-				if (scale.x > maxSize) {
-					growing = false;
-				}
-			} else {
-				scale.set( scale.x - Game.elapsed * timeScale );
-				if (scale.x < 1) {
-					growing = true;
-				}
-			}
-			
-			x = owner.x + owner.width - width / 2;
-			y = owner.y - height;
+            if(!(this instanceof RatFlag)) {
+                if (growing) {
+                    scale.set(scale.x + Game.elapsed * timeScale);
+                    if (scale.x > maxSize) {
+                        growing = false;
+                    }
+                } else {
+                    scale.set(scale.x - Game.elapsed * timeScale);
+                    if (scale.x < 1) {
+                        growing = true;
+                    }
+                }
+            }
+            else
+            {
+                scale.set(0.8f);
+            }
+
+            if(!(this instanceof OnlineTurn)) {
+                x = owner.x + owner.width - width / 2;
+                y = owner.y - height;
+            }
+            else
+            {
+                x = owner.x + width / 2 - 1;
+                y = owner.y - height - 2;
+            }
 		}
 	}
 	
@@ -93,5 +106,37 @@ public class EmoIcon extends Image {
 			scale.set( Random.Float( 1, maxSize ) );
 		}
 	}
+
+    public static class RatFlag extends EmoIcon {
+
+        public RatFlag( CharSprite owner ) {
+
+            super( owner );
+
+            copy( Icons.get( Icons.RAT_KING_FLAG ) );
+
+            maxSize = 0.5f;
+            timeScale = 1f;
+
+            origin.set( width / 2, height / 2 );
+            scale.set( 0.5f );
+        }
+    }
+
+    public static class OnlineTurn extends EmoIcon {
+
+        public OnlineTurn( CharSprite owner ) {
+
+            super( owner );
+
+            copy( Icons.get( Icons.ARROW_DOWN ) );
+
+            maxSize = 1.3f;
+            timeScale = 1f;
+
+            origin.set( width / 2, height / 2 );
+            scale.set( Random.Float( 1, maxSize ) );
+        }
+    }
 
 }

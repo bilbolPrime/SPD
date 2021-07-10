@@ -20,10 +20,9 @@ package com.bilboldev.noosa;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import android.graphics.RectF;
-
 import com.bilboldev.glwrap.Quad;
 import com.bilboldev.utils.PointF;
+import com.bilboldev.utils.RectF;
 
 public class BitmapTextMultiline extends BitmapText {
 

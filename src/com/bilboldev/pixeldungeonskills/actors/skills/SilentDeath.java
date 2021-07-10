@@ -3,6 +3,8 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.utils.Random;
 
+import java.util.ArrayList;
+
 /**
  * Created by Moussa on 20-Jan-17.
  */
@@ -39,7 +41,43 @@ public class SilentDeath extends PassiveSkillB3{
     @Override
     public String info()
     {
-        return "10% per level chance to instantly kill a sleeping enemy.\n"
-                + costUpgradeInfo();
+        return "Chance to instantly kill sleeping enemies with melee attacks.\n\n"
+                + extendedInfo()
+                + requiresInfo() + costString();
+    }
+
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ":  +" + (int)(i * 10) + "% chance of insta-kill.";
+
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
+
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Assassin";
+        }
+
+        return "";
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(Assassin.class);
+        return toReturn;
     }
 }

@@ -84,11 +84,6 @@ public class Echo extends ActiveSkill3{
         }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.7 * level));
-    }
 
     @Override
     protected boolean upgrade()

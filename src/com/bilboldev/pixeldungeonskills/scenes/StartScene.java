@@ -35,6 +35,7 @@ import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GamesInProgress;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -44,18 +45,24 @@ import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.ResumeButton;
+import com.bilboldev.pixeldungeonskills.ui.Switch3DButton;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.pixeldungeonskills.windows.Wnd3dSwitch;
 import com.bilboldev.pixeldungeonskills.windows.WndChallenges;
 import com.bilboldev.pixeldungeonskills.windows.WndClass;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
+import com.bilboldev.pixeldungeonskills.windows.WndOptionsDifficulties;
 import com.bilboldev.utils.Callback;
 
 public class StartScene extends PixelScene {
 
 	private static final float BUTTON_HEIGHT	= 24;
 	private static final float GAP				= 2;
-	
+
+	private static final String TXT_3D_ON	= "2.5D mode on!";
+	private static final String TXT_3D_OFF	= "Classic mode";
+
 	private static final String TXT_LOAD	= "Load Game";
 	private static final String TXT_NEW		= "New Game";
 	
@@ -153,19 +160,7 @@ public class StartScene extends PixelScene {
 		btnNewGame = new GameButton( TXT_NEW ) {
 			@Override
 			protected void onClick() {
-				if (GamesInProgress.check( curClass ) != null) {
-					StartScene.this.add( new WndOptions( TXT_REALLY, TXT_WARNING, TXT_YES, TXT_NO ) {
-						@Override
-						protected void onSelect( int index ) {
-							if (index == 0) {
-                                chooseDifficulty();
-							}
-						}
-					} );
-					
-				} else {
-                    chooseDifficulty();
-				}
+                chooseOnline();
 			}
 		};
 		add( btnNewGame );
@@ -262,12 +257,115 @@ public class StartScene extends PixelScene {
 				}
 			}
 		};
+
+		Difficulties.is3d = PixelDungeon.enabled3d();
+		BitmapText line = new BitmapText(PixelScene.font1x);
+		line.text(Difficulties.is3d ? TXT_3D_ON : TXT_3D_OFF);
+		line.measure();
+		line.hardlight( 0xFFFF00 );
+		line.x = PixelScene.align( 5 );
+		line.y = PixelScene.align( 4  );
+		add( line );
+
+		Switch3DButton a = new Switch3DButton();
+
+		a.setPos(55, 2);
+		a.visible = true;
+		add( a );
+
+		if(Difficulties.isShow3dWindow()){
+			add(new Wnd3dSwitch(Difficulties.is3d));
+		}
 	}
 
+    private void chooseOnline()
+    {
+    	if( curClass == HeroClass.WARRIOR){
+			chooseGameMode();
+		}
+		else {
+			chooseDifficulty();
+		}
+
+        /*
+        StartScene.this.add( new WndOptions( "Game Mode", "Online still in beta...", "Offline","Online" ) {
+            @Override
+            protected void onSelect( int index ) {
+                if(index == 0)
+                {
+                    if (GamesInProgress.check( curClass ) != null) {
+                        StartScene.this.add( new WndOptions( TXT_REALLY, TXT_WARNING, TXT_YES, TXT_NO ) {
+                            @Override
+                            protected void onSelect( int index ) {
+                                if (index == 0) {
+                                    chooseDifficulty();
+                                }
+                            }
+                        } );
+
+                    } else {
+                        chooseDifficulty();
+                    }
+                }
+                else
+                {
+                    Dungeon.hero = null;
+                    Dungeon.difficulty = 1;
+                    Dungeon.currentDifficulty = Difficulties.values()[1];
+                    Dungeon.currentDifficulty.reset();
+                    InterlevelScene.mode = InterlevelScene.Mode.PLAY_ONLINE;
+                    Game.switchScene( InterlevelScene.class );
+                }
+            }
+        } );
+        */
+
+    }
+
+	private void chooseGameMode()
+	{
+
+
+        StartScene.this.add( new WndOptions( "Game Mode", "Please select a game mode", "Enter The Dungeon","Gauntlet (Beta)" ) {
+            @Override
+            protected void onSelect( int index ) {
+                if(index == 0)
+                {
+					chooseDifficulty();
+                }
+                else
+                {
+					guantletChosen();
+                }
+            }
+        } );
+
+
+	}
+
+	private void guantletChosen(){
+		StartScene.this.add( new WndOptions( "Gauntlet (Beta)", "- A basic endless mode\n" +
+				"- Only supported in classic mode (no 2.5D)\n" +
+				"- Only available for Warrior (for now)\n" +
+				"- Does NOT delete your regular game save", "Start" ) {
+			@Override
+			protected void onSelect( int index ) {
+				if(index == 0)
+				{
+					Dungeon.hero = null;
+					Dungeon.difficulty = 6;
+					Dungeon.currentDifficulty = Difficulties.SUPEREASY;;
+					Dungeon.currentDifficulty.reset();
+					InterlevelScene.mode = InterlevelScene.Mode.GUANTLET;
+					Game.switchScene( InterlevelScene.class );
+				}
+			}
+		} );
+	}
 
     private void chooseDifficulty()
     {
-        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HELL.title() ) {
+        StartScene.this.add( new WndOptionsDifficulties( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HELL.title() , Difficulties.SUICIDE.title() , Difficulties.JUSTKILLME.title() ) {
             @Override
             protected void onSelect( int index ) {
                 chooseDifficultyFinal(index);
@@ -284,7 +382,7 @@ public class StartScene extends PixelScene {
         final int diff = index;
 
 
-        StartScene.this.add( new WndOptions( title, Description, "Yes", "No" ) {
+        StartScene.this.add( new WndOptionsDifficulties( title, Description, "Yes", "No" ) {
 
             @Override
             protected void onSelect( int index ) {
@@ -307,7 +405,7 @@ public class StartScene extends PixelScene {
 	
 	private void updateClass( HeroClass cl ) {
 
-        if(cl == HeroClass.HATSUNE)
+        if(cl == HeroClass.HATSUNE || cl == HeroClass.ONLINE || cl == HeroClass.DATENSHI || cl == HeroClass.GAUNTLET)
             cl = HeroClass.WARRIOR;
 
 

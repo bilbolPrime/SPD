@@ -22,13 +22,15 @@ import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.noosa.particles.PixelParticle.Shrinking;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.Difficulties;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlameParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.LeafParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.PurpleParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.WoolParticle;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.ColorMath;
 import com.bilboldev.utils.PointF;
@@ -53,9 +55,9 @@ public class MagicMissile extends Emitter {
 		
 		revive();
 		
-		PointF pf = DungeonTilemap.tileCenterToWorld( from );
-		PointF pt = DungeonTilemap.tileCenterToWorld( to );
-		
+		PointF pf = Difficulties.is3d ? DungeonTilemap.raisedTileCenterToWorld( from ) : DungeonTilemapOld.tileCenterToWorld( from );
+		PointF pt = Difficulties.is3d ? DungeonTilemap.raisedTileCenterToWorld( to ) : DungeonTilemapOld.tileCenterToWorld( to );
+
 		x = pf.x;
 		y = pf.y;
 		width = 0;

@@ -181,7 +181,7 @@ public class ColdGirl extends Mob {
                             Dungeon.level.press( newPos, enemy );
                         }
 
-                        enemy.sprite.bloodBurstA( sprite.center(), enemy.HP );
+                        enemy.sprite.bloodBurstA( ((CharSprite)sprite).center(), enemy.HP );
                     }
 
                     for(int s = 0; s < skelSpawns.size(); s++)
@@ -781,11 +781,13 @@ public class ColdGirl extends Mob {
         @Override
         public boolean act()
         {
-            if(((ColdGirlAI)ColdGirl.this.state).aiStatus != SUPER_HUNTING)
-            {
-                die(null);
-                return true;
+            try {
+                if (((ColdGirlAI) ColdGirl.this.state).aiStatus != SUPER_HUNTING) {
+                    die(null);
+                    return true;
+                }
             }
+            catch (Exception e){}
             return super.act();
         }
 

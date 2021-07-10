@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.utils.SparseArray;

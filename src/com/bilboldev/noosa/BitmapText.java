@@ -23,9 +23,10 @@ import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.glwrap.Matrix;
 import com.bilboldev.glwrap.Quad;
+import com.bilboldev.utils.RectF;
 
 import android.graphics.Bitmap;
-import android.graphics.RectF;
+
 
 public class BitmapText extends Visual {
 

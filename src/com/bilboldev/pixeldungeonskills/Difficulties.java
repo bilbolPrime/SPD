@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills;
 
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfExperience;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.SoulCrystal;
 
@@ -17,6 +18,9 @@ public enum Difficulties {
     private int difficulty;
 
     public static boolean canDisableChampions = false;
+
+    public static boolean is3d = true;
+    public static boolean show3dWindow = true;
 
     private int championOffset = 0;
     public float hpOffset = 0;
@@ -44,7 +48,8 @@ public enum Difficulties {
             "- Start with 500 Gold.",
             "- Start with 3 soul crystals.",
             "- Mobs are Pathetic, do 50% less damage, take 50% more damage and have 50% less HP.",
-            "- Champion spawn rate set to 10%."
+            "- Champion spawn rate set to 10%.",
+            "- Champion drop rate set to 10%."
     };
 
     public static final String[] EASY_DESC = {
@@ -54,45 +59,49 @@ public enum Difficulties {
             "- Start with 2 soul crystals.",
             "- Bonus to discovering hidden doors and traps.",
             "- Mobs are Weak, do 25% less damage, take 10% more damage and have 15% less HP.",
-            "- Champion spawn rate set to 10%."
+            "- Champion spawn rate set to 10%.",
+            "- Champion drop rate set to 30%."
     };
 
     public static final String[] NORMAL_DESC = {
             "- Mobs are standard.",
-            "- Champion spawn rate set to 20%."
+            "- Champion spawn rate set to 20%.",
+            "- Champion drop rate set to 40%."
     };
 
     public static final String[] HARD_DESC = {
             "- Potion of healing heals 75% max hp.",
             "- Mobs are Strong, do 10% extra damage, take 10% less damage and have 20% more HP.",
-            "- Champion spawn rate set to 30%."
+            "- Champion spawn rate set to 30%.",
+            "- Champion drop rate set to 50%."
     };
 
     public static final String[] HELL_DESC = {
             "- Potion of healing heals 50% max hp.",
-            "- Mobs are Immortal, do 25% more damage, take 20% less damage and have 35% more HP.",
-            "- Champion spawn rate set to 40%.",
+            "- Mobs are Immortal, do 35% more damage, take 30% less damage and have 45% more HP.",
+            "- Champion spawn rate set to 50%.",
             "- Hero starts with 4 less maxHP.",
             "- Hero gains 1 less maxHP on leveling.",
-            "- Hero starts with 4 skill points."
+            "- Champion drop rate set to 70%."
     };
 
     public static final String[] SUICIDE_DESC = {
             "- Potion of healing heals 25% max hp.",
             "- Mobs are Godlike, do 45% more damage, take 30% less damage and have 60% more HP.",
-            "- Champion spawn rate set to 50%.",
+            "- Champion spawn rate set to 70%.",
             "- Hero starts with 8 less maxHP.",
             "- Hero gains 3 less maxHP on leveling.",
-            "- Hero starts with 6 skill points."
+            "- Champion drop rate set to 90%."
     };
 
     public static final String[] JUST_KILL_ME_DESC = {
+            "- Starts with two potions of experience.",
             "- Potion of healing heals 10% max hp.",
             "- Mobs are Deities, do 60% more damage, take 40% less damage and have 75% more HP.",
             "- Champion spawn rate set to 100%.",
             "- Hero starts with 8 less maxHP.",
             "- Hero gains 3 less maxHP on leveling.",
-            "- Hero starts with 8 skill points."
+            "- Champion drop rate set to 100%."
     };
 
 
@@ -110,7 +119,7 @@ public enum Difficulties {
             case HELL:
                 return "Hell!";
             case SUICIDE:
-                return "Suicide!!";
+                return "Nightmare!!";
             case JUSTKILLME:
                 return "Just Kill Me";
         }
@@ -196,9 +205,29 @@ public enum Difficulties {
             case HARD:
                 return 3;
             case HELL:
-                return 4;
-            case SUICIDE:
                 return 5;
+            case SUICIDE:
+                return 7;
+            case JUSTKILLME:
+                return 10;
+        }
+        return 0;
+    }
+
+    public int championDropChanceNatural() {
+
+        switch (this) {
+            case SUPEREASY:
+            case EASY:
+                return 1 + 2;
+            case NORMAL:
+                return 2 + 2;
+            case HARD:
+                return 3 + 2;
+            case HELL:
+                return 5 + 2;
+            case SUICIDE:
+                return 7 + 2;
             case JUSTKILLME:
                 return 10;
         }
@@ -222,7 +251,7 @@ public enum Difficulties {
             case HARD:
                 return 1.1f;
             case HELL:
-                return 1.25f;
+                return 1.35f;
             case SUICIDE:
                 return 1.45f;
             case JUSTKILLME:
@@ -249,7 +278,7 @@ public enum Difficulties {
             case HARD:
                 return 0.9f;
             case HELL:
-                return 0.8f;
+                return 0.7f;
             case SUICIDE:
                 return 0.7f;
             case JUSTKILLME:
@@ -275,7 +304,7 @@ public enum Difficulties {
             case HARD:
                 return 1.2f;
             case HELL:
-                return 1.35f;
+                return 1.45f;
             case SUICIDE:
                 return 1.6f;
             case JUSTKILLME:
@@ -355,19 +384,7 @@ public enum Difficulties {
 
     public int difficultySkillStartBonus()
     {
-        switch (this) {
-            case SUPEREASY:
-            case EASY:
-            case NORMAL:
-            case HARD:
-                return 0;
-            case HELL:
-                return 2;
-            case SUICIDE:
-                return 4;
-            case JUSTKILLME:
-                return 6;
-        }
+
         return 0;
     }
 
@@ -398,6 +415,11 @@ public enum Difficulties {
                 new SoulCrystal().identify().collect();
                 new SoulCrystal().identify().collect();
                 Dungeon.gold = 200;
+                break;
+            case JUSTKILLME:
+                new PotionOfExperience().identify().collect();
+                new PotionOfExperience().identify().collect();
+                break;
         }
     }
 
@@ -542,6 +564,14 @@ public enum Difficulties {
             return  3;
         }
 
+        if(diff == 3){
+            return  4;
+        }
+
+        if(diff == 4){
+            return  5;
+        }
+
         return 0; // Should not happen, default to normal
     }
 
@@ -553,5 +583,19 @@ public enum Difficulties {
             sb.append(delim);
         }
         return sb.toString();
+    }
+
+    public static void swap3D(){
+        is3d = !is3d;
+        PixelDungeon.enabled3d(is3d);
+        show3dWindow = true;
+    }
+
+    public static boolean isShow3dWindow(){
+        if(show3dWindow){
+            show3dWindow = false;
+            return true;
+        }
+        return false;
     }
 }

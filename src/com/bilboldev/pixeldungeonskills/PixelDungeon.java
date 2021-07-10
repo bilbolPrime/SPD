@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -213,6 +214,7 @@ public class PixelDungeon extends Game {
 			ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
 			ActivityInfo.SCREEN_ORIENTATION_PORTRAIT );
 		Preferences.INSTANCE.put( Preferences.KEY_LANDSCAPE, value );
+		Game.instance.reloadCache();
 	}
 	
 	public static boolean landscape() {
@@ -315,6 +317,13 @@ public class PixelDungeon extends Game {
     public static boolean itemDeg() {
         return Preferences.INSTANCE.getBoolean( Preferences.KEY_DEGRADATION, true );
     }
+	public static boolean skillFontSize() {
+		return Preferences.INSTANCE.getBoolean( Preferences.KEY_SKILL_FONT_SIZE, true );
+	}
+
+	public static void skillFontSize(boolean value) {
+		Preferences.INSTANCE.put( Preferences.KEY_SKILL_FONT_SIZE, value );
+	}
 	
 	public static void brightness( boolean value ) {
 		Preferences.INSTANCE.put( Preferences.KEY_BRIGHTNESS, value );
@@ -325,6 +334,38 @@ public class PixelDungeon extends Game {
 	
 	public static boolean brightness() {
 		return Preferences.INSTANCE.getBoolean( Preferences.KEY_BRIGHTNESS, false );
+	}
+
+	public static void brightnessNew( int value ) {
+		Preferences.INSTANCE.put( Preferences.KEY_BRIGHTNESS_NEW, value );
+		if (scene() instanceof GameScene) {
+			((GameScene)scene()).brightness( value );
+		}
+	}
+
+	public static int brightnessNew() {
+		int toReturn = Preferences.INSTANCE.getInt( Preferences.KEY_BRIGHTNESS_NEW, -10 );
+		if(toReturn == -10){
+			return brightness() ? 2 : -2;
+		}
+
+		return toReturn;
+	}
+
+	public static boolean secondQuickSlot() {
+		return Preferences.INSTANCE.getBoolean( Preferences.KEY_SECOND_QUICK_SLOT, false );
+	}
+
+	public static void secondQuickSlot( boolean value ) {
+		Preferences.INSTANCE.put( Preferences.KEY_SECOND_QUICK_SLOT, value );
+	}
+
+	public static void enabled3d( boolean value ) {
+		Preferences.INSTANCE.put( Preferences.KEY_ENABLED_3D, value );
+	}
+
+	public static boolean enabled3d() {
+		return Preferences.INSTANCE.getBoolean( Preferences.KEY_ENABLED_3D, false );
 	}
 	
 	public static void donated( int value ) {

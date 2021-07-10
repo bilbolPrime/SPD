@@ -18,7 +18,7 @@
 package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.particles.Emitter;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.PointF;
 

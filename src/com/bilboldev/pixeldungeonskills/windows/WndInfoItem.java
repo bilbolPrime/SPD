@@ -18,11 +18,13 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Heap.Type;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -65,7 +67,11 @@ public class WndInfoItem extends Window {
 				}
 			}
 			fillFields( item.image(), item.glowing(), color, item.toString(), item.info() );
-			
+
+			if(heap.type == Type.FOR_SALE){
+				Dungeon.showGold = true;
+			}
+
 		} else {
 			
 			String title;
@@ -116,14 +122,20 @@ public class WndInfoItem extends Window {
 		titlebar.label( Utils.capitalize( title ), titleColor );
 		titlebar.setRect( 0, 0, WIDTH, 0 );
 		add( titlebar );
+
+
+		HighlightedText infoHighlighted = new HighlightedText(  6 );
+		infoHighlighted.text(info, WIDTH);
+		infoHighlighted.setPos(titlebar.left(), titlebar.bottom() + GAP);
+
+		add( infoHighlighted );
 		
-		BitmapTextMultiline txtInfo = PixelScene.createMultiline( info, 6 );
-		txtInfo.maxWidth = WIDTH;
-		txtInfo.measure();
-		txtInfo.x = titlebar.left();
-		txtInfo.y = titlebar.bottom() + GAP;
-		add( txtInfo );
-		
-		resize( WIDTH, (int)(txtInfo.y + txtInfo.height()) );
+		resize( WIDTH, (int)(infoHighlighted.bottom()) );
+	}
+
+	@Override
+	public void hide(){
+		Dungeon.showGold = false;
+		super.hide();
 	}
 }

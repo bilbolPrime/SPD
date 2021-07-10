@@ -67,7 +67,7 @@ public class WandOfLightning extends Wand {
 		}
         else if(ch instanceof Mob)
         {
-            damage *= Dungeon.hero.heroSkills.passiveB2.wandDamageBonus(); // <---- Mage Sorcerer if present
+            damage *= wandBonusDamageModifier(); // <---- Mage Sorcerer if present
         }
 		
 		affected.add( ch );

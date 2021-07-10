@@ -26,6 +26,7 @@ public class SummonSkeleton extends ActiveSkill3{
         tier = 3;
         image = 43;
         mana = 3;
+        useDelay = 25f;
     }
 
 
@@ -82,11 +83,6 @@ public class SummonSkeleton extends ActiveSkill3{
         }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
 
     @Override
     protected boolean upgrade()

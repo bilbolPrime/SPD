@@ -18,8 +18,8 @@
 package com.bilboldev.noosa;
 
 import com.bilboldev.glwrap.Texture;
+import com.bilboldev.utils.RectF;
 
-import android.graphics.RectF;
 
 public class SkinnedBlock extends Image {
 	

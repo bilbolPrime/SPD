@@ -17,8 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
-
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.BitmapText;
@@ -72,6 +70,7 @@ import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 import java.util.ArrayList;
 

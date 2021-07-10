@@ -19,6 +19,8 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
@@ -60,7 +62,14 @@ public class SkillSlot extends Button {
             icon.alpha( alpha );
         }
 
-        if(skill.active) {
+        if( skill.useDelay != 0 &&  skill.availableAfter > skill.skillTrack){
+			activeText = new BitmapText(PixelScene.font1x);
+			activeText.text("CD " + (int)(skill.availableAfter - skill.skillTrack));
+			activeText.hardlight( Window.TITLE_COLOR );
+			add(activeText);
+		}
+
+        else if(skill.active) {
             activeText = new BitmapText(PixelScene.font1x);
             activeText.text("Active");
             activeText.hardlight( Window.TITLE_COLOR );

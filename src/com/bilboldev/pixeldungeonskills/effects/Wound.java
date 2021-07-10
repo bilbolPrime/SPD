@@ -21,7 +21,7 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 
@@ -63,10 +63,13 @@ public class Wound extends Image {
 	}
 	
 	public static void hit( Char ch, float angle ) {
-		Wound w = (Wound)ch.sprite.parent.recycle( Wound.class );
-		ch.sprite.parent.bringToFront( w );
-		w.reset( ch.pos );
-		w.angle = angle;
+		try {
+			Wound w = (Wound) ch.sprite.parent.recycle(Wound.class);
+			ch.sprite.parent.bringToFront(w);
+			w.reset(ch.pos);
+			w.angle = angle;
+		}
+		catch (Exception e){}
 	}
 	
 	public static void hit( int pos ) {

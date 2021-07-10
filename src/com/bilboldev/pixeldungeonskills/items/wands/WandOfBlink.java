@@ -23,17 +23,81 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
 import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.items.Generator;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfTeleportation;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
+import com.bilboldev.pixeldungeonskills.plants.Plant;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
+import com.bilboldev.utils.Random;
+
+import java.util.ArrayList;
 
 public class WandOfBlink extends Wand {
 
 	{
 		name = "Wand of Blink";
 	}
-	
+
+	static final String AC_AFTER_IMAGE = "CREATE AFTER IMAGE";
+	static final int AC_AFTER_IMAGE_COST = 80;
+
+	@Override
+	public ArrayList<String> actions(Hero hero ) {
+		ArrayList<String> actions = super.actions( hero );
+		if(Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MAGE){
+			actions.add(AC_AFTER_IMAGE);
+		}
+		return actions;
+	}
+
+	@Override
+	public void execute( Hero hero, String action ) {
+		if (action.equals( AC_AFTER_IMAGE )) {
+
+			if(hero.MP >= AC_AFTER_IMAGE_COST){
+				curUser = hero;
+				curItem = this;
+				hero.MP -= AC_AFTER_IMAGE_COST;
+
+				ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+
+				for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
+					int p = curUser.pos + Level.NEIGHBOURS8[i];
+					if (Actor.findChar( p ) == null && (Level.passable[p] || Level.avoid[p])) {
+						respawnPoints.add( p );
+					}
+				}
+
+				int nImages = 1;
+				while (nImages > 0 && respawnPoints.size() > 0) {
+					int index = Random.index( respawnPoints );
+
+					MirrorImage mob = new MirrorImage();
+					mob.duplicate( curUser );
+					GameScene.add( mob );
+					WandOfBlink.appear( mob, respawnPoints.get( index ) );
+
+					respawnPoints.remove( index );
+					nImages--;
+				}
+			}
+			else {
+				GLog.n( "You need at least " + AC_AFTER_IMAGE_COST + " mana to use " + AC_AFTER_IMAGE );
+			}
+
+		} else {
+			super.execute( hero, action );
+		}
+	}
+
 	@Override
 	protected void onZap( int cell ) {
 
@@ -77,6 +141,8 @@ public class WandOfBlink extends Wand {
 	public String desc() {
 		return
 			"This wand will allow you to teleport in the chosen direction. " +
-			"Creatures and inanimate obstructions will block the teleportation.";
+			"Creatures and inanimate obstructions will block the teleportation.\n\n" +
+					highlight("Mages adept with magic can infuse their spiritual energy with the wand to create an image of themselves!") + "\n\n" +
+					highlight("Create After Image: Infuses  " + AC_AFTER_IMAGE_COST + " mana into the wand. The wand will create an image of the mage.");
 	}
 }

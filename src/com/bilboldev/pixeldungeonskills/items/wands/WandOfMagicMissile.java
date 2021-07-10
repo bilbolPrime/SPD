@@ -71,7 +71,7 @@ public class WandOfMagicMissile extends Wand {
 			
 			int level = power();
 			
-			ch.damage( Random.Int( 1, (int)(6 + level * 2 * Dungeon.hero.heroSkills.passiveB2.wandDamageBonus())), this );
+			ch.damage(((int)(wandBonusDamageModifier()* Random.Int( 1, (int)(6 + level * 2 )))), this );
 			ch.sprite.burst( 0xFF99CCFF, level / 2 + 2 );
 			
 			if (ch == curUser && !ch.isAlive()) {

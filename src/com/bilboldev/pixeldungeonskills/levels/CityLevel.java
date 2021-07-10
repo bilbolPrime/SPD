@@ -21,8 +21,9 @@ import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.levels.Room.Type;
 import com.bilboldev.utils.PointF;
@@ -37,7 +38,10 @@ public class CityLevel extends RegularLevel {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CITY;
+		if(!Difficulties.is3d)
+			return Assets.TILES_CITY;
+
+		return Assets.TILES_CITY_3D;
 	}
 	
 	@Override

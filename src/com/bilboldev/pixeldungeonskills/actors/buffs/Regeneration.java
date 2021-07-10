@@ -39,6 +39,7 @@ public class Regeneration extends Buff {
 			}
 
             bonus += ((Hero)target).heroSkills.passiveA2.healthRegenerationBonus(); // <-- Warrior regeneration if present
+			bonus += ((Hero)target).skillTree.getRegenerationBonus();
 
 			spend( (float)(REGENERATION_DELAY / Math.pow( 1.2, bonus )) );
 			

@@ -19,9 +19,11 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.effects.DeathRay;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 
 public class EyeSprite extends MobSprite {
 	
@@ -61,7 +63,7 @@ public class EyeSprite extends MobSprite {
 		
 		if (anim == attack) {
 			if (Dungeon.visible[ch.pos] || Dungeon.visible[attackPos]) {
-				parent.add( new DeathRay( center(), DungeonTilemap.tileCenterToWorld( attackPos ) ) );
+				parent.add( new DeathRay( center(), Difficulties.is3d ? DungeonTilemap.raisedTileCenterToWorld( attackPos ) : DungeonTilemapOld.tileCenterToWorld( attackPos ) ) );
 			}
 		}
 	}

@@ -33,6 +33,7 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Rage;
+import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
@@ -42,6 +43,8 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
+import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
@@ -64,7 +67,9 @@ import com.bilboldev.pixeldungeonskills.levels.PrisonLevel;
 import com.bilboldev.pixeldungeonskills.levels.Room;
 import com.bilboldev.pixeldungeonskills.levels.SewerBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.SewerLevel;
+import com.bilboldev.pixeldungeonskills.mechanics.ShadowCaster;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.BArray;
@@ -90,6 +95,7 @@ public class Dungeon {
 
 	public static int depth;
 	public static int gold;
+	public static boolean showGold;
 
 
     public static int difficulty;
@@ -110,7 +116,7 @@ public class Dungeon {
 	public static void init() {
 
 		challenges = PixelDungeon.challenges();
-
+		Skill.skillTrack = 0;
 		Actor.clear();
 
 		PathFinder.setMapSize( Level.WIDTH, Level.HEIGHT );
@@ -151,6 +157,7 @@ public class Dungeon {
 
 		Badges.reset();
 
+		StartScene.curClass.initHero( hero );
 		StartScene.curClass.initHero( hero );
 
 	}
@@ -205,6 +212,57 @@ public class Dungeon {
         hero.heroSkills.init();
 
     }
+
+	public static void initGauntlet() {
+
+		challenges = PixelDungeon.challenges();
+
+		Actor.clear();
+
+		PathFinder.setMapSize( Level.WIDTH, Level.HEIGHT );
+
+		Scroll.initLabels();
+		Potion.initColors();
+		Wand.initWoods();
+		Ring.initGems();
+
+		Statistics.reset();
+		Journal.reset();
+
+		depth = 0;
+		gold = 0;
+
+		droppedItems = new SparseArray<ArrayList<Item>>();
+
+		potionOfStrength = 0;
+		scrollsOfUpgrade = 0;
+		scrollsOfEnchantment = 0;
+		dewVial = true;
+
+		chapters = new HashSet<Integer>();
+
+		Ghost.Quest.reset();
+		Wandmaker.Quest.reset();
+		Blacksmith.Quest.reset();
+		Imp.Quest.reset();
+
+		Room.shuffleTypes();
+
+		QuickSlot.primaryValue = null;
+		QuickSlot.secondaryValue = null;
+
+		hero = new GauntletHero();
+		hero.difficulty = difficulty;
+		hero.live();
+		Badges.reset();
+
+		StartScene.curClass = HeroClass.GAUNTLET;
+		StartScene.curClass.initHero( hero );
+		hero.heroSkills = CurrentSkills.WARRIOR;
+		hero.heroSkills.init();
+		hero.skillTree = new WarriorSkillTree(0,0).build();
+	}
+
 
 	public static boolean isChallenged( int mask ) {
 		return (challenges & mask) != 0;
@@ -513,15 +571,29 @@ public class Dungeon {
 	}
 
 	public static void saveLevel() throws IOException {
+		if(hero == null || Game.instance == null){
+			return;
+		}
+
 		Bundle bundle = new Bundle();
 		bundle.put( LEVEL, level );
 
 		OutputStream output = Game.instance.openFileOutput( Utils.format( depthFile( hero.heroClass ), depth ), Game.MODE_PRIVATE );
+
+		if(output == null){
+			return;
+		}
+
 		Bundle.write( bundle, output );
 		output.close();
 	}
 
 	public static void saveAll() throws IOException {
+		if(hero == null){
+			return;
+		}
+
+
 		if (hero.isAlive()) {
 
 			Actor.fixTime();
@@ -608,6 +680,7 @@ public class Dungeon {
 
 		hero = null;
 		hero = (Hero)bundle.get( HERO );
+		Skill.skillTrack = 0;
 		if(hero == null)
             Log.d("", "null hero");
 		QuickSlot.compress();
@@ -707,7 +780,26 @@ public class Dungeon {
 
 		BArray.or( level.visited, visible, level.visited );
 
+		if(Difficulties.is3d){
+			int x = hero.pos % level.width();
+			int y = hero.pos / level.width();
+
+			int dist = ShadowCaster.MAX_DISTANCE+1;
+			//left, right, top, bottom
+			int l = Math.max( 0, x - dist );
+			int r = Math.min( x + dist, level.width() - 1 );
+			int t = Math.max( 0, y - dist );
+			int b = Math.min( y + dist, level.height() - 1 );
+
+			int width = r - l + 1;
+			int height = b - t + 1;
+
+			GameScene.updateFog(l, t, width, height);
+		}
+
+
 		GameScene.afterObserve();
+		GauntletScene.afterObserve();
 	}
 
 	public static boolean[] passable = new boolean[Level.LENGTH];

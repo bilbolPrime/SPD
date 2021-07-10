@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.Splash;
 
 public class YogSprite extends MobSprite {
@@ -44,7 +45,13 @@ public class YogSprite extends MobSprite {
 		
 		play( idle );
 	}
-	
+
+	@Override
+	public void link(Char ch) {
+		super.link(ch);
+		renderShadow = false;
+	}
+
 	@Override
 	public void die() {
 		super.die();

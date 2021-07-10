@@ -24,17 +24,17 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
@@ -45,11 +45,8 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
-import com.bilboldev.pixeldungeonskills.windows.WndMerc;
-import com.bilboldev.pixeldungeonskills.windows.WndMercs;
+import com.bilboldev.pixeldungeonskills.windows.WndMercsMission;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
-import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
-import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
@@ -131,11 +128,29 @@ public class MissionToolbar extends Component {
         add(btnMerc = new Tool(252, 7, 20, 25) {
             @Override
             protected void onClick() {
-               Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+            	if(InterlevelScene.missionChosen == 0){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				}
+				if(InterlevelScene.missionChosen == 1) {
+					GameScene.show(new WndMercsMission(WndMercsMission.Mode.ALL));
+				}
+
+				if(InterlevelScene.missionChosen == 2){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Never again");
+				}
 
             };
             protected boolean onLongClick() {
-                Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				if(InterlevelScene.missionChosen == 0){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				}
+				if(InterlevelScene.missionChosen == 1) {
+					GameScene.show(new WndMercsMission(WndMercsMission.Mode.ALL));
+				}
+
+				if(InterlevelScene.missionChosen == 2){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Never again");
+				}
                 return true;
             };});
 

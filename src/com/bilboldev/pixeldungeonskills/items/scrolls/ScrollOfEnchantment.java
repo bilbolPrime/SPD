@@ -46,11 +46,13 @@ public class ScrollOfEnchantment extends InventoryScroll {
         if (item instanceof Bow) {
 
             Bow newBow =  ((Bow)item).enchant();
+			newBow.upgrade(item.level);
             if(curUser.belongings.bow != null)
                 curUser.belongings.bow = newBow;
             else
             {
                 item.detach(Dungeon.hero.belongings.backpack);
+				newBow.upgrade(item.level);
                 newBow.collect();
             }
 

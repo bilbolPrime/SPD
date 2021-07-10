@@ -25,7 +25,7 @@ import com.bilboldev.utils.Random;
 
 public class MeleeWeapon extends Weapon {
 	
-	private int tier;
+	public int tier;
 	
 	public MeleeWeapon( int tier, float acu, float dly ) {
 		super();
@@ -95,12 +95,19 @@ public class MeleeWeapon extends Weapon {
 			"";
 		info.append( p );
 		info.append( "This " + name + " is " + Utils.indefinite( quality ) );
-		info.append( " tier-" + tier + " melee weapon. " );
-		
+		info.append( " _tier-" + tier + "_ melee weapon. " );
+
+        if(weaponEffect != null)
+        {
+            info.append( p );
+            info.append( " This " + name + " is _" + weaponEffect.Prefix + "_. " + weaponEffect.Description);
+            info.append( p );
+        }
+
 		if (levelKnown) {
 			int min = min();
 			int max = max();
-			info.append( "Its average damage is " + (min + (max - min) / 2) + " points per hit. " );
+			info.append( "It does _" + min + "_ to _" + max() + "_ damage per hit. " );
 		} else {
 			int min = min0();
 			int max = max0();
@@ -157,8 +164,9 @@ public class MeleeWeapon extends Weapon {
 		
 		if (isEquipped( Dungeon.hero )) {
 			info.append( p );
-            if(this instanceof MeleeWeapon &&  Dungeon.hero.heroSkills.passiveA1 != null && Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus() > 0) // <--- Warrior Mastery if present
-                info.append( "Your mastery of melee weapons makes it easier to use this weapon (+ " + Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus() + " levels)\n" );
+            //if(this instanceof MeleeWeapon &&  Dungeon.hero.heroSkills.passiveA1 != null && Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus() > 0) // <--- Warrior Mastery if present
+			if(this instanceof MeleeWeapon &&  Dungeon.hero.skillTree != null && Dungeon.hero.skillTree.getWeaponLevelBonus() > 0) // <--- Warrior Mastery if present
+                info.append( "Your mastery of melee weapons makes it easier to use this weapon (+ " + Dungeon.hero.skillTree.getWeaponLevelBonus() + " levels)\n" );
 			info.append( "You hold the " + name + " at the ready" + 
 				(cursed ? ", and because it is cursed, you are powerless to let go." : ".") ); 
 		} else {
@@ -189,5 +197,15 @@ public class MeleeWeapon extends Weapon {
 		}
 		
 		return this;
+	}
+
+	public String highlight(String input){
+		StringBuilder sb = new StringBuilder();
+		String[] data = input.split(" ");
+		for(int i = 0; i < data.length; i++){
+			sb.append("_" + data[i] + "_ ");
+		}
+
+		return sb.toString();
 	}
 }

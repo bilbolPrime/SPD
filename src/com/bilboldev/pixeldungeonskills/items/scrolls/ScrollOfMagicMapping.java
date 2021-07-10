@@ -17,9 +17,11 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -78,7 +80,10 @@ public class ScrollOfMagicMapping extends Scroll {
 		SpellSprite.show( curUser, SpellSprite.MAP );
 		Sample.INSTANCE.play( Assets.SND_READ );
 		Invisibility.dispel();
-		
+
+		if (Game.scene() instanceof GameScene) {
+			GameScene.updateFog();
+		}
 		setKnown();
 		
 		readAnimation();

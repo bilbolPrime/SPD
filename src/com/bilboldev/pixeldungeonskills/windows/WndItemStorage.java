@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
@@ -55,14 +56,13 @@ public class WndItemStorage extends Window {
             titlebar.color( ItemSlot.DEGRADED );
         }
 
-        BitmapTextMultiline info = PixelScene.createMultiline( item.info(), 6 );
-        info.maxWidth = WIDTH;
-        info.measure();
-        info.x = titlebar.left();
-        info.y = titlebar.bottom() + GAP;
+        HighlightedText info = new HighlightedText(  6 );
+        info.text(item.info(), WIDTH);
+        info.setPos(titlebar.left(), titlebar.bottom() + GAP);
+
         add( info );
 
-        float y = info.y + info.height() + GAP;
+        float y = info.bottom() + GAP;
         float x = 0;
 
         if (Dungeon.hero.isAlive() && owner != null) {

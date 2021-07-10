@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfHaggler;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
@@ -115,7 +116,11 @@ public class WndTradeItem extends Window {
 	public WndTradeItem( final Heap heap, boolean canBuy ) {
 		
 		super();
-		
+
+		if(heap.type == Heap.Type.FOR_SALE){
+			Dungeon.showGold = true;
+		}
+
 		Item item = heap.peek();
 		
 		float pos = createDescription( item, true );
@@ -157,7 +162,9 @@ public class WndTradeItem extends Window {
 	public void hide() {
 		
 		super.hide();
-		
+
+		Dungeon.showGold = false;
+
 		if (owner != null) {
 			owner.hide();
 			Shopkeeper.sell();
@@ -181,15 +188,15 @@ public class WndTradeItem extends Window {
 				titlebar.color( item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED );				
 			}
 		}
-		
-		BitmapTextMultiline info = PixelScene.createMultiline( item.info(), 6 );
-		info.maxWidth = WIDTH;
-		info.measure();
-		info.x = titlebar.left();
-		info.y = titlebar.bottom() + GAP;
+
+		HighlightedText info = new HighlightedText(  6 );
+		info.text(item.info(), WIDTH);
+		info.setPos(titlebar.left(), titlebar.bottom() + GAP);
+
 		add( info );
-		
-		return info.y + info.height();
+
+
+		return info.bottom();
 	}
 	
 	private void sell( Item item ) {

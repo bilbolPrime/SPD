@@ -24,6 +24,7 @@ import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -82,7 +83,10 @@ public class MovieLevel extends Level {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CITY;
+        if(!Difficulties.is3d)
+            return Assets.TILES_CITY;
+
+        return Assets.TILES_CITY_3D;
 	}
 	
 	@Override

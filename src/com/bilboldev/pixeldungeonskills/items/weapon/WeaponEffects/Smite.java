@@ -10,7 +10,7 @@ public class Smite extends WeaponEffect {
     {
         Name = "Smite";
         Prefix = "Barbaric";
-        Description = "It has a 20% chance of casting level 1 Smite when hitting a target.";
+        Description = "It has a _20%_ chance of casting _level_ _1_ _Smite_ when hitting a target.";
     }
 
     @Override

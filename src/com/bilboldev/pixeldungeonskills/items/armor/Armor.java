@@ -26,6 +26,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.EquipableItem;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.glyphs.*;
+import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -221,7 +222,7 @@ public class Armor extends EquipableItem {
 		if (levelKnown) {
 			info.append( 
 				"\n\nThis " + name + " provides damage absorption up to " +
-				"" + Math.max( DR(), 0 ) + " points per attack. " );
+				"_" + Math.max( DR(), 0 ) + "_ points per attack. " );
 			
 			if (STR > Dungeon.hero.STR()) {
 				
@@ -238,7 +239,7 @@ public class Armor extends EquipableItem {
 			}
 		} else {
 			info.append( 
-				"\n\nTypical " + name + " provides damage absorption up to " + typicalDR() + " points per attack " +
+				"\n\nTypical " + name + " provides damage absorption up to _" + typicalDR() + "_ points per attack " +
 				" and requires " + typicalSTR() + " points of strength. " );
 			if (typicalSTR() > Dungeon.hero.STR()) {
 				info.append( "Probably this armor is too heavy for you. " );
@@ -318,7 +319,12 @@ public class Armor extends EquipableItem {
 		
 		return inscribe( gl );
 	}
-	
+
+
+	public boolean multiplicity(){
+		return glyph != null && glyph.getClass() == Multiplicity.class;
+	}
+
 	public boolean isInscribed() {
 		return glyph != null;
 	}

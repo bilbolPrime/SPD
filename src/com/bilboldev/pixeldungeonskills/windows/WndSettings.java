@@ -22,6 +22,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.CheckBox;
@@ -55,6 +56,10 @@ public class WndSettings extends Window {
 	
 	private RedButton btnZoomOut;
 	private RedButton btnZoomIn;
+
+	private RedButton btnBrightnessMinus;
+	private RedButton btnBrightnessPlus;
+	private RedButton btnBrightness;
 	
 	public WndSettings( boolean inGame ) {
 		super();
@@ -139,7 +144,7 @@ public class WndSettings extends Window {
 		btnSound.checked( PixelDungeon.soundFx() );
 		add( btnSound );
 
-        if(Dungeon.hero == null || !(Dungeon.hero instanceof Legend)) {
+        if(Dungeon.hero == null || (!(Dungeon.hero instanceof Legend) && !(Dungeon.hero instanceof GauntletHero)) ) {
             if (inGame) {
 
                 CheckBox btnDeg = new CheckBox("No Degradation") {
@@ -154,22 +159,50 @@ public class WndSettings extends Window {
                 btnDeg.checked(PixelDungeon.itemDeg());
                 add(btnDeg);
 
-                CheckBox btnBrightness = new CheckBox(TXT_BRIGHTNESS) {
-                    @Override
-                    protected void onClick() {
-                        super.onClick();
-                        PixelDungeon.brightness(checked());
-                    }
-                };
-                btnBrightness.setRect(0, btnDeg.bottom() + GAP, WIDTH, BTN_HEIGHT);
-                btnBrightness.checked(PixelDungeon.brightness());
-                add(btnBrightness);
+				int w = BTN_HEIGHT;
+
+				btnBrightnessMinus = new RedButton( TXT_ZOOM_OUT ) {
+					@Override
+					protected void onClick() {
+						modifyBrightness(-1);
+					}
+				};
+				add( btnBrightnessMinus.setRect( 0, btnDeg.bottom() + GAP, w, BTN_HEIGHT) );
+
+				btnBrightnessPlus = new RedButton( TXT_ZOOM_IN ) {
+					@Override
+					protected void onClick() {
+						modifyBrightness(1);
+					}
+				};
+				add( btnBrightnessPlus.setRect( WIDTH - w, btnDeg.bottom() + GAP, w, BTN_HEIGHT) );
+				btnBrightness =  new RedButton( getBrightnessText(PixelDungeon.brightnessNew()) ) {
+					@Override
+					protected void onClick() {
+
+					}
+				};
+
+				add(btnBrightness.setRect( btnBrightnessMinus.right(), btnDeg.bottom() + GAP, WIDTH - btnBrightnessPlus.width() - btnBrightnessMinus.width(), BTN_HEIGHT ) );
+
+
+			//CheckBox btnBrightness = new CheckBox(TXT_BRIGHTNESS) {
+               //    @Override
+               //    protected void onClick() {
+               //        super.onClick();
+               //        PixelDungeon.brightness(checked());
+               //    }
+               //};
+               //btnBrightness.setRect(0, btnDeg.bottom() + GAP, WIDTH, BTN_HEIGHT);
+               //btnBrightness.checked(PixelDungeon.brightness());
+               //add(btnBrightness);
 
                 CheckBox btnQuickslot = new CheckBox(TXT_QUICKSLOT) {
                     @Override
                     protected void onClick() {
                         super.onClick();
                         Toolbar.secondQuickslot(checked());
+						PixelDungeon.secondQuickSlot(checked());
                     }
                 };
                 btnQuickslot.setRect(0, btnBrightness.bottom() + GAP, WIDTH, BTN_HEIGHT);
@@ -228,5 +261,32 @@ public class WndSettings extends Window {
 	
 	private String orientationText() {
 		return PixelDungeon.landscape() ? TXT_SWITCH_PORT : TXT_SWITCH_LAND;
+	}
+
+	private void modifyBrightness(int change){
+		int existing = PixelDungeon.brightnessNew();
+		existing += change;
+		if(existing < -2){
+			existing = -2;
+		}
+
+		if(existing > 2){
+			existing = 2;
+		}
+
+		PixelDungeon.brightnessNew(existing);
+		btnBrightness.text(getBrightnessText(existing));
+	}
+
+	private String getBrightnessText(int existing){
+		switch (existing){
+			case -2: return "Lowest Brightness";
+			case -1: return "Low Brightness";
+			case 0: return "Normal Brightness";
+			case 1: return "High Brightness";
+			case 2: return "Highest Brightness";
+		}
+
+		return "??? Brightness";
 	}
 }

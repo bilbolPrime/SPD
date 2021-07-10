@@ -63,7 +63,9 @@ public class WandOfReach extends Wand {
 			
 			Char ch = Actor.findChar( c );
 			if (ch != null) {
-				Actor.addDelayed( new Swap( curUser, ch ), -1 );
+				try {
+					Actor.addDelayed(new Swap(curUser, ch), -1);
+				}catch (Exception e){}
 				break;
 			}
 			

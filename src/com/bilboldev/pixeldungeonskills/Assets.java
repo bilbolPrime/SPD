@@ -32,6 +32,8 @@ public class Assets {
 	public static final String ICONS	= "icons.png";
 	public static final String STATUS	= "status_pane.png";
     public static final String STATUS_MISSION	= "status_pane_mission.png";
+	public static final String STATUS_GAUNTLET	= "status_pane_gauntlet.png";
+
 	public static final String HP_BAR	= "hp_bar.png";
     public static final String HP_BAR_DROPPING	= "hp_bar_dropping.png";
     public static final String MP_BAR	= "mana_bar.png";
@@ -50,6 +52,9 @@ public class Assets {
     public static final String RED_GIRL = "red_girl.png";
     public static final String VANGUARD_WARRIOR = "vanguard_warrior.png";
     public static final String SOLDIER_WARRIOR = "soldier_warrior.png";
+	public static final String SOLDIER_THIEF = "soldier_thief.png";
+	public static final String NECROMANCER = "necro_something.png";
+	public static final String SOLDIER_ARCHER = "soldier_archer.png";
     public static final String COLD_GIRL_SISTER = "cold_girl_sister.png";
 	public static final String AVATARS	= "avatars.png";
     public static final String AVATARS_MISSION	= "avatars_mission.png";
@@ -62,6 +67,7 @@ public class Assets {
 	public static final String EFFECTS		= "effects.png";
 	
 	public static final String RAT		= "rat.png";
+	public static final String RAT_RANGED		= "rat-ranged.png";
 	public static final String GNOLL	= "gnoll.png";
 	public static final String CRAB		= "crab.png";
 	public static final String GOO		= "goo.png";
@@ -101,14 +107,21 @@ public class Assets {
 	public static final String MIMIC	= "mimic.png";
 	
 	public static final String ITEMS	= "items.png";
+	public static final String TERRAIN_FEATURES	= "terrain_features.png";
 	public static final String PLANTS	= "plants.png";
 	
-	public static final String TILES_SEWERS	= "tiles0.png";
+	public static final String TILES_SEWERS	= "tiles0.png";;
+	public static final String TILES_SEWERS_3D	= "tiles_sewers.png";
 	public static final String TILES_PRISON	= "tiles1.png";
+	public static final String TILES_PRISON_3D	= "tiles_prison.png";
 	public static final String TILES_CAVES	= "tiles2.png";
+	public static final String TILES_CAVES_3D	= "tiles_caves.png";
 	public static final String TILES_CITY	= "tiles3.png";
+	public static final String TILES_CITY_3D	= "tiles_city.png";
 	public static final String TILES_HALLS	= "tiles4.png";
+	public static final String TILES_HALLS_3D	= "tiles_halls.png";
     public static final String TILES_SNOW	= "tilessnow.png";
+	public static final String TILES_SNOW_3D	= "tiles_snow_dummy.png";
 	
 	public static final String WATER_SEWERS	= "water0.png";
 	public static final String WATER_PRISON	= "water1.png";

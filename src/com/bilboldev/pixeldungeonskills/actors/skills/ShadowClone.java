@@ -27,7 +27,8 @@ public class ShadowClone extends ActiveSkill3{
         castText = "Wait till you the harem version...";
         tier = 3;
         image = 67;
-        mana = 3;
+        mana = 20;
+        useDelay = 50f;
     }
 
     @Override
@@ -35,6 +36,11 @@ public class ShadowClone extends ActiveSkill3{
         ArrayList<String> actions = new ArrayList<String>();
         if(level > 0 && hero.MP >= getManaCost())
             actions.add(AC_CAST);
+
+        if(hero.skillTree.canLevel(this)){
+            actions.add(AC_ADVANCE);
+        }
+
         return actions;
     }
 
@@ -74,13 +80,11 @@ public class ShadowClone extends ActiveSkill3{
             hero.busy();
             hero.sprite.operate( hero.pos );
         }
+        else {
+            super.execute(hero, action);
+        }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
 
     @Override
     protected boolean upgrade()

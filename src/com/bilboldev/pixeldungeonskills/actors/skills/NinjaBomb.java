@@ -20,6 +20,7 @@ public class NinjaBomb extends ActiveSkill2{
         tier = 2;
         image = 65;
         mana = 8;
+        useDelay = 10f;
     }
 
     @Override
@@ -39,12 +40,6 @@ public class NinjaBomb extends ActiveSkill2{
             Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.NINJA_BOMB);
             Dungeon.hero.heroSkills.lastUsed = this;
         }
-    }
-
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.5 * level));
     }
 
     @Override

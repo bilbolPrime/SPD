@@ -39,7 +39,7 @@ public class WandOfPoison extends Wand {
 		Char ch = Actor.findChar( cell );
 		if (ch != null) {
 
-			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5 + power() *  Dungeon.hero.heroSkills.passiveB2.wandDamageBonus() ) );
+			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5*  wandBonusDamageModifier() + power() *  wandBonusDamageModifier() ) );
 			
 		} else {
 			

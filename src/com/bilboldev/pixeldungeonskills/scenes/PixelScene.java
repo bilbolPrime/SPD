@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
+import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
 import com.bilboldev.utils.BitmapCache;
 
 public class PixelScene extends Scene {
@@ -232,6 +233,12 @@ public class PixelScene extends Scene {
 		
 		return result;
 	}
+
+	public static RenderedTextMultiline renderMultiline(String text, int size ){
+		RenderedTextMultiline result = new RenderedTextMultiline( text, size* (int)defaultZoom);
+		result.zoom(1/(float)defaultZoom);
+		return result;
+	}
 	
 	public static float align( Camera camera, float pos ) {
 		return ((int)(pos * camera.zoom)) / camera.zoom;
@@ -247,7 +254,11 @@ public class PixelScene extends Scene {
 		v.x = align( c, v.x );
 		v.y = align( c, v.y );
 	}
-	
+
+	public static void align2( Visual v ) {
+		v.x = align( v.x );
+		v.y = align( v.y );
+	}
 	public static boolean noFade = false;
 	protected void fadeIn() {
 		if (noFade) {

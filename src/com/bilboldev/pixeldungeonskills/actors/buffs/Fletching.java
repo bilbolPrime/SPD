@@ -34,7 +34,7 @@ public class Fletching extends Buff {
 
 			Hero hero = (Hero)target;
 
-            if(hero.heroSkills.passiveA1.fletching() < 1)// Huntress fletching if present
+            if(hero.skillTree.getFletching() < 1)// Huntress fletching if present
             {
                 spend( 100 );
                 return true;
@@ -48,7 +48,7 @@ public class Fletching extends Buff {
 
 
 
-            spend(100 - hero.heroSkills.passiveA1.fletching() * 10);
+            spend(hero.skillTree.getFletching());
 
 		} else {
 

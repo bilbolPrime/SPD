@@ -26,7 +26,7 @@ import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;

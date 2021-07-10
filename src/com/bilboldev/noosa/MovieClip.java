@@ -17,7 +17,8 @@
 
 package com.bilboldev.noosa;
 
-import android.graphics.RectF;
+
+import com.bilboldev.utils.RectF;
 
 public class MovieClip extends Image {
 
@@ -71,10 +72,13 @@ public class MovieClip extends Image {
 					curFrame++;
 				}
 			}
-			
-			if (curFrame != lastFrame) {
-				frame( curAnim.frames[curFrame] );
+
+			try {
+				if (curFrame != lastFrame) {
+					frame(curAnim.frames[curFrame]);
+				}
 			}
+			catch (Exception e){}
 			
 		}
 	}

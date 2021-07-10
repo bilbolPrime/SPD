@@ -13,7 +13,7 @@ public class Stealth extends PassiveSkillA2{
     }
 
     @Override
-    public int stealthBonus(){return level;}
+    public int stealthBonus(){return level / 4;}
 
     @Override
     protected boolean upgrade()
@@ -25,7 +25,26 @@ public class Stealth extends PassiveSkillA2{
     @Override
     public String info()
     {
-        return "Harder to detect.\n"
-                + costUpgradeInfo();
+        return "Harder to detect.\n\n"
+                //   + costUpgradeInfo()
+                + extendedInfo()
+                + requiresInfo() + costString();
+    }
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ": +" + (i * 0.25) + " stealth.";
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
     }
 }

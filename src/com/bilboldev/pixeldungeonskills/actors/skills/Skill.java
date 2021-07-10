@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
@@ -24,14 +25,18 @@ public class Skill{
     public static final String FAIL_ADVANCE = "You do not have enough skill points to advance in this branch.";
 
     public static final String SKILL_LEVEL = "LEVEL";
+    public static final String COOL_DOWN = "COOL_DOWN";
 
     public String tag = "";
 
-    public static final int MAX_LEVEL = 3;
+    public static final int MAX_LEVEL = 10;
 
-    public static final int STARTING_SKILL = 2;
+    public static final int MERC_MAX_LEVEL = 3;
+
+    public static final int STARTING_SKILL = 1;
 
     public static int availableSkill = STARTING_SKILL;
+    public static float skillTrack = 0;
 
     public static final float TIME_TO_USE = 1f;
 
@@ -44,23 +49,28 @@ public class Skill{
 
     public boolean active = false;
 
+    public float availableAfter = 0f;
+    public float useDelay = 0f;
+
     public boolean multiTargetActive = false;
+
+    public boolean quickCast = false; // If latest skill button is clicked, use skill again
 
     public boolean requestUpgrade()
     {
-        if(availableSkill >= tier && level < MAX_LEVEL)
+        if(availableSkill >= 1 && level < MAX_LEVEL)
         {
             if(upgrade())
             {
                 level++;
-                availableSkill -= tier;
+                availableSkill -= 1;
                // WndStory.showStory("You have gained a level in " + name);
                 return true;
             }
         }
         else
         {
-            WndStory.showStory(FAIL_ADVANCE);
+
         }
 
         return false;
@@ -82,6 +92,16 @@ public class Skill{
     }
 
     public float damageModifier()
+    {
+        return 1f;
+    }
+
+    public float meleeSpeedModifier()
+    {
+        return 1f;
+    }
+
+    public float rangedDamageModifier()
     {
         return 1f;
     }
@@ -137,11 +157,16 @@ public class Skill{
 
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
+        if(hero.skillTree.canLevel(this)){
+            actions.add(AC_ADVANCE);
+        }
         return actions;
     }
 
     public void execute( Hero hero, String action ) {
-
+        if(action == Skill.AC_ADVANCE){
+            hero.skillTree.advance(this);
+        }
     }
 
     public float getAlpha()
@@ -169,8 +194,16 @@ public class Skill{
     public String costUpgradeInfo()
     {
         return name + " is at level " + level + ".\n"
-                + (level < Skill.MAX_LEVEL ? "It costs " + upgradeCost() + " skill points to advance in " + name + ".": name + " is maxed out.")
+                //+ (level < Skill.MAX_LEVEL ? "It costs " + upgradeCost() + " skill points to advance in " + name + ".": name + " is maxed out.")
                 + (level > 0 && mana > 0 ? "\nUsing " + name + " costs " + getManaCost() + " mana.": "");
+    }
+
+    public String extendedInfo(){
+        return "";
+    }
+
+    public String requiresInfo(){
+        return "";
     }
 
     public int getManaCost()
@@ -178,10 +211,18 @@ public class Skill{
         return mana;
     }
 
+    public boolean coolDown(){
+        return availableAfter > skillTrack;
+    }
+
     public void castTextYell()
     {
         if(castText != "")
             Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, castText);
+
+        if(useDelay != 0){
+            availableAfter = skillTrack + useDelay;
+        }
     }
 
     public float wandRechargeSpeedReduction()
@@ -205,13 +246,15 @@ public class Skill{
 
     public boolean venomousAttack() {return false;}
 
-    public int venomBonus() {return 0;}
+    public float venomDamageModifier() {return 1f;}
 
     public boolean instantKill() {return false;}
 
     public boolean dodgeChance(){return false;}
 
-    public float toHitModifier(){return 1f;}
+    public int toHitModifier(){return 0;}
+
+    public int evasionDefenceBonus() {return 0;}
 
     public boolean cripple() {return false;}
 
@@ -235,6 +278,8 @@ public class Skill{
         return false;
     }
 
+    public int aimedShot() { return 0; }
+
     public void mercSummon() {}
 
     public boolean goToSleep()
@@ -242,13 +287,60 @@ public class Skill{
         return false;
     }
 
+    public boolean slowTarget() {return false;}
+
     public void storeInBundle(Bundle bundle)
     {
         bundle.put( SKILL_LEVEL + " " + tag, level );
+        try {
+            bundle.put(COOL_DOWN + " " + tag, availableAfter - skillTrack);
+        }
+     catch (Exception e){
+
+     }
     }
 
     public void restoreInBundle(Bundle bundle)
     {
         level = bundle.getInt( SKILL_LEVEL + " " + tag);
+        try
+        {
+            availableAfter = (float)  bundle.getFloat(COOL_DOWN + " " + tag);
+        }
+       catch (Exception e){
+
+       }
+    }
+
+    public String highlight(String input){
+        StringBuilder sb = new StringBuilder();
+        String[] data = input.split(" ");
+        for(int i = 0; i < data.length; i++){
+            sb.append("_" + data[i] + "_ ");
+        }
+
+        return sb.toString();
+    }
+
+    public String costString(){
+        return "\n\n" + highlight("This is a passive skill.");
+    }
+
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        return new ArrayList<>();
+    }
+
+    public boolean canCast(){
+        try
+        {
+            return Dungeon.hero.MP >= mana && !coolDown();
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+
+    public int sparkBonusDamage(){
+        return 0;
     }
 }

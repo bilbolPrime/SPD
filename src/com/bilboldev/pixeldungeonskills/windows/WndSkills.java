@@ -17,8 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
-
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Image;
@@ -39,6 +37,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 public class WndSkills extends WndTabbed {
 
@@ -237,14 +236,14 @@ public class WndSkills extends WndTabbed {
 
 			width = height = SLOT_SIZE;
 
-            durability = new ColorBlock[Skill.MAX_LEVEL];
+            durability = new ColorBlock[Skill.MERC_MAX_LEVEL];
 
-            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MERC_MAX_LEVEL) {
                 for (int i = 0; i < skill.level; i++) {
                     durability[i] = new ColorBlock(2, 2, 0xFF00EE00);
                     add(durability[i]);
                 }
-                for (int i = skill.level; i < Skill.MAX_LEVEL; i++) {
+                for (int i = skill.level; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i] = new ColorBlock(2, 2, 0x4000EE00);
                     add(durability[i]);
                 }
@@ -268,8 +267,8 @@ public class WndSkills extends WndTabbed {
 			bg.y = y;
 
 
-            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
-                for (int i = 0; i < Skill.MAX_LEVEL; i++) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MERC_MAX_LEVEL) {
+                for (int i = 0; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i].x = x + width - 9 + i * 3;
                     durability[i].y = y + 3;
 
@@ -300,7 +299,7 @@ public class WndSkills extends WndTabbed {
 
             } else {
 
-                WndSkills.this.add( new WndSkill( WndSkills.this, skill ) );
+                WndSkills.this.add( new WndSkillNew( WndSkills.this, skill ) );
 
             }
 		}

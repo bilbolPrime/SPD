@@ -22,20 +22,38 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Regrowth;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
+import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
+import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
+
+import java.util.ArrayList;
 
 public class WandOfRegrowth extends Wand {
 
 	{
 		name = "Wand of Regrowth";
 	}
-	
+
+	static final String AC_SUMMON = "Nature's Blessing";
+	static final int AC_SUMMON_COST = 40;
+
+	@Override
+	public ArrayList<String> actions(Hero hero ) {
+		ArrayList<String> actions = super.actions( hero );
+		if(Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MAGE){
+			actions.add(AC_SUMMON);
+		}
+		return actions;
+	}
+
 	@Override
 	protected void onZap( int cell ) {
 		
@@ -70,6 +88,28 @@ public class WandOfRegrowth extends Wand {
 			
 		}
 	}
+
+	@Override
+	public void execute( Hero hero, String action ) {
+		if (action.equals( AC_SUMMON )) {
+
+			if(hero.MP >= AC_SUMMON_COST){
+				curUser = hero;
+				curItem = this;
+				hero.MP -= AC_SUMMON_COST;
+
+				Plant.Seed seed = (Plant.Seed) Generator.random( Generator.Category.SEED );
+				GLog.p( "Nature has blessed you with a "  + seed.name());
+				Dungeon.level.drop( seed, hero.pos ).sprite.drop();
+			}
+			else {
+				GLog.n( "You need at least " + AC_SUMMON_COST + " mana to use " + AC_SUMMON );
+			}
+
+		} else {
+			super.execute( hero, action );
+		}
+	}
 	
 	protected void fx( int cell, Callback callback ) {
 		MagicMissile.foliage( curUser.sprite.parent, curUser.pos, cell, callback );
@@ -79,6 +119,8 @@ public class WandOfRegrowth extends Wand {
 	@Override
 	public String desc() {
 		return
-			"\"When life ceases new life always begins to grow... The eternal cycle always remains!\"";
+			"\"When life ceases new life always begins to grow... The eternal cycle always remains!\"\n\n" +
+					highlight("Mages adept with magic can infuse their spiritual energy with the wand to forge a random seed!") + "\n\n" +
+					highlight("Nature's Blessing: Infuses  " + AC_SUMMON_COST + " mana into the wand. The wand will create a random seed for the mage.");
 	}
 }

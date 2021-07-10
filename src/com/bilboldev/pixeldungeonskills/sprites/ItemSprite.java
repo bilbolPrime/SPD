@@ -20,13 +20,17 @@ package com.bilboldev.pixeldungeonskills.sprites;
 import android.graphics.Bitmap;
 
 import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.glwrap.Matrix;
+import com.bilboldev.glwrap.Vertexbuffer;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.MovieClip;
+import com.bilboldev.noosa.NoosaScript;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Gold;
@@ -53,7 +57,17 @@ public class ItemSprite extends MovieClip {
 	private boolean glowUp;
 	
 	private float dropInterval;
-	
+
+	//the amount the sprite is raised from flat when viewed in a raised perspective
+	protected float perspectiveRaise    = 5 / 16f; //5 pixels
+
+	//the width and height of the shadow are a percentage of sprite size
+	//offset is the number of pixels the shadow is moved down or up (handy for some animations)
+	protected boolean renderShadow  = false;
+	protected float shadowWidth     = 1f;
+	protected float shadowHeight    = 0.25f;
+	protected float shadowOffset    = 0.5f;
+
 	public ItemSprite() {
 		this( ItemSpriteSheet.SMTH, null );
 	}
@@ -83,6 +97,7 @@ public class ItemSprite extends MovieClip {
 	public void link( Heap heap ) {
 		this.heap = heap;
 		view( heap.image(), heap.glowing() );
+		renderShadow =  Difficulties.is3d;
 		place( heap.pos );
 	}
 	
@@ -99,10 +114,16 @@ public class ItemSprite extends MovieClip {
 	
 	public PointF worldToCamera( int cell ) {
 		final int csize = DungeonTilemap.SIZE;
-		
+
+		if(!Difficulties.is3d)
+			return new PointF(
+				cell % Level.WIDTH * csize + (csize - SIZE) * 0.5f,
+				cell / Level.WIDTH * csize + (csize - SIZE) * 0.5f
+			);
+
 		return new PointF(
-			cell % Level.WIDTH * csize + (csize - SIZE) * 0.5f,
-			cell / Level.WIDTH * csize + (csize - SIZE) * 0.5f
+				cell % Dungeon.level.width() * csize + (csize - width()) * 0.5f,
+				cell / Dungeon.level.width() * csize + (csize - height()) - csize * perspectiveRaise
 		);
 	}
 	
@@ -150,7 +171,56 @@ public class ItemSprite extends MovieClip {
 		}
 		return this;
 	}
-	
+
+	private float[] shadowMatrix = new float[16];
+
+	@Override
+	protected void updateMatrix() {
+		super.updateMatrix();
+		Matrix.copy(matrix, shadowMatrix);
+		Matrix.translate(shadowMatrix,
+				(width() * (1f - shadowWidth)) / 2f,
+				(height() * (1f - shadowHeight)) + shadowOffset);
+		Matrix.scale(shadowMatrix, shadowWidth, shadowHeight);
+	}
+
+
+	@Override
+	public void draw() {
+		if (texture == null || (!dirty && buffer == null))
+			return;
+
+		if (renderShadow) {
+			if (dirty) {
+				verticesBuffer.position(0);
+				verticesBuffer.put(vertices);
+				if (buffer == null)
+					buffer = new Vertexbuffer(verticesBuffer);
+				else
+					buffer.updateVertices(verticesBuffer);
+				dirty = false;
+			}
+
+			NoosaScript script = script();
+
+			texture.bind();
+
+			script.camera(camera());
+
+			updateMatrix();
+
+			script.uModel.valueM4(shadowMatrix);
+			script.lighting(
+					0, 0, 0, am * .6f,
+					0, 0, 0, aa * .6f);
+
+			script.drawQuad(buffer);
+		}
+
+		super.draw();
+
+	}
+
 	@Override
 	public void update() {
 		super.update();

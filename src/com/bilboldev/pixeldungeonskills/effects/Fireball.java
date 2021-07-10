@@ -19,7 +19,6 @@ package com.bilboldev.pixeldungeonskills.effects;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.graphics.RectF;
 import android.opengl.GLES20;
 
 import com.bilboldev.glwrap.Texture;
@@ -32,6 +31,7 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.utils.ColorMath;
 import com.bilboldev.utils.Random;
+import com.bilboldev.utils.RectF;
 
 public class Fireball extends Component {
 

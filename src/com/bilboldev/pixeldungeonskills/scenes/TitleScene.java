@@ -19,6 +19,8 @@ package com.bilboldev.pixeldungeonskills.scenes;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.opengl.GLES20;
 
 import com.bilboldev.noosa.BitmapText;
@@ -29,13 +31,25 @@ import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.BillingHelper;
+import com.bilboldev.pixeldungeonskills.Difficulties;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
+import com.bilboldev.pixeldungeonskills.actors.Online.OnlineHero;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
+import com.bilboldev.pixeldungeonskills.effects.Effects;
 import com.bilboldev.pixeldungeonskills.effects.Fireball;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
+import com.bilboldev.pixeldungeonskills.ui.DiscordButton;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
+import com.bilboldev.pixeldungeonskills.ui.GoogleGameButton;
+import com.bilboldev.pixeldungeonskills.ui.MoviesButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+import com.bilboldev.pixeldungeonskills.windows.WndDiscord;
+import com.bilboldev.pixeldungeonskills.windows.WndDonations;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
+import com.bilboldev.pixeldungeonskills.windows.WndStory;
 
 
 public class TitleScene extends PixelScene {
@@ -49,10 +63,24 @@ public class TitleScene extends PixelScene {
 	public void create() {
 		
 		super.create();
-		
+
+        if(Dungeon.hero != null && Dungeon.hero instanceof OnlineHero)
+        {
+            try {
+                ((Game) Game.mContext).mService.mHubConnection.stop();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
 		Music.INSTANCE.play( Assets.THEME, true );
 		Music.INSTANCE.volume( 1f );
-		
+        Effects.get(Effects.Type.RIPPLE);
+        Effects.get(Effects.Type.LIGHTNING);
+        Effects.get(Effects.Type.WOUND);
+        Effects.get(Effects.Type.RAY);
 		uiCamera.visible = false;
 		
 		int w = Camera.main.width;
@@ -91,6 +119,11 @@ public class TitleScene extends PixelScene {
 		signs.x = title.x;
 		signs.y = title.y;
 		add( signs );
+
+        Image signsSkillful = new Image( BannerSprites.get( BannerSprites.Type.SKILLFUL_SIGNS ) );
+        signsSkillful.x = title.x;
+        signsSkillful.y = title.y + 20;
+        add( signsSkillful );
 		
 		DashboardItem btnBadges = new DashboardItem( TXT_BADGES, 3 ) {
 			@Override
@@ -111,7 +144,8 @@ public class TitleScene extends PixelScene {
 		DashboardItem btnPlay = new DashboardItem( TXT_PLAY, 0 ) {
 			@Override
 			protected void onClick() {
-				PixelDungeon.switchNoFade( StartScene.class );
+				chooseGameMode();
+
 			}
 		};
 		add( btnPlay );
@@ -123,6 +157,17 @@ public class TitleScene extends PixelScene {
 			}
 		};
 		add( btnHighscores );
+
+        DashboardItem btndonate = new DashboardItem( "Donate", 4 ) {
+            @Override
+            protected void onClick() {
+                parent.add(new WndDonations(WndDonations.Mode.NORMAL));
+            }
+        };
+
+        add( btndonate );
+
+		BillingHelper.getInstance();
 		
 		if (PixelDungeon.landscape()) {
 			float y = (h + height) / 2 - DashboardItem.SIZE;
@@ -130,11 +175,13 @@ public class TitleScene extends PixelScene {
 			btnBadges		.setPos( w / 2, y );
 			btnPlay			.setPos( btnHighscores.left() - btnPlay.width(), y );
 			btnAbout		.setPos( btnBadges.right(), y );
+            btndonate       .setPos( btnAbout.right(), y );
 		} else {
 			btnBadges.setPos( w / 2 - btnBadges.width(), (h + height) / 2 - DashboardItem.SIZE );
 			btnAbout.setPos( w / 2, (h + height) / 2 - DashboardItem.SIZE );
 			btnPlay.setPos( w / 2 - btnPlay.width(), btnAbout.top() - DashboardItem.SIZE );
 			btnHighscores.setPos( w / 2, btnPlay.top() );
+            btndonate.setPos(w / 2 - btndonate.width() / 2, (h + height) / 2);
 		}
 
         BitmapText version = new BitmapText( "v " + Game.version + " (Build " + Game.versionBuild + ")", font1x );
@@ -154,6 +201,29 @@ public class TitleScene extends PixelScene {
 		PrefsButton btnPrefs = new PrefsButton();
 		btnPrefs.setPos( 0, 0 );
 		add( btnPrefs );
+
+		DiscordButton btnGame = new DiscordButton() {
+            @Override
+            public void onClick()
+            {
+            	try
+				{
+					add(new WndDiscord(WndDiscord.Mode.DISCORD));
+				}
+				catch (Exception e){
+
+				}
+			}
+        };
+        btnGame.setPos( btnPrefs.right() + 2, 2 );
+        add( btnGame );
+
+
+      //  MoviesButton btnMovie = new MoviesButton() {
+
+     //   };
+     //   btnMovie.setPos( btnGame.right() + 4, 1 );
+      //  add( btnMovie );
 		
 		ExitButton btnExit = new ExitButton();
 		btnExit.setPos( w - btnExit.width(), 0 );
@@ -166,7 +236,33 @@ public class TitleScene extends PixelScene {
 
 		fadeIn();
 	}
-	
+
+	private void chooseGameMode()
+	{
+
+		PixelDungeon.switchNoFade( StartScene.class );
+		/*TitleScene.this.add( new WndOptions( "Game Mode", "Please select a game mode", "Enter The Dungeon","Gauntlet" ) {
+			@Override
+			protected void onSelect( int index ) {
+				if(index == 0)
+				{
+					PixelDungeon.switchNoFade( StartScene.class );
+				}
+				else
+				{
+					Dungeon.hero = null;
+					Dungeon.difficulty = 1;
+					Dungeon.currentDifficulty = Difficulties.values()[1];
+					Dungeon.currentDifficulty.reset();
+					InterlevelScene.mode = InterlevelScene.Mode.GUANTLET;
+					Game.switchScene( InterlevelScene.class );
+				}
+			}
+		} );
+
+*/
+	}
+
 	private void placeTorch( float x, float y ) {
 		Fireball fb = new Fireball();
 		fb.setPos( x, y );

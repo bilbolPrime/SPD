@@ -17,8 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
-
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
@@ -31,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
@@ -50,6 +49,7 @@ import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Random;
+import com.bilboldev.utils.RectF;
 
 import java.util.ArrayList;
 
@@ -358,8 +358,8 @@ public class WndRatKing extends WndTabbed {
             titlebar.setRect(0, 0, WIDTH, 0);
             add(titlebar);
 
-            String description = "These rodents have failed me for the last time. I don't want them anymore!!\n"
-                    + "They are yours to send to their doom should you pay the proper price.\n";
+            String description = "These rodents have failed me for the last time. I don't want them anymore!!\n\n"
+                    + "They are yours to send to their doom should you pay the proper price. Your gold will be put to good use...\n";
             BitmapTextMultiline txtInfo = PixelScene.createMultiline( description, 6 );
             txtInfo.maxWidth = WIDTH;
             txtInfo.measure();
@@ -369,10 +369,10 @@ public class WndRatKing extends WndTabbed {
 
             int w = BTN_HEIGHT;
 
-            btnScoutRodent = new RedButton("SCOUT RODENT - 5 Gold") {
+            btnScoutRodent = new RedButton("SCOUT RODENT - 50 Gold") {
                 @Override
                 protected void onClick() {
-                    if (Dungeon.gold < 5) {
+                    if (Dungeon.gold < 50) {
                         text(TXT_NO_GOLD);
                     } else {
 
@@ -384,12 +384,11 @@ public class WndRatKing extends WndTabbed {
                             }
                         }
                         if(respawnPoints.size() > 0) {
-                            Dungeon.gold -= 5;
-                            SummonedPet rat = new SummonedPet(RatSprite.class);
+                            Dungeon.gold -= 50;
+                            RatScout rat = new RatScout();
                             rat.HP = rat.MP = 1;
                             rat.pos = respawnPoints.get(0);
-                            rat.name = "Scout Rodent";
-                            rat.hunt();
+
                             GameScene.add(rat);
                             WandOfBlink.appear(rat, respawnPoints.get(0));
                             Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
@@ -406,7 +405,7 @@ public class WndRatKing extends WndTabbed {
 
                 }
             };
-            add(btnFodderRodent.setRect(w/2, btnScoutRodent.bottom() + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+          //  add(btnFodderRodent.setRect(w/2, btnScoutRodent.bottom() + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
 
 
             btnRangerRodent = new RedButton("RANGER RODENT - 25 Gold") {
@@ -415,11 +414,11 @@ public class WndRatKing extends WndTabbed {
 
                 }
             };
-            add(btnRangerRodent.setRect(w/2, btnFodderRodent.bottom()  + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
+          //  add(btnRangerRodent.setRect(w/2, btnFodderRodent.bottom()  + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
 
 
-            if(maxHeight < (int) btnRangerRodent.bottom() )
-                maxHeight = (int) btnRangerRodent.bottom();
+            if(maxHeight < (int) btnScoutRodent.bottom() )
+                maxHeight = (int) btnScoutRodent.bottom();
 
 
             resize(WIDTH, maxHeight);
@@ -495,11 +494,11 @@ public class WndRatKing extends WndTabbed {
 
         tabHero.select(mode == Mode.HERO);
 
-       // StatsControl tabRats = new StatsControl(Mode.RATS);
-       // tabRats.setSize(TAB_WIDTH, tabHeight());
-      //  add(tabRats);
+        StatsControl tabRats = new StatsControl(Mode.RATS);
+        tabRats.setSize(TAB_WIDTH, tabHeight());
+       add(tabRats);
 
-       // tabRats.select(mode == Mode.RATS);
+        tabRats.select(mode == Mode.RATS);
 
         StatsControl tabShop = new StatsControl(Mode.SHOP);
         tabShop.setSize(TAB_WIDTH, tabHeight());
@@ -550,7 +549,7 @@ public class WndRatKing extends WndTabbed {
             {
                 case CHAMPIONS: return Icons.CHAMP_HALO;
                 case HERO: return Icons.MOB;
-                case RATS: return Icons.CHAMP_HALO;
+                case RATS: return Icons.RAT_KING_FLAG;
                 case SHOP: return Icons.SUPPORT;
             }
            return Icons.RAT_KING;

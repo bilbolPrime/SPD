@@ -62,15 +62,15 @@ public class Gold extends Item {
 	@Override
 	public boolean doPickUp( Hero hero ) {
 		
-		Dungeon.gold += quantity + hero.heroSkills.passiveA1.lootBonus(quantity); // <--- Rogue bandit if present
-		Statistics.goldCollected += quantity  + hero.heroSkills.passiveA1.lootBonus(quantity);
+		Dungeon.gold += quantity + hero.skillTree.getLootBonus(quantity); // <--- Rogue bandit if present
+		Statistics.goldCollected += quantity  + hero.skillTree.getLootBonus(quantity);
 		Badges.validateGoldCollected();
 		
 		GameScene.pickUp( this );
-        if(hero.heroSkills.passiveA1.lootBonus(quantity) == 0)
+        if(hero.skillTree.getLootBonus(quantity) == 0)
 		    hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE, quantity );
         else
-            hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE_LOOT, quantity, hero.heroSkills.passiveA1.lootBonus(quantity));
+            hero.sprite.showStatus( CharSprite.NEUTRAL, TXT_VALUE_LOOT, quantity,hero.skillTree.getLootBonus(quantity));
 
 		hero.spendAndNext( TIME_TO_PICK_UP );
 		

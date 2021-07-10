@@ -22,6 +22,7 @@ import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -57,7 +58,10 @@ public class CavesBossLevel extends Level {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CAVES;
+		if(!Difficulties.is3d)
+			return Assets.TILES_CAVES;
+
+		return Assets.TILES_CAVES_3D;
 	}
 	
 	@Override

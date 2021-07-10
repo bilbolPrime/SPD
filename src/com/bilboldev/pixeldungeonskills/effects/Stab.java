@@ -22,7 +22,7 @@ import android.graphics.Color;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.tweeners.PosTweener;
 import com.bilboldev.noosa.tweeners.Tweener;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;

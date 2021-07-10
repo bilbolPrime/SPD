@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.actors.Char;
 
 public class SpinnerSprite extends MobSprite {
 	
@@ -43,7 +44,14 @@ public class SpinnerSprite extends MobSprite {
 		
 		play( idle );
 	}
-	
+
+
+	@Override
+	public void link(Char ch) {
+		super.link(ch);
+		renderShadow = false;
+	}
+
 	@Override
 	public int blood() {
 		return 0xFFBFE5B8;

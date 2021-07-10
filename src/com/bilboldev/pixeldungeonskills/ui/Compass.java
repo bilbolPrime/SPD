@@ -20,7 +20,7 @@ package com.bilboldev.pixeldungeonskills.ui;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.utils.PointF;
 
 public class Compass extends Image {

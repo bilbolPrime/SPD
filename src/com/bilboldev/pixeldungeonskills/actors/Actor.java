@@ -35,7 +35,7 @@ public abstract class Actor implements Bundlable {
 	
 	public static final float TICK	= 1f;
 
-	private float time;
+	public float time;
 	
 	private int id = 0;
 	
@@ -133,8 +133,8 @@ public abstract class Actor implements Bundlable {
 	}
 	
 	public static void init() {
-		
-		addDelayed( Dungeon.hero, -Float.MIN_VALUE );
+
+		add( Dungeon.hero );
 		
 		for (Mob mob : Dungeon.level.mobs) {
 			add( mob );
@@ -195,8 +195,10 @@ public abstract class Actor implements Bundlable {
 					current = null;
 					break;
 				}
-				
-				doNext = current.act();
+
+				//if(current instanceof  Char && ((Char)current).sprite != null)
+					doNext = current.act();
+				//else doNext = true;
 				if (doNext && !Dungeon.hero.isAlive()) {
 					doNext = false;
 					current = null;

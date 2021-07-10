@@ -19,7 +19,7 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.tweeners.PosTweener;
 import com.bilboldev.noosa.tweeners.Tweener;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.PointF;

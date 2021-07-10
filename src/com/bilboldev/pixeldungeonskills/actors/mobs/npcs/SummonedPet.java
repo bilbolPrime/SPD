@@ -3,20 +3,23 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
-import com.bilboldev.pixeldungeonskills.actors.mobs.Eye;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CrabSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ElementalSprite;
 import com.bilboldev.pixeldungeonskills.sprites.EyeSprite;
+import com.bilboldev.pixeldungeonskills.sprites.MirrorSprite;
 import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkeletonSprite;
+import com.bilboldev.pixeldungeonskills.sprites.SummonedRatSprite;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -24,9 +27,12 @@ import java.util.HashSet;
  */
 public class SummonedPet extends NPC {
 
+    boolean dessummonImmunity = true;
+
+
     public static enum PET_TYPES
     {
-        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton"), SKELETON_ARCHER("Skeleton Archer"), SPECIAL("Special");
+        RAT("Rat"), CRAB("Crab"), SKELETON("Skeleton"), SKELETON_ARCHER("Skeleton Archer"), SPECIAL("Special"), FIRE_ELEMENTAL("Fire Elemental");
         public String type = "Rat";
         PET_TYPES(String type) {this.type = type;}
 
@@ -43,6 +49,7 @@ public class SummonedPet extends NPC {
                 case CRAB: return 10 + 2 * level;
                 case SKELETON_ARCHER:
                 case SKELETON: return 15 + 3 * level;
+                case FIRE_ELEMENTAL: return 5 + 10 * level;
             }
 
             return 1;
@@ -56,6 +63,7 @@ public class SummonedPet extends NPC {
                 case CRAB: return Random.NormalIntRange(2, 7) + level;
                 case SKELETON_ARCHER:
                 case SKELETON: return Random.NormalIntRange(3, 10) + level;
+                case FIRE_ELEMENTAL: return Random.NormalIntRange(1, Math.min(10, level * 3)) + Math.min(4, level * 1);
             }
             return 1;
         }
@@ -68,6 +76,7 @@ public class SummonedPet extends NPC {
                 case CRAB: return 2 * level;
                 case SKELETON_ARCHER:
                 case SKELETON: return 3 * level;
+                case FIRE_ELEMENTAL: return 5 + Math.min(5, 1 * level);
             }
             return 1;
         }
@@ -80,6 +89,7 @@ public class SummonedPet extends NPC {
                 case CRAB: return "Summoned crabs will protect their master mage.";
                 case SKELETON_ARCHER: return "Summoned skeleton archers will protect their master mage.";
                 case SKELETON: return "Summoned skeletons will protect their master mage.";
+                case FIRE_ELEMENTAL: return "Summoned fire elementals will protect their master mage.";
             }
             return "";
         }
@@ -88,16 +98,17 @@ public class SummonedPet extends NPC {
         {
             switch (this)
             {
-                case RAT: return RatSprite.class;
+                case RAT: return SummonedRatSprite.class;
                 case CRAB: return CrabSprite.class;
                 case SKELETON_ARCHER:
                 case SKELETON: return SkeletonSprite.class;
+                case FIRE_ELEMENTAL: return ElementalSprite.class;
             }
             return RatSprite.class;
         }
     }
 
-    public static final int SUMMONED_PETS_LIMIT = 3;
+    public static final int SUMMONED_PETS_LIMIT = 1;
     public static final int DEGRADE_RATE = 15;
 
     public static int summonedPets = 0;
@@ -130,7 +141,7 @@ public class SummonedPet extends NPC {
         state = WANDERING;
     }
 
-    private int level;
+    public int level;
 
     private static final String LEVEL	= "level";
 
@@ -144,6 +155,7 @@ public class SummonedPet extends NPC {
     {
         this.petType = pet;
         summonedPets++;
+        SummonedPet.killExcessPets();
     }
 
     public SummonedPet(Class<? extends CharSprite> spriteClass)
@@ -156,6 +168,10 @@ public class SummonedPet extends NPC {
         {
             range = 10;
         }
+    }
+
+    public void hunt(){
+        state = HUNTING;
     }
 
     @Override
@@ -187,6 +203,9 @@ public class SummonedPet extends NPC {
         {
             spriteClass = RatSprite.class;
         }
+
+
+
         if(petType != PET_TYPES.SPECIAL)
             summonedPets++; // Recover limit
 
@@ -245,7 +264,15 @@ public class SummonedPet extends NPC {
             if(Level.distance(pos, enemy.pos) < 2)
             ((Mob)enemy).aggro( this );
         }
-        return damage;
+
+
+        return ((int)(damage * Dungeon.hero.skillTree.getMinionDamageModifier()));
+    }
+
+    @Override
+    public int defenseProc( Char enemy, int damage ) {
+        damage = ((int)(damage * Dungeon.hero.skillTree.getMinionIncomingDamageModifier()));
+        return super.defenseProc(enemy, damage);
     }
 
     @Override
@@ -257,9 +284,24 @@ public class SummonedPet extends NPC {
         return Ballistica.cast( pos, enemy.pos, false, true ) == enemy.pos;
     }
 
+    boolean checkedImage;
+
     @Override
     protected boolean act() {
 
+        if(!checkedImage){
+            try {
+                if(spriteClass == MirrorSprite.class){
+                    ((MirrorSprite)sprite).updateArmor(level);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            checkedImage = true;
+        }
         if(MissionScene.scenePause == true)
         {
             spend(1f);
@@ -268,18 +310,31 @@ public class SummonedPet extends NPC {
         }
 
         degradeCounter++;
+
         if(petType != PET_TYPES.SPECIAL) {
             if (degradeCounter % DEGRADE_RATE == 0)
                 HP--;
 
-            if (summonedPets > SUMMONED_PETS_LIMIT + Dungeon.hero.heroSkills.passiveB3.summoningLimitBonus())
-                HP = 0;
+        //    if (summonedPets > SUMMONED_PETS_LIMIT + Dungeon.hero.skillTree.summoningLimitBonus())
+        //    {
+        //        HP = 0;
+         //   }
         }
 
         if (HP <= 0) {
             die( null );
             return true;
         } else {
+            try
+            {
+                sprite. tint( 1.4f, 1.00f, 1.00f, 0.2f );
+                sprite.alpha(0.7f);
+            }
+            catch (Exception e){
+
+            }
+
+
             return super.act();
         }
     }
@@ -368,5 +423,41 @@ public class SummonedPet extends NPC {
 
         Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
         Dungeon.hero.busy();
+    }
+
+    public static void killExcessPets(){
+        try
+        {
+            ArrayList<Mob> pets = new ArrayList<>();
+            for (Mob mob : Dungeon.level.mobs) {
+                if (mob instanceof SummonedPet) {
+                    pets.add(mob);
+                }
+            }
+
+            if(pets.size() + 1 > SUMMONED_PETS_LIMIT  + Dungeon.hero.skillTree.summoningLimitBonus()){
+                pets.get(0).die(null);
+            }
+        }
+       catch (Exception e){
+
+       }
+    }
+
+    public static void killClones(){
+        try
+        {
+            for (Mob mob : Dungeon.level.mobs) {
+                if (mob instanceof SummonedPet) {
+                    if(((SummonedPet)mob).spriteClass == MirrorSprite.class){
+                        mob.die(null);
+                    }
+
+                }
+            }
+        }
+        catch (Exception e){
+
+        }
     }
 }

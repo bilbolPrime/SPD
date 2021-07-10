@@ -20,9 +20,12 @@ package com.bilboldev.pixeldungeonskills.scenes;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.bilboldev.glwrap.Blending;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
+import com.bilboldev.noosa.NoosaScript;
+import com.bilboldev.noosa.NoosaScriptNoLighting;
 import com.bilboldev.noosa.SkinnedBlock;
 import com.bilboldev.noosa.Visual;
 import com.bilboldev.noosa.audio.Music;
@@ -30,9 +33,15 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
-import com.bilboldev.pixeldungeonskills.FogOfWar;
+import com.bilboldev.pixeldungeonskills.levels.traps.Trap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTileSheet;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonWallsTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.FogOfWar;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -42,6 +51,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.BlobEmitter;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
+import com.bilboldev.pixeldungeonskills.effects.FixedText;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.FloatingText;
 import com.bilboldev.pixeldungeonskills.effects.Ripple;
@@ -60,6 +70,11 @@ import com.bilboldev.pixeldungeonskills.sprites.DiscardedItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.PlantSprite;
+import com.bilboldev.pixeldungeonskills.thetiles.FogOfWarNew;
+import com.bilboldev.pixeldungeonskills.thetiles.GridTileMap;
+import com.bilboldev.pixeldungeonskills.thetiles.RaisedTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.TerrainFeaturesTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.WallBlockingTilemap;
 import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
 import com.bilboldev.pixeldungeonskills.ui.Banner;
 import com.bilboldev.pixeldungeonskills.ui.BusyIndicator;
@@ -76,6 +91,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.utils.Random;
+import com.bilboldev.utils.SparseArray;
 
 public class GameScene extends PixelScene {
 	
@@ -95,9 +111,15 @@ public class GameScene extends PixelScene {
     protected static GameScene scene;
 
     protected SkinnedBlock water;
-    protected DungeonTilemap tiles;
-    protected FogOfWar fog;
-    protected HeroSprite hero;
+	protected DungeonTilemapOld tiles;
+	private GridTileMap visualGrid;
+	private TerrainFeaturesTilemap terrainFeatures;
+	private RaisedTerrainTilemap raisedTerrain;
+	private DungeonWallsTilemap walls;
+	private WallBlockingTilemap wallBlocking;
+	protected FogOfWar fog;
+	protected FogOfWarNew fogNew;
+	private HeroSprite hero;
 
     protected GameLog log;
 
@@ -146,19 +168,25 @@ public class GameScene extends PixelScene {
 
 		terrain = new Group();
 		add( terrain );
-		
-		water = new SkinnedBlock( 
-			Level.WIDTH * DungeonTilemap.SIZE, 
-			Level.HEIGHT * DungeonTilemap.SIZE,
-			Dungeon.level.waterTex() );
+
+		water = new SkinnedBlock(
+				Dungeon.level.WIDTH * DungeonTilemap.SIZE,
+				Dungeon.level.HEIGHT * DungeonTilemap.SIZE,
+				Dungeon.level.waterTex());
 		terrain.add( water );
 		
 		ripples = new Group();
 		terrain.add( ripples );
-		
-		tiles = new DungeonTilemap();
+
+		DungeonTileSheet.setupVariance(Dungeon.level.map.length, Random.Int(1000));
+
+		if(Difficulties.is3d)
+			tiles = new DungeonTerrainTilemap();
+		else
+			tiles = new DungeonTilemapOld();
+
 		terrain.add( tiles );
-		
+
 		Dungeon.level.addVisuals( this );
 		
 		plants = new Group();
@@ -168,7 +196,13 @@ public class GameScene extends PixelScene {
 		for (int i=0; i < size; i++) {
 			addPlantSprite( Dungeon.level.plants.valueAt( i ) );
 		}
-		
+
+
+		terrainFeatures = new TerrainFeaturesTilemap(Dungeon.level.plants, new SparseArray<Trap>());
+		//if(Difficulties.is3d)
+		//	terrain.add(terrainFeatures);
+
+
 		heaps = new Group();
 		add( heaps );
 		
@@ -183,14 +217,23 @@ public class GameScene extends PixelScene {
 
 		mobs = new Group();
 		add( mobs );
-		
+
 		for (Mob mob : Dungeon.level.mobs) {
 			addMobSprite( mob );
 			if (Statistics.amuletObtained) {
 				mob.beckon( Dungeon.hero.pos );
 			}
 		}
-		
+
+		raisedTerrain = new RaisedTerrainTilemap();
+
+		if(Difficulties.is3d)
+			add( raisedTerrain );
+
+		walls = new DungeonWallsTilemap();
+		if(Difficulties.is3d)
+			add(walls);
+
 		add( emitters );
 		add( effects );
 		
@@ -201,12 +244,21 @@ public class GameScene extends PixelScene {
 			blob.emitter = null;
 			addBlobSprite( blob );
 		}
+
+		if(!Difficulties.is3d)
+		{
+			fog = new FogOfWar( Level.WIDTH, Level.HEIGHT );
+			fog.updateVisibility( Dungeon.visible, Dungeon.level.visited, Dungeon.level.mapped );
+			add( fog );
+		}
+		else {
+			fogNew = new FogOfWarNew( Level.WIDTH, Level.HEIGHT );
+			//fog.updateVisibility( Dungeon.visible, Dungeon.level.visited, Dungeon.level.mapped );
+			add( fogNew );
+		}
+
 		
-		fog = new FogOfWar( Level.WIDTH, Level.HEIGHT );
-		fog.updateVisibility( Dungeon.visible, Dungeon.level.visited, Dungeon.level.mapped );
-		add( fog );
-		
-		brightness( PixelDungeon.brightness() );
+		brightness( PixelDungeon.brightnessNew() );
 
 
 		spells = new Group();
@@ -232,6 +284,7 @@ public class GameScene extends PixelScene {
 		add( sb );
 
 		toolbar = new Toolbar();
+		toolbar.secondQuickslot(PixelDungeon.secondQuickSlot());
 		toolbar.camera = uiCamera;
 		toolbar.setRect( 0,uiCamera.height - toolbar.height(), uiCamera.width, toolbar.height() );
 		add( toolbar );
@@ -372,8 +425,14 @@ public class GameScene extends PixelScene {
 		if (Dungeon.hero == null) {
 			return;
 		}
-			
-		super.update();
+
+		try
+		{
+			super.update();
+		}
+		catch (Exception e){
+
+		}
 		
 		water.offset( 0, -5 * Game.elapsed );
 		
@@ -382,8 +441,14 @@ public class GameScene extends PixelScene {
 		if (Dungeon.hero.ready && !Dungeon.hero.paralysed) {
 			log.newLine();
 		}
-		
-		cellSelector.enabled = Dungeon.hero.ready;
+
+		try
+		{
+			cellSelector.enabled = Dungeon.hero.ready;
+		}
+		catch (Exception e){
+
+		}
 	}
 	
 	@Override
@@ -408,15 +473,39 @@ public class GameScene extends PixelScene {
 	}
 	
 	public void brightness( boolean value ) {
-		water.rm = water.gm = water.bm = 
-		tiles.rm = tiles.gm = tiles.bm = 
-			value ? 1.5f : 1.0f;
-		if (value) {
-			fog.am = +2f;
-			fog.aa = -1f;
-		} else {
-			fog.am = +1f;
-			fog.aa =  0f;
+    	if(!Difficulties.is3d){
+			water.rm = water.gm = water.bm =
+					tiles.rm = tiles.gm = tiles.bm =
+							value ? 1.5f : 1.0f;
+			if (value) {
+				fog.am = +2f;
+				fog.aa = -1f;
+			} else {
+				fog.am = +1f;
+				fog.aa =  0f;
+			}
+		}
+	}
+
+	public void brightness( int value ) {
+		if(!Difficulties.is3d){
+			water.rm = water.gm = water.bm =
+					tiles.rm = tiles.gm = tiles.bm =
+							1.0f + 0.125f * ( 2 + value);
+
+			fog.am = +1f + (2 + value) * 0.25f;
+			fog.aa = 0f - (2 + value) * 0.25f;
+			//if (value) {
+			//	fog.am = +2f;
+			//	fog.aa = -1f;
+			//} else {
+			//	fog.am = +1f;
+			//	fog.aa =  0f;
+			//}
+		}
+		else {
+			if(scene.fogNew != null)
+				scene.fogNew.updateFog();
 		}
 	}
 
@@ -522,7 +611,11 @@ public class GameScene extends PixelScene {
 
 	
 	public static void add( EmoIcon icon ) {
-		scene.emoicons.add( icon );
+    	try
+		{
+			scene.emoicons.add( icon );
+		}
+		catch (Exception e){}
 	}
 	
 	public static void effect( Visual effect ) {
@@ -552,23 +645,85 @@ public class GameScene extends PixelScene {
 	public static FloatingText status() {
 		return scene != null ? (FloatingText)scene.statuses.recycle( FloatingText.class ) : null;
 	}
+
+    public static FixedText fixedStatus() {
+        return scene != null ? (FixedText)scene.statuses.recycle( FixedText.class ) : null;
+    }
 	
 	public static void pickUp( Item item ) {
 		scene.toolbar.pickup( item );
 	}
-	
+
+	//updates the whole map
 	public static void updateMap() {
 		if (scene != null) {
-			scene.tiles.updated.set( 0, 0, Level.WIDTH, Level.HEIGHT );
+			scene.tiles.updateMap();
+		//	scene.visualGrid.updateMap();
+	//		scene.terrainFeatures.updateMap();
+			if(scene.raisedTerrain != null)
+				scene.raisedTerrain.updateMap();
+
+			if(scene.terrainFeatures != null)
+				scene.terrainFeatures.updateMap();
+
+			if(scene.walls != null)
+				scene.walls.updateMap();
+
+			updateFog();
 		}
 	}
-	
+
 	public static void updateMap( int cell ) {
 		if (scene != null) {
-			scene.tiles.updated.union( cell % Level.WIDTH, cell / Level.WIDTH );
+			scene.tiles.updateMapCell( cell );
+//			scene.visualGrid.updateMapCell( cell );
+//			scene.terrainFeatures.updateMapCell( cell );
+
+			if(scene.terrainFeatures != null)
+				scene.terrainFeatures.updateMapCell(cell);
+
+
+			if(scene.raisedTerrain != null)
+				scene.raisedTerrain.updateMapCell( cell );
+
+			if(scene.walls != null)
+				scene.walls.updateMapCell( cell );
+			//update adjacent cells too
+			updateFog( cell, 1 );
 		}
 	}
-	
+
+
+	public static void updateFog(){
+		if (scene != null) {
+			if(scene.fogNew != null){
+				scene.fogNew.updateFog();
+			}
+
+			//scene.wallBlocking.updateMap();
+		}
+	}
+
+	public static void updateFog(int x, int y, int w, int h){
+		if (scene != null) {
+			if(scene.fogNew != null){
+				scene.fogNew.updateFogArea(x, y, w, h);
+			}
+
+			//scene.wallBlocking.updateArea(x, y, w, h);
+		}
+	}
+
+	public static void updateFog( int cell, int radius ){
+		if (scene != null) {
+			if(scene.fogNew != null) {
+				scene.fogNew.updateFog(cell, radius);
+			}
+			//scene.wallBlocking.updateArea( cell, radius );
+		}
+	}
+
+
 	public static void discoverTile( int pos, int oldValue ) {
 		if (scene != null) {
 			scene.tiles.discover( pos, oldValue );
@@ -582,13 +737,17 @@ public class GameScene extends PixelScene {
 	
 	public static void afterObserve() {
 		if (scene != null) {
-			scene.fog.updateVisibility( Dungeon.visible, Dungeon.level.visited, Dungeon.level.mapped );
-			
+			if(scene.fog != null)
+				scene.fog.updateVisibility( Dungeon.visible, Dungeon.level.visited, Dungeon.level.mapped );
+
 			for (Mob mob : Dungeon.level.mobs) {
-				mob.sprite.visible = Dungeon.visible[mob.pos];
+				if (mob.sprite != null)
+					mob.sprite.visible = Dungeon.visible[mob.pos];
 			}
 		}
 	}
+
+
 	
 	public static void flash( int color ) {
 		scene.fadeIn( 0xFF000000 | color, true );
@@ -617,8 +776,12 @@ public class GameScene extends PixelScene {
 	}
 	
 	public static void selectCell( CellSelector.Listener listener ) {
-		cellSelector.listener = listener;
-		scene.prompt( listener.prompt() );
+    	try
+		{
+			cellSelector.listener = listener;
+			scene.prompt( listener.prompt() );
+		}
+		catch (Exception e) {}
 	}
 	
 	private static boolean cancelCellSelector() {
@@ -642,16 +805,21 @@ public class GameScene extends PixelScene {
 	}
 
 	static boolean cancel() {
-		if (Dungeon.hero.curAction != null || Dungeon.hero.restoreHealth) {
-			
-			Dungeon.hero.curAction = null;
-			Dungeon.hero.restoreHealth = false;
-			return true;
-			
-		} else {
-			
-			return cancelCellSelector();
-			
+    	try {
+			if (Dungeon.hero.curAction != null || Dungeon.hero.restoreHealth) {
+
+				Dungeon.hero.curAction = null;
+				Dungeon.hero.restoreHealth = false;
+				return true;
+
+			} else {
+
+				return cancelCellSelector();
+
+			}
+		}
+		catch (Exception e){
+    		return  true;
 		}
 	}
 	

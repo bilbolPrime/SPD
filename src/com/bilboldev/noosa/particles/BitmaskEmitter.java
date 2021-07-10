@@ -17,12 +17,12 @@
 
 package com.bilboldev.noosa.particles;
 
-import android.graphics.RectF;
 
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.utils.Random;
+import com.bilboldev.utils.RectF;
 
 public class BitmaskEmitter extends Emitter {
 

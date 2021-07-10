@@ -45,12 +45,6 @@ public class SoulFury extends ActiveSkill3{
     }
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.25 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;

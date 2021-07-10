@@ -72,7 +72,9 @@ public class Shock extends Weapon.Enchantment {
 	private int nPoints;
 	
 	private void hit( Char ch, int damage ) {
-		
+
+		try
+		{
 		if (damage < 1) {
 			return;
 		}
@@ -95,6 +97,7 @@ public class Shock extends Weapon.Enchantment {
 		
 		if (ns.size() > 0) {
 			hit( Random.element( ns ), Random.Int( damage / 2, damage ) );
-		}
+		}}
+		catch (Exception e){}
 	}
 }

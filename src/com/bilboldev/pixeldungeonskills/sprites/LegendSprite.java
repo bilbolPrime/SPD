@@ -3,6 +3,8 @@ package com.bilboldev.pixeldungeonskills.sprites;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
+import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
+import com.bilboldev.pixeldungeonskills.effects.SoulFuryHalo;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 
 /**
@@ -12,7 +14,8 @@ public class LegendSprite extends HeroSprite {
 
 
     public ArcherMaidenHalo halo = null;
-    public boolean hasHalo = false;
+    public SoulFuryHalo furyHalo = null;
+    public boolean hasHalo = false, hasFuryHalo = false;
 
     public void haloUp()
     {
@@ -22,6 +25,21 @@ public class LegendSprite extends HeroSprite {
         hasHalo = true;
         add(State.ARCHERMAIDEN);
         GameScene.effect(halo = new ArcherMaidenHalo(this));
+    }
+
+    public void haloUpFury()
+    {
+        if(hasFuryHalo)
+            return;
+
+
+        if(halo != null){
+            halo.putOut();
+        }
+
+        hasFuryHalo = true;
+        //add(State.ARCHERMAIDEN);
+        GameScene.effect(furyHalo = new SoulFuryHalo(this));
     }
 
 
@@ -51,6 +69,24 @@ public class LegendSprite extends HeroSprite {
 
         read = new Animation( 20, false );
         read.frames( film, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19 );
+    }
+
+    public void showOnlineTurn() {
+        if (emo instanceof EmoIcon.OnlineTurn) {
+
+        } else {
+            if (emo != null) {
+                emo.killAndErase();
+            }
+            emo = new EmoIcon.OnlineTurn( this );
+        }
+    }
+
+    public void hideOnlineTurn() {
+        if (emo instanceof EmoIcon.OnlineTurn) {
+            emo.killAndErase();
+            emo = null;
+        }
     }
 
 }

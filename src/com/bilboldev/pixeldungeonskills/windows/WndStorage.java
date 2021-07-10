@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
 
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.BitmapText;
@@ -45,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 public class WndStorage extends WndTabbed {
 

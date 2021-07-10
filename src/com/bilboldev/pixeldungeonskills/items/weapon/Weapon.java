@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.items.weapon.enchantments.*;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
@@ -59,7 +60,7 @@ abstract public class Weapon extends KindOfWeapon {
 	private int hitsToKnow = HITS_TO_KNOW;
 	
 	protected Enchantment enchantment;
-	
+
 	@Override
 	public void proc( Char attacker, Char defender, int damage ) {
 		
@@ -84,9 +85,12 @@ abstract public class Weapon extends KindOfWeapon {
 
     public int STR()
     {
-        if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
-            return STR - Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
-        return STR;
+        //if(Dungeon.hero != null && Dungeon.hero.heroSkills != null && Dungeon.hero.heroSkills.passiveA1 != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+        //    return STR - Dungeon.hero.heroSkills.passiveB3.weaponLevelBonus(); // <--- Warrior Mastery if present
+		if(Dungeon.hero != null && Dungeon.hero.skillTree != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
+			return STR -  Dungeon.hero.skillTree.getWeaponLevelBonus(); // <--- Warrior Mastery if present
+
+		return STR;
     }
 
 	@Override
@@ -240,6 +244,7 @@ abstract public class Weapon extends KindOfWeapon {
 	public boolean isEnchanted() {
 		return enchantment != null;
 	}
+
 	
 	@Override
 	public ItemSprite.Glowing glowing() {

@@ -28,6 +28,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -46,6 +47,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlowParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.WindParticle;
@@ -78,6 +80,7 @@ import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundlable;
 import com.bilboldev.utils.Bundle;
+import com.bilboldev.utils.PathFinder;
 import com.bilboldev.utils.Random;
 import com.bilboldev.utils.SparseArray;
 
@@ -108,7 +111,8 @@ public abstract class Level implements Bundlable {
 	public int[] map;
 	public boolean[] visited;
 	public boolean[] mapped;
-	
+	public boolean[] heroFOV;
+
 	public int viewDistance = Dungeon.isChallenged( Challenges.DARKNESS ) ? 3: 8;
 	
 	public static boolean[] fieldOfView = new boolean[LENGTH];
@@ -163,7 +167,9 @@ public abstract class Level implements Bundlable {
 		Arrays.fill( visited, false );
 		mapped = new boolean[LENGTH];
 		Arrays.fill( mapped, false );
-		
+		heroFOV     = new boolean[LENGTH];
+		Arrays.fill( heroFOV, false );
+
 		mobs = new HashSet<Mob>();
 		heaps = new SparseArray<Heap>();
 		blobs = new HashMap<Class<? extends Blob>,Blob>();
@@ -528,11 +534,11 @@ public abstract class Level implements Bundlable {
 		 
 		for (int i=WIDTH; i < LENGTH - WIDTH; i++) {
 			
-			if (water[i]) {
+			if (water[i] && !Difficulties.is3d) {
 				map[i] = getWaterTile( i );
 			}
 			
-			if (pit[i]) {
+			if (pit[i] && !Difficulties.is3d) {
 				if (!pit[i - WIDTH]) {
 					int c = map[i - WIDTH];
 					if (c == Terrain.EMPTY_SP || c == Terrain.STATUE_SP) {
@@ -580,7 +586,8 @@ public abstract class Level implements Bundlable {
 		}
 	}
 	
-	private void cleanWalls() {	
+	private void cleanWalls() {
+		discoverable = new boolean[length()];
 		for (int i=0; i < LENGTH; i++) {
 			
 			boolean d = false;
@@ -721,7 +728,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.TOXIC_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -733,7 +740,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.FIRE_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -745,7 +752,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.PARALYTIC_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -757,7 +764,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.POISON_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -769,7 +776,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.ALARM_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -781,7 +788,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.LIGHTNING_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -793,7 +800,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.GRIPPING_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -805,7 +812,7 @@ public abstract class Level implements Bundlable {
 			GLog.i( TXT_HIDDEN_PLATE_CLICKS );
 		case Terrain.SUMMONING_TRAP:
 			trap = true;
-            if(ch == Dungeon.hero && ((Hero)ch).heroSkills.passiveA3.disableTrap() == true)
+            if(ch == Dungeon.hero && ((Hero)ch).skillTree.disableTrap() == true)
             {
 
             }
@@ -911,7 +918,8 @@ public abstract class Level implements Bundlable {
 			plant.activate( mob );
 		}
 	}
-	
+
+
 	public boolean[] updateFieldOfView( Char c ) {
 		
 		int cx = c.pos % WIDTH;
@@ -1006,9 +1014,52 @@ public abstract class Level implements Bundlable {
 				}
 			}
 		}
-		
+
+		try
+		{
+			if(c instanceof RatScout){
+				int p = c.pos;
+				heroFOV[p] = true;
+				heroFOV[p + 1] = true;
+				heroFOV[p - 1] = true;
+				heroFOV[p + WIDTH + 1] = true;
+				heroFOV[p + WIDTH - 1] = true;
+				heroFOV[p - WIDTH + 1] = true;
+				heroFOV[p - WIDTH - 1] = true;
+				heroFOV[p + WIDTH] = true;
+				heroFOV[p - WIDTH] = true;
+			}
+		}
+		catch (Exception e){
+
+		}
+
+		if(c == Dungeon.hero){
+			for (Mob mob : mobs) {
+				try {
+					if(mob instanceof RatScout){
+						int p = mob.pos;
+							fieldOfView[p] = true;
+							fieldOfView[p + 1] = true;
+							fieldOfView[p - 1] = true;
+							fieldOfView[p + WIDTH + 1] = true;
+							fieldOfView[p + WIDTH - 1] = true;
+							fieldOfView[p - WIDTH + 1] = true;
+							fieldOfView[p - WIDTH - 1] = true;
+							fieldOfView[p + WIDTH] = true;
+							fieldOfView[p - WIDTH] = true;
+					}
+				}
+					catch (Exception e){}
+				}
+			heroFOV = fieldOfView;
+		}
+
+
 		return fieldOfView;
 	}
+
+
 	
 	public static int distance( int a, int b ) {
 		int ax = a % WIDTH;
@@ -1169,4 +1220,25 @@ public abstract class Level implements Bundlable {
 			return "";
 		}
 	}
+
+	public boolean insideMap( int tile ){
+		//top and bottom row and beyond
+		return !((tile < WIDTH || tile >= LENGTH - WIDTH) ||
+				//left and right column
+				(tile % WIDTH == 0 || tile % WIDTH == WIDTH-1));
+	}
+
+	public int width(){
+		return WIDTH;
+	}
+
+	public int height(){
+		return HEIGHT;
+	}
+
+	public int length(){
+		return LENGTH;
+	}
+
+
 }

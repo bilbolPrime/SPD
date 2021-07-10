@@ -23,7 +23,7 @@ import com.bilboldev.pixeldungeonskills.levels.Level;
 
 public final class ShadowCaster {
 
-	private static final int MAX_DISTANCE = 8;
+	public static final int MAX_DISTANCE = 8;
 	
 	private static final int WIDTH	= Level.WIDTH;
 	private static final int HEIGHT	= Level.HEIGHT;

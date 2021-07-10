@@ -22,6 +22,7 @@ import java.util.List;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -54,7 +55,10 @@ public class PrisonBossLevel extends RegularLevel {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_PRISON;
+		if(!Difficulties.is3d)
+			return Assets.TILES_PRISON;
+
+		return Assets.TILES_PRISON_3D;
 	}
 	
 	@Override

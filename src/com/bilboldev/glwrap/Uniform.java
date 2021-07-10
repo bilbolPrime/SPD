@@ -60,6 +60,11 @@ public class Uniform {
 	}
 	
 	public void valueM4( float[] value ) {
-		GLES20.glUniformMatrix4fv( location, 1, false, value, 0 );
+		try{
+			GLES20.glUniformMatrix4fv( location, 1, false, value, 0 );
+		}
+		catch (Exception e){
+
+		}
 	}
 }

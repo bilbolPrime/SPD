@@ -34,6 +34,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Weakness;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
@@ -41,6 +42,8 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.Wound;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.Smite;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
@@ -146,7 +149,9 @@ public abstract class Mob extends Char {
 		
 		boolean justAlerted = alerted;
 		alerted = false;
-		
+		if(sprite == null){
+			return true;
+		}
 		sprite.hideAlert();
 		
 		if (paralysed) {
@@ -156,7 +161,12 @@ public abstract class Mob extends Char {
 		}
 		
 		enemy = chooseEnemy();
-		
+
+		// Can't go for the hero, go for the merc / summoned pet
+		if(enemy != null && !canAttack(enemy)){
+			enemy = chooseNonHeroEnemy();
+		}
+
 		boolean enemyInFOV = 
 			enemy != null && enemy.isAlive() && 
 			Level.fieldOfView[enemy.pos] && enemy.invisible <= 0;
@@ -188,6 +198,34 @@ public abstract class Mob extends Char {
 			if (source != null) {
 				return source;
 			}
+		}
+
+		return enemy != null && enemy.isAlive() ? enemy : Dungeon.hero;
+	}
+
+	protected Char chooseNonHeroEnemy() {
+
+		if (buff( Amok.class ) != null) {
+			return chooseEnemy();
+		}
+
+		Terror terror = (Terror)buff( Terror.class );
+		if (terror != null) {
+			return chooseEnemy();
+		}
+
+
+		// Collect enemies that can be attacked
+		HashSet<Mob> enemies = new HashSet<Mob>();
+		for (Mob mob:Dungeon.level.mobs) {
+			if (mob != this && Level.fieldOfView[mob.pos]
+					&& ((mob instanceof HiredMerc) || (mob instanceof SummonedPet))
+			&& canAttack(mob)) {
+				enemies.add( mob );
+			}
+		}
+		if (enemies.size() > 0) {
+			return Random.element( enemies );
 		}
 
 		return enemy != null && enemy.isAlive() ? enemy : Dungeon.hero;
@@ -418,10 +456,27 @@ public abstract class Mob extends Char {
 
     protected void dropLootGuaranteed() {
 
-        Item item = Generator.random(  );
-        Dungeon.level.drop( item, pos ).sprite.drop();
+		if(Random.Int(10) > Dungeon.currentDifficulty.championDropChanceNatural() || noLoot){
+			return;
+		}
+
+		if(Random.Float() < 0.2f){
+			Item item = Generator.random(  );
+			Dungeon.level.drop( item, pos ).sprite.drop();
+		}
+        else {
+			Item item = Generator.randomConsumable(  );
+			Dungeon.level.drop( item, pos ).sprite.drop();
+		}
 
     }
+
+    boolean noLoot = false;
+    public void noLoot(){
+		lootChance = 0;
+		//EXP = 0;
+		noLoot = true;
+	}
 
 	protected void dropLoot() {
 		if (loot != null && Random.Float() < lootChance) {
@@ -439,6 +494,11 @@ public abstract class Mob extends Char {
 				item = (Item)loot;
 				
 			}
+
+            if(item instanceof Weapon && Random.Int(100) < 50)
+            {
+                item.weaponEffect = new Smite();
+            }
 			Dungeon.level.drop( item, pos ).sprite.drop();
 		}
 	}

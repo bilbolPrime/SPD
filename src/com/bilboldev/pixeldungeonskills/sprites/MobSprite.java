@@ -19,14 +19,14 @@ package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.noosa.tweeners.ScaleTweener;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.utils.PointF;
 import com.bilboldev.utils.Random;
 
 public class MobSprite extends CharSprite {
 
-	private static final float FADE_TIME	= 3f;
+	protected static final float FADE_TIME	= 3f;
 	private static final float FALL_TIME	= 1f;
 	
 	@Override

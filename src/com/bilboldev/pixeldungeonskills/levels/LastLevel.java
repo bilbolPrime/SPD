@@ -21,6 +21,7 @@ import java.util.Arrays;
 
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.items.Amulet;
 import com.bilboldev.pixeldungeonskills.levels.painters.Painter;
 import com.bilboldev.utils.Random;
@@ -38,7 +39,10 @@ public class LastLevel extends Level {
 	
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_HALLS;
+		if(!Difficulties.is3d)
+			return Assets.TILES_HALLS;
+
+		return Assets.TILES_HALLS_3D;
 	}
 	
 	@Override

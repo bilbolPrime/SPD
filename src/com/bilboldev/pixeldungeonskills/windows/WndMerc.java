@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
 
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.BitmapText;
@@ -63,6 +62,7 @@ import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 import java.util.ArrayList;
 
@@ -187,6 +187,7 @@ public class WndMerc extends WndTabbed {
 					if(respawnPoints.size() > 0) {
 						WandOfBlink.appear(Dungeon.hero.hiredMerc, respawnPoints.get(0));
 						Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
+						Dungeon.hero.hiredMerc.standGuard(false);
 					}
 					hide();
 				}
@@ -198,9 +199,32 @@ public class WndMerc extends WndTabbed {
 				120, 20);
 		add(btnHire);
 
+		int btnBottom = (int) btnHire.bottom() ;
+
+		final boolean standingGuard = Dungeon.hero.hiredMerc != null && Dungeon.hero.hiredMerc.getStandGuard();
+
+		btnHire = new RedButton(!standingGuard ? "Stand Guard" : "Follow Me") {
+			@Override
+			protected void onClick() {
+
+				if(Dungeon.hero.hiredMerc == null)
+					return;
+
+				Dungeon.hero.hiredMerc.standGuard(!standingGuard);
+
+				hide();
+			}
 
 
-		resize( WIDTH, (int) info.y + (int)info.height() + SLOT_SIZE + 23 + 2 * (int)GAP );
+		};
+
+		btnHire.setRect((width - 120) / 2 > 0 ? (width - 120) / 2 : 0, btnBottom  + 3 * (int)GAP,
+				120, 20);
+		add(btnHire);
+
+
+
+		resize( WIDTH, (int) btnHire.bottom()  );
 
 	}
 
@@ -473,14 +497,14 @@ public class WndMerc extends WndTabbed {
 
             width = height = SLOT_SIZE;
 
-            durability = new ColorBlock[Skill.MAX_LEVEL];
+            durability = new ColorBlock[Skill.MERC_MAX_LEVEL];
 
-            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MAX_LEVEL) {
+            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MERC_MAX_LEVEL) {
                 for (int i = 0; i < skill.level; i++) {
                     durability[i] = new ColorBlock(2, 2, 0xFF00EE00);
                     add(durability[i]);
                 }
-                for (int i = skill.level; i < Skill.MAX_LEVEL; i++) {
+                for (int i = skill.level; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i] = new ColorBlock(2, 2, 0x4000EE00);
                     add(durability[i]);
                 }
@@ -504,8 +528,8 @@ public class WndMerc extends WndTabbed {
             bg.y = y;
 
 
-            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MAX_LEVEL) {
-                for (int i = 0; i < Skill.MAX_LEVEL; i++) {
+            if(skill != null && skill.name != null && skill.level > 0 && skill.level <= Skill.MERC_MAX_LEVEL) {
+                for (int i = 0; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i].x = x + width - 9 + i * 3;
                     durability[i].y = y + 3;
 

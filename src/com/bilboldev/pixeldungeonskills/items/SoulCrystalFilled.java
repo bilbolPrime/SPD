@@ -142,7 +142,7 @@ public class SoulCrystalFilled extends Item {
 	@Override
 	public String desc() {
 		return 
-			"A soul crystal holding the essence of a " + captured + ".\nThrow it to summon the spirit into your service.";
+			"A soul crystal holding the essence of a _" + captured + "_.\nThrow it to summon the spirit into your service.";
 	}
 
     @Override

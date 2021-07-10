@@ -10,11 +10,13 @@ public class ShadowClone extends MirrorImage {
         name = "Shadow Clone";
     }
 
-    int lifeSpan = 3;
+    int lifeSpan = 2;
 
     @Override
     public int attackProc( Char enemy, int damage ) {
         int dmg = super.attackProc( enemy, damage );
+        dmg = 1 + dmg / 4;
+
         lifeSpan--;
         if(lifeSpan < 1) {
             destroy();

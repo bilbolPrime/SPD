@@ -66,8 +66,8 @@ public class Poison extends Buff implements Hero.Doom {
 	public boolean act() {
 		if (target.isAlive()) {
 
-            if(target instanceof Mob && Dungeon.hero.heroSkills.passiveB2.venomBonus() > 0)
-                target.damage( (int)(left / 3) + 1 + Dungeon.hero.heroSkills.passiveB2.venomBonus(), this );
+            if(target instanceof Mob)
+                target.damage( ((int)(Dungeon.hero.skillTree.venomDamageModifier() * ((int)(left / 3) + 1 ))), this );
             else
 			    target.damage( (int)(left / 3) + 1, this );
 			spend( TICK );

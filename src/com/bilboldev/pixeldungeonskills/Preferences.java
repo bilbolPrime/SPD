@@ -37,9 +37,13 @@ enum Preferences {
 	public static final String KEY_DONATED		= "donated";
 	public static final String KEY_INTRO		= "intro";
 	public static final String KEY_BRIGHTNESS	= "brightness";
+	public static final String KEY_BRIGHTNESS_NEW	= "brightness_new";
+	public static final String KEY_ENABLED_3D	= "enabled3D";
     public static final String KEY_DEGRADATION	= "nodegradation";
     public static final String KEY_ARCHER_MAIDEN	= "archermaiden";
     public static final String KEY_DISABLE_CHAMPIONS	= "disablechampions";
+	public static final String KEY_SECOND_QUICK_SLOT	= "secondquickslot";
+	public static final String KEY_SKILL_FONT_SIZE	= "skillfontsize";
 
 	private SharedPreferences prefs;
 	

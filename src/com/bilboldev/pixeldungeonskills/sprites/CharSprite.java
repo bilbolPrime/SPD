@@ -17,15 +17,22 @@
  */
 package com.bilboldev.pixeldungeonskills.sprites;
 
+import com.bilboldev.glwrap.Matrix;
+import com.bilboldev.glwrap.Vertexbuffer;
+import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.MovieClip;
+import com.bilboldev.noosa.NoosaScript;
 import com.bilboldev.noosa.Visual;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.tweeners.PosTweener;
 import com.bilboldev.noosa.tweeners.Tweener;
 import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.Difficulties;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampBlackHalo;
@@ -97,7 +104,17 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	public Char ch;
 	
 	public boolean isMoving = false;
-	
+
+	//the amount the sprite is raised from flat when viewed in a raised perspective
+	protected float perspectiveRaise    = 6 / 16f; //6 pixels
+
+	//the width and height of the shadow are a percentage of sprite size
+	//offset is the number of pixels the shadow is moved down or up (handy for some animations)
+	protected boolean renderShadow  = false;
+	protected float shadowWidth     = 1.2f;
+	protected float shadowHeight    = 0.25f;
+	protected float shadowOffset    = 0.25f;
+
 	public CharSprite() {
 		super();
 		listener = this;
@@ -109,17 +126,24 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		
 		place( ch.pos );
 		turnTo( ch.pos, Random.Int( Level.LENGTH ) );
-		
+
+		renderShadow = Difficulties.is3d;
 		ch.updateSpriteState();
 	}
 	
 	public PointF worldToCamera( int cell ) {
 		
 		final int csize = DungeonTilemap.SIZE;
-		
+
+		if(!Difficulties.is3d)
+			return new PointF(
+				((cell % Level.WIDTH) + 0.5f) * csize - width * 0.5f,
+				((cell / Level.WIDTH) + 1.0f) * csize - height
+			);
+
 		return new PointF(
-			((cell % Level.WIDTH) + 0.5f) * csize - width * 0.5f,
-			((cell / Level.WIDTH) + 1.0f) * csize - height
+				PixelScene.align(Camera.main, ((cell % Dungeon.level.width()) + 0.5f) * csize - width * 0.5f),
+				PixelScene.align(Camera.main, ((cell / Dungeon.level.width()) + 1.0f) * csize - height - csize * perspectiveRaise)
 		);
 	}
 
@@ -418,7 +442,8 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 			emo = null;
 		}
 	}
-	
+
+
 	@Override
 	public void kill() {
 		super.kill();
@@ -428,7 +453,56 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 			emo = null;
 		}
 	}
-	
+
+
+	protected float[] shadowMatrix = new float[16];
+
+	@Override
+	protected void updateMatrix() {
+		super.updateMatrix();
+		Matrix.copy(matrix, shadowMatrix);
+		Matrix.translate(shadowMatrix,
+				(width() * (1f - shadowWidth)) / 2f,
+				(height() * (1f - shadowHeight)) + shadowOffset);
+		Matrix.scale(shadowMatrix, shadowWidth, shadowHeight);
+	}
+
+	@Override
+	public void draw() {
+		if (texture == null || (!dirty && buffer == null))
+			return;
+
+		if (renderShadow) {
+			if (dirty) {
+				verticesBuffer.position(0);
+				verticesBuffer.put(vertices);
+				if (buffer == null)
+					buffer = new Vertexbuffer(verticesBuffer);
+				else
+					buffer.updateVertices(verticesBuffer);
+				dirty = false;
+			}
+
+			NoosaScript script = script();
+
+			texture.bind();
+
+			script.camera(camera());
+
+			updateMatrix();
+
+			script.uModel.valueM4(shadowMatrix);
+			script.lighting(
+					0, 0, 0, am * .6f,
+					0, 0, 0, aa * .6f);
+
+			script.drawQuad(buffer);
+		}
+
+		super.draw();
+
+	}
+
 	@Override
 	public void onComplete( Tweener tweener ) {
 		if (tweener == jumpTweener) {

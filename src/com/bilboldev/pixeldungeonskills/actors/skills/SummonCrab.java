@@ -81,11 +81,6 @@ public class SummonCrab extends ActiveSkill2{
         }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
 
     @Override
     protected boolean upgrade()

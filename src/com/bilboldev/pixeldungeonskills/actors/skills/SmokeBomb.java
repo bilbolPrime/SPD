@@ -22,7 +22,7 @@ public class SmokeBomb extends ActiveSkill1{
         castText = "Now you see me..";
         tier = 1;
         image = 65;
-        mana = 6;
+        mana = 10;
     }
 
     @Override
@@ -30,6 +30,11 @@ public class SmokeBomb extends ActiveSkill1{
         ArrayList<String> actions = new ArrayList<String>();
         if(level > 0 && hero.MP >= getManaCost())
             actions.add(AC_CAST);
+
+        if(hero.skillTree.canLevel(this)){
+            actions.add(AC_ADVANCE);
+        }
+
         return actions;
     }
 
@@ -37,7 +42,7 @@ public class SmokeBomb extends ActiveSkill1{
     public void execute( Hero hero, String action ) {
         if(action == Skill.AC_CAST)
         {
-                Buff.affect(hero, Invisibility.class, Invisibility.DURATION * (0.5f * level));
+                Buff.affect(hero, Invisibility.class,  5 + (3f * level));
                 CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
                 hero.MP -= getManaCost();
                 StatusPane.manaDropping += getManaCost();
@@ -47,13 +52,11 @@ public class SmokeBomb extends ActiveSkill1{
                 hero.busy();
                 hero.sprite.operate( hero.pos );
         }
+        else {
+            super.execute(hero, action);
+        }
     }
 
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
 
     @Override
     protected boolean upgrade()
@@ -65,8 +68,42 @@ public class SmokeBomb extends ActiveSkill1{
     @Override
     public String info()
     {
-        return "You become invisible.\n"
-                + costUpgradeInfo();
+        return "Become invisible for a duration.\n\n"
+                //   + costUpgradeInfo()
+                + extendedInfo()
+                + requiresInfo() + costString();
     }
 
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ": " + (5 + i * 3) + " steps.";
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
+
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Stealth";
+        }
+
+        return "";
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(Stealth.class);
+        return toReturn;
+    }
 }

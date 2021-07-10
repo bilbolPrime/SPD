@@ -161,7 +161,8 @@ public class ItemSpriteSheet {
 	public static final int HOLDER	= 104;
 	public static final int HOLSTER	= 111;
 	public static final int KEYRING	= 126;
-	
+
+
 	// UNUSED
 	public static final int SPARK_UPGRADE	= 117;
 	public static final int SPARK_ENCHANT	= 118;
@@ -184,6 +185,7 @@ public class ItemSpriteSheet {
 
     // Skillful Pixel Dungeon Items
     public static final int SPD_OFFSET = 136;
+	public static final int POTION_HOLDER	= SPD_OFFSET + 34; // Kudos to shattered
     public static final int EMPTY_BOW	= SPD_OFFSET + 0;
     public static final int Bow	= SPD_OFFSET + 1;
     public static final int ForstBow	= SPD_OFFSET + 2;
@@ -223,4 +225,8 @@ public class ItemSpriteSheet {
     public static final int CRYSTAL_FULL = SPD_OFFSET + 41;
 
     public static final int MOB_PROJECTILE = SPD_OFFSET + 42;
+
+	public static final int SoulBlade_0	= SPD_OFFSET + 48;
+	public static final int SoulBlade_1	= SPD_OFFSET + 49;
+
 }

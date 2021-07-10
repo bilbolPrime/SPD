@@ -21,44 +21,46 @@ import java.util.HashMap;
 
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.utils.RectF;
 
-import android.graphics.RectF;
 
 public class TextureFilm {
-	
+
 	private static final RectF FULL = new RectF( 0, 0, 1, 1 );
-	
+
 	private int texWidth;
 	private int texHeight;
-	
+
+	private SmartTexture texture;
+
 	protected HashMap<Object,RectF> frames = new HashMap<Object, RectF>();
-	
+
 	public TextureFilm( Object tx ) {
-		
-		SmartTexture texture = TextureCache.get( tx );
-		
+
+		texture = TextureCache.get( tx );
+
 		texWidth = texture.width;
 		texHeight = texture.height;
-		
+
 		add( null, FULL );
 	}
-	
+
 	public TextureFilm( SmartTexture texture, int width ) {
 		this( texture, width, texture.height );
 	}
-	
+
 	public TextureFilm( Object tx, int width, int height ) {
-		
-		SmartTexture texture = TextureCache.get( tx );
-		
+
+		texture = TextureCache.get( tx );
+
 		texWidth = texture.width;
 		texHeight = texture.height;
-		
+
 		float uw = (float)width / texWidth;
 		float vh = (float)height / texHeight;
 		int cols = texWidth / width;
 		int rows = texHeight / height;
-		
+
 		for (int i=0; i < rows; i++) {
 			for (int j=0; j < cols; j++) {
 				RectF rect = new RectF( j * uw, i * vh, (j+1) * uw, (i+1) * vh );
@@ -66,40 +68,54 @@ public class TextureFilm {
 			}
 		}
 	}
-	
+
 	public TextureFilm( TextureFilm atlas, Object key, int width, int height ) {
-	
+
+		texture = atlas.texture;
+
 		texWidth = atlas.texWidth;
 		texHeight = atlas.texHeight;
-		
+
 		RectF patch = atlas.get( key );
-		
+
 		float uw = (float)width / texWidth;
 		float vh = (float)height / texHeight;
 		int cols = (int)(width( patch ) / width);
 		int rows = (int)(height( patch ) / height);
-		
+
 		for (int i=0; i < rows; i++) {
 			for (int j=0; j < cols; j++) {
 				RectF rect = new RectF( j * uw, i * vh, (j+1) * uw, (i+1) * vh );
-				rect.offset( patch.left, patch.top );
+				rect.shift( patch.left, patch.top );
 				add( i * cols + j, rect );
 			}
 		}
 	}
-	
+
 	public void add( Object id, RectF rect ) {
 		frames.put( id, rect );
 	}
-	
+
+	public void add( Object id, int left, int top, int right, int bottom){
+		frames.put( id, texture.uvRect(left, top, right, bottom));
+	}
+
 	public RectF get( Object id ) {
 		return frames.get( id );
 	}
-	
+
+	public float width( Object id ){
+		return width( get( id ) );
+	}
+
 	public float width( RectF frame ) {
 		return frame.width() * texWidth;
 	}
-	
+
+	public float height( Object id ){
+		return height( get( id ) );
+	}
+
 	public float height( RectF frame ) {
 		return frame.height() * texHeight;
 	}
