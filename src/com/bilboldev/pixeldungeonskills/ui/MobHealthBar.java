@@ -2,6 +2,10 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.ColorBlock;
+import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.TextureFilm;
+import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 
 public final class MobHealthBar {
     private static final int ROW_HEIGHT = 4;
@@ -16,6 +20,8 @@ public final class MobHealthBar {
     private static final int FIRE = 0xDC9E58;
 
     private final ColorBlock block = new ColorBlock(1, 1, 0xFFFFFFFF);
+    private final Image buffIcon = new Image(Assets.BUFFS_SMALL);
+    private final TextureFilm buffFrames = new TextureFilm(Assets.BUFFS_SMALL, BuffIndicator.SIZE, BuffIndicator.SIZE);
     private float left, top, scaleX, scaleY, opacity;
 
     public static float width(MobHealth.State state) {
@@ -23,7 +29,16 @@ public final class MobHealthBar {
     }
 
     public static float height(MobHealth.State state) {
+        int iconRows = (state.buffIcons.size() + buffColumns(state) - 1) / buffColumns(state);
+        return barHeight(state) + (iconRows == 0 ? 0 : iconRows * (BuffIndicator.SIZE + 1) + 1);
+    }
+
+    private static float barHeight(MobHealth.State state) {
         return state.rows * STEP + 1 + margin(state) * 2;
+    }
+
+    private static int buffColumns(MobHealth.State state) {
+        return Math.max(1, Math.min(4, (int)width(state) / (BuffIndicator.SIZE + 1)));
     }
 
     private static int margin(MobHealth.State state) {
@@ -38,7 +53,7 @@ public final class MobHealthBar {
         this.scaleY = scaleY;
         opacity = alpha;
         left = centerX - width(state) * scaleX * 0.5f;
-        top = bottomY - height(state) * scaleY;
+        top = bottomY - barHeight(state) * scaleY;
 
         int inset = margin(state);
         if (state.deathAge < 0) {
@@ -59,6 +74,7 @@ public final class MobHealthBar {
             for (int row = 0; row < state.rows; row++) {
                 row(state, row, x, y + (state.rows - row - 1) * STEP);
             }
+            buffs(state, camera, centerX);
         }
 
         for (int i = 0; i < state.breaks().size(); i++) {
@@ -68,6 +84,25 @@ public final class MobHealthBar {
             } else {
                 shards(state, broken);
             }
+        }
+    }
+
+    private void buffs(MobHealth.State state, Camera camera, float centerX) {
+        buffIcon.camera = camera;
+        buffIcon.scale.set(scaleX, scaleY);
+        int columns = buffColumns(state);
+        int step = BuffIndicator.SIZE + 1;
+        float y = top - (height(state) - barHeight(state)) * scaleY;
+        for (int first = 0; first < state.buffIcons.size(); first += columns) {
+            int count = Math.min(columns, state.buffIcons.size() - first);
+            float x = centerX - (count * step - 1) * scaleX * 0.5f;
+            for (int column = 0; column < count; column++) {
+                buffIcon.frame(buffFrames.get(state.buffIcons.get(first + column)));
+                buffIcon.x = PixelScene.align(camera, x + column * step * scaleX);
+                buffIcon.y = PixelScene.align(camera, y);
+                buffIcon.draw();
+            }
+            y += step * scaleY;
         }
     }
 
@@ -153,7 +188,7 @@ public final class MobHealthBar {
         float halfWidth = state.width * 0.5f;
         int distance = state.yog && broken.shield == 1 ? 4 : 2;
         float center = width(state) * 0.5f;
-        float middle = height(state) * 0.5f;
+        float middle = barHeight(state) * 0.5f;
         for (int side = -1; side <= 1; side += 2) {
             for (int piece = 0; piece < 3; piece++) {
                 float x = center + side * (halfWidth + distance - 1 + age * (6 + piece * 3));
@@ -176,5 +211,6 @@ public final class MobHealthBar {
 
     public void destroy() {
         block.destroy();
+        buffIcon.destroy();
     }
 }

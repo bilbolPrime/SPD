@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.Lore;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLES20;
@@ -30,7 +31,6 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
-import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
@@ -56,12 +56,12 @@ public class ClassicTitleScene extends PixelScene {
 
 	@Override
 	public void create() {
+		Lore.clearNotices();
 		com.bilboldev.pixeldungeonskills.GauntletRun.finish();
 
 		super.create();
 
 		Badges.loadGlobal();
-		VersionNewsInfo.prepareEntitlements();
 		Badges.saveGlobal();
 		Badges.ensureGlobalFile();
 

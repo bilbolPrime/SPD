@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
@@ -131,7 +132,7 @@ public class RebornTengu extends Tengu {
     }
 
     private void unlockSkills() {
-        int next = unlocked;
+        int next = RebornChallenges.active(RebornChallenges.UNCHAINED) ? 7 : unlocked;
         if (HP * 4 <= HT * 3) next |= 1;
         if (HP * 2 <= HT) next |= 2;
         if (HP * 4 <= HT) next |= 4;
@@ -145,7 +146,7 @@ public class RebornTengu extends Tengu {
 
     @Override
     protected boolean doAttack(Char target) {
-        if (recovery == 0 && canAimAtHero()) {
+        if (RebornChallenges.canWarn(this) && recovery == 0 && canAimAtHero()) {
             if ((unlocked & 2) != 0 && lastSkill != 2 && summonShadow()) {
                 lastSkill = 2;
                 recovery = 4;

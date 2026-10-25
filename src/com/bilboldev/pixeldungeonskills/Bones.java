@@ -52,7 +52,7 @@ public class Bones {
 	}
 
 	public static void leave() {
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || LocalCoop.active() || RunSeed.active()) return;
 		String file = bonesFile();
 
 		item = null;
@@ -94,7 +94,7 @@ public class Bones {
 	}
 
 	public static Item get() {
-		if (GauntletRun.active() || LocalCoop.active()) return null;
+		if (GauntletRun.active() || LocalCoop.active() || RunSeed.active()) return null;
 		String file = bonesFile();
 
         if(depth == ColdGirl.FROST_DEPTH || depth == 0)

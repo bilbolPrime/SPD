@@ -24,6 +24,8 @@ import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.ui.Component;
 import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
@@ -48,6 +50,7 @@ public class WndItemStorage extends WndScrollable {
     public WndItemStorage(final WndStorage owner, final Item item) {
 
         super();
+        final Hero hero = Dungeon.hero;
         menuModel = new MenuModel(Message.item(item), Message.description(item));
         int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 
@@ -68,12 +71,18 @@ public class WndItemStorage extends WndScrollable {
         info.text(item.displayInfo(), textWidth(windowWidth));
         ArrayList<RedButton> buttons = new ArrayList<>();
 
-        if (Dungeon.hero.isAlive() && owner != null) {
+        if (hero.isAlive() && owner != null) {
 
                 RedButton btn = new ActionButton( "Take from storage" ) {
                     @Override
                     protected void onClick() {
-                        item.execute( Dungeon.hero, Item.AC_STORE_TAKE );
+                        Runnable take = () -> {
+                            if (hero.isAlive() && hero.pos == Dungeon.level.storage
+                                    && hero.storage.backpack.contains(item)) {
+                                item.execute(hero, Item.AC_STORE_TAKE);
+                            }
+                        };
+                        if (!LocalCoop.defer(hero, take)) take.run();
                         hide();
                         owner.hide();
                     };

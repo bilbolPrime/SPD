@@ -23,7 +23,7 @@ public class KOArrow extends ActiveSkill2{
     @Override
     public boolean goToSleep()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
         {
             cast = false;
             return false;

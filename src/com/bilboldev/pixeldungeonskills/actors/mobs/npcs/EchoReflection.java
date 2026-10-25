@@ -24,6 +24,13 @@ public class EchoReflection extends RoomProp {
     }
 
     @Override
+    public EchoSprite sprite() {
+        EchoSprite sprite = (EchoSprite)super.sprite();
+        sprite.appearance(Dungeon.hero.heroClass, armorTier);
+        return sprite;
+    }
+
+    @Override
     public void interact() {
         if (!available() || !chamber.inside(Dungeon.hero.pos)) return;
         GameScene.show(new WndOptions(Message.actor(this), Message.of(this, "challenge"), Message.of(this, "accept"), Message.key(RebornSideRooms.class, "leave")) {

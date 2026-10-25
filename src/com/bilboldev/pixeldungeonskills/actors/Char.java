@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 import com.bilboldev.noosa.Camera;
@@ -35,6 +36,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Charm;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Frostbite;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Roots;
@@ -64,6 +66,7 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.RimePick;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
@@ -315,6 +318,9 @@ public abstract class Char extends Actor {
 
 			int dr = this instanceof Hero && ((Hero)this).rangedWeapon != null && ((Hero)this).subClass == HeroSubClass.SNIPER ? 0 :
 				Random.IntRange( 0, enemy.dr() );
+			if (attacker != null && attacker.rangedWeapon == null && attacker.belongings.weapon instanceof RimePick) {
+				dr = RimePick.pierce(enemy, dr);
+			}
 
 			int dmg = damageRoll();
 			RebornChampion champion = buff(RebornChampion.class);
@@ -571,13 +577,15 @@ public abstract class Char extends Actor {
 	}
 
 	public float speed() {
-		return buff( Cripple.class ) == null ? baseSpeed : baseSpeed * 0.5f;
+		float speed = buff(Cripple.class) == null ? baseSpeed : baseSpeed * 0.5f;
+		return buff(Frostbite.class) == null ? speed : speed * 0.8f;
 	}
 
 	private int damageColor = -1;
 	private Char damageAttacker;
 
 	public void damageFrom(int dmg, Object src, Char attacker) {
+        if (RebornChallenges.enraged(attacker)) dmg = (int)Math.ceil(dmg * 1.5f);
 		Char previous = damageAttacker;
 		damageAttacker = attacker;
 		try {
@@ -609,6 +617,8 @@ public abstract class Char extends Actor {
 			return;
 		}
 
+		Buff.detach( this, Frost.class );
+
 		Class<?> srcClass = src.getClass();
 		if (immunities().contains( srcClass )) {
 			dmg = 0;
@@ -628,7 +638,7 @@ public abstract class Char extends Actor {
         if(src instanceof Hero) {
             Hero heroSrc = (Hero) src;
             if (heroSrc.rangedWeapon instanceof Arrow && heroSrc.belongings.bow instanceof Bow) {
-                heroSrc.belongings.bow.bowSpecial(this);
+                heroSrc.belongings.bow.bowSpecial(heroSrc, this, dmg);
                 ((Arrow) heroSrc.rangedWeapon).arrowEffect(heroSrc, this);
             }
         }

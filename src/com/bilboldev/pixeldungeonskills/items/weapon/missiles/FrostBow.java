@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -31,7 +32,7 @@ import com.bilboldev.utils.Random;
 public class FrostBow extends Bow {
 
 	{
-		name = "frost bow";
+		name = Messages.get("library.items.frostbow.name");
 		image = ItemSpriteSheet.ForstBow;
 
         stackable = false;
@@ -65,20 +66,12 @@ public class FrostBow extends Bow {
 	}
 
     @Override
-    public void bowSpecial(Char target)
-    {
-        try {
-            if (Random.Int(5) == 1) {
-                Buff.prolong(target, Frost.class, Frost.duration(target) * Random.Float(1f, 2f));
-                GLog.p("custom.generated.entry_target_frozen_102bb35d50");
-
-                target.sprite.showStatus(CharSprite.NEUTRAL, Message.key("custom.generated.entry_brrrr_6154b07d86"));
-            } else
-                Buff.affect(target, Frost.class);
-        }
-        catch (Exception ex)
-        {
-
+    public void bowSpecial(Char target) {
+        if (!target.isAlive() || target.immunities().contains(Frost.class) || Random.Int(5) != 1) return;
+        Buff.prolong(target, Frost.class, Frost.duration(target) * Random.Float(1f, 2f));
+        GLog.p("custom.generated.entry_target_frozen_102bb35d50");
+        if (target.sprite != null) {
+            target.sprite.showStatus(CharSprite.NEUTRAL, Message.key("custom.generated.entry_brrrr_6154b07d86"));
         }
     }
 }

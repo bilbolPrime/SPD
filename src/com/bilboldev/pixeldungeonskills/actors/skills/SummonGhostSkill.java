@@ -36,7 +36,7 @@ public class SummonGhostSkill extends ActiveSkill3{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if (level > 0 && hero.MP >= getManaCost())
+        if (level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_SUMMON);
 
         if (hero.skillTree.canLevel(this)){
@@ -48,7 +48,7 @@ public class SummonGhostSkill extends ActiveSkill3{
 
     @Override
     public void execute( Hero hero, String action ) {
-        if (action == Skill.AC_SUMMON)
+        if (action == Skill.AC_SUMMON && hero.canUseSkill(getManaCost()))
         {
             boolean spawned = false;
             int newPos = hero.pos;
@@ -76,7 +76,7 @@ public class SummonGhostSkill extends ActiveSkill3{
             }
 
             if (spawned) {
-                hero.MP -= getManaCost();
+                hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 hero.spend( TIME_TO_USE );

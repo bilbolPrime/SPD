@@ -43,6 +43,17 @@ public class EchoDuel extends Mob {
         defenseSkill = 4 + power;
     }
 
+    public HeroClass heroClass() {
+        return guise;
+    }
+
+    @Override
+    public EchoSprite sprite() {
+        EchoSprite sprite = (EchoSprite)super.sprite();
+        sprite.appearance(guise, armorTier);
+        return sprite;
+    }
+
     private boolean present() {
         return Dungeon.level != null && Dungeon.level.mobs.contains(this);
     }
@@ -168,7 +179,7 @@ public class EchoDuel extends Mob {
         }
         RebornSideRooms.remove(this);
         if (sprite != null) sprite.die();
-        Dungeon.level.drop(new ScrollOfSkill().identify(), pos);
+        Dungeon.level.drop(new ScrollOfSkill().identify(), pos, this);
         GLog.p(EchoReflection.class, "victory");
     }
 

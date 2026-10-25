@@ -17,38 +17,21 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Image;
-import com.bilboldev.noosa.TouchArea;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
-import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
-import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
-import com.bilboldev.pixeldungeonskills.items.armor.LeatherArmor;
-import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
-import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
-import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.Betrayal;
-import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
-import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
-import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
+import com.bilboldev.pixeldungeonskills.ui.MercIcons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.RectF;
 
@@ -91,7 +74,7 @@ public class WndMercsMission extends WndTabbed {
         ArrayList<RedButton> actions = new ArrayList<>();
 
         if(mode == Mode.ALL) {
-            titlebar = new IconTitle(new SkillSprite(96), TXT_TITLE);
+            titlebar = new IconTitle(MercIcons.company(), TXT_TITLE);
             titlebar.setRect(0, 0, width, 0);
             add(titlebar);
 
@@ -110,7 +93,7 @@ public class WndMercsMission extends WndTabbed {
         }
         else
         {
-            titlebar = new IconTitle(new SkillSprite(getImage(mode)), "Hire " + (mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "An " : "A ") +   getName(mode));
+            titlebar = new IconTitle(MercIcons.portrait(getMercType(mode)), "Hire " + (mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "An " : "A ") +   getName(mode));
             titlebar.setRect(0, 0, width, 0);
             add(titlebar);
 
@@ -126,47 +109,30 @@ public class WndMercsMission extends WndTabbed {
 
             pos = (int) info.y + (int) info.height() + GAP * 2;
 
-            if(mode != Mode.ARCHERMAIDEN || HiredMerc.archerMaidenUnlocked == true) {
-                RedButton btnHire = new ActionButton("Hire " + getName(mode) + " For " + getGoldCost(mode) + " gold") {
-                    @Override
-                    protected void onClick() {
-                        if (Betrayal.gold < getGoldCost(mode)) {
-                            text(TXT_NO_GOLD);
-                        } else {
-                            Betrayal.gold -= getGoldCost(mode);
-                            if(mode == Mode.THIEF){
-                                Betrayal.hireThief = true;
-                            }
-                            if(mode == Mode.ARCHER){
-                                Betrayal.hireArcher = true;
-                            }
-
-                            Dungeon.hero.spendAndNext( 1 / Dungeon.hero.speed() );
-                            hide();
-                            Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Merc hired");
+            RedButton btnHire = new ActionButton("Hire " + getName(mode) + " For " + getGoldCost(mode) + " gold") {
+                @Override
+                protected void onClick() {
+                    if (Betrayal.gold < getGoldCost(mode)) {
+                        text(TXT_NO_GOLD);
+                    } else {
+                        Betrayal.gold -= getGoldCost(mode);
+                        if(mode == Mode.THIEF){
+                            Betrayal.hireThief = true;
+                        }
+                        if(mode == Mode.ARCHER){
+                            Betrayal.hireArcher = true;
                         }
 
+                        Dungeon.hero.spendAndNext( 1 / Dungeon.hero.speed() );
+                        hide();
+                        Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Merc hired");
                     }
-                };
 
-                btnHire.setSize(Math.min(width, 120), 20);
-                actions.add(btnHire);
+                }
+            };
 
-            }
-            else
-            {
-                RedButton btnHire = new ActionButton("Unlock") {
-                    @Override
-                    protected void onClick() {
-                        Image tmp = new  SkillSprite(104);
-                        parent.add(new previewInformation(tmp, "Archer Maiden", HiredMerc.MAIDEN_UNLOCK_BY));
-                    }
-                };
-
-                btnHire.setSize(Math.min(width, 120), 20);
-                actions.add(btnHire);
-
-            }
+            btnHire.setSize(Math.min(width, 120), 20);
+            actions.add(btnHire);
 
         }
 
@@ -252,20 +218,6 @@ public class WndMercsMission extends WndTabbed {
                 + "- Special: Can equip any item in carry slot.\n"
                 + "- Cost: 100 gold + 25 gold per level.\n";
     }
-    private int getImage(Mode mode)
-    {
-        switch (mode)
-        {
-            case BRUTE: return 0;
-            case WIZARD: return 24;
-            case THIEF: return 48;
-            case ARCHER: return 72;
-            case ARCHERMAIDEN: return 104;
-        }
-
-        return 0;
-    }
-
     private String getName(Mode mode)
     {
         switch (mode)

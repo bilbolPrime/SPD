@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.Collection;
 
@@ -25,6 +26,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Journal;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.items.EquipableItem;
@@ -93,6 +95,7 @@ public class Blacksmith extends NPC {
 
 					Quest.given = true;
 					Quest.completed = false;
+					Quest.updateLore();
 
 					Pickaxe pick = new Pickaxe();
 					if (pick.doPickUp( Dungeon.hero )) {
@@ -122,6 +125,7 @@ public class Blacksmith extends NPC {
 
 					Quest.completed = true;
 					Quest.reforged = false;
+					Quest.updateLore();
 				}
 
 			} else {
@@ -142,6 +146,7 @@ public class Blacksmith extends NPC {
 
 					Quest.completed = true;
 					Quest.reforged = false;
+					Quest.updateLore();
 				}
 
 			}
@@ -263,6 +268,12 @@ public class Blacksmith extends NPC {
 			reforged	= false;
 		}
 
+		public static void updateLore() {
+			if (spawned && given) {
+				Lore.quest(alternative ? "blacksmith_blood" : "blacksmith_gold", completed);
+			}
+		}
+
 		private static final String NODE	= "blacksmith";
 
 		private static final String SPAWNED		= "spawned";
@@ -302,7 +313,8 @@ public class Blacksmith extends NPC {
 		}
 
 		public static void spawn( Collection<Room> rooms ) {
-			if (!spawned && Dungeon.depth > 11 && Random.Int( 15 - Dungeon.depth ) == 0) {
+			int lastFloor = IceCaves.active() ? 14 : 15;
+			if (!spawned && Dungeon.depth > 11 && Random.Int(lastFloor - Dungeon.depth) == 0) {
 
 				Room blacksmith = null;
 				for (Room r : rooms) {

@@ -14,8 +14,6 @@ public enum Difficulties {
 
     private int difficulty;
 
-    public static boolean canDisableChampions = false;
-
     public static boolean is3d = true;
 
     private int championOffset = 0;

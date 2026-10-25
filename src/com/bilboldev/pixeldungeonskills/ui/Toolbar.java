@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.input.GameAction;
+import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Gizmo;
@@ -32,12 +33,14 @@ import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.windows.WndPartner;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.Presentation;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -49,6 +52,7 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.windows.WndCatalogus;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
@@ -62,6 +66,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
+import com.bilboldev.pixeldungeonskills.windows.WndRebornChallenges;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
@@ -74,6 +79,7 @@ public class Toolbar extends Component {
     private Tool btnLastUsed;
 
     private Tool btnKing;
+	private Tool btnChallenges;
 	private Tool btnInfoSearch;
 	private Tool btnInventory;
 	private Tool[] quickSlots;
@@ -144,6 +150,7 @@ public class Toolbar extends Component {
                 return true;
             };
         });
+		add(btnChallenges = new ChallengeTool());
 
             add(btnLastUsed = new Tool(40, 7, 20, 25) {
 				private SkillsIndicator skillsIndicator;
@@ -177,35 +184,7 @@ public class Toolbar extends Component {
 				};
             });
 
-        add(btnMerc = LocalCoop.active() ? new PartnerTool() : new Tool(252, 7, 20, 25) {
-            @Override
-            protected void onClick() {
-                if(Dungeon.hero.hiredMerc == null)
-                {
-                    if (!Dungeon.rules().allowsOnDemandHiring()) {
-                        GameScene.show(new WndMessage(MercenaryRecruitment.noMercMessage()));
-                        return;
-                    }
-
-                    GameScene.show(new WndMercs(WndMercs.Mode.ALL));
-                }
-                else
-                {
-                   GameScene.show(new WndMerc(null, null));
-                }
-
-            };
-            protected boolean onLongClick() {
-                if (Dungeon.hero.hiredMerc == null && !Dungeon.rules().allowsOnDemandHiring()) {
-                    onClick();
-                    return true;
-                }
-                if(Dungeon.hero.hiredMerc == null)
-					GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
-                else
-                    GameScene.show(new WndMerc(null, null));
-                return true;
-            };});
+        add(btnMerc = LocalCoop.active() ? new PartnerTool() : new MercTool());
 
 		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
@@ -276,6 +255,7 @@ public class Toolbar extends Component {
         btnMerc.setPos( 0, 40 );
         btnSkill.setPos(btnWait.right(), y);
         btnKing.setPos(0, 100);
+		btnChallenges.setPos(btnKing.left(), btnKing.top());
         btnLastUsed.setPos(btnSkill.right(), y);
 		int count = Math.min(Presentation.quickSlots(), maxQuickSlots(width, camera().height));
 		float right = x + width;
@@ -331,6 +311,8 @@ public class Toolbar extends Component {
 		boolean enabled = LocalCoop.active() ? LocalCoop.acceptsInput() && Dungeon.hero.isAlive() : Dungeon.hero.ready;
 		btnKing.visible = Dungeon.rules().allowsRatKing();
 		btnKing.enable(btnKing.visible && enabled);
+		btnChallenges.visible = Dungeon.rules().hasChallenges() && (Dungeon.challenges & RebornChallenges.ALL) != 0;
+		btnChallenges.enable(btnChallenges.visible);
 		if (LocalCoop.active()) {
 			Hero partner = LocalCoop.partner(Dungeon.hero);
 			btnMerc.visible = true;
@@ -451,8 +433,13 @@ public class Toolbar extends Component {
 		protected Image base;
 
 		public Tool( int x, int y, int width, int height ) {
+			this(Assets.TOOLBAR, x, y, width, height);
+		}
+
+		public Tool(Object asset, int x, int y, int width, int height) {
 			super();
 
+			base.texture(RebornHud.texture(asset));
 			base.frame( x, y, width, height );
 
 			this.width = width;
@@ -498,6 +485,107 @@ public class Toolbar extends Component {
 				}
 				active = value;
 			}
+		}
+	}
+
+	private static class ChallengeTool extends Tool {
+		private ItemSprite icon;
+		private BitmapText count;
+
+		ChallengeTool() {
+			super(83, 7, 22, 25);
+		}
+
+		@Override
+		protected void createChildren() {
+			super.createChildren();
+			add(icon = new ItemSprite(ItemSpriteSheet.SCROLL_WIPE_OUT, null));
+			icon.scale.set(.75f);
+			String total = Integer.toString(Integer.bitCount(Dungeon.challenges & RebornChallenges.ALL));
+			add(count = new BitmapText(total, PixelScene.font1x));
+			count.hardlight(0xFFEBA4);
+			count.measure();
+		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+			icon.x = PixelScene.align(camera(), x + (width - icon.width()) / 2);
+			icon.y = y + 3;
+			count.x = PixelScene.align(camera(), x + (width - count.width()) / 2);
+			count.y = bottom() - count.height() - 2;
+		}
+
+		@Override
+		protected void onClick() {
+			GameScene.show(new WndRebornChallenges(Dungeon.challenges, null));
+		}
+	}
+
+	private static class MercTool extends Tool {
+		private Image portrait;
+		private HiredMerc.MERC_TYPES shownType;
+
+		MercTool() {
+			super(83, 7, 22, 25);
+			updatePortrait();
+		}
+
+		@Override
+		protected void createChildren() {
+			super.createChildren();
+			add(portrait = MercIcons.company());
+		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+			portrait.x = PixelScene.align(PixelScene.uiCamera, x + (width - portrait.width()) / 2);
+			portrait.y = PixelScene.align(PixelScene.uiCamera, y + (height - portrait.height()) / 2);
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			updatePortrait();
+		}
+
+		private void updatePortrait() {
+			HiredMerc merc = Dungeon.hero.hiredMerc;
+			HiredMerc.MERC_TYPES type = merc == null ? null : merc.mercType;
+			if (shownType != type) {
+				shownType = type;
+				portrait.copy(type == null ? MercIcons.company() : MercIcons.portrait(type));
+				portrait.alpha(active ? 1 : .35f);
+				layout();
+			}
+		}
+
+		@Override
+		public void enable(boolean value) {
+			super.enable(value);
+			portrait.alpha(value ? 1 : .35f);
+		}
+
+		@Override
+		protected void onClick() {
+			if (Dungeon.hero.hiredMerc != null) {
+				GameScene.show(new WndMerc(null, null));
+			} else if (Dungeon.rules().allowsOnDemandHiring()) {
+				GameScene.show(new WndMercs(WndMercs.Mode.ALL));
+			} else {
+				GameScene.show(new WndMessage(MercenaryRecruitment.noMercMessage()));
+			}
+		}
+
+		@Override
+		protected boolean onLongClick() {
+			if (Dungeon.hero.hiredMerc == null && Dungeon.rules().allowsOnDemandHiring()) {
+				GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
+			} else {
+				onClick();
+			}
+			return true;
 		}
 	}
 
@@ -581,7 +669,9 @@ public class Toolbar extends Component {
 				GameScene.show(new WndPartner(LocalCoop.partner(Dungeon.hero)));
 				return;
 			}
-			LocalCoop.select(LocalCoop.partner(Dungeon.hero));
+			Hero partner = LocalCoop.partner(Dungeon.hero);
+			LocalCoop.stopFollowing(partner);
+			LocalCoop.select(partner);
 			updatePortrait();
 		}
 

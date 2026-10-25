@@ -18,7 +18,6 @@
 package com.bilboldev.noosa;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -59,7 +58,11 @@ import android.view.View;
 
 public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTouchListener {
 
-	public static Game instance;
+    public static boolean isFreeDesktop() {
+        return false;
+    }
+
+	public static volatile Game instance;
 	private static final String TAG = "Game";
 
     public SignalRService mService;
@@ -97,6 +100,7 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 
 	protected GLSurfaceView view;
 	protected SurfaceHolder holder;
+	private volatile boolean paused = true;
 
 	protected ArrayList<MotionEvent> motionEvents = new ArrayList<MotionEvent>();
 
@@ -140,6 +144,16 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		view.setOnTouchListener( this );
 		setContentView( view );
 
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> {
+                synchronized (keysEvents) {
+                    keysEvents.add(new KeyEvent(KeyEvent.ACTION_DOWN, Keys.BACK));
+                    keysEvents.add(new KeyEvent(KeyEvent.ACTION_UP, Keys.BACK));
+                }
+            });
+        }
+
         try
         {
 
@@ -169,6 +183,7 @@ public void BindSignarlR()
 		super.onResume();
 
 		now = 0;
+		paused = false;
 		view.onResume();
 
 		Music.INSTANCE.resume();
@@ -178,12 +193,13 @@ public void BindSignarlR()
 	@Override
 	public void onPause() {
 		super.onPause();
+		paused = true;
+		view.onPause();
 
 		if (scene != null) {
 			scene.pause();
 		}
 
-		view.onPause();
 		Script.reset();
 
 		Music.INSTANCE.pause();
@@ -193,6 +209,7 @@ public void BindSignarlR()
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		boolean current = instance == this;
 		destroyGame();
 
         if (mBound) {
@@ -200,8 +217,10 @@ public void BindSignarlR()
             mBound = false;
         }
 
-		Music.INSTANCE.mute();
-		Sample.INSTANCE.reset();
+		if (current) {
+			Music.INSTANCE.mute();
+			Sample.INSTANCE.reset();
+		}
 	}
 
 	@SuppressLint({ "Recycle", "ClickableViewAccessibility" })
@@ -215,6 +234,10 @@ public void BindSignarlR()
 
 	@Override
 	public boolean onKeyDown( int keyCode, KeyEvent event ) {
+
+        if (keyCode == Keys.BACK && android.os.Build.VERSION.SDK_INT >= 33) {
+            return super.onKeyDown(keyCode, event);
+        }
 
 		if (event == null || keyCode == Keys.VOLUME_DOWN ||
 			keyCode == Keys.VOLUME_UP) {
@@ -231,6 +254,10 @@ public void BindSignarlR()
 	@Override
 	public boolean onKeyUp( int keyCode, KeyEvent event ) {
 
+        if (keyCode == Keys.BACK && android.os.Build.VERSION.SDK_INT >= 33) {
+            return super.onKeyUp(keyCode, event);
+        }
+
 		if (event == null || keyCode == Keys.VOLUME_DOWN ||
 			keyCode == Keys.VOLUME_UP) {
 
@@ -244,9 +271,9 @@ public void BindSignarlR()
 	}
 
 	@Override
-	public void onDrawFrame( GL10 gl ) {
+	public synchronized void onDrawFrame( GL10 gl ) {
 
-		if (width == 0 || height == 0) {
+		if (paused || instance != this || width == 0 || height == 0) {
 			return;
 		}
 
@@ -311,13 +338,14 @@ public void BindSignarlR()
 		Vertexbuffer.refreshAllBuffers();
 	}
 
-	protected void destroyGame() {
+	protected synchronized void destroyGame() {
+		paused = true;
 		if (scene != null) {
 			scene.destroy();
 			scene = null;
 		}
 
-		instance = null;
+		if (instance == this) instance = null;
 	}
 
 	public static void resetScene() {
@@ -336,7 +364,8 @@ public void BindSignarlR()
 	}
 
 	public static Scene scene() {
-		return instance.scene;
+		Game game = instance;
+		return game == null ? null : game.scene;
 	}
 
 	protected Class<? extends Scene> resolveScene(Class<? extends Scene> sceneClass) {
@@ -349,10 +378,10 @@ public void BindSignarlR()
 			requestedReset = false;
 			try {
 				requestedScene = resolveScene(sceneClass).newInstance();
-				switchScene();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new IllegalStateException("Cannot create scene " + sceneClass.getName(), e);
 			}
+			switchScene();
 		}
 
 		update();

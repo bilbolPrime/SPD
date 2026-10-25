@@ -57,7 +57,7 @@ public class WndGauntletDie extends Window {
         };
         close.setRect(0, message.y + message.height() + 2, WIDTH, 20);
         add(close);
-        resize(WIDTH, (int)close.bottom());
+        resize(WIDTH, (int)Math.ceil(close.bottom()));
     }
 
     @Override

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 import com.bilboldev.noosa.audio.Sample;
@@ -81,6 +82,7 @@ public abstract class Mob extends Char {
 	public int defenseSkill = 0;
 
 	protected int EXP = 1;
+    public boolean challengeChampion, challengeExtra;
 	protected int maxLvl = 30;
 
 	protected Char enemy;
@@ -114,6 +116,8 @@ public abstract class Mob extends Char {
 		}
 		bundle.put( TARGET, target );
         if (rebornPack != 0) bundle.put("reborn_pack", rebornPack);
+        bundle.put("challenge_champion", challengeChampion);
+        bundle.put("challenge_extra", challengeExtra);
 	}
 
 	@Override
@@ -136,6 +140,8 @@ public abstract class Mob extends Char {
 
 		target = bundle.getInt( TARGET );
         rebornPack = bundle.getInt("reborn_pack");
+        challengeChampion = bundle.getBoolean("challenge_champion");
+        challengeExtra = bundle.getBoolean("challenge_extra");
 	}
 
 	public CharSprite sprite() {
@@ -444,6 +450,10 @@ public abstract class Mob extends Char {
 		return enemySeen && !paralysed ? defenseSkill : 0;
 	}
 
+	public boolean surprised() {
+		return !enemySeen;
+	}
+
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 		if (!enemySeen && (enemy == Dungeon.hero || LocalCoop.contains(enemy))
@@ -510,7 +520,7 @@ public abstract class Mob extends Char {
 	private void giveExperience() {
 		int exp = exp();
 		if (exp <= 0) return;
-		if (champ > 0) {
+		if (champ > 0 && !challengeChampion) {
 			exp = (int)Math.ceil(1.5 * exp);
 			Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, Message.key("custom.generated.entry_dexp_champion_killed_d2c1bc2f19", exp));
 		} else {
@@ -520,18 +530,19 @@ public abstract class Mob extends Char {
 	}
 
 	public int exp() {
-		return Dungeon.hero.lvl <= maxLvl ? EXP : 0;
+		return !challengeExtra && Dungeon.hero.lvl <= maxLvl ? EXP : 0;
 	}
 
 	@Override
 	public void die( Object cause ) {
+        if (cause != null) DeathBomb.leave(this);
 
 		super.die( cause );
 		PartySession.mobDied(this);
 
 		if (Dungeon.hero != null && hostile && !(this instanceof NPC) && !(this instanceof SummonedPet)) {
 			int wantedGold = Dungeon.hero.skillTree == null ? 0 : Dungeon.hero.skillTree.getWantedGoldBonus();
-			if (wantedGold > 0) {
+			if (wantedGold > 0 && !challengeExtra) {
 				Dungeon.gold += wantedGold;
 				Statistics.goldCollected += wantedGold;
 				Badges.validateGoldCollected();
@@ -542,7 +553,7 @@ public abstract class Mob extends Char {
         if(this instanceof SummonedPet)
             SummonedPet.summonedPets--;
 
-        if(champ > 0)
+        if(champ > 0 && !challengeChampion && !challengeExtra)
             dropLootGuaranteed();
 
 		boolean eligible = Dungeon.hero.lvl <= maxLvl + 2;
@@ -554,16 +565,16 @@ public abstract class Mob extends Char {
 				if (hero.heroClass == HeroClass.NECROMANCER) necromancer = hero;
 			}
 		}
-		if (eligible && !(GauntletRun.active() && noLoot)) {
+		if (eligible && !challengeExtra && !(GauntletRun.active() && noLoot)) {
 			dropLoot();
 		}
 
-		if (necromancer != null
+		if (!challengeExtra && necromancer != null
 				&& !Bestiary.isBoss(this)
 				&& hostile
 				&& !(this instanceof NPC)
 				&& !(this instanceof SummonedPet)) {
-			Dungeon.level.drop( new Corpse(), pos ).sprite.drop();
+			Dungeon.level.drop( new Corpse(), pos, this ).sprite.drop();
 			Sample.INSTANCE.play( Assets.SND_BONES );
 			GLog.i(TXT_DIED);
 		}
@@ -582,11 +593,11 @@ public abstract class Mob extends Char {
 
 		if(Random.Float() < 0.2f){
 			Item item = Generator.random(  );
-			Dungeon.level.drop( item, pos ).sprite.drop();
+			Dungeon.level.drop( item, pos, this, true ).sprite.drop();
 		}
         else {
 			Item item = Generator.randomConsumable(  );
-			Dungeon.level.drop( item, pos ).sprite.drop();
+			Dungeon.level.drop( item, pos, this, true ).sprite.drop();
 		}
 
     }
@@ -616,7 +627,7 @@ public abstract class Mob extends Char {
 
 			}
 
-			Dungeon.level.drop( item, pos ).sprite.drop();
+			Dungeon.level.drop( item, pos, this ).sprite.drop();
 		}
 	}
 

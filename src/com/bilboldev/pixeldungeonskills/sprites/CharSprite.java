@@ -94,6 +94,10 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		return die;
 	}
 
+	public Animation idleAnimation() {
+		return idle;
+	}
+
 	public static final class VisualAnimation {
 		private final String kind;
 		private final int cell, frame;

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.wands;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
@@ -82,15 +83,15 @@ public class WandOfMagicCasting extends Wand {
         switch (casting)
         {
             case DARK_BOLT:
-                Dungeon.hero.MP -= Dungeon.hero.heroSkills.passiveB2.getManaCost();
+                Dungeon.hero.spendSkillMana(Dungeon.hero.heroSkills.passiveB2.getManaCost());
                 Dungeon.hero.heroSkills.passiveB2.castTextYell();
                 break;
             case DOMINANCE:
-                Dungeon.hero.MP -= Dungeon.hero.heroSkills.passiveB3.getManaCost();
+                Dungeon.hero.spendSkillMana(Dungeon.hero.heroSkills.passiveB3.getManaCost());
                 Dungeon.hero.heroSkills.passiveB3.castTextYell();
                 break;
             case SOUL_SPARK:
-                Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
+                Dungeon.hero.spendSkillMana(Dungeon.hero.heroSkills.active2.getManaCost());
                 Dungeon.hero.heroSkills.active2.castTextYell();
                 break;
             case SPARK:
@@ -100,14 +101,14 @@ public class WandOfMagicCasting extends Wand {
                         || lastUsed instanceof DrainLifeSkill
                         || lastUsed instanceof CorpseExplosionSkill
                         || lastUsed instanceof RaiseSkeletonArcherSkill) {
-                    Dungeon.hero.MP -= lastUsed.getManaCost();
+                    Dungeon.hero.spendSkillMana(lastUsed.getManaCost());
                     lastUsed.castTextYell();
                 } else {
                     Dungeon.hero.skillTree.castSpark();
                 }
                 break;
             case NINJA_BOMB:
-                Dungeon.hero.MP -= Dungeon.hero.heroSkills.active2.getManaCost();
+                Dungeon.hero.spendSkillMana(Dungeon.hero.heroSkills.active2.getManaCost());
                 Dungeon.hero.heroSkills.active2.castTextYell();
                 break;
         }
@@ -126,9 +127,15 @@ public class WandOfMagicCasting extends Wand {
 
                 curUser = Dungeon.hero;
                 final Wand curWand = Legend.haxWand;
-                final int stopCell = Ballistica.cast(curUser.pos, target, true, true);
                 final Skill lastUsed = Dungeon.hero.heroSkills.lastUsed;
-                final int cell = shouldTargetFirstCorpse(((WandOfMagicCasting) curWand).casting, lastUsed)
+                if (lastUsed == null || !curUser.canUseSkill(lastUsed.getManaCost())) return;
+                boolean offensive = ((WandOfMagicCasting)curWand).casting != CAST_TYPES.SOUL_SPARK
+                        && !(lastUsed instanceof RaiseSkeletonSkill) && !(lastUsed instanceof RaiseSkeletonArcherSkill);
+                if (offensive && !RebornChallenges.targetAllowed(curUser, target)) return;
+                boolean closeRange = offensive && RebornChallenges.active(RebornChallenges.POINT_BLANK);
+                final int stopCell = Ballistica.cast(curUser.pos, target, !closeRange, true);
+                if (closeRange) Ballistica.distance = Math.min(2, Ballistica.distance);
+                final int cell = shouldTargetFirstCorpse(((WandOfMagicCasting)curWand).casting, lastUsed)
                         ? firstCorpseOnCurrentTrace(stopCell)
                         : stopCell;
                 curUser.sprite.zap(cell);

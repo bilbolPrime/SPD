@@ -85,11 +85,13 @@ public class Badges {
 		BOSS_SLAIN_1_MAGE,
 		BOSS_SLAIN_1_ROGUE,
 		BOSS_SLAIN_1_HUNTRESS,
+		BOSS_SLAIN_1_NECROMANCER,
+		BOSS_SLAIN_1_MERCENARY,
 		BOSS_SLAIN_1( "1st boss slain", 12 ),
 		BOSS_SLAIN_2( "2nd boss slain", 13 ),
 		BOSS_SLAIN_3( "3rd boss slain", 14 ),
 		BOSS_SLAIN_4( "4th boss slain", 15 ),
-		BOSS_SLAIN_1_ALL_CLASSES( "1st boss slain by Warrior, Mage, Rogue & Huntress", 32, true ),
+		BOSS_SLAIN_1_ALL_CLASSES( "Defeat the first boss with all six hero classes", 32, true ),
 		BOSS_SLAIN_3_GLADIATOR,
 		BOSS_SLAIN_3_BERSERKER,
 		BOSS_SLAIN_3_WARLOCK,
@@ -98,8 +100,12 @@ public class Badges {
 		BOSS_SLAIN_3_ASSASSIN,
 		BOSS_SLAIN_3_SNIPER,
 		BOSS_SLAIN_3_WARDEN,
+		BOSS_SLAIN_3_LICH,
+		BOSS_SLAIN_3_SPIRIT_BINDER,
+		BOSS_SLAIN_3_MARSHAL,
+		BOSS_SLAIN_3_EXECUTIONER,
 		BOSS_SLAIN_3_ALL_SUBCLASSES(
-			"3rd boss slain by Gladiator, Berserker, Warlock, Battlemage, Freerunner, Assassin, Sniper & Warden", 33, true ),
+			"Defeat the third boss with all twelve subclasses", 33, true ),
 		RING_OF_HAGGLER( "Ring of Haggler obtained", 20 ),
 		RING_OF_THORNS( "Ring of Thorns obtained", 21 ),
 		STRENGTH_ATTAINED_1( "13 points of Strength attained", 40 ),
@@ -130,8 +136,10 @@ public class Badges {
 		VICTORY_MAGE,
 		VICTORY_ROGUE,
 		VICTORY_HUNTRESS,
+		VICTORY_NECROMANCER,
+		VICTORY_MERCENARY,
 		VICTORY( "Amulet of Yendor obtained", 22 ),
-		VICTORY_ALL_CLASSES( "Amulet of Yendor obtained by Warrior, Mage, Rogue & Huntress", 36, true ),
+		VICTORY_ALL_CLASSES( "Obtain the Amulet of Yendor with all six hero classes", 36, true ),
 		MASTERY_COMBO( "7-hit combo", 56 ),
 		POTIONS_COOKED_1( "3 potions cooked", 52 ),
 		POTIONS_COOKED_2( "6 potions cooked", 53 ),
@@ -147,7 +155,8 @@ public class Badges {
 		GAMES_PLAYED_4( "2000 games played", 63, true ),
 		HAPPY_END( "Happy end", 38 ),
 		CHAMPION( "Challenge won", 39, true ),
-		SUPPORTER( "Thanks for your support!", 31, true );
+		SUPPORTER( "Thanks for your support!", 31, true ),
+		KNOW_IT_ALL( "Discover all Lore, including recipes, quests, equipment effects and every creature's drops", 64, true );
 
 		public boolean meta;
 
@@ -289,6 +298,7 @@ public class Badges {
 	}
 
 	public static void validateMonstersSlain() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.MONSTERS_SLAIN_1 ) && Statistics.enemiesSlain >= 10) {
@@ -312,6 +322,7 @@ public class Badges {
 	}
 
 	public static void validateGoldCollected() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.GOLD_COLLECTED_1 ) && Statistics.goldCollected >= 100) {
@@ -335,6 +346,7 @@ public class Badges {
 	}
 
 	public static void validateLevelReached() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.LEVEL_REACHED_1 ) && Dungeon.hero.lvl >= 6) {
@@ -358,6 +370,7 @@ public class Badges {
 	}
 
 	public static void validateStrengthAttained() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.STRENGTH_ATTAINED_1 ) && Dungeon.hero.STR >= 13) {
@@ -381,6 +394,7 @@ public class Badges {
 	}
 
 	public static void validateFoodEaten() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.FOOD_EATEN_1 ) && Statistics.foodEaten >= 10) {
@@ -404,6 +418,7 @@ public class Badges {
 	}
 
 	public static void validatePotionsCooked() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.POTIONS_COOKED_1 ) && Statistics.potionsCooked >= 3) {
@@ -427,6 +442,7 @@ public class Badges {
 	}
 
 	public static void validatePiranhasKilled() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.PIRANHAS ) && Statistics.piranhasKilled >= 6) {
@@ -438,6 +454,7 @@ public class Badges {
 	}
 
 	public static void validateItemLevelAquired( Item item ) {
+		if (RunSeed.customRun()) return;
 
 		if (!item.levelKnown) {
 			return;
@@ -466,6 +483,7 @@ public class Badges {
 	}
 
 	public static void validateAllPotionsIdentified() {
+		if (RunSeed.customRun()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_POTIONS_IDENTIFIED ) && Potion.allKnown()) {
 
@@ -478,6 +496,7 @@ public class Badges {
 	}
 
 	public static void validateAllScrollsIdentified() {
+		if (RunSeed.customRun()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_SCROLLS_IDENTIFIED ) && Scroll.allKnown()) {
 
@@ -490,6 +509,7 @@ public class Badges {
 	}
 
 	public static void validateAllRingsIdentified() {
+		if (RunSeed.customRun()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_RINGS_IDENTIFIED ) && Ring.allKnown()) {
 
@@ -502,6 +522,7 @@ public class Badges {
 	}
 
 	public static void validateAllWandsIdentified() {
+		if (RunSeed.customRun()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_WANDS_IDENTIFIED ) && Wand.allKnown()) {
 
@@ -514,6 +535,7 @@ public class Badges {
 	}
 
 	public static void validateAllBagsBought( Item bag ) {
+		if (RunSeed.customRun()) return;
 
 		Badge badge = null;
 		if (bag instanceof SeedPouch) {
@@ -541,6 +563,7 @@ public class Badges {
 	}
 
 	public static void validateAllItemsIdentified() {
+		if (RunSeed.customRun()) return;
 		if (!global.contains( Badge.ALL_ITEMS_IDENTIFIED ) &&
 			global.contains( Badge.ALL_POTIONS_IDENTIFIED ) &&
 			global.contains( Badge.ALL_SCROLLS_IDENTIFIED ) &&
@@ -553,6 +576,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromFire() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_FIRE;
 		local.add( badge );
 		displayBadge( badge );
@@ -561,6 +585,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromPoison() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_POISON;
 		local.add( badge );
 		displayBadge( badge );
@@ -569,6 +594,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromGas() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_GAS;
 		local.add( badge );
 		displayBadge( badge );
@@ -577,6 +603,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromHunger() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_HUNGER;
 		local.add( badge );
 		displayBadge( badge );
@@ -585,12 +612,14 @@ public class Badges {
 	}
 
 	public static void validateDeathFromGlyph() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_GLYPH;
 		local.add( badge );
 		displayBadge( badge );
 	}
 
 	public static void validateDeathFromFalling() {
+		if (RunSeed.customRun()) return;
 		Badge badge = Badge.DEATH_FROM_FALLING;
 		local.add( badge );
 		displayBadge( badge );
@@ -609,6 +638,7 @@ public class Badges {
 	}
 
 	public static void validateBossSlain() {
+		if (RunSeed.customRun()) return;
 		if (GauntletRun.active() || LocalCoop.active()) return;
 		Badge badge = null;
 		switch (Dungeon.depth) {
@@ -633,12 +663,16 @@ public class Badges {
 			if (badge == Badge.BOSS_SLAIN_1) {
 				switch (Dungeon.hero.heroClass) {
 				case WARRIOR:
-				case MERCENARY:
 					badge = Badge.BOSS_SLAIN_1_WARRIOR;
 					break;
 				case MAGE:
-				case NECROMANCER:
 					badge = Badge.BOSS_SLAIN_1_MAGE;
+					break;
+				case NECROMANCER:
+					badge = Badge.BOSS_SLAIN_1_NECROMANCER;
+					break;
+				case MERCENARY:
+					badge = Badge.BOSS_SLAIN_1_MERCENARY;
 					break;
 				case ROGUE:
 					badge = Badge.BOSS_SLAIN_1_ROGUE;
@@ -656,7 +690,9 @@ public class Badges {
 				if (global.contains( Badge.BOSS_SLAIN_1_WARRIOR ) &&
 					global.contains( Badge.BOSS_SLAIN_1_MAGE ) &&
 					global.contains( Badge.BOSS_SLAIN_1_ROGUE ) &&
-					global.contains( Badge.BOSS_SLAIN_1_HUNTRESS)) {
+					global.contains( Badge.BOSS_SLAIN_1_HUNTRESS ) &&
+					global.contains( Badge.BOSS_SLAIN_1_NECROMANCER ) &&
+					global.contains( Badge.BOSS_SLAIN_1_MERCENARY )) {
 
 					badge = Badge.BOSS_SLAIN_1_ALL_CLASSES;
 					if (!global.contains( badge )) {
@@ -669,19 +705,15 @@ public class Badges {
 			if (badge == Badge.BOSS_SLAIN_3) {
 				switch (Dungeon.hero.subClass) {
 				case GLADIATOR:
-				case MARSHAL:
 					badge = Badge.BOSS_SLAIN_3_GLADIATOR;
 					break;
 				case BERSERKER:
-				case EXECUTIONER:
 					badge = Badge.BOSS_SLAIN_3_BERSERKER;
 					break;
 				case WARLOCK:
-				case LICH:
 					badge = Badge.BOSS_SLAIN_3_WARLOCK;
 					break;
 				case BATTLEMAGE:
-				case SPIRIT_BINDER:
 					badge = Badge.BOSS_SLAIN_3_BATTLEMAGE;
 					break;
 				case FREERUNNER:
@@ -695,6 +727,18 @@ public class Badges {
 					break;
 				case WARDEN:
 					badge = Badge.BOSS_SLAIN_3_WARDEN;
+					break;
+				case LICH:
+					badge = Badge.BOSS_SLAIN_3_LICH;
+					break;
+				case SPIRIT_BINDER:
+					badge = Badge.BOSS_SLAIN_3_SPIRIT_BINDER;
+					break;
+				case MARSHAL:
+					badge = Badge.BOSS_SLAIN_3_MARSHAL;
+					break;
+				case EXECUTIONER:
+					badge = Badge.BOSS_SLAIN_3_EXECUTIONER;
 					break;
 				default:
 					return;
@@ -712,7 +756,11 @@ public class Badges {
 					global.contains( Badge.BOSS_SLAIN_3_FREERUNNER ) &&
 					global.contains( Badge.BOSS_SLAIN_3_ASSASSIN ) &&
 					global.contains( Badge.BOSS_SLAIN_3_SNIPER ) &&
-					global.contains( Badge.BOSS_SLAIN_3_WARDEN )) {
+					global.contains( Badge.BOSS_SLAIN_3_WARDEN ) &&
+					global.contains( Badge.BOSS_SLAIN_3_LICH ) &&
+					global.contains( Badge.BOSS_SLAIN_3_SPIRIT_BINDER ) &&
+					global.contains( Badge.BOSS_SLAIN_3_MARSHAL ) &&
+					global.contains( Badge.BOSS_SLAIN_3_EXECUTIONER )) {
 
 					badge = Badge.BOSS_SLAIN_3_ALL_SUBCLASSES;
 					if (!global.contains( badge )) {
@@ -726,6 +774,7 @@ public class Badges {
 	}
 
 	public static void validateMastery() {
+		if (RunSeed.customRun()) return;
 		if (GauntletRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
@@ -757,6 +806,7 @@ public class Badges {
 	}
 
 	public static void validateMasteryCombo( int n ) {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.MASTERY_COMBO ) && n == 7) {
 			Badge badge = Badge.MASTERY_COMBO;
 			local.add( badge );
@@ -765,6 +815,7 @@ public class Badges {
 	}
 
 	public static void validateRingOfHaggler() {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.RING_OF_HAGGLER ) && new RingOfHaggler().isKnown()) {
 			Badge badge = Badge.RING_OF_HAGGLER;
 			local.add( badge );
@@ -773,6 +824,7 @@ public class Badges {
 	}
 
 	public static void validateRingOfThorns() {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.RING_OF_THORNS ) && new RingOfThorns().isKnown()) {
 			Badge badge = Badge.RING_OF_THORNS;
 			local.add( badge );
@@ -781,6 +833,7 @@ public class Badges {
 	}
 
 	public static void validateRare( Mob mob ) {
+		if (RunSeed.customRun()) return;
 		if (GauntletRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
@@ -812,6 +865,7 @@ public class Badges {
 	}
 
 	public static void validateVictory() {
+		if (RunSeed.customRun()) return;
 		if (GauntletRun.active() || LocalCoop.active()) return;
 
 		Badge badge = Badge.VICTORY;
@@ -819,12 +873,16 @@ public class Badges {
 
 		switch (Dungeon.hero.heroClass) {
 		case WARRIOR:
-		case MERCENARY:
 			badge = Badge.VICTORY_WARRIOR;
 			break;
 		case MAGE:
-		case NECROMANCER:
 			badge = Badge.VICTORY_MAGE;
+			break;
+		case NECROMANCER:
+			badge = Badge.VICTORY_NECROMANCER;
+			break;
+		case MERCENARY:
+			badge = Badge.VICTORY_MERCENARY;
 			break;
 		case ROGUE:
 			badge = Badge.VICTORY_ROGUE;
@@ -842,7 +900,9 @@ public class Badges {
 		if (global.contains( Badge.VICTORY_WARRIOR ) &&
 			global.contains( Badge.VICTORY_MAGE ) &&
 			global.contains( Badge.VICTORY_ROGUE ) &&
-			global.contains( Badge.VICTORY_HUNTRESS )) {
+			global.contains( Badge.VICTORY_HUNTRESS ) &&
+			global.contains( Badge.VICTORY_NECROMANCER ) &&
+			global.contains( Badge.VICTORY_MERCENARY )) {
 
 			badge = Badge.VICTORY_ALL_CLASSES;
 			displayBadge( badge );
@@ -850,6 +910,7 @@ public class Badges {
 	}
 
 	public static void validateNoKilling() {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.NO_MONSTERS_SLAIN ) && Statistics.completedWithNoKilling) {
 			Badge badge = Badge.NO_MONSTERS_SLAIN;
 			local.add( badge );
@@ -858,6 +919,7 @@ public class Badges {
 	}
 
 	public static void validateGrimWeapon() {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.GRIM_WEAPON )) {
 			Badge badge = Badge.GRIM_WEAPON;
 			local.add( badge );
@@ -866,6 +928,7 @@ public class Badges {
 	}
 
 	public static void validateNightHunter() {
+		if (RunSeed.customRun()) return;
 		if (!local.contains( Badge.NIGHT_HUNTER ) && Statistics.nightHunt >= 15) {
 			Badge badge = Badge.NIGHT_HUNTER;
 			local.add( badge );
@@ -879,6 +942,7 @@ public class Badges {
 	}
 
 	public static void validateGamesPlayed() {
+		if (RunSeed.customRun()) return;
 		Badge badge = null;
 		if (Rankings.INSTANCE.totalNumber >= 10) {
 			badge = Badge.GAMES_PLAYED_1;
@@ -897,10 +961,18 @@ public class Badges {
 	}
 
 	public static void validateHappyEnd() {
+		if (RunSeed.customRun()) return;
 		displayBadge( Badge.HAPPY_END );
 	}
 
+	public static void validateLore() {
+		if (GauntletRun.active()) return;
+		restoreGlobalIfNeeded();
+		if (!global.contains(Badge.KNOW_IT_ALL) && Lore.complete()) displayBadge(Badge.KNOW_IT_ALL);
+	}
+
 	public static void validateChampion() {
+		if (RunSeed.customRun()) return;
 		displayBadge( Badge.CHAMPION );
 	}
 

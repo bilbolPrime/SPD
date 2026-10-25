@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.effects.DeathBombs;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.network.PartyEffects;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
@@ -98,6 +100,7 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag.Mode;
 import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
+import com.bilboldev.pixeldungeonskills.windows.WndPartnerActions;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.utils.Random;
@@ -259,6 +262,7 @@ public class GameScene extends PixelScene {
 			}
 		};
 		add( mobs );
+        add(new DeathBombs());
 
 		for (Mob mob : Dungeon.level.mobs) {
 			addMobSprite( mob );
@@ -406,7 +410,7 @@ public class GameScene extends PixelScene {
 		}
 
 		ArrayList<Item> dropped = PartySession.client()
-                ? null : Dungeon.droppedItems.get( Dungeon.depth );
+                ? null : Dungeon.droppedItems.get( Dungeon.levelKey() );
 		if (dropped != null) {
 			for (Item item : dropped) {
 				int pos = Dungeon.level.randomRespawnCell();
@@ -418,7 +422,7 @@ public class GameScene extends PixelScene {
 					Dungeon.level.drop( item, pos );
 				}
 			}
-			Dungeon.droppedItems.remove( Dungeon.depth );
+			Dungeon.droppedItems.remove( Dungeon.levelKey() );
 		}
 
 		Camera.main.target = hero;
@@ -692,9 +696,16 @@ public class GameScene extends PixelScene {
 				&& !PartyWindows.busy()
 				&& (!LocalCoop.active() || Window.topWindow() == null)
 				&& (!GauntletRun.active() || GauntletRun.acceptsInput())) {
+			LocalCoop.updateFollowing();
 			Actor.process();
 		}
 		if (partyTurn != null) partyTurn.update();
+		if (LocalCoop.active()) {
+			Hero focus = cameraHero();
+			if (focus != null && (LocalCoop.following(focus) || LocalCoop.following(LocalCoop.partner(focus)))) {
+				Camera.main.target = focus.sprite;
+			}
+		}
 
         if (firstPersonView != null) {
             try {
@@ -740,7 +751,7 @@ public class GameScene extends PixelScene {
 	}
 
 	public void brightness( boolean value ) {
-        if(!Difficulties.is3d){
+    	if(!Difficulties.is3d){
 			water.rm = water.gm = water.bm =
 					tiles.rm = tiles.gm = tiles.bm =
 							value ? 1.5f : 1.0f;
@@ -891,7 +902,7 @@ public class GameScene extends PixelScene {
 	}
 
 	public static void add( EmoIcon icon ) {
-        try
+    	try
 		{
 			scene.emoicons.add( icon );
 		}
@@ -1082,7 +1093,7 @@ public class GameScene extends PixelScene {
 
 	public static void selectCell( CellSelector.Listener listener ) {
         if (PartySession.captureTarget(listener, listener == defaultCellListener)) return;
-        try
+    	try
 		{
 			cellSelector.listener = listener;
 			scene.prompt(listener.prompt() == null ? null : listener.prompt().toString());
@@ -1116,7 +1127,11 @@ public class GameScene extends PixelScene {
 	}
 
 	static boolean cancel() {
-        try {
+    	try {
+            if (LocalCoop.wantsToFollow(Dungeon.hero)) {
+                if (!PartySession.input(Dungeon.hero, "unfollow", 0)) LocalCoop.stopFollowing(Dungeon.hero);
+                return true;
+            }
             if (PartySession.client()) {
                 if (cancelCellSelector()) return true;
                 if (LocalCoop.hasCommand(Dungeon.hero) || Dungeon.hero.curAction != null || Dungeon.hero.restoreHealth) {
@@ -1142,11 +1157,12 @@ public class GameScene extends PixelScene {
 			}
 		}
 		catch (Exception e){
-            return  true;
+    		return  true;
 		}
 	}
 
 	public static void ready() {
+		Lore.observe();
 		selectCell( defaultCellListener );
 		QuickSlot.cancel();
 	}
@@ -1155,10 +1171,21 @@ public class GameScene extends PixelScene {
 		coopHeroChanged(true);
 	}
 
+	public static Hero cameraHero() {
+		Hero hero = PartySession.network() ? PartySession.localHero() : Dungeon.hero;
+		if (!PartySession.network() && LocalCoop.following(hero)) {
+			Hero leader = LocalCoop.partner(hero);
+			if (leader != null && leader.isAlive()) return leader;
+		}
+		return hero;
+	}
+
 	public static void coopHeroChanged(boolean focusCamera) {
 		if (!LocalCoop.active() || scene == null || Game.scene() != scene
 				|| Dungeon.hero == null || !(Dungeon.hero.sprite instanceof HeroSprite)) return;
-		if (focusCamera || scene.coopCameraNeedsFocus()) Camera.main.target = Dungeon.hero.sprite;
+		Hero focus = cameraHero();
+		if (focusCamera || LocalCoop.following(focus) || LocalCoop.following(LocalCoop.partner(focus))
+				|| scene.coopCameraNeedsFocus()) Camera.main.target = focus.sprite;
 		if (scene.hero == Dungeon.hero.sprite) return;
 		scene.hero = (HeroSprite)Dungeon.hero.sprite;
 		QuickSlot.cancel();
@@ -1195,10 +1222,10 @@ public class GameScene extends PixelScene {
 		@Override
 		public void onSelect( Integer cell ) {
 			if (cell == null) return;
-			if (LocalCoop.active() && !PartySession.network()
-					&& !PartySession.splitControls()) {
+			if (LocalCoop.active()) {
 				Char target = Actor.findChar(cell);
 				if (target instanceof Hero && target != Dungeon.hero && LocalCoop.contains(target)) {
+					show(new WndPartnerActions());
 					return;
 				}
 			}

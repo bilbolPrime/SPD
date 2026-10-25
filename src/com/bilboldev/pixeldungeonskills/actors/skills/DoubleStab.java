@@ -36,14 +36,14 @@ public class DoubleStab extends ActiveSkill1{
     @Override
     public boolean doubleStab()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
         {
             damageBoost = 0;
             return false;
         }
 
             castTextYell();
-            Dungeon.hero.MP -= getManaCost();
+            Dungeon.hero.spendSkillMana(getManaCost());
             StatusPane.manaDropping += getManaCost();
             damageBoost = 2;
             return true;

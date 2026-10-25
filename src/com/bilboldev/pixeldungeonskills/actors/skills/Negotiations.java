@@ -5,7 +5,6 @@ import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
-import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -33,17 +32,11 @@ public class Negotiations extends BranchSkill{
         ArrayList<String> actions = new ArrayList<String>();
         if (Dungeon.rules().allowsOnDemandHiring() && hero.hiredMerc == null)
         {
-            if (hero.heroClass != HeroClass.WARRIOR && hero.heroClass != HeroClass.MERCENARY)
-                actions.add(TXT_HIRE_BRUTE);
-            if(hero.heroClass != HeroClass.ROGUE)
-                actions.add(TXT_HIRE_THIEF);
-            if (hero.heroClass != HeroClass.MAGE && hero.heroClass != HeroClass.NECROMANCER)
-                actions.add(TXT_HIRE_WIZARD);
-            if(hero.heroClass != HeroClass.HUNTRESS)
-                actions.add(TXT_HIRE_ARCHER);
-
-            if(HiredMerc.archerMaidenUnlocked)
-                actions.add(TXT_HIRE_ARCHER_MAIDEN);
+            actions.add(TXT_HIRE_BRUTE);
+            actions.add(TXT_HIRE_THIEF);
+            actions.add(TXT_HIRE_WIZARD);
+            actions.add(TXT_HIRE_ARCHER);
+            actions.add(TXT_HIRE_ARCHER_MAIDEN);
         }
         return actions;
     }

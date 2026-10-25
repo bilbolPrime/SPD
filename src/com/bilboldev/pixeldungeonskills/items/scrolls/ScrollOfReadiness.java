@@ -17,27 +17,31 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.noosa.audio.Sample;
+import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Focus;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfReadiness extends Scroll {
 
 	{
-		name = "Scroll of Readiness";
+		name = "Scroll of Focus";
 	}
 
 	@Override
 	protected void doRead() {
-
-        GLog.w("custom.generated.entry_inspiring_words_that_boost_moral_and_remove_fati_114cb7f9b0");
-        GLog.p("custom.generated.entry_your_active_skills_are_ready_6c0b4530f6");
+		Focus.apply(curUser);
+		Sample.INSTANCE.play(Assets.SND_READ);
+		Invisibility.dispel();
+		GLog.p(ScrollOfReadiness.class, "focused");
 		setKnown();
-
-		curUser.spendAndNext( TIME_TO_READ );
+		readAnimation();
 	}
 
 	@Override
 	public String desc() {
-		return
-			"When read, words of inspiration will make your ready for combat.";
+		return Messages.get(this, "desc");
 	}
 }

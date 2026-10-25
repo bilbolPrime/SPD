@@ -80,7 +80,7 @@ public class FetidRat extends Mob {
 	public void die( Object cause ) {
 		super.die( cause );
 
-		Dungeon.level.drop( new RatSkull(), pos ).sprite.drop();
+		Dungeon.level.drop( new RatSkull(), pos, this ).sprite.drop();
 	}
 
 	@Override

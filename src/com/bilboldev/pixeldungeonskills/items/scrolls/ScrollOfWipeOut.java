@@ -20,7 +20,6 @@ package com.bilboldev.pixeldungeonskills.items.scrolls;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.buffs.Blindness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
@@ -29,20 +28,13 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Heap.Type;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
-import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
 public class ScrollOfWipeOut extends Scroll {
-
-	private static final String TXT_BLINDED	= "custom.generated.entry_you_can_t_read_a_scroll_while_blinded_83f7a4f677";
-
-	public static final String AC_READ	= "READ";
-
-	protected static final float TIME_TO_READ	= 1f;
-
 	{
 		name = "Scroll of Wipe Out";
 		image = ItemSpriteSheet.SCROLL_WIPE_OUT;
@@ -51,24 +43,10 @@ public class ScrollOfWipeOut extends Scroll {
 		defaultAction = AC_READ;
 	}
 
-	@Override
-	public void execute( Hero hero, String action ) {
-		if (action.equals( AC_READ )) {
-
-			if (hero.buff( Blindness.class ) != null) {
-				GLog.w(TXT_BLINDED);
-			} else {
-				curUser = hero;
-				curItem = detach( hero.belongings.backpack );
-				doRead();
-			}
-
-		} else {
-
-			super.execute( hero, action );
-
-		}
-	}
+    @Override
+    protected Message readWarning(Hero hero) {
+        return Message.key(ScrollOfWipeOut.class, "confirm");
+    }
 
     @Override
     protected void doRead() {

@@ -98,9 +98,9 @@ public class Scorpio extends Mob {
 	@Override
 	protected void dropLoot() {
 		if (Random.Int( 8 ) == 0) {
-			Dungeon.level.drop( new PotionOfHealing(), pos ).sprite.drop();
+			Dungeon.level.drop( new PotionOfHealing().random(), pos, this ).sprite.drop();
 		} else if (Random.Int( 6 ) == 0) {
-			Dungeon.level.drop( new MysteryMeat(), pos ).sprite.drop();
+			Dungeon.level.drop( new MysteryMeat(), pos, this ).sprite.drop();
 		}
 	}
 

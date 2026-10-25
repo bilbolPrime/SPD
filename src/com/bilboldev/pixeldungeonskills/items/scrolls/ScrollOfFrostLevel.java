@@ -21,42 +21,108 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
+import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.Lore;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
-import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
+import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.utils.Random;
+
+import java.util.ArrayList;
 
 public class ScrollOfFrostLevel extends Scroll {
+
+    public static final String AC_TEAR = "TEAR";
+    private static final float FREEZE_DURATION = 1000f;
 
 	{
 		name = "Scroll of Frost";
 	}
-	
+
+    @Override
+    public boolean isKnown() {
+        return true;
+    }
+
+    @Override
+    public ArrayList<String> actions(Hero hero) {
+        ArrayList<String> actions = super.actions(hero);
+        if (Dungeon.rules().mode == GameplayMode.REBORN) actions.add(AC_TEAR);
+        return actions;
+    }
+
+    @Override
+    public void execute(Hero hero, String action) {
+        if (AC_TEAR.equals(action)) {
+            if (Dungeon.rules().mode != GameplayMode.REBORN) return;
+            confirmAction(hero, Message.key(ScrollOfFrostLevel.class, "tear_confirm"),
+                    Message.key("items.artifacts.chaliceofblood.yes"),
+                    Message.key("items.artifacts.chaliceofblood.no"), () -> tear(hero));
+            return;
+        }
+        super.execute(hero, action);
+    }
+
+    @Override
+    protected boolean canRead(Hero hero) {
+        if (Dungeon.rules().mode != GameplayMode.REBORN || IceCaves.active()
+                || Dungeon.depth < 6 || Dungeon.depth > 10) {
+            GLog.w(ScrollOfFrostLevel.class, "wrong_place");
+            return false;
+        }
+        if (IceCaves.visited()) {
+            GLog.w(ScrollOfFrostLevel.class, "spent");
+            return false;
+        }
+        return super.canRead(hero);
+    }
+
+    @Override
+    protected Message readWarning(Hero hero) {
+        return Message.key(ScrollOfFrostLevel.class, "read_confirm");
+    }
+
+    private void tear(Hero hero) {
+        if (!hero.isAlive() || !hero.belongings.backpack.contains(this)) return;
+        detach(hero.belongings.backpack);
+        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+            if (mob.hostile && mob.isAlive() && !(mob instanceof NPC) && !Bestiary.isBoss(mob)) {
+                Buff.prolong(mob, Frost.class, FREEZE_DURATION);
+            }
+        }
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
+        Lore.used(this);
+        hero.spend(TIME_TO_READ);
+        hero.busy();
+        ((HeroSprite)hero.sprite).read();
+    }
+
 	@Override
 	protected void doRead() {
 
-        ColdGirl.cameFrom = Dungeon.depth;
-        ColdGirl.cameFromPos = Dungeon.hero.pos;
-        InterlevelScene.mode = InterlevelScene.Mode.TELEPORT;
-        Game.switchScene(InterlevelScene.class);
-        Dungeon.observe();
-
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
         setKnown();
-
-
-        curUser.spendAndNext( TIME_TO_READ );
+        curUser.spend(TIME_TO_READ);
+        InterlevelScene.mode = InterlevelScene.Mode.FROST;
+        Game.switchScene(InterlevelScene.class);
 	}
-	
+
 	@Override
 	public String desc() {
-		return
-			"The scroll seems colder than the surroundings. As if it were a portal to a colder dimension.";
+		return Messages.get(ScrollOfFrostLevel.class, "desc");
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 80 * quantity : super.price();

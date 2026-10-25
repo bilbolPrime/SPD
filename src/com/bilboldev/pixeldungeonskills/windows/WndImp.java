@@ -82,7 +82,7 @@ public class WndImp extends WndScrollable {
 		if (Presentation.reborn()) {
 			layoutContent(windowWidth, titlebar, textContent(message), GAP, btnReward);
 		} else {
-			resize(WIDTH, (int)btnReward.bottom());
+			resize(WIDTH, (int)Math.ceil(btnReward.bottom()));
 		}
 	}
 

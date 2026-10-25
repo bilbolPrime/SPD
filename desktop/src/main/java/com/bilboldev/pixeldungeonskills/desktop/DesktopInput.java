@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.windows.WndHeroAppearance;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -112,6 +113,9 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
             return true;
         }
         if (!inputAvailable() || !keysDown.add(keycode)) return true;
+        Window window = Window.topWindow();
+        if (Game.isFreeDesktop() && (window instanceof WndHeroAppearance || window instanceof WndHeroAppearance.RatKingHint)
+                && (keycode >= Input.Keys.A && keycode <= Input.Keys.Z || keycode == Input.Keys.DEL)) return true;
         if (bindings.capture(keycode, false)) return true;
         if (debugKeys.test(keycode)) {
             movement.clear();
@@ -148,8 +152,18 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
 
     @Override
     public boolean keyTyped(char character) {
+        if (!inputAvailable()) return false;
         PartyPrompts.Input input = PartyPrompts.editing();
-        if (!inputAvailable() || input == null) return false;
+        if (input == null) {
+            Window window = Window.topWindow();
+            if (!Game.isFreeDesktop()) return false;
+            if (window instanceof WndHeroAppearance) {
+                if (!controlDown()) ((WndHeroAppearance)window).type(character);
+            } else if (window instanceof WndHeroAppearance.RatKingHint) {
+                if (!controlDown()) ((WndHeroAppearance.RatKingHint)window).type(character);
+            } else return false;
+            return true;
+        }
         if (!controlDown() && character >= ' ' && character <= '~') input.insert(String.valueOf(character));
         return true;
     }

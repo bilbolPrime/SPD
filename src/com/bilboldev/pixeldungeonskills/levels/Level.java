@@ -17,17 +17,23 @@
  */
 package com.bilboldev.pixeldungeonskills.levels;
 
+import com.bilboldev.pixeldungeonskills.items.keys.SkeletonKey;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -107,6 +113,7 @@ public abstract class Level implements Bundlable {
 	public static int loadedMapSize;
 
 	public int[] map;
+	public int[] seedUses;
 	public boolean[] visited;
 	public boolean[] mapped;
 	public boolean[] heroFOV;
@@ -135,6 +142,8 @@ public abstract class Level implements Bundlable {
 	public HashSet<Mob> mobs;
 	public SparseArray<Heap> heaps;
 	public HashMap<Class<? extends Blob>,Blob> blobs;
+    public final ArrayList<DeathBomb> deathBombs = new ArrayList<>();
+    public boolean doubleBossSpawned;
 	public SparseArray<Plant> plants;
 
 	protected ArrayList<Item> itemsToSpawn = new ArrayList<Item>();
@@ -161,6 +170,7 @@ public abstract class Level implements Bundlable {
 		resizingNeeded = false;
 
 		map = new int[LENGTH];
+		seedUses = RunSeed.active() ? new int[LENGTH] : null;
 		visited = new boolean[LENGTH];
 		Arrays.fill( visited, false );
 		mapped = new boolean[LENGTH];
@@ -168,7 +178,7 @@ public abstract class Level implements Bundlable {
 		heroFOV     = new boolean[LENGTH];
 		Arrays.fill( heroFOV, false );
 
-		mobs = new HashSet<Mob>();
+		mobs = RunSeed.active() ? new LinkedHashSet<Mob>() : new HashSet<Mob>();
 		heaps = new SparseArray<Heap>();
 		blobs = new HashMap<Class<? extends Blob>,Blob>();
 		plants = new SparseArray<Plant>();
@@ -228,6 +238,8 @@ public abstract class Level implements Bundlable {
 
 		createMobs();
 		createItems();
+        if (this instanceof RegularLevel && !Dungeon.bossLevel() && Dungeon.rules().hasChallenges())
+            RebornEncounters.challenges((RegularLevel)this);
 	}
 
     protected void finishBuild() {}
@@ -245,12 +257,15 @@ public abstract class Level implements Bundlable {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 
-		mobs = new HashSet<Mob>();
+		mobs = RunSeed.active() ? new LinkedHashSet<Mob>() : new HashSet<Mob>();
 		heaps = new SparseArray<Heap>();
 		blobs = new HashMap<Class<? extends Blob>, Blob>();
 		plants = new SparseArray<Plant>();
 
 		map		= bundle.getIntArray( MAP );
+		seedUses = bundle.contains("seed_uses") ? bundle.getIntArray("seed_uses") : null;
+		if (RunSeed.active() && (seedUses == null || seedUses.length != LENGTH))
+			throw new IllegalArgumentException("Missing terrain seed counters");
 		visited	= bundle.getBooleanArray( VISITED );
 		mapped	= bundle.getBooleanArray( MAPPED );
 
@@ -283,6 +298,7 @@ public abstract class Level implements Bundlable {
 		collection = bundle.getCollection( MOBS );
 		for (Bundlable m : collection) {
 			Mob mob = (Mob)m;
+			if (mob instanceof HiredMerc && !mob.isAlive()) continue;
 			if (mob != null) {
 				if (resizingNeeded) {
 					mob.pos = adjustPos( mob.pos );
@@ -291,7 +307,12 @@ public abstract class Level implements Bundlable {
 			}
 		}
 
-		collection = bundle.getCollection( BLOBS );
+		deathBombs.clear();
+        for (Bundlable bomb : bundle.getCollection("death_bombs")) {
+            deathBombs.add((DeathBomb)bomb);
+        }
+        doubleBossSpawned = bundle.getBoolean("double_boss_spawned");
+        collection = bundle.getCollection( BLOBS );
 		for (Bundlable b : collection) {
 			Blob blob = (Blob)b;
 			blobs.put( blob.getClass(), blob );
@@ -304,6 +325,7 @@ public abstract class Level implements Bundlable {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put( MAP, map );
+		if (seedUses != null) bundle.put("seed_uses", seedUses);
 		bundle.put( VISITED, visited );
 		bundle.put( MAPPED, mapped );
 		bundle.put( ENTRANCE, entrance );
@@ -313,6 +335,8 @@ public abstract class Level implements Bundlable {
 		bundle.put( PLANTS, plants.values() );
 		bundle.put( MOBS, mobs );
 		bundle.put( BLOBS, blobs.values() );
+        bundle.put("death_bombs", deathBombs);
+        bundle.put("double_boss_spawned", doubleBossSpawned);
 	}
 
 	public int tunnelTile() {
@@ -388,17 +412,42 @@ public abstract class Level implements Bundlable {
 		return 0;
 	}
 
+    private boolean outnumbered() {
+        return this instanceof RegularLevel && !Dungeon.bossLevel()
+                && RebornChallenges.active(RebornChallenges.OUTNUMBERED);
+    }
+
 	public Actor respawner() {
 		return new Actor() {
 			@Override
 			protected boolean act() {
-				if (mobs.size() < nMobs()) {
+				int population = mobs.size();
+                boolean outnumbered = outnumbered();
+                if (outnumbered) {
+                    population = 0;
+                    for (Mob existing : mobs) if (!existing.challengeExtra) population++;
+                }
+                if (population < nMobs()) {
 
 					Mob mob = Bestiary.mutable( Dungeon.depth );
 					mob.state = mob.WANDERING;
 					mob.pos = randomRespawnCell();
+                    if (RebornChallenges.active(RebornChallenges.SURVIVAL)) {
+                        RebornChallenges.promote(mob, new java.util.Random(Random.Long()));
+                    }
 					if (Dungeon.hero.isAlive() && mob.pos != -1) {
 						GameScene.add( mob );
+                        if (outnumbered) {
+                            Mob extra = Bestiary.mutable(Dungeon.depth);
+                            extra.pos = randomRespawnCell();
+                            if (extra.pos >= 0) {
+                                extra.state = extra.WANDERING;
+                                extra.challengeExtra = true;
+                                if (RebornChallenges.active(RebornChallenges.SURVIVAL))
+                                    RebornChallenges.promote(extra, new java.util.Random(Random.Long()));
+                                GameScene.add(extra);
+                            }
+                        }
                         if (!Dungeon.rules().hasRebornEncounters() && Random.Int(10) < Dungeon.currentDifficulty.championChance())
                             Buff.affect(mob, Champ.class);
 						if (Statistics.amuletObtained) {
@@ -420,7 +469,12 @@ public abstract class Level implements Bundlable {
                 {
 
                     HiredMerc mercCheck = checkMerc();
-                    if(mercCheck!=null){mercCheck.destroy();mercCheck.sprite.killAndErase();}
+                    if (mercCheck != null) {
+                        Dungeon.hero.hiredMerc = mercCheck;
+                        Dungeon.hero.checkMerc = false;
+                        spend(1);
+                        return true;
+                    }
 
                     for (int nu = 0; nu < 1 ; nu++) {
                         int newPos = Dungeon.hero.pos;
@@ -661,11 +715,27 @@ public abstract class Level implements Bundlable {
 		solid[cell]			= (flags & Terrain.SOLID) != 0;
 		avoid[cell]			= (flags & Terrain.AVOID) != 0;
 		pit[cell]			= (flags & Terrain.PIT) != 0;
-		water[cell]			= terrain == Terrain.WATER || terrain >= Terrain.WATER_TILES;
+		water[cell]			= terrain >= Terrain.WATER_TILES && terrain <= Terrain.WATER;
 	}
 
-	public Heap drop( Item item, int cell ) {
+	public Heap drop(Item item, int cell, Mob source) {
+		return drop(item, cell, source, false);
+	}
 
+	public Heap drop(Item item, int cell, Mob source, boolean championReward) {
+		item = challengeDrop(item);
+		if (item instanceof SkeletonKey && source != null
+                && Dungeon.depth >= 5 && Dungeon.depth <= 25 && Dungeon.depth % 5 == 0) {
+            Dungeon.challengeBosses |= 1 << (Dungeon.depth / 5 - 1);
+        }
+
+		Heap heap = drop(item, cell);
+		Lore.dropped(source, item, heap.pos, championReward);
+		return heap;
+	}
+
+	private static Item challengeDrop(Item item) {
+        RebornChallenges.plain(item);
 		if (Dungeon.isChallenged( Challenges.NO_FOOD ) && item instanceof Food) {
 			item = new Gold( item.price() );
 		} else
@@ -685,6 +755,11 @@ public abstract class Level implements Bundlable {
 				item = new Gold( item.price() );
 			}
 		}
+		return item;
+	}
+
+	public Heap drop( Item item, int cell ) {
+		item = challengeDrop(item);
 
 		if ((map[cell] == Terrain.ALCHEMY) && !(item instanceof Plant.Seed)) {
 			int n;
@@ -1115,7 +1190,7 @@ public abstract class Level implements Bundlable {
         if(tile == Terrain.STORAGE)
 			return text( "levels.level.storage_name", "Storage" );
 
-		if (tile >= Terrain.WATER_TILES) {
+		if (tile >= Terrain.WATER_TILES && tile < Terrain.WATER) {
 			return tileName( Terrain.WATER );
 		}
 
@@ -1247,7 +1322,7 @@ public abstract class Level implements Bundlable {
             case Terrain.STORAGE:
 				return text( "levels.level.storage_desc", "The storage can hold up to five items. These items are not lost if you are resurrected by an Ankh. To use, stand in same tile and open your inventory. Click on any item and then click store." );
 		default:
-			if (tile >= Terrain.WATER_TILES) {
+			if (tile >= Terrain.WATER_TILES && tile <= Terrain.WATER) {
 				return tileDesc( Terrain.WATER );
 			}
 			if ((Terrain.flags[tile] & Terrain.PIT) != 0) {

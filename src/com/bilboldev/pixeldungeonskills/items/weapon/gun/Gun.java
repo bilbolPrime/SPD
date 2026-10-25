@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -51,6 +52,14 @@ public abstract class Gun extends MeleeWeapon {
         return 1;
     }
 
+    public int projectilesPerShot() {
+        return shotsPerFire();
+    }
+
+    public float firingDelay(Hero hero) {
+        return DLY / Math.max(0.1f, hero.skillTree.getGunAttackSpeedModifier());
+    }
+
     @Override
     protected int min0() {
         return tier + 2;
@@ -85,9 +94,13 @@ public abstract class Gun extends MeleeWeapon {
     }
 
     private int effectiveMaxAmmo() {
+        return effectiveMaxAmmo(Dungeon.hero);
+    }
+
+    private int effectiveMaxAmmo(Hero viewer) {
         int bonus = 0;
-        if (Dungeon.hero != null && Dungeon.hero.skillTree != null) {
-            bonus = Dungeon.hero.skillTree.getGunAmmoBonus();
+        if (viewer != null && viewer.skillTree != null) {
+            bonus = viewer.skillTree.getGunAmmoBonus();
         }
         return Math.max(10, maxCharges + bonus);
     }
@@ -134,10 +147,11 @@ public abstract class Gun extends MeleeWeapon {
             if (cell == null) return;
             if (LocalCoop.contains(Actor.findChar(cell))) return;
             final Hero hero = (Hero) curUser;
+            if (!RebornChallenges.targetAllowed(hero, cell)) return;
             final SkillTree tree = hero.skillTree;
             final SkillTree.GunShotData shotData = tree.prepareGunShot(hero);
             final int primaryTargetCell = Ballistica.cast(hero.pos, cell, false, true);
-            final float finalDelay = DLY / Math.max(0.1f, tree.getGunAttackSpeedModifier());
+            final float finalDelay = firingDelay(hero);
 
             hero.sprite.centerEmitter().burst(SmokeParticle.FACTORY, 3);
 
@@ -160,7 +174,8 @@ public abstract class Gun extends MeleeWeapon {
                                         : Ballistica.cast(hero.pos, spreadCell(cell), false, true);
 
                                 Char target = Actor.findChar(targetCell);
-                                if (target != null && target != hero) {
+                                if (target != null && target != hero
+                                        && (!RebornChallenges.active(RebornChallenges.POINT_BLANK) || Level.adjacent(hero.pos, target.pos))) {
 
                                     int dmg = Math.max(1, (int)(Random.NormalIntRange(min(), max())
                                             * tree.getGunDamageModifier() * shotData.damageModifier * damageMult));
@@ -184,6 +199,7 @@ public abstract class Gun extends MeleeWeapon {
                                         } else {
                                             target.damage(dmg, Gun.this);
                                         }
+                                        onHit(target);
 
                                         if (tree.shouldFleeOnGunHit() || shotData.flee) {
                                             Buff.prolong(target, com.bilboldev.pixeldungeonskills.actors.buffs.Terror.class, 5f);
@@ -224,6 +240,8 @@ public abstract class Gun extends MeleeWeapon {
             return Message.key("custom.generated.necro_merc.shoot_prompt");
         }
     };
+
+    protected void onHit(Char target) { }
 
     private int spreadCell( int base ) {
         int[] offsets = { -1, 1, -Dungeon.level.WIDTH, Dungeon.level.WIDTH };
@@ -285,8 +303,13 @@ public abstract class Gun extends MeleeWeapon {
 
     @Override
     public String info() {
-        StringBuilder sb = new StringBuilder(super.info());
-        sb.append("\n\nAmmo: ").append(curCharges).append(" / ").append(effectiveMaxAmmo());
+        return info(Dungeon.hero);
+    }
+
+    @Override
+    public String info(Hero viewer) {
+        StringBuilder sb = new StringBuilder(super.info(viewer));
+        sb.append("\n\nAmmo: ").append(curCharges).append(" / ").append(effectiveMaxAmmo(viewer));
         sb.append("\nRearms every ~").append((int)turnsPerCharge()).append(" turns.");
         sb.append("\n\nThis firearm fires at range. Cannot be used in melee to shoot.");
         return sb.toString();

@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.scenes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.Camera;
@@ -28,12 +29,23 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.levels.CavesBossLevel;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Bee;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Rat;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.Betrayal;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.FirstWave;
@@ -58,7 +70,7 @@ public class InterlevelScene extends PixelScene {
 	private static final String ERR_GENERIC			= "Something went wrong..."	;
 
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT, FROST
 	};
 	public static Mode mode;
 
@@ -75,6 +87,7 @@ public class InterlevelScene extends PixelScene {
 	};
 	private Phase phase;
 	private float timeLeft;
+	private final ArrayList<NPC> companions = new ArrayList<>();
 
 	private BitmapText message;
 
@@ -111,6 +124,9 @@ public class InterlevelScene extends PixelScene {
         case TELEPORT:
         case TELEPORT_BACK:
             text = TXT_TELEPORTING;
+            break;
+        case FROST:
+            text = Messages.get(Mode.class, "frost");
             break;
         case MOVIE:
             text = "10 years ago...";
@@ -188,6 +204,9 @@ public class InterlevelScene extends PixelScene {
                     case TELEPORT:
                         teleport();
                      break;
+                    case FROST:
+                        enterIceCaves();
+                        break;
                     case TELEPORT_BACK:
                         teleport_back();
                          break;
@@ -197,6 +216,7 @@ public class InterlevelScene extends PixelScene {
 					default:
 					}
 
+					placeCompanions();
 					if ((Dungeon.depth % 5) == 0) {
 						Sample.INSTANCE.load( Assets.SND_BOSS );
 					}
@@ -375,6 +395,11 @@ public class InterlevelScene extends PixelScene {
 
 	private void descend() throws Exception {
 
+        if (IceCaves.active() && Dungeon.depth == IceCaves.LAST) {
+            leaveIceCaves();
+            return;
+        }
+
 		Actor.fixTime();
 		if (Dungeon.hero == null) {
 			Dungeon.init();
@@ -448,6 +473,32 @@ public class InterlevelScene extends PixelScene {
         Dungeon.switchLevel(level, level.randomRespawnCell() );
     }
 
+    private void enterIceCaves() throws Exception {
+        Actor.fixTime();
+        saveLevel();
+        IceCaves.enter();
+        Dungeon.depth = IceCaves.FIRST - 1;
+        Level level = Dungeon.newLevel();
+        Dungeon.switchLevel(level, level.entrance);
+    }
+
+    private void leaveIceCaves() throws Exception {
+        Actor.fixTime();
+        saveLevel();
+        IceCaves.leave();
+        Level level;
+        if (Dungeon.hasLevel(15)) {
+            Dungeon.depth = 15;
+            level = loadLevel();
+        } else {
+            Dungeon.depth = 14;
+            level = Dungeon.newLevel();
+        }
+        CavesBossLevel arena = (CavesBossLevel)level;
+        arena.openIcePassage();
+        Dungeon.switchLevel(arena, arena.iceEntrance());
+    }
+
     private void teleport_back() throws Exception {
         Actor.fixTime();
 
@@ -461,8 +512,15 @@ public class InterlevelScene extends PixelScene {
 		Actor.fixTime();
 
 		saveLevel();
-		Dungeon.depth--;
-		Level level = loadLevel();
+		int destination = Dungeon.depth - 1;
+        Level level;
+        if (Dungeon.hasLevel(destination)) {
+            Dungeon.depth = destination;
+            level = loadLevel();
+        } else {
+            Dungeon.depth = destination - 1;
+            level = Dungeon.newLevel();
+        }
 		Dungeon.switchLevel( level, level.exit );
 	}
 
@@ -471,7 +529,13 @@ public class InterlevelScene extends PixelScene {
 		Actor.fixTime();
 
 		saveLevel();
-		Dungeon.depth = returnDepth;
+        if (IceCaves.branchKey(returnDepth)) {
+            IceCaves.enter();
+            Dungeon.depth = returnDepth - 1000;
+        } else {
+            IceCaves.leave();
+            Dungeon.depth = returnDepth;
+        }
 		Level level = loadLevel();
 		Dungeon.switchLevel( level, Level.resizingNeeded ? level.adjustPos( returnPos ) : returnPos );
 	}
@@ -495,21 +559,62 @@ public class InterlevelScene extends PixelScene {
 	}
 
 	private boolean newFloorBelow() {
-		return LocalCoop.active() ? LocalCoop.level(Dungeon.depth + 1) == null
-				: Dungeon.depth >= Statistics.deepestFloor;
+		return !Dungeon.hasLevel(Dungeon.depth + 1);
 	}
 
 	private void saveLevel() throws IOException {
+		if (IceCaves.active() || mode == Mode.FROST || mode == Mode.RETURN && IceCaves.branchKey(returnDepth)) {
+			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (!mob.isAlive() || !(mob instanceof NPC)) continue;
+				if (mob instanceof HiredMerc || mob instanceof SummonedPet || mob instanceof MirrorImage
+						|| mob instanceof Bee || mob instanceof RatScout
+						|| mob instanceof Rat || mob instanceof Crab || mob instanceof Skeleton) {
+					companions.add((NPC)mob);
+					Dungeon.level.mobs.remove(mob);
+				}
+			}
+		}
+
+		Dungeon.level.mobs.removeIf(mob -> mob instanceof HiredMerc);
 		if (LocalCoop.active()) {
-			LocalCoop.rememberLevel(Dungeon.depth, Dungeon.level);
+			LocalCoop.rememberLevel(Dungeon.levelKey(), Dungeon.level);
 		} else {
 			Dungeon.saveLevel();
 		}
 	}
 
+	private void placeCompanions() throws IOException {
+		for (NPC ally : companions) {
+			Hero owner = ally.owner();
+			Actor.occupyCell(owner);
+			int landing = -1;
+			int distance = Integer.MAX_VALUE;
+			for (int cell = 0; cell < Level.LENGTH; cell++) {
+				if (!Level.passable[cell] || Level.avoid[cell] || Level.pit[cell] || Actor.findChar(cell) != null) continue;
+				int next = Level.distance(owner.pos, cell);
+				if (next < distance) {
+					landing = cell;
+					distance = next;
+				}
+			}
+			if (landing == -1) throw new IOException("No space for an ally on this floor.");
+			ally.pos = landing;
+			ally.sprite = null;
+			ally.restorePartyEnemy(null);
+			ally.state = ally.WANDERING;
+			Dungeon.level.mobs.add(ally);
+			Actor.add(ally);
+			if (ally instanceof HiredMerc) {
+				owner.hiredMerc = (HiredMerc)ally;
+				owner.checkMerc = false;
+			}
+		}
+		companions.clear();
+	}
+
 	private Level loadLevel() throws IOException {
 		if (!LocalCoop.active()) return Dungeon.loadLevel(Dungeon.hero.heroClass);
-		Level level = LocalCoop.level(Dungeon.depth);
+		Level level = LocalCoop.level(Dungeon.levelKey());
 		if (level == null) throw new IOException("This co-op floor has not been visited.");
 		Dungeon.level = null;
 		Actor.clear();

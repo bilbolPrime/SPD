@@ -6,6 +6,7 @@ import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.GravefrostScythe;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
@@ -300,7 +301,8 @@ public class SummonedPet extends NPC {
             }
         }
 
-        return ((int)(damage * owner().skillTree.getMinionDamageModifier()));
+        int cold = enemy.immunities().contains(GravefrostScythe.class) ? 0 : GravefrostScythe.coldDamage(this);
+        return (int)(damage * owner().skillTree.getMinionDamageModifier()) + cold;
     }
 
     @Override

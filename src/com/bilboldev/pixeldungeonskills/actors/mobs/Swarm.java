@@ -125,6 +125,7 @@ public class Swarm extends Mob {
 	private Swarm split() {
 		Swarm clone = new Swarm();
 		clone.generation = generation + 1;
+        clone.challengeExtra = challengeExtra;
 		if (buff( Burning.class ) != null) {
 			Buff.affect( clone, Burning.class ).reignite( clone );
 		}
@@ -137,7 +138,7 @@ public class Swarm extends Mob {
 	@Override
 	protected void dropLoot() {
 		if (Random.Int( 5 * (generation + 1) ) == 0) {
-			Dungeon.level.drop( new PotionOfHealing(), pos ).sprite.drop();
+			Dungeon.level.drop( new PotionOfHealing().random(), pos, this ).sprite.drop();
 		}
 	}
 

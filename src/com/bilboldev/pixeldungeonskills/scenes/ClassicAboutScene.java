@@ -21,6 +21,7 @@ import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.TouchArea;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
@@ -29,12 +30,9 @@ import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 
 public class ClassicAboutScene extends PixelScene {
-
-    private static final String TXTFirst = "SkillFull Pixel Dungeon \n \n"
-     + "Code & graphics: BilbolDev\n"
-     + "Source code is available on GitHub\n";
 
     private static final String TXT =
          "Based on Pixel Dungeon \n \n" +
@@ -60,21 +58,11 @@ public class ClassicAboutScene extends PixelScene {
         add( textfirst );
 
         textfirst.x = align( (Camera.main.width - textfirst.width()) / 2 );
-        textfirst.y = align( ((Camera.main.height / 2) - textfirst.height()) / 2 );
+        textfirst.y = align( Math.max(8, ((Camera.main.height / 2) - textfirst.height()) / 2 - (Game.isFreeDesktop() ? 24 : 0)) );
 
         pos =  textfirst.y + textfirst.height() + GAP;
 
         textfirst = createMultiline( "Code & graphics: BilbolDev", 8 );
-        textfirst.maxWidth = Math.min( Camera.main.width, 120 );
-        textfirst.measure();
-        add( textfirst );
-
-        textfirst.x = align( (Camera.main.width - textfirst.width()) / 2 );
-        textfirst.y = pos;
-
-        pos =  textfirst.y + textfirst.height() + GAP;
-
-        textfirst = createMultiline( "Source code is available on GitHub", 8 );
         textfirst.maxWidth = Math.min( Camera.main.width, 120 );
         textfirst.measure();
         add( textfirst );
@@ -102,6 +90,14 @@ public class ClassicAboutScene extends PixelScene {
         link_SPD.y = pos;
 
         pos =  link_SPD.y + link_SPD.height() + 4 * GAP;
+
+        if (Game.isFreeDesktop()) {
+            SteamPageButton steam = new SteamPageButton();
+            float width = Math.min(Camera.main.width - 16, Math.max(120, steam.reqWidth()));
+            steam.setRect(align((Camera.main.width - width) / 2), pos, width, 20);
+            add(steam);
+            pos = steam.bottom() + 4 * GAP;
+        }
 
         BitmapTextMultiline text = createMultiline( "Based on Pixel Dungeon", 8 );
 		text.maxWidth = Math.min( Camera.main.width, 120 );

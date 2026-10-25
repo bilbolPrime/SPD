@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,6 +112,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.GlacierCleaver;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -138,6 +140,18 @@ import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 public class Hero extends Char {
+
+    public boolean canUseSkill(int mana) {
+        return MP >= mana && (!RebornChallenges.active(RebornChallenges.BLOOD_MAGIC) || HP > mana);
+    }
+
+    public void spendSkillMana(int mana) {
+        MP -= mana;
+        if (RebornChallenges.active(RebornChallenges.BLOOD_MAGIC)) {
+            HP = Math.max(1, HP - mana);
+        }
+    }
+
     @Override
     public Message nameMessage() {
         return Message.hero(this);
@@ -432,6 +446,12 @@ public class Hero extends Char {
 
 	@Override
 	public int attackSkill( Char target ) {
+		int meleeBonus = rangedWeapon == null && belongings.weapon != null
+				? Dungeon.hero.heroSkills.passiveB1.toHitBonus() : 0;
+		return attackSkill(target, meleeBonus);
+	}
+
+	public int attackSkill(Char target, int meleeBonus) {
 
 		int bonus = 0;
 		for (Buff buff : buffs( RingOfAccuracy.Accuracy.class )) {
@@ -446,7 +466,7 @@ public class Hero extends Char {
         int attackSkillTmp = attackSkill;
 
         if(wep instanceof MeleeWeapon){
-            attackSkillTmp += skillTree.getMeleeAttackSkillBonus();
+        	attackSkillTmp += skillTree.getMeleeAttackSkillBonus();
 		}
 
 		if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
@@ -456,7 +476,7 @@ public class Hero extends Char {
 		if (wep != null) {
             if(rangedWeapon == null)
             {
-                return (int)((attackSkillTmp + Dungeon.hero.heroSkills.passiveB1.toHitBonus()) * accuracy * wep.acuracyFactor( this ));
+                return (int)((attackSkillTmp + meleeBonus) * accuracy * wep.acuracyFactor( this ));
             }
 			return (int)(attackSkillTmp * accuracy * wep.acuracyFactor( this ));
 		} else {
@@ -534,7 +554,7 @@ public class Hero extends Char {
 		int aEnc = belongings.armor != null ? belongings.armor.STR - STR() : 0;
 		if (aEnc > 0) {
 
-			return (float)(super.speed() * Math.pow( 1.3, -aEnc ));
+			return armorSpeed(super.speed());
 
 		} else {
 
@@ -542,6 +562,11 @@ public class Hero extends Char {
 			return ((HeroSprite)sprite).sprint( subClass == HeroSubClass.FREERUNNER && !isStarving() ) ? 1.6f * speed : speed;
 
 		}
+	}
+
+	public float armorSpeed(float speed) {
+		int encumbrance = belongings.armor != null ? belongings.armor.STR - STR() : 0;
+		return encumbrance > 0 ? (float)(speed * Math.pow(1.3, -encumbrance)) : speed;
 	}
 
 	public float attackDelay() {
@@ -571,12 +596,16 @@ public class Hero extends Char {
 			Skill.skillTrack += time;
 		}
 
+		super.spend(hasteTime(time));
+	}
+
+	public float hasteTime(float time) {
 		int hasteLevel = 0;
 		for (Buff buff : buffs( RingOfHaste.Haste.class )) {
 			hasteLevel += ((RingOfHaste.Haste)buff).level;
 		}
-		super.spend( hasteLevel == 0 ? time : (float)(time * Math.pow( 1.1, -hasteLevel )) );
-	};
+		return hasteLevel == 0 ? time : (float)(time * Math.pow(1.1, -hasteLevel));
+	}
 
 	public void spendAndNext( float time ) {
 		busy();
@@ -590,7 +619,7 @@ public class Hero extends Char {
 		super.act();
 
 		if (paralysed) {
-
+			LocalCoop.pauseFollowing(this);
 			curAction = null;
 
 			spendAndNext( TICK );
@@ -600,6 +629,19 @@ public class Hero extends Char {
 		checkVisibleMobs();
 		AttackIndicator.updateState();
 		if (LocalCoop.active() && LocalCoop.runCommand(this)) return false;
+		LocalCoop.updateFollowing(this);
+		if (LocalCoop.following(this)) {
+			int step = followStep();
+			if (step != -1) {
+				busy();
+				if (step == pos) {
+					spendAndNext(1 / speed());
+					return false;
+				}
+				if (getCloser(step)) return true;
+			}
+			interrupt();
+		}
 
 		if (curAction == null) {
 
@@ -704,6 +746,8 @@ public class Hero extends Char {
 	}
 
 	public void interrupt(PartySession.StopReason reason) {
+		if (reason == PartySession.StopReason.CANCELLED) LocalCoop.stopFollowing(this);
+		else LocalCoop.pauseFollowing(this);
 		PartySession.interrupted(this, reason);
 		if (PartySession.network()) restoreHealth = false;
 		if (LocalCoop.active()) LocalCoop.cancelCommand(this);
@@ -714,6 +758,7 @@ public class Hero extends Char {
 	}
 
 	public void resume() {
+		if (!isAlive() || lastAction == null) return;
 		if (PartySession.input(this, "resume", 0)) return;
 		curAction = lastAction;
 		lastAction = null;
@@ -890,7 +935,7 @@ public class Hero extends Char {
 
 				if (heap.type == Type.LOCKED_CHEST || heap.type == Type.CRYSTAL_CHEST) {
 
-					theKey = belongings.getKey( GoldenKey.class, Dungeon.depth );
+					theKey = belongings.getKey( GoldenKey.class, Dungeon.levelKey() );
 
 					if (theKey == null) {
 						GLog.w(Hero.class, "locked_chest");
@@ -938,11 +983,11 @@ public class Hero extends Char {
 
 			if (door == Terrain.LOCKED_DOOR) {
 
-				theKey = belongings.getKey( IronKey.class, Dungeon.depth );
+				theKey = belongings.getKey( IronKey.class, Dungeon.levelKey() );
 
 			} else if (door == Terrain.LOCKED_EXIT) {
 
-				theKey = belongings.getKey( SkeletonKey.class, Dungeon.depth );
+				theKey = belongings.getKey( SkeletonKey.class, Dungeon.levelKey() );
 
 			}
 
@@ -1000,7 +1045,7 @@ public class Hero extends Char {
         int stairs = action.dst;
         if (pos == stairs && pos == Dungeon.level.storage) {
 
-            GameScene.show( new WndStorage(Dungeon.hero.storage, null, WndStorage.Mode.ALL, null ) );
+            GameScene.show( new WndStorage(storage, null, WndStorage.Mode.ALL, null ) );
             ready();
             return false;
 
@@ -1127,6 +1172,7 @@ public class Hero extends Char {
             }
 
 			wep.proc( this, enemy, damage );
+			if (wep instanceof GlacierCleaver) damage = ((GlacierCleaver)wep).strike(enemy, damage);
 
 			switch (subClass) {
 			case GLADIATOR:
@@ -1253,6 +1299,7 @@ public class Hero extends Char {
 		if (prefix != null) dmg = prefix.reduceDamage(attacker, this, dmg);
 		int health = HP;
 		super.damage( dmg, src );
+		if (HP < health) LocalCoop.pauseFollowing(this);
 		if (prefix != null && isAlive() && HP < health) prefix.afterHit(attacker, this);
 
 		StatusPane.takingDamage += dmg;
@@ -1300,6 +1347,19 @@ public class Hero extends Char {
 		return visibleEnemies.get( index % visibleEnemies.size() );
 	}
 
+	public int followStep() {
+		Hero leader = LocalCoop.partner(this);
+		if (leader == null || !leader.isAlive()) return -1;
+		if (Level.adjacent(pos, leader.pos)) return pos;
+		boolean[] passable = new boolean[Level.LENGTH];
+		for (int i = 0; i < passable.length; i++) {
+			passable[i] = Level.passable[i] && !Level.avoid[i] && !Level.pit[i]
+					&& (Dungeon.level.visited[i] || Dungeon.level.mapped[i]);
+		}
+		int step = Dungeon.findPath(this, pos, leader.pos, passable, Dungeon.visible);
+		return step != -1 && Actor.findChar(step) == null && !Level.avoid[step] && !Level.pit[step] ? step : -1;
+	}
+
 	protected boolean getCloser( final int target ) {
 
 		if (rooted) {
@@ -1336,6 +1396,8 @@ public class Hero extends Char {
 			step = Dungeon.findPath( this, pos, target, passable, Level.fieldOfView );
 		}
 
+		if (LocalCoop.following(this) && step != -1
+				&& (Actor.findChar(step) != null || Level.avoid[step] || Level.pit[step])) return false;
 		if (step != -1) {
 
 			int oldPos = pos;
@@ -1359,6 +1421,9 @@ public class Hero extends Char {
 		if (cell == -1) {
 			return false;
 		}
+		LocalCoop.updateFollowing(this);
+		boolean wasFollowing = LocalCoop.following(this);
+		LocalCoop.pauseFollowing(this);
 
 		Char ch;
 		Heap heap;
@@ -1400,7 +1465,7 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.Descend( cell );
 
-		} else if (cell == Dungeon.level.entrance) {
+		} else if (cell == Dungeon.level.entrance && Dungeon.level.map[cell] == Terrain.ENTRANCE) {
 
 			curAction = new HeroAction.Ascend( cell );
 
@@ -1412,11 +1477,15 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.Move( cell );
 			lastAction = null;
+			if (wasFollowing) LocalCoop.stopFollowing(this);
 
 		}
 
 		if (LocalCoop.contains(this)) {
 			LocalCoop.cancelCommand(this);
+			if (curAction instanceof HeroAction.Storage && pos == cell) {
+				return actStorage((HeroAction.Storage)curAction);
+			}
 			ready = false;
 			next();
 			return false;
@@ -1566,6 +1635,7 @@ public class Hero extends Char {
 
 	@Override
 	public void die( Object cause  ) {
+		lastAction = null;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, () -> die(cause));
 			return;
@@ -1711,6 +1781,10 @@ public class Hero extends Char {
 		}
 		Dungeon.observe();
 		search(false);
+		if (LocalCoop.contains(this) && curAction instanceof HeroAction.Storage
+				&& pos == Dungeon.level.storage) {
+			actStorage((HeroAction.Storage)curAction);
+		}
 
 		super.onMotionComplete();
 	}

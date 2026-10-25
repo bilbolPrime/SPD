@@ -28,7 +28,7 @@ public class SummonRat extends ActiveSkill1{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if(level > 0 && hero.MP >= getManaCost())
+        if(level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_SUMMON);
 
         if(hero.skillTree.canLevel(this)){
@@ -39,7 +39,7 @@ public class SummonRat extends ActiveSkill1{
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == Skill.AC_SUMMON)
+        if(action == Skill.AC_SUMMON && hero.canUseSkill(getManaCost()))
         {
             boolean spawned = false;
             for (int nu = 0; nu < 1 ; nu++) {
@@ -74,7 +74,7 @@ public class SummonRat extends ActiveSkill1{
             }
 
             if(spawned == true) {
-                hero.MP -= getManaCost();
+                hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 hero.spend( TIME_TO_USE );

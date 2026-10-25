@@ -32,7 +32,7 @@ public class RivalWarrior extends RivalBoss {
 
     @Override
     public int damageRoll() {
-        return Math.round(super.damageRoll() * (tier() == 4 && phase == 2 ? 1.15f : 1));
+        return Math.round(super.damageRoll() * (tier() == 4 && abilityPhase() == 2 ? 1.15f : 1));
     }
 
     @Override

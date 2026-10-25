@@ -25,7 +25,7 @@ public class SmokeBomb extends ActiveSkill1{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if(level > 0 && hero.MP >= getManaCost())
+        if(level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_CAST);
 
         if(hero.skillTree.canLevel(this)){
@@ -37,11 +37,11 @@ public class SmokeBomb extends ActiveSkill1{
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == Skill.AC_CAST)
+        if(action == Skill.AC_CAST && hero.canUseSkill(getManaCost()))
         {
                 Buff.affect(hero, Invisibility.class,  5 + (3f * level));
                 CellEmitter.get(hero.pos).burst(ElmoParticle.FACTORY, 4);
-                hero.MP -= getManaCost();
+                hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 Dungeon.hero.heroSkills.lastUsed = this;

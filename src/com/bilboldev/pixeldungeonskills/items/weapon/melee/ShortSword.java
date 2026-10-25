@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.melee;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
@@ -52,6 +53,7 @@ public class ShortSword extends MeleeWeapon {
 		name = "short sword";
 		image = ItemSpriteSheet.SHORT_SWORD;
         weaponEffect = new Smite();
+        RebornChallenges.plain(this);
 	}
 
 	public ShortSword() {

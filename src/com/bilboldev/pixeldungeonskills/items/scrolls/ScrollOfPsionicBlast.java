@@ -23,8 +23,10 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Blindness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Random;
 
@@ -33,30 +35,35 @@ public class ScrollOfPsionicBlast extends Scroll {
 	{
 		name = "Scroll of Psionic Blast";
 	}
-	
-	@Override
+
+    @Override
+    protected Message readWarning(Hero hero) {
+        return Message.key(ScrollOfPsionicBlast.class, "confirm");
+    }
+
+    @Override
 	protected void doRead() {
-		
+
 		GameScene.flash( 0xFFFFFF );
-		
+
 		Sample.INSTANCE.play( Assets.SND_BLAST );
 		Invisibility.dispel();
-		
+
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 			if (Level.fieldOfView[mob.pos]) {
 				Buff.prolong( mob, Blindness.class, Random.Int( 3, 6 ) );
 				mob.damage( Random.IntRange( 1, mob.HT * 2 / 3 ), this );
 			}
 		}
-		
+
 		Buff.prolong( curUser, Blindness.class, Random.Int( 3, 6 ) );
 		Dungeon.observe();
-		
+
 		setKnown();
-		
+
 		readAnimation();
 	}
-	
+
 	@Override
 	public String desc() {
 		return
@@ -64,7 +71,7 @@ public class ScrollOfPsionicBlast extends Scroll {
 			"massive damage to all creatures within a field of view. An accompanying flash of light will " +
 			"temporarily blind everybody in the area of effect including the reader of the scroll.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 80 * quantity : super.price();

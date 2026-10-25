@@ -2,28 +2,41 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc.MERC_TYPES;
+import java.util.Iterator;
 
 public final class MercenaryRecruitment {
     private MercenaryRecruitment() {}
 
     public static boolean campFloor(int depth) {
-        return depth >= 3 && depth <= 23 && depth % 5 == 3;
+        return depth >= 1 && depth <= 24 && !Dungeon.bossLevel(depth);
+    }
+
+    public static void finishCamp(Level level) {
+        if (!Dungeon.rules().hasRebornEncounters() || LocalCoop.active()
+                || Dungeon.hero.hiredMerc == null || !Dungeon.hero.hiredMerc.isAlive()) return;
+        for (Iterator<Mob> mobs = level.mobs.iterator(); mobs.hasNext();) {
+            Mob mob = mobs.next();
+            if (mob instanceof MercenaryCamp) {
+                mobs.remove();
+                if (Actor.findChar(mob.pos) == mob) Actor.freeCell(mob.pos);
+                level.drop(new ChargrilledMeat(), mob.pos);
+            }
+        }
     }
 
     public static String noMercMessage() {
         return Messages.get(MercenaryRecruitment.class, "no_merc");
-    }
-
-    public static boolean maidenAvailable() {
-        return HiredMerc.archerMaidenUnlocked;
     }
 
     public static String displayName(MERC_TYPES type) {
@@ -41,13 +54,12 @@ public final class MercenaryRecruitment {
         }
     }
 
-    public static boolean eligible(HeroClass hero, MERC_TYPES type, boolean maiden) {
+    public static boolean eligible(HeroClass hero, MERC_TYPES type) {
         switch (type) {
             case Brute: return hero != HeroClass.WARRIOR && hero != HeroClass.MERCENARY;
             case Wizard: return hero != HeroClass.MAGE && hero != HeroClass.NECROMANCER;
             case Thief: return hero != HeroClass.ROGUE;
-            case Archer: return hero != HeroClass.HUNTRESS && !maiden;
-            case ArcherMaiden: return hero != HeroClass.HUNTRESS && maiden;
+            case Archer: case ArcherMaiden: return hero != HeroClass.HUNTRESS;
             default: return false;
         }
     }
@@ -83,9 +95,8 @@ public final class MercenaryRecruitment {
             return Message.key(MercenaryRecruitment.class, "no_merc");
         if (camp != null && (!atRecruiter(camp) || type != camp.offer())) return Message.key(MercenaryRecruitment.class, "no_merc");
         if (Dungeon.rules().hasRebornEncounters()
-                && !eligible(Dungeon.hero.heroClass, type, maidenAvailable()))
+                && !eligible(Dungeon.hero.heroClass, type))
             return Message.key(MercenaryRecruitment.class, "unavailable");
-        if (type == MERC_TYPES.ArcherMaiden && !maidenAvailable()) return Message.key("custom.generated.entry_please_consider_donating_to_unlock_this_feature_5b14e9ead8");
         int price = cost(type, Dungeon.hero.lvl);
         if (Dungeon.gold < price) return Message.key("custom.generated.entry_insufficient_gold_df0ae40068");
         int cell = camp == null ? -1 : camp.pos;

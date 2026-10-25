@@ -52,7 +52,7 @@ public class RivalNecromancer extends RivalBoss {
                 if (mob instanceof RivalServant && ((RivalServant)mob).ownerId == id() && mob.isAlive()) count++;
             int cap = tier() == 1 ? 1 : tier() == 4 ? 3 : 2;
             if (count >= cap || summoned >= tier() * 3) {
-                if (tier() < 2 || phase == 0) return aim(4, aimedLine(5));
+                if (tier() < 2 || abilityPhase() == 0) return aim(4, aimedLine(5));
                 skill = 1;
             } else return aim(skill, new int[]{pos});
         }

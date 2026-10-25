@@ -152,6 +152,18 @@ public final class PartyPrompts {
         backend.copy(value);
     }
 
+    public static void paste(Result result) {
+        if (backend == null) {
+            results.add(() -> result.complete(null));
+            return;
+        }
+        try {
+            backend.paste(value -> results.add(() -> result.complete(value)));
+        } catch (RuntimeException unavailable) {
+            results.add(() -> result.complete(null));
+        }
+    }
+
     public static void poll() {
         Runnable result;
         while ((result = results.poll()) != null) result.run();

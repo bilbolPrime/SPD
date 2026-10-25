@@ -24,13 +24,13 @@ public class DeadEye extends ActiveSkill2{
     @Override
     public int damageBonus(int hp, boolean castText)
     {
-        if(active == false || Dungeon.hero.MP < getManaCost()|| coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost())|| coolDown())
             return 0;
         else
         {
             if(castText)
             {
-                Dungeon.hero.MP -= getManaCost();
+                Dungeon.hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
 
                 castTextYell();

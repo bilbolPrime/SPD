@@ -19,9 +19,13 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.Journal;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -121,12 +125,15 @@ public class Wandmaker extends NPC {
 
 		private static boolean spawned;
 		private static boolean given;
+        private static int seedCell = -1;
 
 		public static Wand wand1;
 		public static Wand wand2;
 
 		public static void reset() {
 			spawned = false;
+            given = false;
+            seedCell = -1;
 
 			wand1 = null;
 			wand2 = null;
@@ -152,6 +159,7 @@ public class Wandmaker extends NPC {
 				node.put( TYPE, type.toString() );
 
 				node.put( GIVEN, given );
+                if (seedCell >= 0) node.put("seed_cell", seedCell);
 
 				node.put( WAND1, wand1 );
 				node.put( WAND2, wand2 );
@@ -163,6 +171,7 @@ public class Wandmaker extends NPC {
 		public static void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
+            seedCell = node.contains("seed_cell") ? node.getInt("seed_cell") : -1;
 
 			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
 
@@ -254,11 +263,46 @@ public class Wandmaker extends NPC {
 			}
 		}
 
+        public static void prepareItem(Level level) {
+            if (!RunSeed.active() || seedCell >= 0) return;
+            boolean here = false;
+            for (Mob mob : level.mobs) {
+                if (mob instanceof Wandmaker) here = true;
+            }
+            if (!here) return;
+            int[] reachable = RebornDungeonBuilder.distances(level, level.entrance);
+            ArrayList<Integer> preferred = new ArrayList<>();
+            ArrayList<Integer> free = new ArrayList<>();
+            for (int cell = 0; cell < Level.LENGTH; cell++) {
+                if (reachable[cell] < 0 || cell == level.entrance || cell == level.exit) continue;
+                Heap heap = level.heaps.get(cell);
+                if (type == Type.DUST && heap != null && heap.type == Heap.Type.SKELETON) preferred.add(cell);
+                if (heap != null || level.plants.get(cell) != null) continue;
+                boolean occupied = false;
+                for (Mob mob : level.mobs) {
+                    if (mob.pos == cell) occupied = true;
+                }
+                if (occupied) continue;
+                free.add(cell);
+                if (type == Type.FISH && Level.water[cell]) preferred.add(cell);
+            }
+            try (Random.Scope random = RunSeed.scope(RunSeed.QUEST, Dungeon.depth)) {
+                seedCell = Random.element(preferred.isEmpty() ? free : preferred);
+            }
+        }
+
 		public static void complete() {
 			wand1 = null;
 			wand2 = null;
+			updateLore();
 
 			Journal.remove( Journal.Feature.WANDMAKER );
+		}
+
+		public static void updateLore() {
+			if (spawned && given) {
+				Lore.quest("wandmaker_" + type.name().toLowerCase(Locale.ROOT), wand1 == null && wand2 == null);
+			}
 		}
 	}
 
@@ -280,6 +324,7 @@ public class Wandmaker extends NPC {
 			} else {
 				wandmaker.tell( txtQuest1 );
 				Quest.given = true;
+				Quest.updateLore();
 
 				placeItem();
 
@@ -304,7 +349,8 @@ public class Wandmaker extends NPC {
 
 		@Override
 		protected void placeItem() {
-			int shrubPos = questCell(RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance));
+			int shrubPos = Quest.seedCell >= 0 ? Quest.seedCell
+                    : questCell(RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance));
 			Dungeon.level.plant( new Rotberry.Seed(), shrubPos );
 		}
 	};
@@ -322,7 +368,13 @@ public class Wandmaker extends NPC {
 
 		@Override
 		protected void placeItem() {
-			int[] reachable = RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance);
+			if (Quest.seedCell >= 0) {
+                Heap heap = Dungeon.level.drop(new CorpseDust(), Quest.seedCell);
+                heap.type = Heap.Type.SKELETON;
+                heap.sprite.link();
+                return;
+            }
+            int[] reachable = RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance);
 			ArrayList<Heap> candidates = new ArrayList<Heap>();
 			for (Heap heap : Dungeon.level.heaps.values()) {
 				if (heap.type == Heap.Type.SKELETON && !Dungeon.visible[heap.pos] && reachable[heap.pos] >= 0) {
@@ -355,7 +407,13 @@ public class Wandmaker extends NPC {
 
 		@Override
 		protected void placeItem() {
-			int[] reachable = RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance);
+			if (Quest.seedCell >= 0) {
+                Heap heap = Dungeon.level.drop(new PhantomFish(), Quest.seedCell);
+                if (Level.water[Quest.seedCell]) heap.type = Heap.Type.HIDDEN;
+                heap.sprite.link();
+                return;
+            }
+            int[] reachable = RebornDungeonBuilder.distances(Dungeon.level, Dungeon.level.entrance);
 			ArrayList<Integer> water = new ArrayList<>();
 			for (int cell = 0; cell < Level.LENGTH; cell++) {
 				if (reachable[cell] >= 0 && Level.water[cell] && Dungeon.level.heaps.get(cell) == null)

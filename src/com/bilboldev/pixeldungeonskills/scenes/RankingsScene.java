@@ -17,6 +17,12 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
+import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.ui.ChallengeIcons;
+import com.bilboldev.pixeldungeonskills.ui.SeedDisplay;
+
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
@@ -38,36 +44,47 @@ public class RankingsScene extends TitleScene {
     }
 
 	public static class Record extends Button {
-		
+
 		private static final float GAP	= 4;
-		
+
 		private static final int TEXT_WIN	= 0xFFFF88;
 		private static final int TEXT_LOSE	= 0xCCCCCC;
-		
+
 		private Rankings.Record rec;
-		
+
 		private ItemSprite shield;
 		private ColorBlock latestMark;
 		private BitmapText position;
 		private BitmapTextMultiline desc;
 		private Image classIcon;
-		
+        private ChallengeIcons challenges;
+        private SeedDisplay seed;
+
 		public Record( int pos, boolean latest, Rankings.Record rec ) {
 			super();
-			
+
 			this.rec = rec;
-			
+            if (rec.rules.mode == GameplayMode.REBORN) {
+                challenges = new ChallengeIcons(rec.challenges & RebornChallenges.ALL, 12,
+                        5, true);
+                challenges.useScrollPaneInput();
+                add(challenges);
+                seed = new SeedDisplay(rec.seed(), RunSeed.SYMBOLS, false);
+                seed.useScrollPaneInput();
+                add(seed);
+            }
+
 			if (latest) {
 				latestMark = new ColorBlock(2, 1, rec.win ? 0xFFE1CB8E : 0xFF9D87B9);
 				addToBack(latestMark);
 			}
-			
+
 			position.text( Integer.toString( pos+1 ) );
 			position.measure();
-			
+
 			desc.text(rec.rules.mode.title() + ": " + rec.desc(), false);
 			desc.measure();
-			
+
 			if (rec.win) {
 				shield.view( ItemSpriteSheet.AMULET, null );
 				position.hardlight( TEXT_WIN );
@@ -76,54 +93,64 @@ public class RankingsScene extends TitleScene {
 				position.hardlight( TEXT_LOSE );
 				desc.hardlight( TEXT_LOSE );
 			}
-			
+
 			classIcon.copy( Icons.get( rec.heroClass ) );
 		}
-		
+
 		@Override
 		protected void createChildren() {
-			
+
 			super.createChildren();
-			
+
 			shield = new ItemSprite( ItemSpriteSheet.TOMB, null );
 			add( shield );
-			
+
 			position = new BitmapText( PixelScene.font1x );
 			add( position );
-			
-			desc = createMultiline( 9 );		
+
+			desc = createMultiline( 9 );
 			add( desc );
-			
+
 			classIcon = new Image();
 			add( classIcon );
 		}
-		
+
 		@Override
 		protected void layout() {
-			
+			float iconWidth = Math.max(shield.width(), classIcon.width());
+			float iconHeight = shield.height() + GAP + classIcon.height();
+			desc.x = align(x + iconWidth + GAP * 3);
+			desc.maxWidth = (int)(right() - desc.x - GAP);
+			desc.measure();
+            if (challenges != null) challenges.fitWidth(right() - desc.x - GAP);
+            height = challenges == null ? Math.max(39, desc.height() + 12)
+                    : desc.height() + challenges.height() + 39;
+			height = Math.max(height, iconHeight + 12);
 			super.layout();
-			
-			shield.x = x;
-			shield.y = y + (height - shield.height) / 2;
-			
+
+			shield.x = align(x + (iconWidth - shield.width()) / 2);
+			shield.y = align(y + (height - iconHeight) / 2);
+
 			position.x = align( shield.x + (shield.width - position.width()) / 2 );
 			position.y = align( shield.y + (shield.height - position.height()) / 2 + 1 );
-			
+
 			if (latestMark != null) {
 				latestMark.x = x - 3;
                 latestMark.y = y + 5;
                 latestMark.size(2, height - 10);
 			}
-			
-			classIcon.x = align( x + width - classIcon.width );
-			classIcon.y = shield.y;
-			
-			desc.x = shield.x + shield.width + GAP;
-			desc.maxWidth = (int)(classIcon.x - desc.x);
-			desc.measure();
-			desc.y = position.y + position.baseLine() - desc.baseLine();
+
+			classIcon.x = align(x + (iconWidth - classIcon.width()) / 2);
+			classIcon.y = align(shield.y + shield.height() + GAP);
+
+			desc.y = align(y + (height - desc.height()) / 2);
+            if (challenges != null) {
+                desc.y = y + 6;
+                challenges.setPos(desc.x, desc.y + desc.height() + 4);
+                seed.setRect(desc.x, challenges.bottom() + 3, challenges.width(), 20);
+            }
 		}
-		
+
 		@Override
 		protected void onClick() {
 			openDetails();
@@ -140,5 +167,11 @@ public class RankingsScene extends TitleScene {
 				com.bilboldev.noosa.Game.scene().add( new WndError( Messages.get( RankingsScene.class, "no_info" ) ) );
 			}
 		}
+
+        void open(float x, float y) {
+            if (seed != null && seed.inside(x, y)) seed.open();
+            else if (challenges != null && challenges.inside(x, y)) challenges.open();
+            else openDetails();
+        }
 	}
 }

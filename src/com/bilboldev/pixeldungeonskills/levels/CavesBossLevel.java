@@ -24,8 +24,10 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.RivalEncounter;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
@@ -75,6 +77,8 @@ public class CavesBossLevel extends Level {
 	private static final String DOOR	= "door";
 	private static final String ENTERED	= "entered";
 	private static final String DROPPED	= "droppped";
+    private boolean icePassage, iceArrived;
+    private static final int ICE_DOOR = 27 + 16 * WIDTH;
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -82,6 +86,8 @@ public class CavesBossLevel extends Level {
 		bundle.put( DOOR, arenaDoor );
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
+        bundle.put("ice_passage", icePassage);
+        bundle.put("ice_arrived", iceArrived);
         if (rebornButtresses.length > 0) bundle.put("reborn_buttresses", rebornButtresses);
 	}
 
@@ -91,8 +97,14 @@ public class CavesBossLevel extends Level {
 		arenaDoor = bundle.getInt( DOOR );
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
+        icePassage = bundle.getBoolean("ice_passage");
+        iceArrived = bundle.getBoolean("ice_arrived");
         rebornButtresses = bundle.getIntArray("reborn_buttresses");
         if (rebornButtresses == null) rebornButtresses = new int[0];
+        if (Dungeon.rules().mode == GameplayMode.REBORN && !icePassage && map[ICE_DOOR] != Terrain.COLLAPSED_CAVE) {
+            map[ICE_DOOR] = Terrain.COLLAPSED_CAVE;
+            rebuildFlags();
+        }
 	}
 
 	@Override
@@ -172,6 +184,7 @@ public class CavesBossLevel extends Level {
 			}
 		}
 
+		if (Dungeon.rules().mode == GameplayMode.REBORN) map[ICE_DOOR] = Terrain.COLLAPSED_CAVE;
 		return true;
 	}
 
@@ -196,7 +209,23 @@ public class CavesBossLevel extends Level {
                 10 + 16 * WIDTH, 22 + 16 * WIDTH, 10 + 22 * WIDTH, 16 + 23 * WIDTH, 22 + 22 * WIDTH};
         for (int cell : rebornButtresses) map[cell] = Terrain.WALL_DECO;
         addRebornRepairTiles();
+        map[ICE_DOOR] = Terrain.COLLAPSED_CAVE;
         return true;
+    }
+
+    public int iceEntrance() {
+        return icePassage ? ICE_DOOR + 1 : entrance;
+    }
+
+    public void openIcePassage() {
+        if (iceArrived) return;
+        iceArrived = true;
+        Painter.fill(this, 28, 15, 2, 3, Terrain.EMPTY);
+        for (int x = 26; x > ROOM_RIGHT + 1 && (Terrain.flags[map[x + 16 * WIDTH]] & Terrain.PASSABLE) == 0; x--)
+            map[x + 16 * WIDTH] = Terrain.EMPTY;
+        map[ICE_DOOR] = Terrain.OPEN_DOOR;
+        icePassage = true;
+        rebuildFlags();
     }
 
     private void addRebornRepairTiles() {
@@ -290,6 +319,16 @@ public class CavesBossLevel extends Level {
 
 		super.press( cell, hero );
 
+        if (icePassage && cell % WIDTH < 27 && (hero == Dungeon.hero || LocalCoop.contains(hero))) {
+            if (!gatherParty(hero, cell, ICE_DOOR)) return;
+            icePassage = false;
+            set(ICE_DOOR, Terrain.COLLAPSED_CAVE);
+            GameScene.updateMap(ICE_DOOR);
+            Dungeon.observe();
+            CellEmitter.get(ICE_DOOR).burst(Speck.factory(Speck.ROCK), 10);
+            Sample.INSTANCE.play(Assets.SND_ROCKS);
+        }
+
 		if (!enteredArena && outsideEntraceRoom( cell ) && (hero == Dungeon.hero || LocalCoop.contains(hero))) {
 			if (!gatherParty(hero, cell, arenaDoor)) return;
 
@@ -340,12 +379,15 @@ public class CavesBossLevel extends Level {
 	private boolean outsideEntraceRoom( int cell ) {
 		int cx = cell % WIDTH;
 		int cy = cell / WIDTH;
+        if (icePassage && cx >= 27) return false;
 		return cx < ROOM_LEFT-1 || cx > ROOM_RIGHT+1 || cy < ROOM_TOP-1 || cy > ROOM_BOTTOM+1;
 	}
 
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
+        case Terrain.COLLAPSED_CAVE:
+            return Messages.get(CavesBossLevel.class, "collapsed_name");
 		case Terrain.GRASS:
 			return "Fluorescent moss";
 		case Terrain.HIGH_GRASS:
@@ -360,6 +402,8 @@ public class CavesBossLevel extends Level {
 	@Override
 	public String tileDesc( int tile ) {
 		switch (tile) {
+        case Terrain.COLLAPSED_CAVE:
+            return Messages.get(CavesBossLevel.class, "collapsed_desc");
 		case Terrain.ENTRANCE:
 			return "The ladder leads up to the upper depth.";
 		case Terrain.EXIT:

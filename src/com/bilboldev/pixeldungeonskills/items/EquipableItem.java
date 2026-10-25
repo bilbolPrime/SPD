@@ -17,12 +17,14 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
+import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public abstract class EquipableItem extends Item {
@@ -35,7 +37,13 @@ public abstract class EquipableItem extends Item {
 	@Override
 	public void execute( Hero hero, String action ) {
 		if (action.equals( AC_EQUIP )) {
-			doEquip( hero );
+            if (cursed && cursedKnown && !(this instanceof Bow)) {
+                confirmAction(hero, Message.key(EquipableItem.class, "cursed_confirm"),
+                        Message.key(EquipableItem.class, "equip_anyway"), Message.key(Item.class, "cancel"),
+                        () -> doEquip(hero));
+            } else {
+                doEquip(hero);
+            }
 		} else if (action.equals( AC_UNEQUIP )) {
 			doUnequip( hero, true );
 		} else {
@@ -75,6 +83,11 @@ public abstract class EquipableItem extends Item {
 
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 
+		if (RebornChallenges.equipmentBound() && isEquipped(hero)) {
+			GLog.w(RebornChallenges.class, "bound");
+			RebornChallenges.showInfo(RebornChallenges.OATHBOUND);
+			return false;
+		}
 		if (cursed) {
 			GLog.w(TXT_UNEQUIP_CURSED, Message.itemName(this));
 			return false;

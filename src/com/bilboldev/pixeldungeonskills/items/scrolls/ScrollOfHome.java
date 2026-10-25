@@ -21,6 +21,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfHome extends Scroll {
@@ -52,8 +53,7 @@ public class ScrollOfHome extends Scroll {
 
 	@Override
 	public String desc() {
-		return
-			"Opens a magical portal that takes you back to the entrance of this dungeon level.";
+		return Messages.get(this, "desc");
 	}
 
 	@Override

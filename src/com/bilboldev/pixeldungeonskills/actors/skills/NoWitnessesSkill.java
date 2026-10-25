@@ -54,11 +54,11 @@ public class NoWitnessesSkill extends PassiveSkillB2{
 
     @Override
     public void applyToGunShot(Hero hero, SkillTree.GunShotData shotData) {
-        if (!active || level == 0 || !(hero.belongings.weapon instanceof Gun) || hero.MP < getManaCost()) {
+        if (!active || level == 0 || !(hero.belongings.weapon instanceof Gun) || !hero.canUseSkill(getManaCost())) {
             return;
         }
 
-        hero.MP -= getManaCost();
+        hero.spendSkillMana(getManaCost());
         StatusPane.manaDropping += getManaCost();
         shotData.damageModifier *= 1f + 0.1f * level;
         shotData.flee = true;
@@ -67,8 +67,7 @@ public class NoWitnessesSkill extends PassiveSkillB2{
     @Override
     public String info()
     {
-        return "No one saw anything.\n\n"
-                + extendedInfo()
+        return necroMercInfo("no_witnesses_desc", extendedInfo())
                 + requiresInfo() + costString();
     }
 

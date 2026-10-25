@@ -13,6 +13,12 @@ public class RivalSprite extends MobSprite {
     public void link(Char ch) {
         HeroClass hero = ch instanceof RivalBoss ? ((RivalBoss)ch).heroClass() : HeroClass.ROGUE;
         int tier = ch instanceof RivalBoss ? ((RivalBoss)ch).tier() : ((RivalServant)ch).tier();
+        appearance(hero, tier);
+        super.link(ch);
+        resetColor();
+    }
+
+    public void appearance(HeroClass hero, int tier) {
         texture(hero.spritesheet());
         TextureFilm tiers = new TextureFilm(texture, texture.width, HeroSprite.FRAME_HEIGHT);
         TextureFilm frames = new TextureFilm(tiers, tier + 1, HeroSprite.FRAME_WIDTH, HeroSprite.FRAME_HEIGHT);
@@ -28,7 +34,6 @@ public class RivalSprite extends MobSprite {
         die = new Animation(20, false);
         die.frames(frames, 8, 9, 10, 11, 12, 11);
         play(idle);
-        super.link(ch);
         resetColor();
     }
 

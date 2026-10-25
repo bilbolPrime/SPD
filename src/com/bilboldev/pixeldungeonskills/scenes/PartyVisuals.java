@@ -29,9 +29,9 @@ public final class PartyVisuals {
 
     public static void play(Bundle event) {
         if (!PartySession.client() || !(Game.scene() instanceof GameScene)) return;
-        if (run != PartySession.runIdentity() || depth != Dungeon.depth) clear();
+        if (run != PartySession.runIdentity() || depth != Dungeon.levelKey()) clear();
         run = PartySession.runIdentity();
-        depth = Dungeon.depth;
+        depth = Dungeon.levelKey();
         int type = event.getInt("type");
         CharSprite sprite = sprite(event.getInt("actor"));
         if (type == PartyEffects.SOUND) {
@@ -132,7 +132,7 @@ public final class PartyVisuals {
     }
 
     public static void update() {
-        if (run != null && (!PartySession.client() || run != PartySession.runIdentity() || depth != Dungeon.depth)) {
+        if (run != null && (!PartySession.client() || run != PartySession.runIdentity() || depth != Dungeon.levelKey())) {
             clear();
             return;
         }
@@ -157,7 +157,7 @@ public final class PartyVisuals {
     }
 
     static void restore(GameScene scene) {
-        if (run != PartySession.runIdentity() || depth != Dungeon.depth) {
+        if (run != PartySession.runIdentity() || depth != Dungeon.levelKey()) {
             clear();
             return;
         }

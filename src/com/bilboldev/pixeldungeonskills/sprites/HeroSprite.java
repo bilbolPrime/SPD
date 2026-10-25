@@ -21,13 +21,19 @@ import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.TextureFilm;
+import com.bilboldev.noosa.particles.Emitter;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Healing;
+import com.bilboldev.pixeldungeonskills.actors.buffs.ManaRecovery;
+import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.RectF;
@@ -46,6 +52,16 @@ public class HeroSprite extends CharSprite {
     protected Animation fly;
     protected Animation read;
     private boolean equippedWeaponAnimation;
+    private SupporterAura supporterAura;
+    private Emitter healing, manaRecovery;
+    private static final Emitter.Factory MANA_PARTICLES = new Emitter.Factory() {
+        @Override
+        public void emit(Emitter emitter, int index, float x, float y) {
+            Speck speck = (Speck)emitter.recycle(Speck.class);
+            speck.reset(index, x, y, Speck.HEALING);
+            speck.color(0x245AA8);
+        }
+    };
 
 	public HeroSprite() {
 		this(Dungeon.hero);
@@ -95,15 +111,15 @@ public class HeroSprite extends CharSprite {
 	@Override
 	public void place( int p ) {
 		super.place( p );
-		if (!LocalCoop.active() || ch == Dungeon.hero) Camera.main.target = this;
+		if (!LocalCoop.active() || ch == GameScene.cameraHero()) Camera.main.target = this;
 	}
 
 	@Override
 	public void move( int from, int to ) {
 		super.move( from, to );
 		Hero partner = LocalCoop.partner((Hero)ch);
-		if (!LocalCoop.active() || (ch == Dungeon.hero && (PartySession.network() || GameScene.isPerspectiveView()
-				|| partner != null && !partner.isAlive()))) {
+		if (!LocalCoop.active() || (ch == GameScene.cameraHero() && (PartySession.network() || GameScene.isPerspectiveView()
+				|| LocalCoop.following(partner) || partner != null && !partner.isAlive()))) {
 			Camera.main.target = this;
 		}
 	}
@@ -158,7 +174,48 @@ public class HeroSprite extends CharSprite {
 		}
 
 		super.update();
+
+        if (Game.scene() instanceof GameScene && parent != null) {
+            healing = recoveryEffect(healing, ch.isAlive() && ch.buff(Healing.class) != null, Speck.factory(Speck.HEALING));
+            manaRecovery = recoveryEffect(manaRecovery, ch.isAlive() && ch.buff(ManaRecovery.class) != null, MANA_PARTICLES);
+            int style = PartySession.aura((Hero)ch);
+            if (style > 0 && supporterAura == null) {
+                supporterAura = new SupporterAura(this);
+                GameScene.effect(supporterAura);
+            }
+            if (supporterAura != null) supporterAura.style(style);
+        }
 	}
+
+    private Emitter recoveryEffect(Emitter effect, boolean recovering, Emitter.Factory particles) {
+        if (!recovering) {
+            if (effect != null) effect.killAndErase();
+            return null;
+        }
+        if (effect == null) {
+            effect = new Emitter();
+            effect.autoKill = false;
+            effect.pos(this);
+            effect.pour(particles, 0.4f);
+            GameScene.effect(effect);
+        }
+        effect.visible = effect.on = visible;
+        return effect;
+    }
+
+    @Override
+    public void kill() {
+        healing = recoveryEffect(healing, false, null);
+        manaRecovery = recoveryEffect(manaRecovery, false, null);
+        super.kill();
+    }
+
+    @Override
+    public void destroy() {
+        healing = recoveryEffect(healing, false, null);
+        manaRecovery = recoveryEffect(manaRecovery, false, null);
+        super.destroy();
+    }
 
 	public boolean sprint( boolean on ) {
 		run.delay = on ? 0.625f / RUN_FRAMERATE : 1f / RUN_FRAMERATE;

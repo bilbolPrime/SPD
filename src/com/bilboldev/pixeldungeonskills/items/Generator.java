@@ -17,7 +17,9 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -113,8 +115,9 @@ public class Generator {
                 ScrollOfHome.class,
                 ScrollOfSacrifice.class,
                 ScrollOfBloodyRitual.class,
-                ScrollOfSkill.class};
-		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5, 5 };
+                ScrollOfSkill.class,
+                ScrollOfReadiness.class};
+		Category.SCROLL.probs = new float[]{ 30, 10, 15, 10, 15, 12, 8, 8, 4, 6, 0, 1, 10, 1, 5, 5, 5 };
 
 		Category.POTION.classes = new Class<?>[]{
 			PotionOfHealing.class,
@@ -238,13 +241,39 @@ public class Generator {
 		};
 
 		Category.MELEE_WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		reset();
 	}
+
+    public static final class Scope implements AutoCloseable {
+        private final HashMap<Category, Float> previous = categoryProbs;
+
+        private Scope() {
+            categoryProbs = new HashMap<>();
+            reset();
+        }
+
+        @Override public void close() {
+            categoryProbs = previous;
+        }
+    }
+
+    public static Scope isolate() {
+        return new Scope();
+    }
 
 	public static void reset() {
 		for (Category cat : Category.values()) {
 			categoryProbs.put( cat, cat.prob );
 		}
 	}
+
+    public static List<Class<?>> lootClasses(Category category) {
+        List<Class<?>> classes = new ArrayList<>();
+        for (int i = 0; i < category.classes.length; i++) {
+            if (category.probs[i] > 0) classes.add(category.classes[i]);
+        }
+        return classes;
+    }
 
 	private static final Class<?>[] GUN_TIERS = {
 		Handgun.class, Pistol.class, Blunderbuss.class, Rifle.class, Mortar.class
@@ -279,6 +308,21 @@ public class Generator {
 	}
 
 	public static Item random() {
+        if (Random.seeded()) {
+            Category[] categories = Category.values();
+            float[] weights = new float[categories.length];
+            for (int i = 0; i < categories.length; i++) weights[i] = categoryProbs.get(categories[i]);
+            Category category = categories[Random.chances(weights)];
+
+            try (Random.Scope item = Random.use(Random.Long())) {
+                boolean gun = Random.Float() < .2f;
+                if (gun && Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MERCENARY) {
+                    categoryProbs.put(category, categoryProbs.get(category) / 2);
+                    return randomGun();
+                }
+                return random(category);
+            }
+        }
 
 		if (Dungeon.hero != null
 				&& Dungeon.hero.heroClass == HeroClass.MERCENARY

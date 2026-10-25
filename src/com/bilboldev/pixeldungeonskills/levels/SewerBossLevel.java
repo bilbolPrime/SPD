@@ -17,7 +17,11 @@
  */
 package com.bilboldev.pixeldungeonskills.levels;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RebornGoo;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.bilboldev.noosa.Scene;
@@ -25,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.RivalEncounter;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -150,7 +155,7 @@ public class SewerBossLevel extends RegularLevel {
 	}
 
     private boolean buildReborn() {
-        rooms = new java.util.HashSet<Room>();
+        rooms = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
         roomEntrance = new Room();
         roomEntrance.set(11, 21, 19, 27);
         roomEntrance.type = Type.ENTRANCE;
@@ -243,9 +248,10 @@ public class SewerBossLevel extends RegularLevel {
         super.press(cell, ch);
         if (rebornGate != 0 && cell / WIDTH < rebornGate / WIDTH && ch instanceof Hero) {
             for (Mob mob : mobs) {
-                if (mob instanceof RivalBoss) {
+                if (mob instanceof RivalBoss || RebornChallenges.doubleBoss()
+                        && mob instanceof RebornGoo) {
                     seal();
-                    if (entrance == 0) ((RivalBoss)mob).enter();
+                    if (entrance == 0) RivalEncounter.enter(mob);
                     break;
                 }
             }
@@ -276,6 +282,11 @@ public class SewerBossLevel extends RegularLevel {
 
 			stairs = entrance;
 			entrance = 0;
+            if (RebornChallenges.doubleBoss()) {
+                for (Mob mob : new ArrayList<>(mobs)) {
+                    if (mob instanceof RebornGoo) RivalEncounter.enter(mob);
+                }
+            }
 		}
 	}
 

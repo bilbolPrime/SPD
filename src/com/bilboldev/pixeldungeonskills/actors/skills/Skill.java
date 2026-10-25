@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Focus;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -264,7 +265,9 @@ public class Skill{
             Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, castText);
 
         if(useDelay != 0){
-            availableAfter = skillTrack + useDelay;
+            float delay = this instanceof ActiveSkill && Dungeon.hero.buff(Focus.class) != null
+                    ? Focus.cooldown(useDelay) : useDelay;
+            availableAfter = skillTrack + delay;
         }
     }
 
@@ -398,7 +401,7 @@ public class Skill{
     public boolean canCast(){
         try
         {
-            return Dungeon.hero.MP >= mana && !coolDown();
+            return Dungeon.hero.canUseSkill(mana) && !coolDown();
         }
         catch (Exception e){
             return false;

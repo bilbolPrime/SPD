@@ -17,12 +17,16 @@
  */
 package com.bilboldev.pixeldungeonskills.levels;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.items.Heap;
@@ -120,6 +124,9 @@ public class LastShopLevel extends RegularLevel {
 			roomShop.type = Imp.Quest.isCompleted() ? Room.Type.SHOP : Room.Type.STANDARD;
 		}
 
+        if (Dungeon.rules().hasRebornEncounters() && (RunSeed.active() || !LocalCoop.active())
+                && !addMercenaryRoom()) return false;
+
 		paint();
 
 		paintWater();
@@ -127,6 +134,28 @@ public class LastShopLevel extends RegularLevel {
 
 		return true;
 	}
+
+    private boolean addMercenaryRoom() {
+        ArrayList<Room> choices = new ArrayList<>();
+        for (Room room : rooms) {
+            if (room.type != Type.NULL || room.width() < 4 || room.height() < 4) continue;
+            for (Room neighbour : room.neigbours) {
+                if (neighbour.type != Type.NULL) {
+                    choices.add(room);
+                    break;
+                }
+            }
+        }
+        if (choices.isEmpty()) return false;
+        Room camp = Random.element(choices);
+        choices.clear();
+        for (Room neighbour : camp.neigbours) {
+            if (neighbour.type != Type.NULL) choices.add(neighbour);
+        }
+        camp.type = Type.MERCENARY;
+        camp.connect(Random.element(choices));
+        return true;
+    }
 
 	@Override
 	protected void decorate() {

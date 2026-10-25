@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.levels.features;
 
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Barkskin;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -42,31 +43,33 @@ public class HighGrass {
 		Level.set( pos, Terrain.GRASS );
 		GameScene.updateMap( pos );
 
-		if (!Dungeon.isChallenged( Challenges.NO_HERBALISM )) {
-			int herbalismLevel = 0;
-			if (ch != null) {
-				Herbalism herbalism = ch.buff( Herbalism.class );
-				if (herbalism != null) {
-					herbalismLevel = herbalism.level;
-				}
-			}
-
-			if (herbalismLevel >= 0 && Random.Int( 18 ) <= Random.Int( herbalismLevel + 1 )) {
-				try
-				{
-					if(!(Dungeon.level instanceof GauntletLevel2)){
-						level.drop(Generator.random(Generator.Category.SEED), pos).sprite.drop();
-					} else{
-						level.drop( new Dewdrop(), pos ).sprite.drop();
+		try (Random.Scope random = RunSeed.terrain(RunSeed.GRASS, pos)) {
+			if (!Dungeon.isChallenged( Challenges.NO_HERBALISM )) {
+				int herbalismLevel = 0;
+				if (ch != null) {
+					Herbalism herbalism = ch.buff( Herbalism.class );
+					if (herbalism != null) {
+						herbalismLevel = herbalism.level;
 					}
 				}
-				catch (Exception e){
 
+				if (herbalismLevel >= 0 && Random.Int( 18 ) <= Random.Int( herbalismLevel + 1 )) {
+					try
+					{
+						if(!(Dungeon.level instanceof GauntletLevel2)){
+							level.drop(Generator.random(Generator.Category.SEED), pos).sprite.drop();
+						} else{
+							level.drop( new Dewdrop(), pos ).sprite.drop();
+						}
+					}
+					catch (Exception e){
+
+					}
 				}
-			}
 
-			if (herbalismLevel >= 0 && Random.Int( 6 ) <= Random.Int( herbalismLevel + 1 )) {
-				level.drop( new Dewdrop(), pos ).sprite.drop();
+				if (herbalismLevel >= 0 && Random.Int( 6 ) <= Random.Int( herbalismLevel + 1 )) {
+					level.drop( new Dewdrop(), pos ).sprite.drop();
+				}
 			}
 		}
 

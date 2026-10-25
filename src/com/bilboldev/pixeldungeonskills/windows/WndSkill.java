@@ -33,6 +33,7 @@ import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
+import com.bilboldev.pixeldungeonskills.ui.MercIcons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import java.util.ArrayList;
 
@@ -78,7 +79,7 @@ public class WndSkill extends WndScrollable {
 		ArrayList<RedButton> buttons = new ArrayList<>();
 
 		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new SkillSprite( skill.image() ) );
+		titlebar.icon(skill instanceof Negotiations ? MercIcons.company() : new SkillSprite(skill.image()));
 		titlebar.label( Messages.capitalize( Messages.maybeTranslate( skill.name ) ) );
         titlebar.setRect( 0, 0, windowWidth, 0 );
 

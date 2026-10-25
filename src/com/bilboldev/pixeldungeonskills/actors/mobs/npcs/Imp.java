@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Journal;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -130,6 +131,7 @@ public class Imp extends NPC {
 			tell(Quest.alternative ? Message.key("custom.generated.entry_are_you_an_adventurer_i_love_adventurers_you_can_5719bb78aa") : Message.key("custom.generated.entry_are_you_an_adventurer_i_love_adventurers_you_can_0918d59ed0"));
 			Quest.given = true;
 			Quest.completed = false;
+			Quest.updateLore();
 
 			Journal.add( Journal.Feature.IMP );
 		}
@@ -237,7 +239,7 @@ public class Imp extends NPC {
 				if ((alternative && mob instanceof Monk) ||
 					(!alternative && mob instanceof Golem)) {
 
-					Dungeon.level.drop( new DwarfToken(), mob.pos ).sprite.drop();
+					Dungeon.level.drop( new DwarfToken(), mob.pos, mob ).sprite.drop();
 				}
 			}
 		}
@@ -245,8 +247,15 @@ public class Imp extends NPC {
 		public static void complete() {
 			reward = null;
 			completed = true;
+			updateLore();
 
 			Journal.remove( Journal.Feature.IMP );
+		}
+
+		public static void updateLore() {
+			if (spawned && given) {
+				Lore.quest(alternative ? "imp_monks" : "imp_golems", completed);
+			}
 		}
 
 		public static boolean isCompleted() {

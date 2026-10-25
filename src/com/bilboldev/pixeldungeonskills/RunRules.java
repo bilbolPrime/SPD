@@ -10,6 +10,8 @@ public final class RunRules {
     private static final RunRules REBORN_V1 = new RunRules(GameplayMode.REBORN, 1);
     private static final RunRules REBORN_V2 = new RunRules(GameplayMode.REBORN, 2);
     private static final RunRules REBORN_V3 = new RunRules(GameplayMode.REBORN, 3);
+    private static final RunRules REBORN_V4 = new RunRules(GameplayMode.REBORN, 4);
+    private static final RunRules REBORN_V5 = new RunRules(GameplayMode.REBORN, 5);
 
     public final GameplayMode mode;
     public final int version;
@@ -21,7 +23,11 @@ public final class RunRules {
 
     public static RunRules newRun(GameplayMode mode) {
         if (mode == null) throw new IllegalArgumentException("Gameplay mode is required");
-        return mode == GameplayMode.REBORN ? REBORN_V3 : CLASSIC;
+        return mode == GameplayMode.REBORN ? REBORN_V5 : CLASSIC;
+    }
+
+    public boolean hasSeed() {
+        return mode == GameplayMode.REBORN && version >= 4;
     }
 
     public boolean allowsRatKing() {
@@ -49,7 +55,12 @@ public final class RunRules {
     }
 
     public int challenges(int selected) {
-        return mode == GameplayMode.REBORN ? 0 : selected;
+        if (mode == GameplayMode.CLASSIC) return selected & 127;
+        return hasChallenges() ? selected & RebornChallenges.ALL : 0;
+    }
+
+    public boolean hasChallenges() {
+        return mode == GameplayMode.REBORN && version >= 5;
     }
 
     public void store(Bundle bundle) {
@@ -74,6 +85,8 @@ public final class RunRules {
         if (mode == GameplayMode.REBORN && version == 1) return REBORN_V1;
         if (mode == GameplayMode.REBORN && version == 2) return REBORN_V2;
         if (mode == GameplayMode.REBORN && version == 3) return REBORN_V3;
+        if (mode == GameplayMode.REBORN && version == 4) return REBORN_V4;
+        if (mode == GameplayMode.REBORN && version == 5) return REBORN_V5;
         throw new IOException("Unsupported gameplay rules version");
     }
 }

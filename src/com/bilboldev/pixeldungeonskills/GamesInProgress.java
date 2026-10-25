@@ -61,9 +61,10 @@ public class GamesInProgress {
 		public int depth;
 		public int level;
 		public int armorTier;
-		public boolean challenges;
+		public int challenges;
 		public int difficulty;
 		public RunRules rules = RunRules.CLASSIC;
+		public RunSeed seed;
 		public boolean unavailable;
 	}
 }

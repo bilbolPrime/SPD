@@ -47,7 +47,7 @@ public enum Rankings {
 	public int wonNumber;
 
 	public void submit( boolean win ) {
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || LocalCoop.active() || RunSeed.customRun()) return;
 
 		load();
 
@@ -58,6 +58,7 @@ public enum Rankings {
 		rec.win		= win;
 		rec.heroClass	= Dungeon.hero.heroClass;
 		rec.rules = Dungeon.rules();
+        rec.challenges = Dungeon.challenges;
 		rec.armorTier	= Dungeon.hero.tier();
 		rec.score	= score( win );
 
@@ -182,6 +183,17 @@ public enum Rankings {
 
 		public String gameFile;
 		public RunRules rules = RunRules.CLASSIC;
+        public int challenges;
+
+		public RunSeed seed() {
+			if (!rules.hasSeed() || gameFile.isEmpty()) return null;
+			try (InputStream input = Game.instance.openFileInput(gameFile)) {
+				Bundle bundle = Bundle.read(input);
+				return bundle == null ? null : RunSeed.restore(bundle, rules);
+			} catch (IOException unavailable) {
+				return null;
+			}
+		}
 
 		public String desc() {
 			if (win) {
@@ -223,7 +235,8 @@ public enum Rankings {
 				throw new IllegalArgumentException(e);
 			}
 
-			causeClassName = bundle.getString( CAUSE );
+			challenges = rules.challenges(bundle.getInt("challenges"));
+            causeClassName = bundle.getString( CAUSE );
 			info	= bundle.getString( REASON );
 			win		= bundle.getBoolean( WIN );
 			score	= bundle.getInt( SCORE );
@@ -237,6 +250,7 @@ public enum Rankings {
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			rules.store(bundle);
+            bundle.put("challenges", challenges);
 
 			bundle.put( CAUSE, causeClassName );
 			bundle.put( REASON, info );

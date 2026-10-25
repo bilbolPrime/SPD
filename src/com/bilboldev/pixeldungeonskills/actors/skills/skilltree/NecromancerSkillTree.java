@@ -205,7 +205,7 @@ public class NecromancerSkillTree extends SkillTree {
 
     @Override
     public void castSpark(){
-        Dungeon.hero.MP -= getSkill(RaiseSkeletonSkill.class).getManaCost();
+        Dungeon.hero.spendSkillMana(getSkill(RaiseSkeletonSkill.class).getManaCost());
         getSkill(RaiseSkeletonSkill.class).castTextYell();
     }
 }

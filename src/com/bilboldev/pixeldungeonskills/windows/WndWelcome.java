@@ -17,22 +17,31 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
+import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 
 public class WndWelcome extends WndScrollable {
     public WndWelcome(String message) {
         int width = boundedWidth(176);
         IconTitle title = new IconTitle(Icons.SKILLS.get(), Messages.get(WndWelcome.class, "title"));
         title.setRect(0, 0, width, 0);
-        RenderedTextMultiline body = PixelScene.renderMultiline(message + "\n\n"
-                + Messages.get(WndWelcome.class, "classic"), 8);
+        String text = message + "\n\n" + Messages.get(WndWelcome.class, "classic");
+        if (Game.isFreeDesktop()) text += "\n\n" + Messages.get(WndWelcome.class, "free_desktop");
+        RenderedTextMultiline body = PixelScene.renderMultiline(text, 8);
         body.maxWidth(textWidth(width));
 
-        layoutContent(width, title, body, 6);
+        if (Game.isFreeDesktop()) {
+            SteamPageButton steam = new SteamPageButton();
+            steam.setSize(width, 20);
+            layoutContent(width, title, body, 6, steam);
+        } else {
+            layoutContent(width, title, body, 6);
+        }
     }
 
     @Override

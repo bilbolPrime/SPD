@@ -44,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSacrifice;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSkill;
+import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfReadiness;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfFirebolt;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
@@ -202,6 +203,7 @@ public enum HeroClass {
         new ScrollOfSacrifice().setKnown();
         new ScrollOfBloodyRitual().setKnown();
         new ScrollOfSkill().setKnown();
+        new ScrollOfReadiness().setKnown();
         new ScrollOfFrostLevel().setKnown();
 
         new PotionOfHealing().setKnown();

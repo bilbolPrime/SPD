@@ -22,18 +22,12 @@ import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
-import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.noosa.ui.Component;
-import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
-import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
-import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.food.FrozenCarpaccio;
@@ -43,8 +37,6 @@ import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
-import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.ui.CheckBox;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
@@ -161,13 +153,7 @@ public class WndRatKing extends WndTabbed {
             };
             add(btnZoomIn.setRect(WIDTH - w, 0, w, BTN_HEIGHT));
 
-            btnChamps = new RedButton((String.format(TXT_CHAMPION_CHANCE, (Dungeon.currentDifficulty.championChance() * 10 + "%")))) {
-                @Override
-                protected void onClick() {
-                    if(Difficulties.canDisableChampions == false)
-                        parent.add(new previewInformation(Icons.get(Icons.CHAMP_HALO), "Disable Champions",  "This feature is locked."));
-                }
-            };
+            btnChamps = new RedButton(String.format(TXT_CHAMPION_CHANCE, Dungeon.currentDifficulty.championChance() * 10 + "%"));
 
             add(btnChamps.setRect(btnZoomOut.right(), 0, WIDTH - btnZoomIn.width() - btnZoomOut.width(), BTN_HEIGHT));
 
@@ -221,14 +207,6 @@ public class WndRatKing extends WndTabbed {
             btnFoul.setRect(0, btnCursed.bottom() + GAP, WIDTH, BTN_HEIGHT);
             btnFoul.checked(Dungeon.currentDifficulty.disableChampion(Champ.CHAMP_FOUL));
             add(btnFoul);
-
-            if(Difficulties.canDisableChampions == false)
-            {
-                btnFoul.enable(false);
-                btnChief.enable(false);
-                btnVamp.enable(false);
-                btnCursed.enable(false);
-            }
 
             if(maxHeight < (int) btnFoul.bottom() )
                 maxHeight = (int) btnFoul.bottom();

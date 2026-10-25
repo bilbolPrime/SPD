@@ -107,7 +107,7 @@ public class WndResurrect extends WndScrollable {
 		if (Presentation.reborn()) {
 			layoutContent(windowWidth, titlebar, textContent(message), GAP, btnYes, btnNo);
 		} else {
-			resize(WIDTH, (int)btnNo.bottom());
+			resize(WIDTH, (int)Math.ceil(btnNo.bottom()));
 		}
 	}
 

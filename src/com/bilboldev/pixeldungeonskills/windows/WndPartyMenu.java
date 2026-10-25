@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 import com.bilboldev.utils.Bundle;
@@ -8,13 +9,17 @@ public class WndPartyMenu extends WndOptions {
     private final long token;
 
     public WndPartyMenu(long token, String title, String description, String[] choices) {
-        super(title, description, choices);
-        this.token = token;
+        this(token, null, title, description, choices);
     }
 
-    @Override
-    protected boolean shouldTranslateOptionLabels() {
-        return false;
+    public WndPartyMenu(long token, Image icon, String title, String description, String[] choices) {
+        this(token, icon, title, description, choices, null, null);
+    }
+
+    public WndPartyMenu(long token, Image icon, String title, String description, String[] choices,
+                        int[] images, int[] quantities) {
+        super(icon, title, description, images == null ? 1 : 2, false, images, quantities, choices);
+        this.token = token;
     }
 
     @Override

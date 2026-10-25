@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.melee;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -83,6 +84,11 @@ public class MeleeWeapon extends Weapon {
 
 	@Override
 	public String info() {
+		return info(Dungeon.hero);
+	}
+
+	@Override
+	public String info(Hero viewer) {
 
 		final String p = "\n\n";
 
@@ -96,13 +102,14 @@ public class MeleeWeapon extends Weapon {
 		} else {
 			info.append( p );
 			info.append( Messages.get( MeleeWeapon.class, "stats_unknown", tier, min0(), max0(), typicalSTR() ) );
-			if (typicalSTR() > Dungeon.hero.STR()) {
+			if (viewer != null && typicalSTR() > viewer.STR()) {
 				info.append( " " );
 				info.append( Messages.get( MeleeWeapon.class, "probably_too_heavy" ) );
 			}
 		}
 
 		if (DLY != 1f) {
+			info.append( " " );
 			info.append( "This is a rather " + (DLY < 1f ? "fast" : "slow") );
 			if (ACU != 1f) {
 				if ((ACU > 1f) == (DLY < 1f)) {
@@ -114,6 +121,7 @@ public class MeleeWeapon extends Weapon {
 			}
 			info.append( " weapon. ");
 		} else if (ACU != 1f) {
+			info.append( " " );
 			info.append( "This is a rather " + (ACU > 1f ? "accurate" : "inaccurate") + " weapon. " );
 		}
 		switch (imbue) {
@@ -130,22 +138,21 @@ public class MeleeWeapon extends Weapon {
 			info.append( "It is enchanted." );
 		}
 
-		if (levelKnown && Dungeon.hero.belongings.backpack.items.contains( this )) {
-			if (STR() > Dungeon.hero.STR()) {
+		if (levelKnown && viewer != null && viewer.belongings.backpack.items.contains( this )) {
+			if (STR() > viewer.STR()) {
 				info.append( p );
 				info.append( Messages.get( Weapon.class, "too_heavy" ) );
 			}
-			if (STR() < Dungeon.hero.STR()) {
+			if (STR() < viewer.STR()) {
 				info.append( p );
-				info.append( Messages.get( Weapon.class, "excess_str", Dungeon.hero.STR() - STR() ) );
+				info.append( Messages.get( Weapon.class, "excess_str", viewer.STR() - STR() ) );
 			}
 		}
 
-		if (isEquipped( Dungeon.hero )) {
-
-			if (this instanceof MeleeWeapon &&  Dungeon.hero.skillTree != null && Dungeon.hero.skillTree.getWeaponLevelBonus() > 0) {
+		if (viewer != null && isEquipped( viewer )) {
+			if (viewer.skillTree != null && viewer.skillTree.getWeaponLevelBonus() > 0) {
 				info.append( p );
-                info.append( "Your mastery of melee weapons makes it easier to use this weapon (+ " + Dungeon.hero.skillTree.getWeaponLevelBonus() + " levels)\n" );
+                info.append( "Your mastery of melee weapons makes it easier to use this weapon (+ " + viewer.skillTree.getWeaponLevelBonus() + " levels)\n" );
 			}
 			if (cursed) {
 				info.append( p );

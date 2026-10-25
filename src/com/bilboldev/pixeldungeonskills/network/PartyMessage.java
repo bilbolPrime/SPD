@@ -1,6 +1,8 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +16,11 @@ final class PartyMessage {
 
     static void validate(JSONObject message, boolean host, int sequence) throws IOException, JSONException {
         String kind = string(message, "kind", 16);
+        if (kind.equals("cosmetics")) {
+            fields(message, "kind", "aura");
+            integer(message, "aura", 0, 5);
+            return;
+        }
         if (host) {
             if (kind.equals("resync")) {
                 fields(message, "kind", "sequence");
@@ -28,6 +35,11 @@ final class PartyMessage {
             return;
         }
         switch (kind) {
+            case "follow_request":
+                fields(message, "kind", "token", "depth");
+                token(message);
+                depth(message);
+                break;
             case "boss_remains":
                 fields(message, "kind", "depth", "cell");
                 int bossFloor = integer(message, "depth", 5, 20);
@@ -121,12 +133,17 @@ final class PartyMessage {
     }
 
     private static void depth(JSONObject message) throws IOException, JSONException {
-        int depth = integer(message, "depth", 1, 1000);
-        if (depth > 26 && depth != 1000) throw invalid();
+        int depth = integer(message, "depth", 1, 1014);
+        if (!IceCaves.validLevelKey(depth)) throw invalid();
     }
 
     private static void command(String action, JSONObject payload) throws IOException, JSONException {
         switch (action) {
+            case "follow_reply":
+                fields(payload, "value", "token");
+                token(payload);
+                integer(payload, "value", 0, 1);
+                break;
             case "move":
                 fields(payload, "value");
                 integer(payload, "value", 0, Level.LENGTH - 1);
@@ -156,6 +173,10 @@ final class PartyMessage {
             case "skills":
             case "last_skill":
             case "go":
+            case "follow":
+            case "unfollow":
+            case "swap":
+            case "follow_ask":
                 fields(payload, "value");
                 integer(payload, "value", 0, 0);
                 break;
@@ -179,14 +200,24 @@ final class PartyMessage {
             integer(payload, "choices", 0, 0);
         } else {
             int count = integer(payload, "choices", 0, 256);
-            String[] fields = new String[count + 4];
+            boolean rewards = payload.has("reward0");
+            String[] fields = new String[count * (rewards ? 2 : 1) + 5];
             fields[0] = "token";
             fields[1] = "title";
             fields[2] = "text";
             fields[3] = "choices";
+            fields[fields.length - 1] = "?image";
+            if (payload.has("image")) integer(payload, "image", 0, ItemSpriteSheet.MAX_IMAGE);
             for (int i = 0; i < count; i++) {
                 fields[i + 4] = "choice" + i;
                 PartyText.validate(object(payload, fields[i + 4]), 1024);
+                if (rewards) {
+                    fields[count + i + 4] = "reward" + i;
+                    JSONObject reward = object(payload, fields[count + i + 4]);
+                    fields(reward, "image", "quantity");
+                    integer(reward, "image", 0, ItemSpriteSheet.MAX_IMAGE);
+                    integer(reward, "quantity", 1, 9999);
+                }
             }
             fields(payload, fields);
             PartyText.validate(object(payload, "title"), 512);

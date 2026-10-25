@@ -26,6 +26,7 @@ public class GauntletScene extends GameScene {
     public static int level = 1;
     public static boolean scenePause;
     private GauntletArena arena;
+    private GauntletHero hero;
     private int renderedTheme;
     private RenderedTextMultiline waveLabel;
     private final ArrayList<Spectator> spectators = new ArrayList<>();
@@ -54,6 +55,7 @@ public class GauntletScene extends GameScene {
     public void create() {
         arena = GauntletRun.arena();
         if (arena == null) throw new IllegalStateException("Missing Gauntlet arena");
+        hero = (GauntletHero)Dungeon.hero;
         InterlevelScene.mode = InterlevelScene.Mode.NONE;
         super.create();
         Camera.main.zoom(Math.max(minZoom, Math.min(maxZoom, defaultZoom + GauntletRun.zoomOffset())));
@@ -82,7 +84,7 @@ public class GauntletScene extends GameScene {
 
         noticedWave = arena.phase() == GauntletArena.Phase.FIGHTING ? arena.wave() : arena.completed();
         noticedKills = Statistics.enemiesSlain;
-        noticedHits = ((GauntletHero)Dungeon.hero).hitsTaken();
+        noticedHits = hero.hitsTaken();
         renderedTheme = arena.theme();
         updateRewards();
         updateHud();
@@ -112,8 +114,9 @@ public class GauntletScene extends GameScene {
 
     @Override
     public synchronized void update() {
+        if (arena == null || GauntletRun.arena() != arena || Dungeon.hero != hero) return;
         super.update();
-        if (arena == null) return;
+        if (GauntletRun.arena() != arena || Dungeon.hero != hero) return;
         if (Window.topWindow() == null) arena.releaseWave();
         refreshArenaTheme();
         arena.checkCompletion();
@@ -140,7 +143,7 @@ public class GauntletScene extends GameScene {
     private void updateHeckling() {
         boolean kill = Statistics.enemiesSlain > noticedKills;
         noticedKills = Statistics.enemiesSlain;
-        int hits = ((GauntletHero)Dungeon.hero).hitsTaken();
+        int hits = hero.hitsTaken();
         boolean hurt = hits > noticedHits;
         noticedHits = hits;
         boolean waveStarted = arena.phase() == GauntletArena.Phase.FIGHTING && arena.wave() != noticedWave;

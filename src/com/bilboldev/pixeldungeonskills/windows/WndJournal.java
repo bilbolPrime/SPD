@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 
 import java.util.Collections;
@@ -27,6 +28,7 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
@@ -95,10 +97,10 @@ public class WndJournal extends Window {
 			feature.text( f.desc );
 			feature.measure();
 
-			depth.text( Integer.toString( d ) );
+			depth.text( IceCaves.branchKey(d) ? Messages.get(WndJournal.class, "ice_depth", d - 1000) : Integer.toString(d) );
 			depth.measure();
 
-			if (d == Dungeon.depth) {
+			if (d == Dungeon.levelKey()) {
 				feature.hardlight( titleColor() );
 				depth.hardlight( titleColor() );
 			}

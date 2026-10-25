@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -47,7 +48,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 
 	@Override
 	public boolean doEquip( Hero hero ) {
-
+		if (!IceWeapon.canUse(this, hero)) return false;
 		detachAll( hero.belongings.backpack );
 
 		if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip( hero, true )) {
@@ -88,6 +89,11 @@ abstract public class KindOfWeapon extends EquipableItem {
 	}
 
 	public void activate( Hero hero ) {
+	}
+
+	@Override
+	public String displayInfo() {
+		return this instanceof IceWeapon ? info() : super.displayInfo();
 	}
 
 	abstract public int min();

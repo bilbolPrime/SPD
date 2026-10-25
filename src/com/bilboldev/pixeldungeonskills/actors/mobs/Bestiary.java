@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Yog.BurningFist;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Yog.RottingFist;
@@ -60,6 +61,13 @@ public class Bestiary {
 	}
 
 	private static Class<?> mobClass( int depth ) {
+        if (IceCaves.active() && depth >= 11 && depth <= 14) {
+            if (depth == 14) return OldRime.class;
+            Class<?>[] ice = {RimeBat.class, Iceclaw.class, Frostback.class, Shardling.class, HollowMiner.class, Rimehorn.class};
+            float[] chances = depth == 11 ? new float[]{3, 3, 1, 2, 1, 0.5f}
+                    : depth == 12 ? new float[]{2, 2, 2, 2, 2, 1} : new float[]{1, 2, 3, 2, 2, 2};
+            return ice[Random.chances(chances)];
+        }
         if (com.bilboldev.pixeldungeonskills.Dungeon.rules().hasRebornBosses()) {
             switch (depth) {
                 case 5: return RebornGoo.class;

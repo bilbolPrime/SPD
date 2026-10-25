@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.levels.painters;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.levels.*;
 import com.bilboldev.utils.Random;
 import java.util.Arrays;
@@ -9,17 +10,44 @@ import java.util.PriorityQueue;
 public final class RebornRoomPainter extends Painter {
     private RebornRoomPainter() {}
 
-    public static void paint(Level level, Room room, int style) {
+    public static void paint(Level level, Room room, int style, boolean landmark) {
         fill(level, room, Terrain.WALL);
         fill(level, room, 1, Terrain.EMPTY);
         for (Room.Door door : room.connected.values()) door.set(Room.Door.Type.REGULAR);
-        Shape s = new Shape(level, room);
-        if (level instanceof SewerLevel) sewers(s, style);
+        Shape s = new Shape(level, room, landmark);
+        if (landmark) landmark(s);
+        else if (level instanceof SewerLevel) sewers(s, style);
         else if (level instanceof PrisonLevel) prison(s, style);
         else if (level instanceof CavesLevel) caves(s, style);
         else if (level instanceof CityLevel) city(s, style);
         else halls(s, style);
         reconnect(level, room);
+    }
+
+    private static void landmark(Shape s) {
+        if (s.level instanceof SewerLevel) {
+            int bank = Random.IntRange(1, Math.min(2, (s.w - 1) / 2));
+            s.box(bank, 0, s.w - bank * 2, s.h, Terrain.WATER);
+            for (int y = Random.IntRange(1, 3); y < s.h; y += Random.IntRange(3, 6))
+                s.box(0, y, s.w, 1, Terrain.EMPTY_SP);
+            s.set(0, 0, Terrain.WALL);
+            s.set(s.w - 1, s.h - 1, Terrain.WALL);
+        } else if (s.level instanceof PrisonLevel) {
+            int aisle = Random.IntRange(1, s.w - 2);
+            s.box(aisle, 0, 1, s.h, Terrain.EMPTY_DECO);
+            for (int y = Random.IntRange(2, 4); y < s.h - 2; y += Random.IntRange(3, 5)) {
+                s.box(0, y, aisle, 1, Terrain.WALL);
+                s.box(aisle + 2, y + 1, s.w - aisle - 2, 1, Terrain.WALL);
+            }
+        } else {
+            s.box(0, 0, s.w, s.h, Terrain.EMPTY_SP);
+            int width = Random.IntRange(2, Math.min(5, s.w - 2));
+            int height = Random.IntRange(2, Math.min(5, s.h - 2));
+            s.ellipse(Random.IntRange(1, s.w - width - 1), Random.IntRange(1, s.h - height - 1),
+                    width, height, Terrain.WATER);
+            for (int x : new int[]{1, s.w - 2}) for (int y : new int[]{1, s.h - 2})
+                s.set(x, y, Terrain.STATUE);
+        }
     }
 
     private static void sewers(Shape s, int style) {
@@ -138,6 +166,12 @@ public final class RebornRoomPainter extends Painter {
                 s.ellipse(0, 1, s.w-1, s.h-2, Terrain.WATER);
                 s.box(s.w-2, 0, 2, Math.max(1, y), Terrain.WALL);
                 s.box(x-1, y, 2, 2, Terrain.EMPTY_DECO);
+        }
+        for (int row = 0; row < s.h; row++) for (int col = 0; col < s.w; col++) {
+            float dx = (2 * col + 1 - s.w) / (float)s.w;
+            float dy = (2 * row + 1 - s.h) / (float)s.h;
+            float edge = 0.95f + ((row + col + style) % 3) * 0.1f;
+            if (dx * dx + dy * dy > edge) s.set(col, row, Terrain.WALL);
         }
     }
 
@@ -274,7 +308,10 @@ public final class RebornRoomPainter extends Painter {
         Arrays.fill(costs, Integer.MAX_VALUE);
         costs[from] = 0;
         previous[from] = from;
-        PriorityQueue<int[]> open = new PriorityQueue<>(11, (a, b)->Integer.compare(a[1], b[1]));
+        PriorityQueue<int[]> open = new PriorityQueue<>(11, (a, b) -> {
+            int cost = Integer.compare(a[1], b[1]);
+            return cost != 0 || !RunSeed.active() ? cost : Integer.compare(a[0], b[0]);
+        });
         open.add(new int[]{from, 0});
         while (!open.isEmpty()) {
             int[] entry = open.remove();
@@ -303,10 +340,10 @@ public final class RebornRoomPainter extends Painter {
         final Room room;
         final boolean transpose, flipX, flipY;
         final int w, h;
-        Shape(Level level, Room room) {
+        Shape(Level level, Room room, boolean landmark) {
             this.level = level;
             this.room = room;
-            transpose = Random.Int(2)==0;
+            transpose = landmark ? room.width() > room.height() : Random.Int(2)==0;
             flipX = Random.Int(2)==0;
             flipY = Random.Int(2)==0;
             w = (transpose?room.height():room.width())-1;

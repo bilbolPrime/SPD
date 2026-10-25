@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.utils.Bundle;
@@ -95,6 +96,8 @@ final class PartyUpdates {
             }
             int seed = integer(world, "reborn_encounter_seed", 0, 999999);
             if (previous != null && seed != previous.getInt("reborn_encounter_seed")) throw invalid();
+            if (previous != null && (!same(world.opt("run_seed"), previous.opt("run_seed"))
+                    || !same(world.opt("custom_seed"), previous.opt("custom_seed")))) throw invalid();
             Set<Integer> depths = floorIds(world);
             if (previous != null && !depths.containsAll(floorIds(previous))) throw invalid();
             JSONObject complete = copy(world);
@@ -109,7 +112,7 @@ final class PartyUpdates {
             Set<Integer> changed = new HashSet<>();
             for (int index = 0; index < floors.length(); index++) {
                 JSONObject update = floors.getJSONObject(index);
-                int depth = integer(update, "depth", 1, 1000);
+                int depth = integer(update, "depth", 1, 1014);
                 if (!depths.contains(depth) || !changed.add(depth)) throw invalid();
                 String key = "floor_" + depth;
                 JSONObject before = base == 0 || previous == null ? null : previous.optJSONObject(key);
@@ -160,7 +163,8 @@ final class PartyUpdates {
             Object value = floors.get(index);
             if (!(value instanceof Integer) && !(value instanceof Long)) throw invalid();
             long depth = ((Number)value).longValue();
-            if (depth < 1 || depth > 26 && depth != 1000 || !result.add((int)depth)) throw invalid();
+            if (depth < 1 || depth > 1014 || !IceCaves.validLevelKey((int)depth)
+                    || !result.add((int)depth)) throw invalid();
         }
         return result;
     }
@@ -218,7 +222,7 @@ final class PartyUpdates {
             if (grid.equals("map")) {
                 if (!(value instanceof Integer) && !(value instanceof Long)) throw invalid();
                 long tile = ((Number)value).longValue();
-                if (tile < 0 || tile > Terrain.STORAGE || tile == 47) throw invalid();
+                if (tile < 0 || tile > Terrain.COLLAPSED_CAVE || tile == 47) throw invalid();
             } else if (!(value instanceof Boolean)) throw invalid();
             result.put((int)cell, value);
             previousCell = (int)cell;
@@ -237,6 +241,7 @@ final class PartyUpdates {
     }
 
     private static boolean same(Object first, Object second) throws JSONException {
+        if (first == null || second == null) return first == second;
         if (first instanceof JSONObject && second instanceof JSONObject) {
             JSONObject a = (JSONObject)first;
             JSONObject b = (JSONObject)second;

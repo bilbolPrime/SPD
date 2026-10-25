@@ -128,6 +128,11 @@ public abstract class WndScrollable extends Window {
         public ScrollPane scrollPane(Component content) {
             return new ScrollPane(content) {
                 @Override
+                public void onClick(float x, float y) {
+                    ControlRow.this.onClick(x, y);
+                }
+
+                @Override
                 protected TouchController createTouchController() {
                     return new TouchController() {
                         private TouchArea pressedControl;
@@ -203,6 +208,8 @@ public abstract class WndScrollable extends Window {
                 }
             };
         }
+
+        protected void onClick(float x, float y) { }
 
         @Override
         protected void layout() {

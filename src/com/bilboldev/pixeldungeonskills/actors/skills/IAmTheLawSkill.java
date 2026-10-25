@@ -24,7 +24,7 @@ public class IAmTheLawSkill extends ActiveSkill2 {
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if (level > 0 && hero.MP >= getManaCost() && !coolDown()) {
+        if (level > 0 && hero.canUseSkill(getManaCost()) && !coolDown()) {
             actions.add(AC_CAST);
         }
 
@@ -37,8 +37,8 @@ public class IAmTheLawSkill extends ActiveSkill2 {
 
     @Override
     public void execute( Hero hero, String action ) {
-        if (action == AC_CAST && hero.MP >= getManaCost() && !coolDown()) {
-            hero.MP -= getManaCost();
+        if (action == AC_CAST && hero.canUseSkill(getManaCost()) && !coolDown()) {
+            hero.spendSkillMana(getManaCost());
             StatusPane.manaDropping += getManaCost();
             castTextYell();
 
@@ -69,8 +69,7 @@ public class IAmTheLawSkill extends ActiveSkill2 {
 
     @Override
     public String info() {
-        return "Sometimes people need to be reminded.\n\n"
-                + extendedInfo()
+        return necroMercInfo("i_am_the_law_desc", extendedInfo())
                 + requiresInfo()
                 + costString();
     }

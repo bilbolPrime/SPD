@@ -28,14 +28,14 @@ public class SummonCrab extends ActiveSkill2{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if(level > 0 && hero.MP >= getManaCost())
+        if(level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_SUMMON);
         return actions;
     }
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == Skill.AC_SUMMON)
+        if(action == Skill.AC_SUMMON && hero.canUseSkill(getManaCost()))
         {
             boolean spawned = false;
             for (int nu = 0; nu < 1 ; nu++) {
@@ -67,7 +67,7 @@ public class SummonCrab extends ActiveSkill2{
             }
 
             if(spawned == true) {
-                hero.MP -= getManaCost();
+                hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
                 castTextYell();
                 hero.spend( TIME_TO_USE );

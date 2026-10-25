@@ -29,14 +29,14 @@ public class Echo extends ActiveSkill3{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if(level > 0 && hero.MP >= getManaCost())
+        if(level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_CAST);
         return actions;
     }
 
     @Override
     public void execute( Hero hero, String action ) {
-        if (action == Skill.AC_CAST) {
+        if (action == Skill.AC_CAST && hero.canUseSkill(getManaCost())) {
             ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
 
             for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
@@ -67,7 +67,7 @@ public class Echo extends ActiveSkill3{
                 nImages--;
             }
 
-            hero.MP -= getManaCost();
+            hero.spendSkillMana(getManaCost());
             StatusPane.manaDropping += getManaCost();
             castTextYell();
             Dungeon.hero.heroSkills.lastUsed = this;

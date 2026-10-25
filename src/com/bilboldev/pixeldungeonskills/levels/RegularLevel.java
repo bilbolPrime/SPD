@@ -20,10 +20,12 @@ package com.bilboldev.pixeldungeonskills.levels;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
@@ -88,7 +90,7 @@ public abstract class RegularLevel extends Level {
 		roomEntrance.type = Type.ENTRANCE;
 		roomExit.type = Type.EXIT;
 
-		HashSet<Room> connected = new HashSet<Room>();
+		HashSet<Room> connected = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
 		connected.add( roomEntrance );
 
 		Graph.buildDistanceMap( rooms, roomExit );
@@ -155,7 +157,7 @@ public abstract class RegularLevel extends Level {
 	}
 
 	protected boolean initRooms() {
-		rooms = new HashSet<Room>();
+		rooms = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
 		split( new Rect( 0, 0, WIDTH - 1, HEIGHT - 1 ) );
 
 		if (rooms.size() < 8) {
@@ -228,7 +230,7 @@ public abstract class RegularLevel extends Level {
 
 				} else if (Random.Int( 2 ) == 0){
 
-					HashSet<Room> neigbours = new HashSet<Room>();
+					HashSet<Room> neigbours = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
 					for (Room n : r.neigbours) {
 						if (!r.connected.containsKey( n ) &&
 							!Room.SPECIALS.contains( n.type ) &&
@@ -379,7 +381,7 @@ public abstract class RegularLevel extends Level {
 			split( new Rect( rect.left, vh, rect.right, rect.bottom ) );
 
 		} else
-		if ((Math.random() <= (minRoomSize * minRoomSize / rect.square()) && w <= maxRoomSize && h <= maxRoomSize) || w < minRoomSize || h < minRoomSize) {
+		if ((Random.Double() <= (minRoomSize * minRoomSize / rect.square()) && w <= maxRoomSize && h <= maxRoomSize) || w < minRoomSize || h < minRoomSize) {
 
 			rooms.add( (Room)new Room().set( rect ) );
 
@@ -731,7 +733,7 @@ public abstract class RegularLevel extends Level {
         themedLayout = bundle.getBoolean("themed_layout");
 
         Collection<Bundlable> tmp =  bundle.getCollection( "rooms" );
-        rooms = new HashSet<Room>();
+        rooms = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
 
         for (Bundlable item : tmp) {
             rooms.add((Room)item);

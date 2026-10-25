@@ -18,6 +18,7 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.Gizmo;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.Ripple;
+import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
 import com.bilboldev.pixeldungeonskills.effects.TenguWarnings;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -26,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -108,6 +110,7 @@ final class FirstPersonView {
     private final ArrayList<RectF> rippleFrames = new ArrayList<>();
     private final ArrayList<Pixels> rippleSources = new ArrayList<>();
     private double angle, px, py, dx, dy, heroX, heroY;
+    private Hero viewHero;
     private double eyeHeight = EYE_HEIGHT, horizon, cameraBack, pitch, pitchSin, pitchCos = 1, focal;
     private double firstPersonTilt, thirdPersonTilt = THIRD_DEFAULT_TILT;
     private boolean thirdPerson;
@@ -229,13 +232,14 @@ final class FirstPersonView {
     }
 
     void draw() {
-        if (destroyed || Dungeon.level != level || Dungeon.hero == null || !valid(Dungeon.hero.pos)) {
+        viewHero = GameScene.cameraHero();
+        if (destroyed || Dungeon.level != level || viewHero == null || !valid(viewHero.pos)) {
             throw new IllegalStateException("First-person view belongs to a different level");
         }
-        int pos = Dungeon.hero.pos;
+        int pos = viewHero.pos;
 
-        heroX = px = pos % level.width() + 0.5 + Dungeon.hero.sprite.movementOffsetX();
-        heroY = py = pos / level.width() + 0.5 + Dungeon.hero.sprite.movementOffsetY();
+        heroX = px = pos % level.width() + 0.5 + viewHero.sprite.movementOffsetX();
+        heroY = py = pos / level.width() + 0.5 + viewHero.sprite.movementOffsetY();
         dx = Math.cos(angle);
         dy = Math.sin(angle);
         positionCamera();
@@ -746,6 +750,7 @@ final class FirstPersonView {
 
     private int wallPixel(int terrain, int tx, double z) {
         int tile = z >= 1 ? DungeonTileSheet.RAISED_WALL
+                : terrain == Terrain.COLLAPSED_CAVE ? 321
                 : terrain == Terrain.DOOR ? DungeonTileSheet.FLAT_DOOR
                 : terrain == Terrain.LOCKED_DOOR || terrain == Terrain.LOCKED_EXIT ? DungeonTileSheet.FLAT_DOOR_LOCKED
                 : terrain == Terrain.BOOKSHELF ? DungeonTileSheet.FLAT_BOOKSHELF
@@ -805,6 +810,7 @@ final class FirstPersonView {
             int tx = (int)((u - Math.floor(u)) * 16);
             int terrain = valid(cell) ? level.map[cell] : Terrain.WALL;
             int tile = terrain == Terrain.DOOR ? DungeonTileSheet.FLAT_DOOR
+                    : terrain == Terrain.COLLAPSED_CAVE ? 321
                     : terrain == Terrain.LOCKED_DOOR || terrain == Terrain.LOCKED_EXIT ? DungeonTileSheet.FLAT_DOOR_LOCKED
                     : terrain == Terrain.BOOKSHELF ? DungeonTileSheet.FLAT_BOOKSHELF
                     : terrain == Terrain.BARRICADE ? DungeonTileSheet.FLAT_BARRICADE
@@ -843,7 +849,7 @@ final class FirstPersonView {
             }
             if (!(g instanceof CharSprite)) continue;
             CharSprite sprite = (CharSprite)g;
-            if (sprite.ch instanceof Mob || LocalCoop.contains(sprite.ch) && sprite.ch != Dungeon.hero)
+            if (sprite.ch instanceof Mob || LocalCoop.contains(sprite.ch) && sprite.ch != viewHero)
                 addSprite(sprite, sprite.ch.pos, 1.0);
         }
         if (scene instanceof GauntletScene) ((GauntletScene)scene).drawSpectators(this);
@@ -859,7 +865,7 @@ final class FirstPersonView {
             if (art != null) addSprite(art, cell, terrain == Terrain.HIGH_GRASS ? 0.7
                     : terrain == Terrain.BARRICADE ? 1.0 : 0.85, true, true);
         }
-        if (thirdPerson) addSprite(Dungeon.hero.sprite, Dungeon.hero.pos, 1.0);
+        if (thirdPerson) addSprite(viewHero.sprite, viewHero.pos, 1.0);
         effects.collect();
 
         for (int i = sprites.size(); i < billboardPool.size(); i++) billboardPool.get(i).sprite = null;
@@ -870,6 +876,7 @@ final class FirstPersonView {
             Image s = b.sprite;
             boolean indicator = s instanceof EmoIcon;
             boolean creature = s instanceof CharSprite;
+            boolean aura = s instanceof SupporterAura.Light;
             Pixels source = source(s.texture);
             RectF frame = s.frame();
             double size = focal * b.size / b.projectedDepth;
@@ -915,7 +922,10 @@ final class FirstPersonView {
                     if (u < 0 || v < 0 || u >= 1 || v >= 1) continue;
                     int tx = Math.min(fw - 1, (int)((s.flipHorizontal ? 1 - u : u) * fw));
                     int ty = Math.min(fh - 1, (int)((s.flipVertical ? 1 - v : v) * fh));
-                    int color = source.at(fx + tx, fy + ty);
+
+                    int color = aura ? source.softAlpha(fx, fy, fw, fh,
+                            s.flipHorizontal ? 1 - u : u, s.flipVertical ? 1 - v : v) << 24 | 0xFFFFFF
+                            : source.at(fx + tx, fy + ty);
                     double alpha = Math.min(1, (color >>> 24) / 255.0 * s.am + s.aa) * b.opacity;
                     if (alpha <= 0.01) continue;
                     b.visiblePixels = true;
@@ -1006,7 +1016,7 @@ final class FirstPersonView {
         double distance = x * dx + y * dy;
         if (sprite instanceof CharSprite) size *= Math.max(0.5, sprite.height / 16.0);
         if (thirdPerson ? cameraDepth(distance, size * 0.5) <= NEAR : distance <= 0.15) return;
-        boolean hero = sprite == Dungeon.hero.sprite;
+        boolean hero = sprite == viewHero.sprite;
         int target = !targetable || !seen(cell) || hero
                 || sprite instanceof CharSprite && !((CharSprite)sprite).ch.isAlive() ? -1 : cell;
         double opacity = 1;
@@ -1034,6 +1044,21 @@ final class FirstPersonView {
         sprites.add(b);
     }
 
+    void heroGlow(Image glow, CharSprite owner) {
+        if (!seen(owner.ch.pos)) return;
+        int cell = owner.ch.pos;
+        double x = cell % level.width() + .5 + owner.movementOffsetX();
+        double y = cell / level.width() + .5 + owner.movementOffsetY();
+        double distance = forward(x, y);
+        double bodyHeight = Math.max(.5, owner.height / 16.0);
+        double center = bodyHeight / 2 + owner.jumpHeight();
+        if (cameraDepth(distance, center) < NEAR) return;
+        Billboard light = billboard().set(glow, -1, distance, side(x, y),
+                glow.height() * bodyHeight / owner.height, center, effectAspect(glow), 0, 1, -1, true, true);
+        light.additive = true;
+        sprites.add(light);
+    }
+
     void attachedParticle(Image particle, CharSprite owner) {
         attachedParticle(particle, owner, false, false);
     }
@@ -1043,7 +1068,8 @@ final class FirstPersonView {
                 || !owner.exists || !owner.visible || !seen(owner.ch.pos)) return;
         double offset = (particle.x + particle.origin.x - owner.x - owner.width * 0.5) / 16;
         double z = (owner.y + owner.height - particle.y - particle.origin.y) / 16;
-        if (!thirdPerson && owner == Dungeon.hero.sprite) {
+        if (particle instanceof SupporterAura.Light) z += owner.jumpHeight();
+        if (!thirdPerson && owner == viewHero.sprite) {
             selfParticle(particle, offset, z, additive);
             return;
         }
@@ -1351,7 +1377,8 @@ final class FirstPersonView {
 
     private static boolean wall(int t) {
         return t == Terrain.WALL || t == Terrain.WALL_DECO || t == Terrain.SECRET_DOOR || t == Terrain.DOOR
-                || t == Terrain.LOCKED_DOOR || t == Terrain.LOCKED_EXIT || t == Terrain.BOOKSHELF || t == Terrain.BARRICADE;
+                || t == Terrain.LOCKED_DOOR || t == Terrain.LOCKED_EXIT || t == Terrain.BOOKSHELF
+                || t == Terrain.BARRICADE || t == Terrain.COLLAPSED_CAVE;
     }
 
     private static boolean solidWall(int t) {
@@ -1391,6 +1418,8 @@ final class FirstPersonView {
     }
 
     private static String raisedAtlas(String atlas) {
+        if (Assets.TILES_ICE_CAVES.equals(atlas)) return Assets.TILES_ICE_CAVES_3D;
+        if (Assets.TILES_ICE_BOSS.equals(atlas)) return Assets.TILES_ICE_BOSS_3D;
         if (Assets.TILES_SEWERS.equals(atlas)) return Assets.TILES_SEWERS_3D;
         if (Assets.TILES_PRISON.equals(atlas)) return Assets.TILES_PRISON_3D;
         if (Assets.TILES_CAVES.equals(atlas)) return Assets.TILES_CAVES_3D;
@@ -1402,6 +1431,7 @@ final class FirstPersonView {
 
     private static String terrainAtlas(String atlas) {
         atlas = raisedAtlas(atlas);
+        if (Assets.TILES_ICE_CAVES_3D.equals(atlas) || Assets.TILES_ICE_BOSS_3D.equals(atlas)) return Assets.TERRAIN_ICE_CAVES;
         if (Assets.TILES_SEWERS_3D.equals(atlas)) return Assets.TERRAIN_SEWERS;
         if (Assets.TILES_PRISON_3D.equals(atlas)) return Assets.TERRAIN_PRISON;
         if (Assets.TILES_CAVES_3D.equals(atlas)) return Assets.TERRAIN_CAVES;
@@ -1427,6 +1457,18 @@ final class FirstPersonView {
         }
         int cachedPixels() {
             return data == null ? 0 : data.length;
+        }
+        int softAlpha(int left, int top, int frameWidth, int frameHeight, double u, double v) {
+            double x = Math.max(0, Math.min(frameWidth - 1, u * frameWidth - .5));
+            double y = Math.max(0, Math.min(frameHeight - 1, v * frameHeight - .5));
+            int x0 = (int)x, y0 = (int)y;
+            int x1 = Math.min(frameWidth - 1, x0 + 1), y1 = Math.min(frameHeight - 1, y0 + 1);
+            double across = x - x0, down = y - y0;
+            double upper = (at(left + x0, top + y0) >>> 24) * (1 - across)
+                    + (at(left + x1, top + y0) >>> 24) * across;
+            double lower = (at(left + x0, top + y1) >>> 24) * (1 - across)
+                    + (at(left + x1, top + y1) >>> 24) * across;
+            return (int)(upper * (1 - down) + lower * down);
         }
         int at(int x, int y) {
             if (widthMask >= 0) x &= widthMask;

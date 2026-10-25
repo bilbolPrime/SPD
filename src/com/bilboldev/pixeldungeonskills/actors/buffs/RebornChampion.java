@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -19,7 +20,7 @@ public class RebornChampion extends Buff {
     private Char attackTarget;
     private Skill skill = Skill.NONE;
 
-    private enum Skill {
+    public enum Skill {
         NONE(null), SMASH(Message.key("custom.generated.entry_smash_f9f0ebb581")), SMITE(Message.key("custom.generated.entry_smite_db8b402b39")),
         KNOCKBACK(Message.key("custom.generated.entry_knockback_3a9a3af4ee")), VENOM(Message.key("custom.generated.entry_poison_is_my_specialty_f2769a6000")),
         DOUBLE_STRIKE(Message.key("custom.generated.entry_too_slow_8ace904bbf")), DOUBLE_SHOT(Message.key("custom.generated.entry_two_for_one_8162f0b095")),
@@ -69,22 +70,29 @@ public class RebornChampion extends Buff {
         return true;
     }
 
-    private Skill[] pool() {
-        if (target instanceof Thief) return THIEF;
-        if (target instanceof Scorpio) return RANGED;
-        if (target instanceof Shaman || target instanceof Warlock || target instanceof Eye) return CASTER;
+    public static Skill[] skillsFor(Class<? extends Mob> type) {
+        return pool(type).clone();
+    }
+
+    private static Skill[] pool(Class<? extends Char> type) {
+        if (Thief.class.isAssignableFrom(type)) return THIEF;
+        if (Scorpio.class.isAssignableFrom(type)) return RANGED;
+        if (Shaman.class.isAssignableFrom(type) || Warlock.class.isAssignableFrom(type)
+                || Eye.class.isAssignableFrom(type)) return CASTER;
         return MELEE;
     }
 
     public void beginAttack(Char enemy) {
         attackTarget = enemy;
         skill = Skill.NONE;
-        if (enemy == null || !enemy.isAlive() || !target.isAlive() || Random.Int(2) != 0) return;
+        if (enemy == null || !enemy.isAlive() || !target.isAlive()) return;
+        int roll = Random.Int(2);
+        if (roll != 0 && !RebornChallenges.enraged(target)) return;
         int eligible = 0;
-        for (Skill candidate : pool()) if (eligible(candidate, enemy)) eligible++;
+        for (Skill candidate : pool(target.getClass())) if (eligible(candidate, enemy)) eligible++;
         if (eligible == 0) return;
         int choice = Random.Int(eligible);
-        for (Skill candidate : pool()) {
+        for (Skill candidate : pool(target.getClass())) {
             if (eligible(candidate, enemy) && choice-- == 0) {
                 skill = candidate;
                 break;

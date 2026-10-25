@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.network;
 
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.Closeable;
@@ -49,7 +50,7 @@ public final class PartyConnection implements Closeable {
     public static final int DEFAULT_PORT = 47864;
     public static final int DISCOVERY_PORT = 47865;
 
-    public static final int PROTOCOL = 1;
+    public static final int PROTOCOL = 2;
 
     public static final String FORK_ID = "00000000-0000-0000-0000-000000000000";
     public static final int MAX_MESSAGE_BYTES = 4 * 1024 * 1024;
@@ -67,6 +68,7 @@ public final class PartyConnection implements Closeable {
         default void onJoinRequest(Peer peer) { }
         default void onJoinWithdrawn(Peer peer) { }
         default void onWaiting() { }
+        default void onChallenges(int challenges) { }
         default void onConnected(Peer peer) { }
         default void onMessage(String json) { }
         default void onDisconnected(String reason) { }
@@ -80,8 +82,15 @@ public final class PartyConnection implements Closeable {
         public final String address;
         public final int port;
         public final String id;
+        public final int challenges;
 
         public Host(String name, HeroClass heroClass, String address, int port, String id) {
+            this(name, heroClass, address, port, id, 0);
+        }
+
+        public Host(String name, HeroClass heroClass, String address, int port, String id, int challenges) {
+            if (!RebornChallenges.valid(challenges)) throw new IllegalArgumentException("Invalid challenges");
+            this.challenges = challenges;
             this.name = name;
             this.heroClass = heroClass;
             this.address = address;
@@ -140,6 +149,7 @@ public final class PartyConnection implements Closeable {
     private final ScheduledExecutorService heartbeat = Executors.newSingleThreadScheduledExecutor(task -> daemon(task, "Party heartbeat"));
     private volatile boolean closed;
     private volatile boolean hosting;
+    private volatile int challenges;
     private volatile boolean accepting, searching;
     private volatile HeroClass localHero;
     private volatile String pairingCode;
@@ -155,6 +165,12 @@ public final class PartyConnection implements Closeable {
         if (listener == null) throw new IllegalArgumentException("A party needs a listener");
         this.listener = listener;
         heartbeat.scheduleAtFixedRate(this::tick, HEARTBEAT_MS, HEARTBEAT_MS, TimeUnit.MILLISECONDS);
+    }
+
+    public synchronized void challenges(int selection) {
+        requireIdle();
+        if (!RebornChallenges.valid(selection)) throw new IllegalArgumentException("Invalid challenges");
+        challenges = selection;
     }
 
     public void host(HeroClass hero, String name) {
@@ -588,7 +604,13 @@ public final class PartyConnection implements Closeable {
             }
             if ("pong".equals(kind) && authenticated) return;
             if ("waiting".equals(kind) && !incoming && authenticated && !approved) {
-                post(listener::onWaiting, 0);
+                final int selection = PartyMessage.integer(message, "challenges", 0, RebornChallenges.ALL);
+                if (!RebornChallenges.valid(selection)) throw PartyMessage.invalid();
+                challenges = selection;
+                post(() -> {
+                    listener.onChallenges(selection);
+                    listener.onWaiting();
+                }, 0);
                 return;
             }
             if ("hello".equals(kind) && incoming && security == null && !authenticated) {
@@ -612,7 +634,7 @@ public final class PartyConnection implements Closeable {
                 security.verify(message.getString("proof"));
                 authenticated = true;
                 peer = new Peer(number, requestedHero, socket.getInetAddress().getHostAddress());
-                offer(PartyConnection.message("waiting"), null);
+                offer(PartyConnection.message("waiting").put("challenges", challenges), null);
                 if (!post(() -> {
                     if (!ended && !approved) listener.onJoinRequest(peer);
                 }, 0)) {
@@ -705,7 +727,7 @@ public final class PartyConnection implements Closeable {
                             || PartyMessage.integer(query, "v", 1, Integer.MAX_VALUE) != PROTOCOL
                             || !"discover".equals(PartySymbols.name(PartyMessage.integer(query, "kind", 1, 65535)))) continue;
                     byte[] answer = PartySecurity.encryptSetup(message("host").put("service", SERVICE)
-                            .put("hero", PartySymbols.id(localHero.name())).put("port", listeningPort).put("id", id)
+                            .put("hero", PartySymbols.id(localHero.name())).put("port", listeningPort).put("id", id).put("challenges", challenges)
                             .toString().getBytes(StandardCharsets.UTF_8), true);
                     socket.send(new DatagramPacket(answer, answer.length, packet.getAddress(), packet.getPort()));
                 } catch (JSONException | IOException | GeneralSecurityException | IllegalArgumentException malformed) {
@@ -755,7 +777,7 @@ public final class PartyConnection implements Closeable {
                 try {
                     if (!traffic.allow(packet.getLength())) continue;
                     JSONObject answer = readDiscovery(packet);
-                    PartyMessage.fields(answer, "app", "v", "fork", "kind", "service", "port", "id", "hero");
+                    PartyMessage.fields(answer, "app", "v", "fork", "kind", "service", "port", "id", "hero", "challenges");
                     if (!PartySecurity.MAGIC.equals(PartyMessage.string(answer, "app", 64))
                             || !FORK_ID.equals(PartyMessage.string(answer, "fork", 36))
                             || !SERVICE.equals(PartyMessage.string(answer, "service", 64))
@@ -768,7 +790,9 @@ public final class PartyConnection implements Closeable {
                     int port = PartyMessage.integer(answer, "port", 1, 65535);
                     String hostId = PartyMessage.string(answer, "id", 64);
                     HeroClass hostHero = hero(PartySymbols.name(PartyMessage.integer(answer, "hero", 1, 65535)));
-                    Host host = new Host(hostHero.name(), hostHero, packet.getAddress().getHostAddress(), port, hostId);
+                    int selection = PartyMessage.integer(answer, "challenges", 0, RebornChallenges.ALL);
+                    if (!RebornChallenges.valid(selection)) throw PartyMessage.invalid();
+                    Host host = new Host(hostHero.name(), hostHero, packet.getAddress().getHostAddress(), port, hostId, selection);
                     post(() -> listener.onDiscovered(host), 0);
                 } catch (JSONException | IOException | GeneralSecurityException | IllegalArgumentException malformed) { }
             }
@@ -900,7 +924,10 @@ public final class PartyConnection implements Closeable {
                 PartyMessage.fields(message, "app", "v", "fork", "kind", "data");
                 PartyMessage.object(message, "data");
                 break;
-            case "ping": case "pong": case "waiting":
+            case "waiting":
+                PartyMessage.fields(message, "app", "v", "fork", "kind", "challenges");
+                break;
+            case "ping": case "pong":
                 PartyMessage.fields(message, "app", "v", "fork", "kind");
                 break;
             default: throw PartyMessage.invalid();

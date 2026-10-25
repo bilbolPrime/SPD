@@ -75,6 +75,7 @@ final class TitleBackdrop extends Group {
         furnishMemorial();
         furnishTrophyRoom();
         furnishArchive();
+        furnishLibrary();
 
         water = new SkinnedBlock(3 * TILE, 3 * TILE, Assets.WATER_PRISON);
         water.x = 18 * TILE;
@@ -138,6 +139,7 @@ final class TitleBackdrop extends Group {
         addMemorialProps();
         addTrophyProps();
         addArchiveProps();
+        addLibraryProps();
 
         add(new Walker(Assets.SKELETON, 12, 15, new int[]{4, 5, 6, 7, 8, 9}, 6.0f, 1.8f,
                 new float[][]{{17, 10}, {21, 10}, {21, 11}, {17, 11}}));
@@ -294,6 +296,43 @@ final class TitleBackdrop extends Group {
         }
     }
 
+    private void furnishLibrary() {
+        room(85, 18, 87, 35);
+        room(71, 35, 96, 51);
+        room(78, 33, 90, 35);
+        room(59, 39, 71, 41);
+        for (int x = 73; x <= 94; x++) cell(x, 35, Terrain.BOOKSHELF);
+        for (int x : new int[]{74, 79, 89, 94}) {
+            for (int y = 39; y <= 47; y++) {
+                if (y != 43) cell(x, y, Terrain.BOOKSHELF);
+            }
+        }
+        for (int x : new int[]{71, 83, 96}) {
+            cell(x, 34, Terrain.WALL_DECO);
+            cell(x, 50, Terrain.WALL_DECO);
+        }
+        cell(81, 37, Terrain.STATUE);
+        cell(87, 37, Terrain.STATUE);
+    }
+
+    private void addLibraryProps() {
+        carpet(81 * TILE, 38 * TILE, 7 * TILE, 12 * TILE).tint(0x353044, .25f);
+        for (int y : new int[]{39, 46}) {
+            pedestal(84.5f * TILE, y * TILE, 3);
+            prop(ItemSpriteSheet.MASTERY, 84.5f * TILE, y * TILE - 7, 1);
+            prop(ItemSpriteSheet.SCROLL_KAUNAN, 83.5f * TILE, y * TILE - 7, 1);
+        }
+        int[] frames = {6, 7, 8, 9, 10};
+        add(new Walker(Assets.RAT, 16, 15, frames, 10, .3f,
+                new float[][]{{81, 40}, {86, 40}, {86, 44}, {81, 44}}));
+        add(new Walker(Assets.RAT, 16, 15, frames, 8, 2,
+                new float[][]{{76, 38}, {76, 48}, {78, 48}, {78, 38}}));
+        add(new Walker(Assets.RAT, 16, 15, frames, 11, 1.2f,
+                new float[][]{{91, 38}, {91, 49}, {93, 49}, {93, 38}}));
+        add(new Walker(Assets.RAT, 16, 15, frames, 9, 4,
+                new float[][]{{80, 48}, {87, 48}, {87, 49}, {80, 49}}));
+    }
+
     private void addMemorialProps() {
         carpet(344, portrait ? 606 : 578, 32, portrait ? 76 : 158).tint(0x333E58, .65f);
         int[] rows = portrait ? new int[]{39, 41} : new int[]{38, 41, 44};
@@ -429,6 +468,13 @@ final class TitleBackdrop extends Group {
                 data[pos] = -1;
             }
         }
+        for (int y = 33; y <= 53; y++) {
+            for (int x = 69; x <= 98; x++) {
+                int pos = x + y * COLS;
+                city[pos] = data[pos];
+                data[pos] = -1;
+            }
+        }
         addTiles(data, color, Assets.TILES_PRISON_3D);
         addTiles(city, 0xB6ADA5, Assets.TILES_CITY_3D);
     }
@@ -465,6 +511,9 @@ final class TitleBackdrop extends Group {
             break;
             case ABOUT: cx = portrait ? 1384 : 1392;
             cy = 208;
+            break;
+            case LIBRARY: cx = 84.5f * TILE;
+            cy = (portrait ? 40 : 43) * TILE;
             break;
             default: break;
         }

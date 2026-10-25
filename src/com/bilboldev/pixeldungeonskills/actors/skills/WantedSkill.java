@@ -19,8 +19,7 @@ public class WantedSkill extends PassiveSkillA1 {
 
     @Override
     public String info() {
-        return "Everybody is a target.\n\n"
-                + extendedInfo()
+        return necroMercInfo("wanted_desc", extendedInfo())
                 + costString();
     }
 

@@ -27,6 +27,8 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.Rankings;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.ui.ChallengeIcons;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
@@ -158,11 +160,15 @@ public class ClassicRankingsScene extends PixelScene {
 		private BitmapText position;
 		private BitmapTextMultiline desc;
 		private Image classIcon;
+        private ChallengeIcons challenges;
 
 		public Record( int pos, boolean latest, Rankings.Record rec ) {
 			super();
 
 			this.rec = rec;
+            challenges = new ChallengeIcons(rec.challenges & RebornChallenges.ALL, 8);
+            challenges.useScrollPaneInput();
+            add(challenges);
 
 			if (latest) {
 				flare = new Flare( 6, 24 );
@@ -229,6 +235,10 @@ public class ClassicRankingsScene extends PixelScene {
 			desc.maxWidth = (int)(classIcon.x - desc.x);
 			desc.measure();
 			desc.y = position.y + position.baseLine() - desc.baseLine();
+            if (challenges != null) {
+                challenges.setPos(desc.x, y + height - 8);
+                if (challenges.width() > 0) desc.y -= 4;
+            }
 		}
 
 		@Override

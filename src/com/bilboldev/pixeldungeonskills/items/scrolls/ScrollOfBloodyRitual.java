@@ -21,11 +21,14 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.utils.Random;
 
 public class ScrollOfBloodyRitual extends Scroll {
@@ -34,7 +37,13 @@ public class ScrollOfBloodyRitual extends Scroll {
 		name = "Scroll of Bloody Ritual";
 	}
 
-	@Override
+    @Override
+    protected Message readWarning(Hero hero) {
+        int cost = (int)Math.round(hero.HT * 0.2);
+        return Message.key(ScrollOfBloodyRitual.class, "confirm", cost, hero.HT - cost, cost, hero.HT - cost);
+    }
+
+    @Override
 	protected void doRead() {
 
 		GameScene.flash( 0xFF0000 );
@@ -65,8 +74,7 @@ public class ScrollOfBloodyRitual extends Scroll {
 
 	@Override
 	public String desc() {
-		return
-			"The scroll holds the secret of a forbidden ritual. In exchange for the reader's well being, the scroll damages everyone nearby and fully heals him.";
+		return Messages.get(this, "desc");
 	}
 
 	@Override

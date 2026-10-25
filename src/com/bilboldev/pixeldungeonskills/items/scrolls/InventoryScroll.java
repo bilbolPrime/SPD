@@ -17,81 +17,132 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
-import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 
 public abstract class InventoryScroll extends Scroll {
+    protected Message inventoryTitle = Message.key("items.stones.stoneofintuition.inv_title");
+    protected WndBag.Mode mode = WndBag.Mode.ALL;
+    private Hero reader;
+    private boolean identifiedByUse;
+    private boolean finished;
 
-	protected Message inventoryTitle = Message.key("items.stones.stoneofintuition.inv_title");
-	protected WndBag.Mode mode = WndBag.Mode.ALL;
+    @Override
+    protected void doRead() {
+        InventoryScroll scroll = (InventoryScroll)curItem;
+        scroll.reader = curUser;
+        scroll.identifiedByUse = !isKnown();
+        scroll.finished = false;
+        if (scroll.identifiedByUse) setKnown();
+        GameScene.selectItem(scroll.itemSelector, mode, inventoryTitle);
+    }
 
-	private static final String TXT_WARNING	= "Do you really want to cancel this scroll usage? It will be consumed anyway.";
-	private static final String TXT_YES		= "Yes, I'm positive";
-	private static final String TXT_NO		= "No, I changed my mind";
+    protected abstract void onItemSelected(Item item);
 
-	@Override
-	protected void doRead() {
+    protected boolean accepts(Item item) {
+        return true;
+    }
 
-		if (!isKnown()) {
-			setKnown();
-			identifiedByUse = true;
-		} else {
-			identifiedByUse = false;
-		}
+    protected Message itemWarning(Item item) {
+        return null;
+    }
 
-		GameScene.selectItem(itemSelector, mode, inventoryTitle);
-	}
+    private final WndBag.Listener itemSelector = item -> {
+        if (finished) return;
+        LocalCoop.withHero(reader, () -> {
+            curUser = reader;
+            curItem = this;
+            if (item == null) {
+                if (identifiedByUse) confirmCancellation();
+                else refund();
+            } else if (!accepts(item)) {
+                refund();
+            } else {
+                Message warning = identifiedByUse ? null : itemWarning(item);
+                if (warning == null) applyTo(item);
+                else confirmItem(item, warning);
+            }
+        });
+    };
 
-	private void confirmCancelation() {
-		GameScene.show( new WndOptions(Message.itemName(this),
-		        Message.key("custom.generated.entry_do_you_really_want_to_cancel_this_scroll_usage_i_f8be76afdd"),
-		        Message.key("items.potions.exotic.exoticpotion.yes"),
-		        Message.key("items.artifacts.chaliceofblood.no")) {
-			@Override
-			protected void onSelect( int index ) {
-				switch (index) {
-				case 0:
-					curUser.spendAndNext( TIME_TO_READ );
-					identifiedByUse = false;
-					break;
-				case 1:
-					GameScene.selectItem(itemSelector, mode, inventoryTitle);
-					break;
-				}
-			}
-			public void onBackPressed() {};
-		} );
-	}
+    private void confirmItem(Item item, Message warning) {
+        WndOptions window = new WndOptions(new ItemSprite(item), Message.itemName(item), warning,
+                Message.key(Scroll.class, "continue_reading"), Message.key(Scroll.class, "stop")) {
+            private boolean answered;
 
-	protected abstract void onItemSelected( Item item );
+            @Override
+            protected void onSelect(int index) {
+                if (answered) return;
+                answered = true;
+                LocalCoop.withHero(reader, () -> {
+                    if (index == 0) applyTo(item);
+                    else refund();
+                });
+            }
 
-	protected static boolean identifiedByUse = false;
-	protected static WndBag.Listener itemSelector = new WndBag.Listener() {
-		@Override
-		public void onSelect( Item item ) {
-			if (item != null) {
+            @Override
+            public void onBackPressed() {
+                hide();
+                onSelect(1);
+            }
+        };
+        window.menuModel().image = item.image();
+        GameScene.show(window);
+    }
 
-				((InventoryScroll)curItem).onItemSelected( item );
-				((InventoryScroll)curItem).readAnimation();
+    private void applyTo(Item item) {
+        if (finished) return;
+        if (!reader.isAlive() || !(reader.belongings.backpack.contains(item) || item.isEquipped(reader))) {
+            refund();
+            return;
+        }
+        finished = true;
+        curUser = reader;
+        curItem = this;
+        onItemSelected(item);
+        readAnimation();
+        Sample.INSTANCE.play(Assets.SND_READ);
+        Invisibility.dispel();
+    }
 
-				Sample.INSTANCE.play( Assets.SND_READ );
-				Invisibility.dispel();
+    private void refund() {
+        if (finished) return;
+        finished = true;
+        if (!collect(reader.belongings.backpack)) Dungeon.level.drop(this, reader.pos).sprite.drop();
+    }
 
-			} else if (identifiedByUse) {
+    private void confirmCancellation() {
+        GameScene.show(new WndOptions(new ItemSprite(this), Message.itemName(this),
+                Message.key("custom.generated.entry_do_you_really_want_to_cancel_this_scroll_usage_i_f8be76afdd"),
+                Message.key(Scroll.class, "stop"), Message.key(Scroll.class, "continue_reading")) {
+            private boolean answered;
 
-				((InventoryScroll)curItem).confirmCancelation();
+            @Override
+            protected void onSelect(int index) {
+                if (answered || finished) return;
+                answered = true;
+                LocalCoop.withHero(reader, () -> {
+                    if (index == 0) {
+                        finished = true;
+                        reader.spendAndNext(TIME_TO_READ);
+                    } else {
+                        GameScene.selectItem(itemSelector, mode, inventoryTitle);
+                    }
+                });
+            }
 
-			} else {
-
-				curItem.collect( curUser.belongings.backpack );
-
-			}
-		}
-	};
+            @Override
+            public void onBackPressed() { }
+        });
+    }
 }

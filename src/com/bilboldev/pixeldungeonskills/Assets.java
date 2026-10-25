@@ -52,6 +52,11 @@ public class Assets {
 	public static final String MERCENARY	= "mercenary.png";
     public static final String LEGEND	= "legend_1.png";
     public static final String ARCHER_MAIDEN	= "archer_maiden.png";
+    public static final String MERC_BRUTE = "merc_brute.png";
+    public static final String MERC_WIZARD = "merc_wizard.png";
+    public static final String MERC_THIEF = "merc_thief.png";
+    public static final String MERC_ARCHER = "merc_archer.png";
+    public static final String MERC_ICONS = "merc_icons.png";
     public static final String COLD_GIRL = "cold_girl.png";
     public static final String RED_GIRL = "red_girl.png";
     public static final String VANGUARD_WARRIOR = "vanguard_warrior.png";
@@ -109,6 +114,17 @@ public class Assets {
 	public static final String RATKING	= "ratking.png";
 	public static final String BEE		= "bee.png";
 	public static final String MIMIC	= "mimic.png";
+	public static final String RIME_BAT = "rime_bat.png";
+	public static final String ICECLAW = "iceclaw.png";
+	public static final String FROSTBACK = "frostback.png";
+	public static final String SHARDLING = "shardling.png";
+	public static final String HOLLOW_MINER = "hollow_miner.png";
+	public static final String RIMEHORN = "rimehorn.png";
+	public static final String OLD_RIME = "old_rime.png";
+	public static final String OLD_RIME_2 = "old_rime_2.png";
+	public static final String OLD_RIME_3 = "old_rime_3.png";
+	public static final String ICE_EFFECTS = "ice_effects.png";
+	public static final String PROSPECTOR = "prospector.png";
 
 	public static final String ITEMS	= "items.png";
 	public static final String TERRAIN_FEATURES	= "terrain_features.png";
@@ -120,6 +136,10 @@ public class Assets {
 	public static final String TILES_PRISON_3D	= "tiles_prison.png";
 	public static final String TILES_CAVES	= "tiles2.png";
 	public static final String TILES_CAVES_3D	= "tiles_caves.png";
+	public static final String TILES_ICE_CAVES = "tiles_ice_caves_flat.png";
+	public static final String TILES_ICE_CAVES_3D = "tiles_ice_caves.png";
+	public static final String TILES_ICE_BOSS = "tiles_ice_boss_flat.png";
+	public static final String TILES_ICE_BOSS_3D = "tiles_ice_boss.png";
 	public static final String TILES_CITY	= "tiles3.png";
 	public static final String TILES_CITY_3D	= "tiles_city.png";
 	public static final String TILES_HALLS	= "tiles4.png";
@@ -129,6 +149,7 @@ public class Assets {
 	public static final String TERRAIN_SEWERS	= "terrain_sewers.png";
 	public static final String TERRAIN_PRISON	= "terrain_prison.png";
 	public static final String TERRAIN_CAVES	= "terrain_caves.png";
+	public static final String TERRAIN_ICE_CAVES = "terrain_ice_caves.png";
 	public static final String TERRAIN_CITY	= "terrain_city.png";
 	public static final String TERRAIN_HALLS	= "terrain_halls.png";
 	public static final String TERRAIN_SNOW	= "terrain_snow.png";
@@ -136,6 +157,7 @@ public class Assets {
 	public static final String WATER_SEWERS	= "water0.png";
 	public static final String WATER_PRISON	= "water1.png";
 	public static final String WATER_CAVES	= "water2.png";
+	public static final String WATER_ICE_CAVES = "water_ice_caves.png";
 	public static final String WATER_CITY	= "water3.png";
 	public static final String WATER_HALLS	= "water4.png";
 

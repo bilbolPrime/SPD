@@ -53,7 +53,7 @@ public class ResumeButton extends Tag {
 	@Override
 	public void update() {
 		boolean prevVisible = visible;
-		visible = (Dungeon.hero.lastAction != null);
+		visible = Dungeon.hero != null && Dungeon.hero.isAlive() && Dungeon.hero.lastAction != null;
 		if (visible && !prevVisible) {
 			flash();
 		}
@@ -63,6 +63,7 @@ public class ResumeButton extends Tag {
 
 	@Override
 	protected void onClick() {
+		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) return;
 		if (LocalCoop.active() && !LocalCoop.acceptsInput()) return;
 		Dungeon.hero.resume();
 	}

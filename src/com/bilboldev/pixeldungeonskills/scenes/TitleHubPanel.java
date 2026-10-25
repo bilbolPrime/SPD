@@ -26,10 +26,12 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
+import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.windows.WndBadge;
+import com.bilboldev.pixeldungeonskills.windows.WndWelcome;
 import com.bilboldev.utils.PointF;
 
 abstract class TitleHubPanel extends TitleLayer {
@@ -46,6 +48,7 @@ abstract class TitleHubPanel extends TitleLayer {
             case RANKINGS: return new Records(host);
             case BADGES: return new Gallery(host);
             case ABOUT: return new Archive(host);
+            case LIBRARY: return new LibraryPanel(host);
             default: throw new IllegalArgumentException("No panel for " + page);
         }
     }
@@ -84,7 +87,8 @@ abstract class TitleHubPanel extends TitleLayer {
     }
 
     static BitmapText text(Group group, String label, int size, int color, float x, float y) {
-        BitmapText text = PixelScene.createText(label, size);
+        BitmapText text = PixelScene.createText(size);
+        text.text(label, false);
         text.measure();
         text.hardlight(color);
         text.x = PixelScene.align(x);
@@ -231,7 +235,7 @@ abstract class TitleHubPanel extends TitleLayer {
             private float nameScaleX, nameScaleY;
             HeroChoice(int index) {
                 this.index = index;
-                name.text(Messages.capitalize(Messages.maybeTranslate(TitleScene.HERO_CLASSES[index].title())));
+                name.text(Messages.capitalize(Messages.maybeTranslate(TitleScene.HERO_CLASSES[index].title())), false);
                 name.measure();
             }
 
@@ -284,15 +288,15 @@ abstract class TitleHubPanel extends TitleLayer {
             ArrayList<RankingsScene.Record> rows = new ArrayList<>();
             float width = cardW - 24, y = 0;
             for (int i = 0; i < Rankings.INSTANCE.records.size(); i++) {
-                ColorBlock fill = new ColorBlock(width, 39, i % 2 == 0 ? 0x661F1C30 : 0x331F1C30);
-                fill.y = y;
-                content.add(fill);
                 RankingsScene.Record row = new RankingsScene.Record(i, i == Rankings.INSTANCE.lastRecord, Rankings.INSTANCE.records.get(i));
                 row.useScrollPaneInput();
                 row.setRect(4, y, width - 8, 39);
+                ColorBlock fill = new ColorBlock(width, row.height(), i % 2 == 0 ? 0x661F1C30 : 0x331F1C30);
+                fill.y = y;
+                content.add(fill);
                 content.add(row);
                 rows.add(row);
-                y += 43;
+                y += row.height() + 4;
             }
             if (rows.isEmpty()) {
                 BitmapTextMultiline empty = paragraph(content, Messages.get(RankingsScene.class, "no_games") + "\n\n" + msg("records_empty"),
@@ -305,7 +309,7 @@ abstract class TitleHubPanel extends TitleLayer {
                 public void onClick(float x, float y) {
                     for (RankingsScene.Record row : rows) {
                         if (row.inside(x, y)) {
-                            row.openDetails();
+                            row.open(x, y);
                             break;
                         }
                     }
@@ -320,22 +324,29 @@ abstract class TitleHubPanel extends TitleLayer {
         Gallery(TitleScene host) {
             super(host, msg("gallery_title"));
             card();
-            List<Badges.Badge> badges = Badges.filtered(true);
-            text(this, msg("badge_summary", badges.size()), 9, 0xD8C6EA, cardX + 12, cardY + 12);
+            List<Badges.Badge> badges = new ArrayList<>();
+            int earned = 0;
+            for (Badges.Badge badge : Badges.Badge.values()) {
+                if (badge.image < 0) continue;
+                badges.add(badge);
+                if (Badges.isUnlocked(badge)) earned++;
+            }
+            text(this, msg("badge_summary", earned), 9, 0xD8C6EA, cardX + 12, cardY + 12);
             Component content = new Component();
             float width = cardW - 24;
             int cols = Math.max(3, (int)(width / Math.max(38, target)));
             float size = width / cols;
-            int count = Math.max(27, badges.size());
+            int count = badges.size();
             for (int i = 0; i < count; i++) {
                 ColorBlock stone = new ColorBlock(size - 4, size - 4, 0x991E1A2B);
                 stone.x = i % cols * size + 2;
                 stone.y = i / cols * size + 2;
                 content.add(stone);
-                Image icon = i < badges.size() ? BadgeBanner.image(badges.get(i).image) : new Image(Assets.LOCKED);
+                boolean unlocked = Badges.isUnlocked(badges.get(i));
+                Image icon = unlocked ? BadgeBanner.image(badges.get(i).image) : new Image(Assets.LOCKED);
                 icon.x = PixelScene.align(i % cols * size + (size - icon.width()) / 2);
                 icon.y = PixelScene.align(i / cols * size + (size - icon.height()) / 2);
-                if (i >= badges.size()) icon.alpha(.3f);
+                if (!unlocked) icon.alpha(.3f);
                 content.add(icon);
             }
             content.setSize(width, (float)Math.ceil(count / (float)cols) * size);
@@ -343,7 +354,8 @@ abstract class TitleHubPanel extends TitleLayer {
                 @Override
                 public void onClick(float x, float y) {
                     int col = (int)(x / size), row = (int)(y / size), index = row * cols + col;
-                    if (x >= 0 && y >= 0 && col < cols && index < badges.size()) {
+                    if (x >= 0 && y >= 0 && col < cols && index < badges.size()
+                            && Badges.isUnlocked(badges.get(index))) {
                         Sample.INSTANCE.play(Assets.SND_CLICK, .7f, .7f, 1.2f);
                         host.add(new WndBadge(badges.get(index)));
                     }
@@ -367,6 +379,18 @@ abstract class TitleHubPanel extends TitleLayer {
             discord.useScrollPaneInput();
             discord.setRect(0, y, width, target);
             y += target + 4;
+            HubButton reddit = button(content, msg("visit_reddit"), false,
+                    () -> Window.openUrl("https://www.reddit.com/r/PixelDungeon/"));
+            reddit.useScrollPaneInput();
+            reddit.setRect(0, y, width, target);
+            y += target + 4;
+            if (Game.isFreeDesktop()) {
+                HubButton steam = button(content, Messages.get(WndWelcome.class, "open_steam"), false,
+                        () -> Window.openUrl(SteamPageButton.URL));
+                steam.useScrollPaneInput();
+                steam.setRect(0, y, width, target);
+                y += target + 4;
+            }
             content.setSize(width, y);
             ScrollPane scroll = new ScrollPane(content) {
                 @Override
@@ -383,6 +407,7 @@ abstract class TitleHubPanel extends TitleLayer {
     static final class HubButton extends Button {
         private ColorBlock border, fill;
         private BitmapText text;
+        private Image icon;
         private float textScaleX, textScaleY;
         private final Runnable action;
         private final boolean primary;
@@ -398,6 +423,12 @@ abstract class TitleHubPanel extends TitleLayer {
             Touchscreen.event.remove(hotArea);
         }
 
+        void icon(Image image) {
+            add(icon = image);
+            text.visible = false;
+            layout();
+        }
+
         @Override
         protected void createChildren() {
             super.createChildren();
@@ -409,7 +440,7 @@ abstract class TitleHubPanel extends TitleLayer {
         }
         void label(String value) {
             if (!value.equals(text.text())) {
-                text.text(value);
+                text.text(value, false);
                 text.measure();
                 layout();
             }
@@ -428,6 +459,11 @@ abstract class TitleHubPanel extends TitleLayer {
             fit(text, Math.max(1, width-12));
             text.x = PixelScene.align(x + (width - text.width()) / 2);
             text.y = PixelScene.align(y + (height - text.baseLine()) / 2 - 1);
+            if (icon != null) {
+                icon.scale.set(Math.max(0, Math.min(width - 6, height - 6)) / Math.max(icon.width, icon.height));
+                icon.x = PixelScene.align(x + (width - icon.width()) / 2);
+                icon.y = PixelScene.align(y + (height - icon.height()) / 2);
+            }
         }
 
         private void palette() {

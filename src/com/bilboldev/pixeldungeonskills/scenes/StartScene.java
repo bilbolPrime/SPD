@@ -27,6 +27,8 @@ import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.SaveSlots;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.windows.WndRebornChallenges;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
@@ -34,10 +36,12 @@ import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndPartyLobby;
+import com.bilboldev.pixeldungeonskills.windows.WndRunSeed;
+import com.bilboldev.pixeldungeonskills.windows.WndRunSetup;
 
 public class StartScene extends TitleScene {
     private enum Step {
-        SLOT, MODE, PARTY, NEARBY, CONTROLS, LOBBY, COMPANION, DEPART, DIFFICULTY, CONFIRM
+        SLOT, MODE, PARTY, NEARBY, CONTROLS, LOBBY, COMPANION, DEPART, DIFFICULTY, CONFIRM, SEED, CUSTOM_SEED
     }
     private static class StartFlow {
         final HeroClass heroClass;
@@ -49,6 +53,9 @@ public class StartScene extends TitleScene {
         boolean splitControls;
         boolean network;
         boolean hosting;
+        boolean seedChosen;
+        RunSeed seed;
+        final int[] symbols = {-1, -1, -1, -1, -1, -1};
         float departureTime;
         StartFlow(HeroClass heroClass, Step step) {
             this.heroClass = heroClass;
@@ -153,6 +160,68 @@ public class StartScene extends TitleScene {
                     pendingStart = null;
                     activeStartWindow = null;
                     super.onBackPressed();
+                }
+            };
+            host.add(activeStartWindow);
+            return;
+        }
+        if (step == Step.SEED) {
+            activeStartWindow = new WndRunSetup(flow.heroClass, flow.seed,
+                    flow.network ? PartySession.challenges() : PixelDungeon.rebornChallenges()) {
+                @Override protected void onSelect(int index) {
+                    activeStartWindow = null;
+                    if (pendingStart != flow) return;
+                    if (index == 0) {
+                        flow.seedChosen = true;
+                        startNewGame(flow);
+                    } else if (index == 3) {
+                        flow.seed = null;
+                        java.util.Arrays.fill(flow.symbols, -1);
+                        ensureStartDialog(host);
+                    } else if (index == 2) {
+                        activeStartWindow = new WndRebornChallenges(flow.network ? PartySession.challenges() : PixelDungeon.rebornChallenges(),
+                                flow.network ? null : selected -> {
+                                    PixelDungeon.rebornChallenges(selected);
+                                    activeStartWindow = null;
+                                    ensureStartDialog(host);
+                                }) {
+                            @Override public void onBackPressed() {
+                                super.onBackPressed();
+                                if (flow.network) {
+                                    activeStartWindow = null;
+                                    ensureStartDialog(host);
+                                }
+                            }
+                        };
+                        host.add(activeStartWindow);
+                    } else {
+                        flow.step = Step.CUSTOM_SEED;
+                        ensureStartDialog(host);
+                    }
+                }
+
+                @Override public void onBackPressed() {
+                    if (flow.network) PartySession.cancelLobby();
+                    cancelStartFlow();
+                    super.onBackPressed();
+                }
+            };
+            host.add(activeStartWindow);
+            return;
+        }
+        if (step == Step.CUSTOM_SEED) {
+            activeStartWindow = new WndRunSeed(flow.symbols, seed -> {
+                if (pendingStart != flow) return;
+                activeStartWindow = null;
+                flow.seed = seed;
+                flow.step = Step.SEED;
+                ensureStartDialog(host);
+            }) {
+                @Override public void onBackPressed() {
+                    hide();
+                    activeStartWindow = null;
+                    flow.step = Step.SEED;
+                    ensureStartDialog(host);
                 }
             };
             host.add(activeStartWindow);
@@ -303,6 +372,18 @@ public class StartScene extends TitleScene {
     }
 
     private static void openLobby(StartFlow flow, boolean hosting) {
+        if (hosting) {
+            activeStartWindow = new WndRebornChallenges(PixelDungeon.rebornChallenges(), selected -> {
+                PixelDungeon.rebornChallenges(selected);
+                activeStartWindow = null;
+                createLobby(flow, true);
+                ensureStartDialog((PixelScene)Game.scene());
+            });
+            Game.scene().add(activeStartWindow);
+        } else createLobby(flow, false);
+    }
+
+    private static void createLobby(StartFlow flow, boolean hosting) {
         flow.hosting = hosting;
         flow.step = Step.LOBBY;
         if (hosting) {
@@ -313,12 +394,19 @@ public class StartScene extends TitleScene {
     }
 
     private static void startNewGame(StartFlow flow) {
+        if (flow.mode == GameplayMode.REBORN && !flow.seedChosen) {
+            flow.step = Step.SEED;
+            ensureStartDialog((PixelScene)Game.scene());
+            return;
+        }
         pendingStart = null;
         curClass = flow.heroClass;
         TitleScene.leavingForRun();
         if (!flow.network) PartySession.cancelLobby();
         LocalCoop.clear();
         Dungeon.prepareNewRun(flow.slot, flow.mode, flow.difficulty);
+        Dungeon.seed = flow.seed;
+        if (flow.network) PixelDungeon.rebornChallenges(PartySession.challenges());
         if (flow.companion == null) {
             Dungeon.deleteGame(flow.heroClass, flow.slot, true);
         } else {

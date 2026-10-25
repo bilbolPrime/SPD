@@ -35,6 +35,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
@@ -44,6 +45,7 @@ import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfRejuvenation;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
@@ -432,7 +434,7 @@ public class WndBag extends WndTabbed {
 						mode == Mode.UNIDENTIFED && !item.isIdentified() ||
                         mode == Mode.WEAPON && (item instanceof MeleeWeapon || item instanceof Boomerang) ||
 						(mode == Mode.ARMOR || mode == Mode.MERC_ARMOR) && (item instanceof Armor) ||
-						mode == Mode.ENCHANTABLE && (item instanceof MeleeWeapon || item instanceof Boomerang || item instanceof Bow || item instanceof Armor) ||
+						mode == Mode.ENCHANTABLE && (item instanceof MeleeWeapon || item instanceof Boomerang || item instanceof Bow || item instanceof Armor || item instanceof IceWeapon) ||
 						mode == Mode.WAND && (item instanceof Wand) ||
 						mode == Mode.SEED && (item instanceof Seed) ||
 						mode == Mode.ALL
@@ -441,7 +443,7 @@ public class WndBag extends WndTabbed {
                     if(mode == Mode.BOW)
                         enable(item instanceof Bow && Dungeon.hero.belongings.bow != item);
                     if(mode == Mode.HEALING_POTION)
-                        enable(item instanceof PotionOfHealing && ((Potion)item).isKnown());
+                        enable((item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation) && ((Potion)item).isKnown());
                     if(mode == Mode.BRUTE_HOLD)
                         enable(!(item instanceof Gold)  && !(item instanceof Bag) && item != Dungeon.hero.belongings.weapon && item != Dungeon.hero.belongings.armor && item != Dungeon.hero.belongings.ring1 && item != Dungeon.hero.belongings.ring2 && item != Dungeon.hero.belongings.bow);
                     if(mode == Mode.MERC_ARMOR && item instanceof Armor && ((Armor)item).tier > 5)

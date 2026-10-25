@@ -22,14 +22,13 @@ public class MercenaryCamp extends NPC {
     public void chooseOffer() {
         ArrayList<HiredMerc.MERC_TYPES> choices = new ArrayList<>();
         for (HiredMerc.MERC_TYPES candidate : HiredMerc.MERC_TYPES.values()) {
-            if (MercenaryRecruitment.eligible(Dungeon.hero.heroClass, candidate, false)) choices.add(candidate);
+            if (MercenaryRecruitment.eligible(Dungeon.hero.heroClass, candidate)) choices.add(candidate);
         }
         type = Random.element(choices);
     }
 
     public HiredMerc.MERC_TYPES offer() {
-        return type == HiredMerc.MERC_TYPES.Archer && MercenaryRecruitment.maidenAvailable()
-                ? HiredMerc.MERC_TYPES.ArcherMaiden : type;
+        return type;
     }
 
     @Override

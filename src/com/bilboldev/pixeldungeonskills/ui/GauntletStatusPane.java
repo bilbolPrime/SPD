@@ -30,7 +30,6 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.BloodParticle;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -56,6 +55,7 @@ public class GauntletStatusPane extends Component {
 	private Image exp;
 	private BitmapText level;
 	private BitmapText depth;
+	private SupporterButton supporter;
 
     public static float takingDamage = 0;
     public static float manaDropping = 0;
@@ -126,6 +126,8 @@ public class GauntletStatusPane extends Component {
 		depth.hardlight( 0xCACFC2 );
 		depth.measure();
 		add( depth );
+		supporter = new SupporterButton();
+		add(supporter);
 
 		danger = new DangerIndicator();
 		add( danger );
@@ -164,6 +166,7 @@ public class GauntletStatusPane extends Component {
 
 		depth.x = width - 8 - depth.width()    - 18;
 		depth.y = 6;
+		supporter.setRect(width - 54, 1, 16, 16);
 
 		layoutTags();
 

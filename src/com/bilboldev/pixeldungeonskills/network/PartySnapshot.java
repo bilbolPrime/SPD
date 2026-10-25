@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -48,7 +49,7 @@ final class PartySnapshot {
             }
         }
         state.put("visible", Dungeon.visible);
-        LocalCoop.rememberLevel(Dungeon.depth, Dungeon.level);
+        LocalCoop.rememberLevel(Dungeon.levelKey(), Dungeon.level);
         int[] depths = LocalCoop.floorDepths();
         state.put("floors", depths);
         Hero[] heroes = LocalCoop.heroes();
@@ -87,9 +88,9 @@ final class PartySnapshot {
         LocalCoop.clearLevels();
 
         for (int depth : depths) {
-            if (depth != Dungeon.depth) restoreFloor(state, depth);
+            if (depth != Dungeon.levelKey()) restoreFloor(state, depth);
         }
-        Dungeon.level = restoreFloor(state, Dungeon.depth);
+        Dungeon.level = restoreFloor(state, Dungeon.levelKey());
         LocalCoop.restoreParty(state, player);
         Hero[] heroes = LocalCoop.heroes();
         if (heroes.length != 2) throw new IOException("Invalid party heroes");
@@ -133,7 +134,7 @@ final class PartySnapshot {
     }
 
     private static Level restoreFloor(Bundle state, int depth) throws IOException {
-        if (depth < 1 || depth > 26 && depth != 1000) throw new IOException("Invalid floor number");
+        if (!IceCaves.validLevelKey(depth)) throw new IOException("Invalid floor number");
         Bundle floor = state.getBundle("floor_" + depth);
         Bundle data = floor.getBundle("level");
         if (data.getIntArray("map").length != Level.LENGTH

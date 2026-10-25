@@ -1,12 +1,21 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.actors.mobs.OldRime;
+import com.bilboldev.pixeldungeonskills.actors.mobs.IceMob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
+import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.RunRules;
+import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.SeedIcons;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Recovery;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
@@ -56,9 +65,24 @@ final class PartyState {
         PartyQuests.validate(object(state, "quests"));
         Bundle bundle = Bundle.fromNetwork(state, PartyObjects::create);
         RunRules rules = RunRules.restore(bundle);
-        if (rules.mode != GameplayMode.REBORN || rules.version != RunRules.newRun(GameplayMode.REBORN).version)
+        if (rules.mode != GameplayMode.REBORN || rules.version < 3 || rules.version > RunRules.newRun(GameplayMode.REBORN).version)
             throw invalid();
+        if (rules.hasSeed()) {
+            if (ints(state, "run_seed", RunSeed.SYMBOLS, 0,
+                    SeedIcons.COUNT - 1).length() != RunSeed.SYMBOLS) throw invalid();
+            bool(state, "custom_seed");
+        }
+        int selection = integer(state, "challenges", 0, RebornChallenges.ALL);
+        if (!RebornChallenges.valid(selection)
+                || selection != rules.challenges(selection)) throw invalid();
+        integer(state, "challenge_bosses", 0, 31);
         int current = depth(state, "depth");
+        int ice = state.has("ice_caves") ? integer(state, "ice_caves", 0, 15) : 0;
+        if ((ice & 9) != 0 && (ice & 2) == 0) throw invalid();
+        if ((ice & 1) != 0) {
+            if (current < 11 || current > 14) throw invalid();
+            current += 1000;
+        }
         integer(state, "reborn_encounter_seed", 0, 999999);
         integer(state, "rival_checked", 0, 15);
         int rivalFloor = integer(state, "rival_floor", 0, 20);
@@ -67,11 +91,12 @@ final class PartyState {
         JSONArray floors = array(state, "floors", 40);
         Set<Integer> depths = new HashSet<>();
         for (int i = 0; i < floors.length(); i++) {
-            int floor = number(floors.get(i), 1, 1000);
-            if (floor > 26 && floor != 1000 || !depths.add(floor)) throw invalid();
+            int floor = number(floors.get(i), 1, 1014);
+            if (!IceCaves.validLevelKey(floor) || !depths.add(floor)) throw invalid();
             JSONObject wrapper = object(state, "floor_" + floor);
             JSONObject level = object(wrapper, "level");
             type(level, Level.class);
+            if (rules.hasSeed() && !level.has("seed_uses")) throw invalid();
             Level.Feeling.valueOf(string(wrapper, "feeling", 24));
             integer(wrapper, "view_distance", 1, 64);
             JSONArray mobs = array(level, "mobs", 256);
@@ -92,6 +117,8 @@ final class PartyState {
         int firstId = -1;
         for (int i = 0; i < 2; i++) {
             JSONObject wrapper = object(state, "hero_" + i);
+            if (wrapper.has("following")) bool(wrapper, "following");
+            if (wrapper.has("follow_paused")) bool(wrapper, "follow_paused");
             JSONObject hero = object(wrapper, "hero");
             type(hero, Hero.class);
             int id = integer(hero, "id", 0, Integer.MAX_VALUE - 1);
@@ -112,7 +139,11 @@ final class PartyState {
             Set<Integer> ids = new HashSet<>();
             for (int i = 0; i < deaths.length(); i++) if (!ids.add(deaths.getInt(i))) throw invalid();
         }
-        ints(state, "dropped_floors", 40, 1, 1001);
+        JSONArray dropped = ints(state, "dropped_floors", 40, 1, 1014);
+        for (int i = 0; i < dropped.length(); i++) {
+            int floor = dropped.getInt(i);
+            if (!IceCaves.validLevelKey(floor) && floor != 1001) throw invalid();
+        }
         ints(state, "chapters", 32, 0, 1000);
         return bundle;
     }
@@ -140,11 +171,19 @@ final class PartyState {
                     if (object.has("name")) throw invalid();
                     PartyText.validateName(object(object, "name_text"));
                 }
+                if (type == DeathBomb.class) {
+                    integer(object, "pos", 0, Level.LENGTH - 1);
+                    integer(object, "turns", 1, 3);
+                }
                 if (Char.class.isAssignableFrom(type)) {
                     integer(object, "pos", 0, Level.LENGTH - 1);
                     integer(object, "HP", -1000000, 1000000);
                     integer(object, "HT", 1, 1000000);
                     collection(object, "buffs", Buff.class, 256);
+                }
+                if (Recovery.class.isAssignableFrom(type)) {
+                    integer(object, "recovery_left", 0, 1000000);
+                    integer(object, "recovery_turns", 0, 10);
                 }
                 if (type == Hero.class) {
                     PartyConnection.hero(string(object, "class", 24));
@@ -152,7 +191,11 @@ final class PartyState {
                     if (object.has("merctype") || object.has("mercweapon") || object.has("mercarmor") || object.has("mercitem"))
                         throw invalid();
                 }
-                if (Mob.class.isAssignableFrom(type)) integer(object, "target", -1, Level.LENGTH - 1);
+                if (Mob.class.isAssignableFrom(type)) {
+                    integer(object, "target", -1, Level.LENGTH - 1);
+                    bool(object, "challenge_champion");
+                    bool(object, "challenge_extra");
+                }
                 if (RivalBoss.class.isAssignableFrom(type)) {
                     int floor = integer(object, "rival_floor", 5, 20);
                     if (floor % 5 != 0) throw invalid();
@@ -170,6 +213,23 @@ final class PartyState {
                     integer(object, "rival_role", 0, 2);
                     integer(object, "rival_owner", 1, Integer.MAX_VALUE - 1);
                     integer(object, "rival_lifetime", 0, 12);
+                }
+                if (IceMob.class.isAssignableFrom(type)) {
+                    ints(object, "warning", 5, 0, Level.LENGTH - 1);
+                    integer(object, "skill_cooldown", 0, 6);
+                    integer(object, "ice_recovery", 0, 1);
+                    integer(object, "warning_hero", 0, Integer.MAX_VALUE - 1);
+                    integer(object, "warned_at", 0, Integer.MAX_VALUE - 1);
+                }
+                if (type == OldRime.class)
+                    integer(object, "phase", 0, 2);
+                if (type == Prospector.class) {
+                    int job = integer(object, "prospector_job", 0, 1);
+                    int killed = integer(object, "prospector_killed", 0, 3);
+                    boolean given = bool(object, "prospector_given");
+                    boolean completed = bool(object, "prospector_completed");
+                    if (job == Prospector.TORCHES && killed != 0 || completed && !given
+                            || completed && job == Prospector.ICECLAWS && killed != 3) throw invalid();
                 }
                 if (Blob.class.isAssignableFrom(type) && object.has("cur")) {
                     JSONArray cells = ints(object, "cur", Level.LENGTH, 0, 1000000);
@@ -252,13 +312,15 @@ final class PartyState {
     }
 
     private static void level(JSONObject level) throws IOException, JSONException {
-        JSONArray map = ints(level, "map", Level.LENGTH, 0, Terrain.STORAGE);
+        JSONArray map = ints(level, "map", Level.LENGTH, 0, Terrain.COLLAPSED_CAVE);
         if (map.length() != Level.LENGTH) throw invalid();
         for (int i = 0; i < map.length(); i++) {
             if (map.getInt(i) == 47) throw invalid();
         }
         bools(level, "visited", Level.LENGTH);
         bools(level, "mapped", Level.LENGTH);
+        if (level.has("seed_uses") && ints(level, "seed_uses", Level.LENGTH, 0, Integer.MAX_VALUE).length() != Level.LENGTH)
+            throw invalid();
         integer(level, "entrance", 0, Level.LENGTH - 1);
         integer(level, "exit", 0, Level.LENGTH - 1);
         integer(level, "storage", 0, Level.LENGTH - 1);
@@ -266,6 +328,8 @@ final class PartyState {
         collection(level, "heaps", Heap.class, Level.LENGTH);
         collection(level, "plants", Plant.class, Level.LENGTH);
         collection(level, "blobs", Blob.class, 64);
+        collection(level, "death_bombs", DeathBomb.class, 256);
+        bool(level, "double_boss_spawned");
         if (level.has("rooms")) collection(level, "rooms", Room.class, 256);
     }
 

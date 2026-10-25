@@ -23,11 +23,13 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Rage;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mimic;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfChallenge extends Scroll {
@@ -36,7 +38,12 @@ public class ScrollOfChallenge extends Scroll {
 		name = "Scroll of Challenge";
 	}
 
-	@Override
+    @Override
+    protected Message readWarning(Hero hero) {
+        return Message.key(ScrollOfChallenge.class, "confirm");
+    }
+
+    @Override
 	protected void doRead() {
 
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {

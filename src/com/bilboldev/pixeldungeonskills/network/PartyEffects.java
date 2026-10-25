@@ -12,6 +12,7 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PartyVisuals;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.PointF;
 import org.json.JSONException;
@@ -62,9 +63,9 @@ public final class PartyEffects {
 
     private static void queue(Bundle event) {
         if (!recording()) return;
-        if (depth != Dungeon.depth) {
+        if (depth != Dungeon.levelKey()) {
             outgoing.clear();
-            depth = Dungeon.depth;
+            depth = Dungeon.levelKey();
         }
         if (outgoing.size() < MAX_PENDING) outgoing.addLast(event);
     }
@@ -81,7 +82,7 @@ public final class PartyEffects {
             while (count-- > 0) {
                 Pending pending = incoming.removeFirst();
                 if (now - pending.received > 2000000000L) continue;
-                if (pending.depth == Dungeon.depth) PartyVisuals.play(pending.event);
+                if (pending.depth == Dungeon.levelKey()) PartyVisuals.play(pending.event);
                 else incoming.addLast(pending);
             }
         }
@@ -90,7 +91,7 @@ public final class PartyEffects {
 
     static void flush() {
         if (!recording() || outgoing.isEmpty()) return;
-        if (depth != Dungeon.depth) {
+        if (depth != Dungeon.levelKey()) {
             outgoing.clear();
             return;
         }
@@ -337,7 +338,7 @@ public final class PartyEffects {
 
             case STAB:
                 if (type == STAB) fields(e, "type", "from", "to", "image");
-                integer(e, "image", 0, 255);
+                integer(e, "image", 0, ItemSpriteSheet.MAX_IMAGE);
                 path(e);
                 break;
             case MAGIC:

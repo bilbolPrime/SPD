@@ -34,7 +34,7 @@ public class SoulFury extends ActiveSkill3{
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == Skill.AC_CAST && hero.MP >= getManaCost())
+        if(action == Skill.AC_CAST && hero.canUseSkill(getManaCost()))
         {
 
         }

@@ -48,6 +48,7 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
+        if (tile == Terrain.COLLAPSED_CAVE) return 321;
 		if(offsetStuff().contains(tile)){
 			return tile + 256;
 		}
@@ -63,8 +64,8 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 					map[pos + PathFinder.CIRCLE4[3]]
 			);
 
-		} else if (tile == Terrain.CHASM) {
-			return DungeonTileSheet.stitchChasmTile( pos > mapWidth ? map[pos - mapWidth] : -1);
+		} else if ((Terrain.flags[tile] & Terrain.PIT) != 0) {
+			return DungeonTileSheet.stitchChasmTile(pos >= mapWidth ? map[pos - mapWidth] : -1);
 		}
 
 		if (!flat) {

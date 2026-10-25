@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.AlchemyRecipe;
+import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.Collection;
 import java.util.LinkedList;
 import com.bilboldev.noosa.audio.Sample;
@@ -24,6 +26,7 @@ import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
@@ -282,6 +285,12 @@ public class Heap implements Bundlable {
 		CellEmitter.get( pos ).burst( Speck.factory( Speck.BUBBLE ), 3 );
 		Splash.at( pos, 0xFFFFFF, 3 );
 
+		try (Random.Scope random = RunSeed.terrain(RunSeed.ALCHEMY, pos)) {
+			return brew();
+		}
+	}
+
+	private Item brew() {
 		float chances[] = new float[items.size()];
 		int count = 0;
 
@@ -300,6 +309,17 @@ public class Heap implements Bundlable {
 
 			CellEmitter.get( pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 			Sample.INSTANCE.play( Assets.SND_PUFF );
+
+            AlchemyRecipe recipe = count == SEEDS_TO_POTION && items.size() == 1
+                    ? AlchemyRecipe.forSeed((Seed)items.getFirst()) : null;
+            if (recipe != null) {
+                Item potion = recipe.potion().identify();
+                destroy();
+                Statistics.potionsCooked++;
+                Badges.validatePotionsCooked();
+                Lore.brewed(recipe);
+                return potion;
+            }
 
 			if (Random.Int( count ) == 0) {
 

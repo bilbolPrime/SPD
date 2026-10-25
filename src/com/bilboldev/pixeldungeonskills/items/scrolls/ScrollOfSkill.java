@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfSkill extends Scroll {
@@ -40,7 +41,6 @@ public class ScrollOfSkill extends Scroll {
 
 	@Override
 	public String desc() {
-		return
-			"When read, words of wisdom will increase your skill.";
+		return Messages.get(this, "desc");
 	}
 }

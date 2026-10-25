@@ -31,6 +31,9 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.Lore;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Healing;
+import com.bilboldev.pixeldungeonskills.actors.buffs.ManaRecovery;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -70,6 +73,8 @@ public class StatusPane extends Component {
 	private BitmapText level;
 	private BitmapText depth;
 	private BitmapText keys;
+	private SupporterButton supporter;
+	private LoreButton lore;
 
 	private DangerIndicator danger;
 	private LootIndicator loot;
@@ -112,17 +117,17 @@ public class StatusPane extends Component {
 		compass = new Compass( Dungeon.level.exit );
 		add( compass );
 
-		hp = new Image( Assets.HP_BAR );
-		add( hp );
-
         hp_dropping = new Image( Assets.HP_BAR_DROPPING );
         add( hp_dropping );
 
-        mp = new Image( Assets.MP_BAR );
-        add( mp );
+		hp = new Image( Assets.HP_BAR );
+		add( hp );
 
         mp_dropping = new Image( Assets.MP_BAR_DROPPING );
         add( mp_dropping );
+
+        mp = new Image( Assets.MP_BAR );
+        add( mp );
 
 		exp = new Image( Assets.XP_BAR );
 		add( exp );
@@ -143,6 +148,11 @@ public class StatusPane extends Component {
 		keys = new BitmapText( PixelScene.font1x );
 		keys.hardlight( 0xCACFC2 );
 		add( keys );
+		supporter = new SupporterButton();
+		add(supporter);
+		lore = new LoreButton();
+		lore.visible = lore.active = Lore.hasNotices();
+		add(lore);
 
 		danger = new DangerIndicator();
 		add( danger );
@@ -186,6 +196,9 @@ public class StatusPane extends Component {
 		depth.y = 6;
 
 		keys.y = 6;
+		supporter.setRect(depth.x - 18, depth.y - 5, 16, 16);
+		lore.setRect(width < 190 ? width - 18 : supporter.left() - 18,
+				width < 190 ? 18 : supporter.top(), 16, 16);
 
 		layoutTags();
 
@@ -196,7 +209,7 @@ public class StatusPane extends Component {
 
 	private void layoutTags() {
 
-		float pos = 18;
+		float pos = lore.visible && width < 190 ? lore.bottom() + 1 : 18;
 
 		if (tagDanger) {
 			danger.setPos( width - danger.width(), pos );
@@ -219,6 +232,10 @@ public class StatusPane extends Component {
 
 	@Override
 	public void update() {
+		if (lore.visible != Lore.hasNotices()) {
+			lore.visible = lore.active = Lore.hasNotices();
+			layoutTags();
+		}
 		if (LocalCoop.active() && shownHero != Dungeon.hero) showHero(Dungeon.hero);
 		super.update();
 
@@ -245,6 +262,12 @@ public class StatusPane extends Component {
                 takingDamage -= 0.1f;
         }
 
+        Healing healing = Dungeon.hero.buff(Healing.class);
+        if (healing != null && Dungeon.hero.isAlive()) {
+            takingDamage = 0;
+            health_drop = (float)Math.max(0, Math.min(healing.remaining(), Dungeon.hero.HT - Dungeon.hero.HP)) / Dungeon.hero.HT;
+        }
+
 		if (health == 0) {
 			avatar.tint( 0x000000, 0.6f );
 			blood.on = false;
@@ -259,16 +282,31 @@ public class StatusPane extends Component {
 		hp.scale.x = health;
         hp_dropping.x = hp.x + hp.width() - 20 * health;
         hp_dropping.scale.x = health_drop;
+        if (healing != null && Dungeon.hero.isAlive()) {
+
+            hp_dropping.x = hp.x;
+            hp_dropping.scale.x = Math.min(1, health + health_drop);
+        }
 
 		exp.scale.x = (width / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
 
-        float mana = (float)Dungeon.hero.MP / Dungeon.hero.MMP;
+        float mana = Dungeon.hero.MMP > 0 ? (float)Dungeon.hero.MP / Dungeon.hero.MMP : 0;
 
-        float mana_drop = manaDropping / Dungeon.hero.MMP;
+        float mana_drop = Dungeon.hero.MMP > 0 ? manaDropping / Dungeon.hero.MMP : 0;
+        ManaRecovery recovery = Dungeon.hero.buff(ManaRecovery.class);
+        if (recovery != null && Dungeon.hero.isAlive()) {
+            manaDropping = 0;
+            mana_drop = Dungeon.hero.MMP > 0
+                    ? (float)Math.max(0, Math.min(recovery.remaining(), Dungeon.hero.MMP - Dungeon.hero.MP)) / Dungeon.hero.MMP : 0;
+        }
 
         mp.scale.x = mana;
         mp_dropping.x = mp.x + mp.width() - 20 * mana;
         mp_dropping.scale.x = mana_drop;
+        if (recovery != null && Dungeon.hero.isAlive()) {
+            mp_dropping.x = mp.x;
+            mp_dropping.scale.x = Math.min(1, mana + mana_drop);
+        }
 
         if(Dungeon.hero.MP == 0)
             manaDropping = 0;

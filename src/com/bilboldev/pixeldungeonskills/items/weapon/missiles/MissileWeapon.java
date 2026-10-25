@@ -122,6 +122,11 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public String info() {
+		return info(Dungeon.hero);
+	}
+
+	@Override
+	public String info(Hero viewer) {
 
 		StringBuilder info = new StringBuilder( desc() );
 
@@ -132,18 +137,18 @@ abstract public class MissileWeapon extends Weapon {
 		info.append( "\n\n" );
 		info.append( Messages.get( MissileWeapon.class, "distance" ) );
 
-		if (Dungeon.hero.belongings.backpack.items.contains( this )) {
-			if (STR > Dungeon.hero.STR()) {
+		if (viewer != null && viewer.belongings.backpack.items.contains( this )) {
+			if (STR > viewer.STR()) {
 				info.append( "\n\n" );
 				info.append( Messages.get( Weapon.class, "too_heavy" ) );
 			}
-			if (STR < Dungeon.hero.STR()) {
+			if (STR < viewer.STR()) {
 				info.append( "\n\n" );
-				info.append( Messages.get( Weapon.class, "excess_str", Dungeon.hero.STR() - STR ) );
+				info.append( Messages.get( Weapon.class, "excess_str", viewer.STR() - STR ) );
 			}
 		}
 
-		if (isEquipped( Dungeon.hero )) {
+		if (viewer != null && isEquipped( viewer )) {
 			if (cursed) {
 				info.append( "\n\n" );
 				info.append( Messages.get( Weapon.class, "cursed_worn" ) );

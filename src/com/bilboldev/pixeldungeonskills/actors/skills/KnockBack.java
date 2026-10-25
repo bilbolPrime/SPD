@@ -32,7 +32,7 @@ public class KnockBack extends ActiveSkill2{
     @Override
     public float damageModifier()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
             return 1f;
         else
         {
@@ -43,11 +43,11 @@ public class KnockBack extends ActiveSkill2{
     @Override
     public boolean knocksBack()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
             return false;
         else
         {
-            Dungeon.hero.MP -= getManaCost();
+            Dungeon.hero.spendSkillMana(getManaCost());
             StatusPane.manaDropping += getManaCost();
 
             castTextYell();

@@ -27,8 +27,7 @@ public class SteadyAimSkill extends PassiveSkillB1{
     @Override
     public String info()
     {
-        return "Practice makes perfect.\n\n"
-                + extendedInfo()
+        return necroMercInfo("steady_aim_desc", extendedInfo())
                 + requiresInfo() + costString();
     }
 

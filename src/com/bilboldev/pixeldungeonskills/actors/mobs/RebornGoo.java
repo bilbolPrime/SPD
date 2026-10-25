@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -88,7 +89,7 @@ public class RebornGoo extends RebornBoss {
                 Pushing.knockBack(gooCell, Dungeon.hero, 3);
                 if (isAlive() && pos == gooCell) Pushing.knockBack(heroCell, this, 1);
             }
-        } else if (phase > 0) leaveResidue(cells, SLIME, 3, 5);
+        } else if (abilityPhase() > 0) leaveResidue(cells, SLIME, 3, 5);
         recover(2);
     }
 
@@ -115,7 +116,7 @@ public class RebornGoo extends RebornBoss {
     @Override
     public void die(Object cause) {
         if (defeated) return;
-        if (Dungeon.level instanceof SewerBossLevel) ((SewerBossLevel)Dungeon.level).unseal();
+        if (!RebornChallenges.doubleBoss() && Dungeon.level instanceof SewerBossLevel) ((SewerBossLevel)Dungeon.level).unseal();
         super.die(cause);
     }
 

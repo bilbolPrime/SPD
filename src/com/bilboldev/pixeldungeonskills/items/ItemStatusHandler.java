@@ -27,8 +27,14 @@ import com.bilboldev.utils.Random;
 
 public class ItemStatusHandler<T extends Item> {
 
+	private static volatile int revision;
+
+	public static int revision() {
+		return revision;
+	}
+
 	private Class<? extends T>[] items;
-	
+
 	private HashMap<Class<? extends T>, Integer> images;
 	private HashMap<Class<? extends T>, String> labels;
 	private HashSet<Class<? extends T>> known;
@@ -66,48 +72,51 @@ public class ItemStatusHandler<T extends Item> {
             images.put( item, allImages[i] );
 
         }
+        revision++;
     }
 
 	public ItemStatusHandler( Class<? extends T>[] items, String[] allLabels, Integer[] allImages ) {
-		
+
 		this.items = items;
-		
+
 		this.images = new HashMap<Class<? extends T>, Integer>();
 		this.labels = new HashMap<Class<? extends T>, String>();
 		known = new HashSet<Class<? extends T>>();
-		
+
 		ArrayList<String> labelsLeft = new ArrayList<String>( Arrays.asList( allLabels ) );
 		ArrayList<Integer> imagesLeft = new ArrayList<Integer>( Arrays.asList( allImages ) );
-		
+
 		for (int i=0; i < items.length; i++) {
-			
+
 			Class<? extends T> item = (Class<? extends T>)(items[i]);
-			
+
 			int index = Random.Int( labelsLeft.size() );
-			
+
 			labels.put( item, labelsLeft.get( index ) );
 			labelsLeft.remove( index );
-			
+
 			images.put( item, imagesLeft.get( index ) );
 			imagesLeft.remove( index );
 		}
+		revision++;
 	}
-	
+
 	public ItemStatusHandler( Class<? extends T>[] items, String[] labels, Integer[] images, Bundle bundle ) {
-		
+
 		this.items = items;
-		
+
 		this.images = new HashMap<Class<? extends T>, Integer>();
 		this.labels = new HashMap<Class<? extends T>, String>();
 		known = new HashSet<Class<? extends T>>();
-		
+
 		restore( bundle, labels, images );
+		revision++;
 	}
-	
+
 	private static final String PFX_IMAGE	= "_image";
 	private static final String PFX_LABEL	= "_label";
 	private static final String PFX_KNOWN	= "_known";
-	
+
 	public void save( Bundle bundle ) {
 		for (int i=0; i < items.length; i++) {
 			String itemName = items[i].toString();
@@ -116,61 +125,61 @@ public class ItemStatusHandler<T extends Item> {
 			bundle.put( itemName + PFX_KNOWN, known.contains( items[i] ) );
 		}
 	}
-	
+
 	private void restore( Bundle bundle, String[] allLabels, Integer[] allImages ) {
-		
+
 		ArrayList<String> labelsLeft = new ArrayList<String>( Arrays.asList( allLabels ) );
 		ArrayList<Integer> imagesLeft = new ArrayList<Integer>( Arrays.asList( allImages ) );
-		
+
 		for (int i=0; i < items.length; i++) {
-			
+
 			Class<? extends T> item = (Class<? extends T>)(items[i]);
 			String itemName = item.toString();
-			
+
 			if (bundle.contains( itemName + PFX_LABEL )) {
-				
+
 				String label = bundle.getString( itemName + PFX_LABEL );
 				labels.put( item, label );
 				labelsLeft.remove( label );
-				
+
 				Integer image = bundle.getInt( itemName + PFX_IMAGE );
 				images.put( item, image );
 				imagesLeft.remove( image );
-				
+
 				if (bundle.getBoolean( itemName + PFX_KNOWN )) {
 					known.add( item );
 				}
-				
+
 			} else {
-				
+
 				int index = Random.Int( labelsLeft.size() );
-				
+
 				labels.put( item, labelsLeft.get( index ) );
 				labelsLeft.remove( index );
-				
+
 				images.put( item, imagesLeft.get( index ) );
 				imagesLeft.remove( index );
-				
+
 			}
 		}
 	}
-	
+
 	public int image( T item ) {
 		return images.get( item.getClass() );
 	}
-	
+
 	public String label( T item ) {
 		return labels.get( item.getClass() );
 	}
-	
+
 	public boolean isKnown( T item ) {
 		return known.contains( item.getClass() );
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void know( T item ) {
-		known.add( (Class<? extends T>)item.getClass() );
-		
+		if (!known.add( (Class<? extends T>)item.getClass() )) return;
+
 		if (known.size() == items.length - 1) {
 			for (int i=0; i < items.length; i++) {
 				if (!known.contains( items[i] )) {
@@ -179,12 +188,13 @@ public class ItemStatusHandler<T extends Item> {
 				}
 			}
 		}
+		revision++;
 	}
-	
+
 	public HashSet<Class<? extends T>> known() {
 		return known;
 	}
-	
+
 	public HashSet<Class<? extends T>> unknown() {
 		HashSet<Class<? extends T>> result = new HashSet<Class<? extends T>>();
 		for (Class<? extends T> i : items) {

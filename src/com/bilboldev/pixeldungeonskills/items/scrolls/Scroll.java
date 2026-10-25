@@ -17,6 +17,9 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
+import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
@@ -26,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.ItemStatusHandler;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -57,11 +61,12 @@ public abstract class Scroll extends Item {
             ScrollOfBloodyRitual.class,
             ScrollOfSkill.class,
             ScrollOfFrostLevel.class,
-            ScrollOfWipeOut.class
+            ScrollOfWipeOut.class,
+            ScrollOfReadiness.class
 
     };
 	private static final String[] runes =
-		{"KAUNAN", "SOWILO", "LAGUZ", "YNGVI", "GYFU", "RAIDO", "ISAZ", "MANNAZ", "NAUDIZ", "BERKANAN", "ODAL", "TIWAZ", "", "", "", "", "", ""};
+		{"KAUNAN", "SOWILO", "LAGUZ", "YNGVI", "GYFU", "RAIDO", "ISAZ", "MANNAZ", "NAUDIZ", "BERKANAN", "ODAL", "TIWAZ", "", "", "", "", "", "", ""};
 	private static final Integer[] images = {
 		ItemSpriteSheet.SCROLL_KAUNAN,
 		ItemSpriteSheet.SCROLL_SOWILO,
@@ -80,7 +85,8 @@ public abstract class Scroll extends Item {
             ItemSpriteSheet.SCROLL_BLOODY,
             ItemSpriteSheet.SCROLL_SKILLPOINT,
             ItemSpriteSheet.SCROLL_FROST,
-            ItemSpriteSheet.SCROLL_WIPE_OUT
+            ItemSpriteSheet.SCROLL_WIPE_OUT,
+            ItemSpriteSheet.SCROLL_FOCUS
     };
 
 	private static ItemStatusHandler<Scroll> handler;
@@ -94,7 +100,7 @@ public abstract class Scroll extends Item {
 
 	@SuppressWarnings("unchecked")
 	public static void initLabels() {
-		handler = new ItemStatusHandler<Scroll>( (Class<? extends Scroll>[])scrolls, runes, images, 6 );
+		handler = new ItemStatusHandler<Scroll>( (Class<? extends Scroll>[])scrolls, runes, images, 7 );
 	}
 
 	public static void save( Bundle bundle ) {
@@ -123,13 +129,11 @@ public abstract class Scroll extends Item {
 	public void execute( Hero hero, String action ) {
 		if (action.equals( AC_READ )) {
 
-			if (hero.buff( Blindness.class ) != null) {
-				GLog.w(Scroll.class, "blinded");
-			} else {
-				curUser = hero;
-				curItem = detach( hero.belongings.backpack );
-				doRead();
-			}
+            if (!canRead(hero)) return;
+            Message warning = isKnown() ? readWarning(hero) : null;
+            if (warning == null) read(hero);
+            else confirmAction(hero, warning, Message.key(Scroll.class, "continue_reading"),
+                    Message.key(Scroll.class, "stop"), () -> read(hero));
 
 		} else {
 
@@ -140,10 +144,34 @@ public abstract class Scroll extends Item {
 
 	abstract protected void doRead();
 
+    protected Message readWarning(Hero hero) {
+        return null;
+    }
+
+    protected boolean canRead(Hero hero) {
+        if (hero.buff(Blindness.class) == null) return true;
+        GLog.w(Scroll.class, "blinded");
+        return false;
+    }
+
+    private void read(Hero hero) {
+        if (!canRead(hero)) return;
+        curUser = hero;
+        curItem = detach(hero.belongings.backpack);
+        doRead();
+        Lore.used(this);
+    }
+
 	protected void readAnimation() {
 		curUser.spend( TIME_TO_READ );
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
+	}
+
+	@Override
+	public int image() {
+		return Dungeon.rules().mode == GameplayMode.REBORN && isKnown()
+				? ItemSpriteSheet.identifiedImage(getClass(), image) : image;
 	}
 
 	public boolean isKnown() {

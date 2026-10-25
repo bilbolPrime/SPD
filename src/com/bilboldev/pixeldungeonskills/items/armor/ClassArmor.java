@@ -17,8 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundle;
 
@@ -40,10 +42,14 @@ abstract public class ClassArmor extends Armor {
 	}
 
 	public static ClassArmor upgrade ( Hero owner, Armor armor ) {
+		return upgrade(owner.heroClass, armor);
+	}
+
+	public static ClassArmor upgrade ( HeroClass heroClass, Armor armor ) {
 
 		ClassArmor classArmor = null;
 
-		switch (owner.heroClass) {
+		switch (heroClass) {
 		case WARRIOR:
 			classArmor = new WarriorArmor();
 			break;
@@ -69,6 +75,7 @@ abstract public class ClassArmor extends Armor {
 
 		classArmor.inscribe( armor.glyph );
 		classArmor.prefix = armor.prefix;
+        RebornChallenges.plain(classArmor);
 
 		return classArmor;
 	}

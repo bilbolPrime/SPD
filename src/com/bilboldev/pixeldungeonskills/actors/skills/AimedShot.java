@@ -45,7 +45,7 @@ public class AimedShot extends ActiveSkill1{
     @Override
     public int aimedShot()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
         {
             cast = false;
             return 0;
@@ -53,7 +53,7 @@ public class AimedShot extends ActiveSkill1{
 
         cast = true;
 
-        Dungeon.hero.MP -= getManaCost();
+        Dungeon.hero.spendSkillMana(getManaCost());
         StatusPane.manaDropping += getManaCost();
 
         castTextYell();

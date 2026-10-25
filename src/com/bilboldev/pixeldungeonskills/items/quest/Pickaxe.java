@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.quest;
 
+import com.bilboldev.pixeldungeonskills.actors.mobs.RimeBat;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
@@ -151,7 +152,8 @@ public class Pickaxe extends Weapon {
 
 	@Override
 	public void proc( Char attacker, Char defender, int damage ) {
-		if (!bloodStained && defender instanceof Bat && (defender.HP <= damage)) {
+		if (!bloodStained && (defender instanceof Bat || defender instanceof RimeBat)
+                && defender.HP <= damage) {
 			bloodStained = true;
 			updateQuickslot();
 		}

@@ -204,7 +204,7 @@ public class MageSkillTree extends SkillTree {
 
     @Override
     public void castSpark(){
-        Dungeon.hero.MP -= getSkill(Spark.class).getManaCost();
+        Dungeon.hero.spendSkillMana(getSkill(Spark.class).getManaCost());
         getSkill(Spark.class).castTextYell();
     }
 }

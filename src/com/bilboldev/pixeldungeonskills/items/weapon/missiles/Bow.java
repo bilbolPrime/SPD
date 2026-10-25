@@ -148,6 +148,11 @@ public class Bow extends MissileWeapon {
     public int max(){return 0;}
 
     @Override
+    public String info(Hero viewer) {
+        return info();
+    }
+
+    @Override
     public String info() {
 
         StringBuilder info = new StringBuilder( desc() );
@@ -158,6 +163,10 @@ public class Bow extends MissileWeapon {
     public void bowSpecial(Char target)
     {
 
+    }
+
+    public void bowSpecial(Hero archer, Char target, int damage) {
+        bowSpecial(target);
     }
 
     public float damageBonus(){

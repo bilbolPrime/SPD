@@ -8,6 +8,8 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.ui.ChallengeIcons;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.network.PartyConnection;
@@ -38,6 +40,7 @@ public class WndPartyLobby extends WndScrollable {
     private Window admission;
     private Window entry;
     private boolean failureShown;
+    private ChallengeIcons selectedChallenges;
 
     public WndPartyLobby(boolean hosting, Runnable cancel, StartListener start) {
         this.hosting = hosting;
@@ -123,10 +126,10 @@ public class WndPartyLobby extends WndScrollable {
     private void refresh() {
         List<PartyConnection.Host> hosts = PartySession.hosts();
         StringBuilder state = new StringBuilder(PartySession.lobbyState().name()).append(PartySession.status())
-                .append(PartySession.pairingCode()).append(PartySession.hostAddresses()).append(PartySession.hostPort());
+                .append(PartySession.pairingCode()).append(PartySession.hostAddresses()).append(PartySession.hostPort()).append(PartySession.challenges());
         for (PartyConnection.Host host : hosts) {
             state.append(host.id).append(host.name).append(host.address).append(':')
-                    .append(host.port).append(host.heroClass);
+                    .append(host.port).append(host.heroClass).append(host.challenges);
         }
         if (state.toString().equals(shownState)) return;
         shownState = state.toString();
@@ -182,6 +185,22 @@ public class WndPartyLobby extends WndScrollable {
         explanation.setPos(0, version.bottom() + 6);
         content.add(explanation);
         float top = explanation.bottom() + 6;
+        selectedChallenges = null;
+        if (hosting || PartySession.lobbyState() == PartySession.LobbyState.WAITING
+                || PartySession.lobbyState() == PartySession.LobbyState.CONNECTED) {
+            RenderedTextMultiline selected = PixelScene.renderMultiline(RebornChallenges.title() + ": "
+                    + RebornChallenges.summary(PartySession.challenges()), 7);
+            selected.maxWidth(textWidth(width));
+            selected.setPos(0, top);
+            content.add(selected);
+            top = selected.bottom() + 4;
+            ChallengeIcons icons = new ChallengeIcons(PartySession.challenges(), 14);
+            icons.useScrollPaneInput();
+            selectedChallenges = icons;
+            icons.setPos(0, top);
+            content.add(icons);
+            top = icons.bottom() + 6;
+        }
         if (!hosting && PartySession.lobbyState() == PartySession.LobbyState.DISCOVERING) {
             for (PartyConnection.Host host : hosts) {
                 PartyRow row = new PartyRow(host);
@@ -204,8 +223,16 @@ public class WndPartyLobby extends WndScrollable {
         body = new ScrollPane(content) {
             @Override
             public void onClick(float x, float y) {
+                if (selectedChallenges != null && selectedChallenges.inside(x, y)) {
+                    selectedChallenges.open();
+                    return;
+                }
                 for (PartyRow row : rows) {
                     if (row.inside(x, y)) {
+                        if (row.challenges.inside(x, y)) {
+                            row.challenges.open();
+                            return;
+                        }
                         Sample.INSTANCE.play(Assets.SND_CLICK);
                         enterCode(code -> {
                             failureShown = false;
@@ -264,9 +291,13 @@ public class WndPartyLobby extends WndScrollable {
         private RenderedTextMultiline name;
         private RenderedTextMultiline join;
         private NinePatch joinFrame;
+        private final ChallengeIcons challenges;
 
         PartyRow(PartyConnection.Host host) {
             this.host = host;
+            challenges = new ChallengeIcons(host.challenges, 10);
+            challenges.useScrollPaneInput();
+            add(challenges);
             hero = HeroSprite.avatar(host.heroClass, 1);
             hero.scale.set(2);
             add(hero);
@@ -289,17 +320,19 @@ public class WndPartyLobby extends WndScrollable {
             join.maxWidth((int)Math.min(72, width / 3) - 8);
             float joinWidth = Math.max(48, join.width() + 12);
             name.maxWidth(Math.max(1, (int)(width - joinWidth - hero.width() - 20)));
-            height = Math.max(height, Math.max(hero.height(), Math.max(name.height(), join.height())) + 10);
+            float detailsHeight = Math.max(hero.height(), Math.max(name.height(), join.height())) + 8;
+            height = detailsHeight + (challenges.width() > 0 ? 14 : 0);
+            challenges.setPos(x + 4, y + height - 12);
             frame.x = x;
             frame.y = y;
             frame.size(width, height);
             hero.x = x + 4;
-            hero.y = y + (height - hero.height()) / 2;
-            name.setPos(hero.x + hero.width() + 4, y + (height - name.height()) / 2);
+            hero.y = y + (detailsHeight - hero.height()) / 2;
+            name.setPos(hero.x + hero.width() + 4, y + (detailsHeight - name.height()) / 2);
             joinFrame.x = right() - joinWidth - 3;
             joinFrame.y = y + 3;
-            joinFrame.size(joinWidth, height - 6);
-            join.setPos(joinFrame.x + (joinWidth - join.width()) / 2, y + (height - join.height()) / 2);
+            joinFrame.size(joinWidth, detailsHeight - 6);
+            join.setPos(joinFrame.x + (joinWidth - join.width()) / 2, y + (detailsHeight - join.height()) / 2);
         }
     }
 }

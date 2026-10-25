@@ -24,8 +24,7 @@ public class QuickDrawSkill extends PassiveSkillB3{
     @Override
     public String info()
     {
-        return "Quickness is key.\n\n"
-                + extendedInfo()
+        return necroMercInfo("quick_draw_desc", extendedInfo())
                 + requiresInfo() + costString();
     }
 

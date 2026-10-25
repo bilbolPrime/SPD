@@ -90,7 +90,7 @@ public class WndChooseWay extends WndScrollable {
 		if (Presentation.reborn()) {
 			layoutContent(windowWidth, titlebar, info, GAP, btnWay1, btnWay2, btnCancel);
 		} else {
-			resize(WIDTH, (int)btnCancel.bottom());
+			resize(WIDTH, (int)Math.ceil(btnCancel.bottom()));
 		}
 	}
 
@@ -133,7 +133,7 @@ public class WndChooseWay extends WndScrollable {
 		if (Presentation.reborn()) {
 			layoutContent(windowWidth, titlebar, info, GAP, btnWay, btnCancel);
 		} else {
-			resize(WIDTH, (int)btnCancel.bottom());
+			resize(WIDTH, (int)Math.ceil(btnCancel.bottom()));
 		}
 	}
 

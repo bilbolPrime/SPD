@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -95,7 +96,8 @@ public class Monk extends Mob {
 			Hero hero = (Hero)enemy;
 			KindOfWeapon weapon = hero.belongings.weapon;
 
-			if (weapon != null && !(weapon instanceof Knuckles) && !weapon.cursed) {
+			if (weapon != null && !(weapon instanceof Knuckles) && !weapon.cursed
+                    && !RebornChallenges.equipmentBound()) {
 				hero.belongings.weapon = null;
 				Dungeon.level.drop( weapon, hero.pos ).sprite.drop();
 				GLog.w("custom.generated.entry_s_has_knocked_the_s_from_your_hands_8aaad40b97", Message.actor(this), Message.itemName(weapon));

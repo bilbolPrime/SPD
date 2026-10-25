@@ -1,11 +1,13 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
 import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
@@ -82,7 +84,7 @@ public class RebornKing extends RebornBoss {
 
     @Override
     protected boolean prepareSkill() {
-        int cap = phase == 0 ? 3 : 4;
+        int cap = abilityPhase() == 0 ? 3 : 4;
         int size = court().size();
         if (calling && size < cap) {
             ArrayList<Integer> choices = new ArrayList<>(), cells = new ArrayList<>();
@@ -98,7 +100,7 @@ public class RebornKing extends RebornBoss {
             if (!cells.isEmpty()) return warn(ORDER, pos, array(cells));
         }
         calling = false;
-        return warn(ORDER, pos, phase == 2 ? cone(pos, Dungeon.hero.pos, 3) : ray(pos, Dungeon.hero.pos, 10));
+        return warn(ORDER, pos, abilityPhase() == 2 ? cone(pos, Dungeon.hero.pos, 3) : ray(pos, Dungeon.hero.pos, 10));
     }
 
     @Override
@@ -109,7 +111,7 @@ public class RebornKing extends RebornBoss {
                 Sample.INSTANCE.play(Assets.SND_CHALLENGE);
             }
             for (int cell : cells) if (Level.passable[cell] && Actor.findChar(cell) == null
-                    && Level.distance(cell, Dungeon.hero.pos) >= 2 && court().size() < (phase == 0 ? 3 : 4)) {
+                    && Level.distance(cell, Dungeon.hero.pos) >= 2 && court().size() < (abilityPhase() == 0 ? 3 : 4)) {
                 Retainer retainer = new Retainer();
                 retainer.ownerId = id();
 
@@ -133,7 +135,7 @@ public class RebornKing extends RebornBoss {
             calling = false;
             recover(1);
         } else {
-            strike(cells, phase == 2 ? 25 : 18, phase == 2 ? 35 : 26);
+            strike(cells, abilityPhase() == 2 ? 25 : 18, abilityPhase() == 2 ? 35 : 26);
             if (!isAlive()) return;
             burst(cells, ShadowParticle.CURSE);
             rallyUntil = RebornBoss.heroActions() + 4;
@@ -144,12 +146,12 @@ public class RebornKing extends RebornBoss {
 
     @Override
     protected boolean canAttack(Char enemy) {
-        return phase == 2 && super.canAttack(enemy);
+        return abilityPhase() == 2 && super.canAttack(enemy);
     }
 
     @Override
     protected boolean getCloser(int target) {
-        if (phase < 2 && Level.distance(pos, target) <= 2) return super.getFurther(target);
+        if (abilityPhase() < 2 && Level.distance(pos, target) <= 2) return super.getFurther(target);
         return super.getCloser(target);
     }
 
@@ -183,7 +185,7 @@ public class RebornKing extends RebornBoss {
     @Override
     public void die(Object source) {
         if (defeated) return;
-        Dungeon.level.drop(new ArmorKit(), pos).sprite.drop();
+        if (!RebornChallenges.doubleBoss()) Dungeon.level.drop(new ArmorKit(), pos, this).sprite.drop();
         super.die(source);
     }
 
@@ -318,6 +320,7 @@ public class RebornKing extends RebornBoss {
         @Override
         public void die(Object source) {
             if (defeated) return;
+            if (source != null) DeathBomb.leave(this);
             RebornKing king = king();
             dismiss();
             if (role == 2 && king != null) king.heraldFell();

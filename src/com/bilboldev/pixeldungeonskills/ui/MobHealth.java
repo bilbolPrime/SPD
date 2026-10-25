@@ -7,9 +7,11 @@ import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.OldRime;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RebornBoss;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RebornDM300;
@@ -69,6 +71,7 @@ public final class MobHealth {
                 continue;
             }
             state.mob = (Char)actor;
+            state.updateBuffs();
             state.memory.mob = new WeakReference<>(state.mob);
             state.memory.level = new WeakReference<>(level);
             tracked.put(state.mob, state);
@@ -161,6 +164,7 @@ public final class MobHealth {
             }
             state.hp = 0;
             state.shields = 0;
+            state.buffIcons.clear();
             seen.remove(state.key);
             return;
         }
@@ -193,6 +197,7 @@ public final class MobHealth {
         state.maxHp = Math.max(1, ch.HT);
         state.memory.hp = state.hp;
         state.memory.shields = state.shields;
+        state.updateBuffs();
     }
 
     private static void breakShields(State state, int mask) {
@@ -234,12 +239,12 @@ public final class MobHealth {
     }
 
     private static long key(Char ch) {
-        return ((long) Dungeon.depth << 32) | (ch.id() & 0xffffffffL);
+        return ((long) Dungeon.levelKey() << 32) | (ch.id() & 0xffffffffL);
     }
 
     private static int rows(Char ch) {
         if (ch instanceof RebornTengu) return 4;
-        if (ch instanceof RebornKing || ch instanceof RivalBoss) return 3;
+        if (ch instanceof RebornKing || ch instanceof RivalBoss || ch instanceof OldRime) return 3;
         if (ch instanceof RebornGoo || ch instanceof RebornDM300) return 2;
         RebornChampion champion = ch.buff(RebornChampion.class);
         if (champion != null) return champion.isPair() ? 2 : 3;
@@ -289,6 +294,7 @@ public final class MobHealth {
         public float damageAge = HIT_DURATION;
         public float deathAge = -1;
         public boolean visible, selected;
+        public final List<Integer> buffIcons = new ArrayList<>();
 
         private final long key;
         private final Memory memory;
@@ -317,6 +323,16 @@ public final class MobHealth {
 
         public List<Break> breaks() {
             return fragments;
+        }
+
+        private void updateBuffs() {
+            buffIcons.clear();
+            if (deathAge >= 0 || !isVisible()) return;
+            for (Buff buff : mob.buffs()) {
+                int icon = buff.icon();
+                if (icon != BuffIndicator.NONE && !buffIcons.contains(icon)) buffIcons.add(icon);
+            }
+            Collections.sort(buffIcons);
         }
 
         public boolean isVisible() {

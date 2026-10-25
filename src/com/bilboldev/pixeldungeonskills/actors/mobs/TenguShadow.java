@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -72,6 +73,7 @@ public class TenguShadow extends Mob {
     @Override
     public void die(Object source) {
         if (removed) return;
+        if (source != null) DeathBomb.leave(this);
         removed = true;
         destroy();
         if (sprite != null) sprite.die();

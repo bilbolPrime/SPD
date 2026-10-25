@@ -2,10 +2,13 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.RivalSprite;
+import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkeletonSprite;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
@@ -23,6 +26,13 @@ public class RivalServant extends Mob {
 
     public int tier() {
         return rank;
+    }
+
+    @Override
+    public CharSprite sprite() {
+        CharSprite sprite = super.sprite();
+        if (sprite instanceof RivalSprite) ((RivalSprite)sprite).appearance(HeroClass.ROGUE, tier());
+        return sprite;
     }
 
     @Override
@@ -88,6 +98,7 @@ public class RivalServant extends Mob {
 
     @Override
     public void die(Object source) {
+        if (source != null) DeathBomb.leave(this);
         RivalBoss owner = owner();
         if (owner instanceof RivalNecromancer) ((RivalNecromancer)owner).servantFell(pos);
         dismiss();

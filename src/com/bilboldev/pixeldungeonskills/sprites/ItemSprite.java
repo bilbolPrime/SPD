@@ -36,6 +36,7 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.ItemStatusHandler;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -51,6 +52,9 @@ public class ItemSprite extends MovieClip {
 	protected static TextureFilm film;
 
 	public Heap heap;
+	private Item item;
+	private int image;
+	private int itemRevision;
 
 	private Glowing glowing;
 	private float phase;
@@ -72,6 +76,7 @@ public class ItemSprite extends MovieClip {
 
 	public ItemSprite( Item item ) {
 		this( item.image(), item.glowing() );
+		this.item = item;
 	}
 
 	public ItemSprite( int image, Glowing glowing ) {
@@ -108,6 +113,7 @@ public class ItemSprite extends MovieClip {
 		dropInterval = 0;
 
 		heap = null;
+		item = null;
 	}
 
 	public PointF worldToCamera( int cell ) {
@@ -179,10 +185,19 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public ItemSprite view( int image, Glowing glowing ) {
+		item = null;
+		this.image = image;
+		itemRevision = ItemStatusHandler.revision();
 		frame( film.get( image ) );
 		if ((this.glowing = glowing) == null) {
 			resetColor();
 		}
+		return this;
+	}
+
+	public ItemSprite view(Item item) {
+		view(item.image(), item.glowing());
+		this.item = item;
 		return this;
 	}
 
@@ -237,6 +252,15 @@ public class ItemSprite extends MovieClip {
 	@Override
 	public void update() {
 		super.update();
+
+		if (itemRevision != ItemStatusHandler.revision()) {
+			itemRevision = ItemStatusHandler.revision();
+			int current = heap != null ? heap.image() : item != null ? item.image() : image;
+			if (current != image) {
+				image = current;
+				frame(film.get(image));
+			}
+		}
 
 		visible = (heap == null || Dungeon.visible[heap.pos]);
 

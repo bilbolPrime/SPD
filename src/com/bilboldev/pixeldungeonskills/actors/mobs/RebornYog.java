@@ -1,8 +1,10 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Fire;
@@ -102,7 +104,8 @@ public class RebornYog extends RebornBoss {
         int kind = RIFT;
         int first = firstInherited == 2 ? EMBER : ROT, second = firstInherited == 2 ? ROT : EMBER;
         int choice = cadence % 3 == 1 ? first : cadence % 3 == 2 ? second : RIFT;
-        if (choice == ROT && (inherited & 1) != 0 || choice == EMBER && (inherited & 2) != 0) kind = choice;
+        if (RebornChallenges.active(RebornChallenges.UNCHAINED)
+                || choice == ROT && (inherited & 1) != 0 || choice == EMBER && (inherited & 2) != 0) kind = choice;
         int[] cells;
         if (kind == RIFT) cells = ray(pos, Dungeon.hero.pos, Level.WIDTH);
         else {
@@ -251,6 +254,7 @@ public class RebornYog extends RebornBoss {
         @Override
         public void die(Object source) {
             if (defeated) return;
+            if (source != null) DeathBomb.leave(this);
             RebornYog eye = eye();
             dismiss();
             if (eye != null) eye.inherit(kind);
@@ -355,6 +359,7 @@ public class RebornYog extends RebornBoss {
         @Override
         public void die(Object source) {
             if (removed) return;
+            if (source != null) DeathBomb.leave(this);
             removed = true;
             HP = 0;
             Actor.remove(this);

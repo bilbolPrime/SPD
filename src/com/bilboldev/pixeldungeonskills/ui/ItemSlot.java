@@ -132,6 +132,7 @@ public class ItemSlot extends Button {
 	public void item( Item item ) {
 		shownItem = item;
 		if (item == null) {
+			icon.view(ItemSpriteSheet.SMTH, null);
 
 			active = false;
 			icon.visible = topLeft.visible = topRight.visible = bottomRight.visible = false;
@@ -141,7 +142,7 @@ public class ItemSlot extends Button {
 			active = true;
 			icon.visible = topLeft.visible = topRight.visible = bottomRight.visible = true;
 
-			icon.view( item.image(), item.glowing() );
+			icon.view(item);
 
 			topLeft.text( item.status()  );
 

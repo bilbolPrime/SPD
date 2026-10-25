@@ -30,13 +30,13 @@ public class TripleShot extends ActiveSkill2{
     @Override
     public boolean doubleShot()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
             return false;
         else if(count < 2)
         {
             count++;
             if(count == 1) {
-                Dungeon.hero.MP -= getManaCost();
+                Dungeon.hero.spendSkillMana(getManaCost());
                 StatusPane.manaDropping += getManaCost();
 
                 castTextYell();

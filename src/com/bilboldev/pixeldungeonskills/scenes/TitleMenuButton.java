@@ -37,6 +37,12 @@ abstract class TitleMenuButton extends Button {
         arrow.measure();
     }
 
+    void icon(Image image) {
+        remove(icon);
+        icon.destroy();
+        add(icon = image);
+    }
+
     @Override
     protected void layout() {
         super.layout();
@@ -50,7 +56,7 @@ abstract class TitleMenuButton extends Button {
         accent.y = y + 1;
         accent.size(primary ? 2 : 1, height - 2);
         float iconSize = Math.min(22, height - 6);
-        icon.scale.set(iconSize / 32);
+        icon.scale.set(iconSize / Math.max(icon.width, icon.height));
         icon.x = PixelScene.align(x + 8);
         icon.y = PixelScene.align(y + (height - iconSize) / 2);
         label.scale.set(labelScaleX, labelScaleY);

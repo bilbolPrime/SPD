@@ -4,6 +4,7 @@ import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.utils.Bundle;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -118,7 +119,8 @@ public final class PartyQuests {
                             || !given && !hasReward(node, "weapon")) throw invalid();
                     break;
                 case WANDMAKER:
-                    fields(node, "spawned", "variant", "given", "?wand1", "?wand2");
+                    fields(node, "spawned", "variant", "given", "?wand1", "?wand2", "?seed_cell");
+                    if (node.has("seed_cell")) integer(node, "seed_cell", 0, Level.LENGTH - 1);
                     reward(node, "wand1", Wand.class);
                     reward(node, "wand2", Wand.class);
                     if (hasReward(node, "wand1") != hasReward(node, "wand2")

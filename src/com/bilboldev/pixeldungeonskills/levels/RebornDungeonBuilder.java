@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
 import com.bilboldev.pixeldungeonskills.levels.painters.RebornRoomPainter;
 import com.bilboldev.utils.Random;
@@ -14,7 +15,7 @@ public final class RebornDungeonBuilder {
 
     public static boolean supports(Level level) {
         Class<?> type = level.getClass();
-        return type == SewerLevel.class || type == PrisonLevel.class || type == CavesLevel.class
+        return type == SewerLevel.class || type == PrisonLevel.class || type == CavesLevel.class || type == IceCavesLevel.class
                 || type == CityLevel.class || type == HallsLevel.class;
     }
 
@@ -27,8 +28,7 @@ public final class RebornDungeonBuilder {
                 break;
             }
         }
-
-        if (plan == null) return RebornLayout.build(level);
+        if (plan == null) throw new IllegalStateException("Could not plan " + level.getClass().getSimpleName());
         level.themedLayout = true;
         level.rooms = new LinkedHashSet<>();
 
@@ -38,22 +38,29 @@ public final class RebornDungeonBuilder {
         level.roomExit = plan.exit;
         level.assignRoomType();
 
-        Arrays.fill(level.map, level.feeling == Level.Feeling.CHASM ? Terrain.CHASM : Terrain.WALL);
-        int style = Random.Int(6);
+        boolean islands = level instanceof HallsLevel && !Dungeon.bossLevel(Dungeon.depth + 1);
+        Arrays.fill(level.map, islands || level.feeling == Level.Feeling.CHASM ? Terrain.CHASM : Terrain.WALL);
         for (Room room : level.rooms) {
-            if (room.type == Room.Type.STANDARD) RebornRoomPainter.paint(level, room, style++ % 6);
+            if (room.type == Room.Type.STANDARD)
+                RebornRoomPainter.paint(level, room, Random.Int(6), plan.landmarks.contains(room));
             else room.type.paint(level, room);
         }
-        for (Link link : plan.links) {
-            for (int cell : link.path) level.map[cell] = level.tunnelTile();
-        }
+        for (Link link : plan.links) plan.carve(link);
         HashSet<Integer> paintedDoors = new HashSet<>();
-        for (Room room : level.rooms) for (Room.Door door : room.connected.values())
+        for (Room room : level.rooms) for (Map.Entry<Room, Room.Door> connection : room.connected.entrySet()) {
+            Room.Door door = connection.getValue();
+            if (door.type == Room.Door.Type.REGULAR && !(level instanceof PrisonLevel)
+                    && ordinary(room) && ordinary(connection.getKey())) door.type = Room.Door.Type.EMPTY;
             if (paintedDoors.add(door.x + door.y * Level.WIDTH)) paintDoor(level, door);
+        }
 
         if (level.feeling == Level.Feeling.WATER) level.paintWater();
         if (level.feeling == Level.Feeling.GRASS) level.paintGrass();
         return true;
+    }
+
+    private static boolean ordinary(Room room) {
+        return room.type == Room.Type.STANDARD || room.type == Room.Type.ENTRANCE || room.type == Room.Type.EXIT;
     }
 
     private static void paintDoor(Level level, Room.Door door) {
@@ -223,6 +230,7 @@ public final class RebornDungeonBuilder {
         final IdentityHashMap<Room, Rect> plots = new IdentityHashMap<>();
         final LinkedHashSet<Room> core = new LinkedHashSet<>();
         final ArrayList<Room> branches = new ArrayList<>();
+        final LinkedHashSet<Room> landmarks = new LinkedHashSet<>();
         final ArrayList<Link> links = new ArrayList<>();
         Room entrance, exit, workshop;
         int reserveAttempts;
@@ -235,19 +243,27 @@ public final class RebornDungeonBuilder {
         boolean prepare() {
             if (!partition()) return false;
             for (Room a : rooms) for (Room b : rooms) if (a != b) a.addNeigbour(b);
-            entrance = rooms.get(Random.Int(rooms.size()));
-            exit = entrance;
-            for (Room room : rooms) if (manhattan(center(entrance), center(room)) > manhattan(center(entrance), center(exit))) exit = room;
+            entrance = Random.element(rooms);
+            ArrayList<Room> stairRooms = new ArrayList<>();
+            for (Room room : rooms) {
+
+                int gapX = Math.max(0, Math.max(room.left - entrance.right, entrance.left - room.right));
+                int gapY = Math.max(0, Math.max(room.top - entrance.bottom, entrance.top - room.bottom));
+                if (gapX + gapY >= 8) stairRooms.add(room);
+            }
+            if (stairRooms.isEmpty()) return false;
+            exit = Random.element(stairRooms);
             entrance.type = Room.Type.ENTRANCE;
             exit.type = Room.Type.EXIT;
             core.addAll(rooms);
             ArrayList<Room.Type> roles = new ArrayList<>();
             if (Dungeon.shopOnLevel()) roles.add(Room.Type.SHOP);
             if (level instanceof CavesLevel) roles.add(Room.Type.STANDARD);
-            if (!LocalCoop.active() && MercenaryRecruitment.campFloor(Dungeon.depth)) roles.add(Room.Type.MERCENARY);
+            if ((RunSeed.active() || !LocalCoop.active()) && MercenaryRecruitment.campFloor(Dungeon.depth)) roles.add(Room.Type.MERCENARY);
             for (int i = 0; i < (Level.pitRoomNeeded ? 3 : 2); i++) roles.add(Room.Type.NULL);
             if (!reserve(roles, 0)) return false;
             for (Room room : branches) if (room.type == Room.Type.STANDARD) workshop = room;
+            chooseLandmarks();
             LinkedHashSet<Room> reached = new LinkedHashSet<>();
             reached.add(entrance);
             while (reached.size() < core.size()) {
@@ -260,13 +276,14 @@ public final class RebornDungeonBuilder {
                 reached.add(edge[1]);
             }
 
-            int loops = Random.IntRange(1, 2);
+            int loops = level instanceof CityLevel ? Random.IntRange(2, 5)
+                    : level instanceof SewerLevel ? Random.IntRange(1, 4) : Random.IntRange(1, 2);
             while (loops-- > 0) {
                 Room bestA = null, bestB = null;
                 int best = 1;
                 for (Room a : core) for (Room b : core) {
                     if (!a.neigbours.contains(b) || a.connected.containsKey(b)) continue;
-                    int score = graphDistance(a, b);
+                    int score = graphDistance(a, b) * 4 + Random.Int(4);
                     if (score > best) {
                         best = score;
                         bestA = a;
@@ -348,13 +365,28 @@ public final class RebornDungeonBuilder {
             return true;
         }
 
+        void chooseLandmarks() {
+            if (level instanceof CavesLevel || level instanceof HallsLevel) return;
+            ArrayList<Room> candidates = new ArrayList<>();
+            for (Room room : core) {
+                if (room.type != Room.Type.STANDARD) continue;
+                int shorter = Math.min(room.width(), room.height());
+                int longer = Math.max(room.width(), room.height());
+                if (level instanceof PrisonLevel ? longer >= shorter + 3 : shorter >= 8)
+                    candidates.add(room);
+            }
+            int count = Random.IntRange(0, Math.min(3, candidates.size()));
+            while (count-- > 0) landmarks.add(candidates.remove(Random.Int(candidates.size())));
+        }
+
         boolean reserve(ArrayList<Room.Type> roles, int index) {
             if (++reserveAttempts > 3000) return false;
             if (index == roles.size()) return true;
             Room.Type role = roles.get(index);
             ArrayList<Room> choices = new ArrayList<>();
             for (Room room : core) {
-                if (room == entrance || room == exit || (role == Room.Type.SHOP && !room.neigbours.contains(entrance))) continue;
+                if (room == entrance || room == exit
+                        || (role == Room.Type.SHOP && !room.neigbours.contains(entrance))) continue;
                 LinkedHashSet<Room> remaining = new LinkedHashSet<>(core);
                 remaining.remove(room);
                 if (!connectedLoop(remaining)) continue;
@@ -419,6 +451,13 @@ public final class RebornDungeonBuilder {
         }
 
         void fit(Room room) {
+            if (landmarks.contains(room) && !(level instanceof CityLevel)) {
+                room.left++;
+                room.right--;
+                room.top++;
+                room.bottom--;
+                return;
+            }
             if (room.type == Room.Type.STANDARD && room != workshop) {
                 dimensions.fit(room);
                 return;
@@ -435,6 +474,32 @@ public final class RebornDungeonBuilder {
             }
             if (room.width() >= minimum+2 && Random.Int(3)==0) room.left += Random.Int(2);
             if (room.height() >= minimum+2 && Random.Int(3)==0) room.bottom -= Random.Int(2);
+        }
+
+        void carve(Link link) {
+            int tile = level instanceof CityLevel || level instanceof HallsLevel ? Terrain.EMPTY_SP : level.tunnelTile();
+            boolean drain = level instanceof SewerLevel && ordinary(link.a) && ordinary(link.b)
+                    && level.feeling != Level.Feeling.CHASM && Random.Int(3) != 0;
+            int crossing = Random.Int(4);
+            for (int step = 0; step < link.path.length; step++) {
+                int cell = link.path[step];
+                level.map[cell] = drain ? Terrain.WATER : tile;
+                if (drain && step % 4 == crossing) level.map[cell] = Terrain.EMPTY_SP;
+                if (level instanceof CityLevel || drain || level instanceof CavesLevel && Random.Int(3) == 0) {
+                    for (int offset : Level.NEIGHBOURS4) {
+                        int next = cell + offset;
+                        if (!validStep(cell, next)) continue;
+                        int x = next % Level.WIDTH, y = next / Level.WIDTH;
+                        if (x == 0 || y == 0 || x == Level.WIDTH - 1 || y == Level.HEIGHT - 1) continue;
+                        boolean inside = false;
+                        for (Room room : rooms) if (contains(room, x, y)) {
+                            inside = true;
+                            break;
+                        }
+                        if (!inside) level.map[next] = tile;
+                    }
+                }
+            }
         }
 
         boolean route(Link link) {

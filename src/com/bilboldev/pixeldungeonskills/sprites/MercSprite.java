@@ -22,10 +22,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.effects.ArcherMaidenHalo;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.scenes.GameScene;
-import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
 
 public class MercSprite extends MobSprite {
@@ -42,97 +39,43 @@ public class MercSprite extends MobSprite {
 	public MercSprite() {
 		super();
 	}
-	
-	public void updateArmor( HiredMerc.MERC_TYPES type) {
 
-        this.type = type;
-
-
-
-            switch (type) {
-                case Brute:
-                     texture(Assets.WARRIOR);
-                    break;
-                case Wizard:
-                    texture(Assets.MAGE);
-                    break;
-                case Thief:
-                    texture(Assets.ROGUE);
-                    break;
-                case Archer:  texture(Assets.HUNTRESS);
-                    break;
-                case ArcherMaiden:
-                    texture(Assets.ARCHER_MAIDEN);
-                    break;
-            }
-
-
-		TextureFilm film = new TextureFilm( HeroSprite.tiers(), type != HiredMerc.MERC_TYPES.ArcherMaiden ? 6 : 0, FRAME_WIDTH, FRAME_HEIGHT );
-		
-		idle = new Animation( 1, true );
-		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
-		
-		run = new Animation( 20, true );
-		run.frames( film, 2, 3, 4, 5, 6, 7 );
-
-		
-		attack = new Animation( 15, false );
-		attack.frames( film, 13, 14, 15, 0 );
-
-        zap = attack.clone();
-
-        die = new Animation( 20, false );
-        die.frames( film, 8, 9, 10, 11, 12, 11 );
-
-
-        operate = new Animation( 8, false );
-        operate.frames( film, 16, 17, 16, 17 );
-
-        idle();
-	}
-
-    public void updateArmor( ) {
-
-        if(false && hasHalo == false)
-        {
-            hasHalo = true;
-            add(State.ARCHERMAIDEN);
-            GameScene.effect(halo = new ArcherMaidenHalo(this));
-        }
-
-
+    public static String spritesheet(HiredMerc.MERC_TYPES type) {
         switch (type) {
-            case Brute:
-                texture(Assets.WARRIOR);
-                break;
-            case Wizard:
-                texture(Assets.MAGE);
-                break;
-            case Thief:
-                texture(Assets.ROGUE);
-                break;
+            case Brute: return Assets.MERC_BRUTE;
+            case Wizard: return Assets.MERC_WIZARD;
+            case Thief: return Assets.MERC_THIEF;
+            case Archer: return Assets.MERC_ARCHER;
+            case ArcherMaiden: return Assets.ARCHER_MAIDEN;
+            default: throw new IllegalArgumentException("Unknown mercenary");
         }
+    }
 
+    public void updateArmor(HiredMerc.MERC_TYPES type) {
+        this.type = type;
+        updateArmor(5);
+    }
 
-        TextureFilm film = new TextureFilm( HeroSprite.tiers(), type != HiredMerc.MERC_TYPES.ArcherMaiden ? ((HiredMerc)ch).getArmorTier() : 0, FRAME_WIDTH, FRAME_HEIGHT );
+    public void updateArmor() {
+        updateArmor(((HiredMerc)ch).getArmorTier());
+    }
 
-        idle = new Animation( 1, true );
-        idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
+    private void updateArmor(int tier) {
+        texture(spritesheet(type));
+        TextureFilm film = new TextureFilm(HeroSprite.tiers(),
+                type == HiredMerc.MERC_TYPES.ArcherMaiden ? 0 : tier, FRAME_WIDTH, FRAME_HEIGHT);
 
-        run = new Animation( 20, true );
-        run.frames( film, 2, 3, 4, 5, 6, 7 );
-
-        die = new Animation( 20, false );
-        die.frames( film, 8, 9, 10, 11, 12, 11 );
-
+        idle = new Animation(1, true);
+        idle.frames(film, 0, 0, 0, 1, 0, 0, 1, 1);
+        run = new Animation(20, true);
+        run.frames(film, 2, 3, 4, 5, 6, 7);
+        attack = new Animation(15, false);
+        attack.frames(film, 13, 14, 15, 0);
         zap = attack.clone();
-
-        attack = new Animation( 15, false );
-        attack.frames( film, 13, 14, 15, 0 );
-
-        operate = new Animation( 8, false );
-        operate.frames( film, 16, 17, 16, 17 );
-
+        die = new Animation(20, false);
+        die.frames(film, 8, 9, 10, 11, 12, 11);
+        operate = new Animation(8, false);
+        operate.frames(film, 16, 17, 16, 17);
         idle();
     }
 

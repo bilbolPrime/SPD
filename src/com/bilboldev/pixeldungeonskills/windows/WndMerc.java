@@ -44,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfRejuvenation;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
@@ -53,9 +54,9 @@ import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
-import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
+import com.bilboldev.pixeldungeonskills.ui.MercIcons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
@@ -134,7 +135,7 @@ public class WndMerc extends WndTabbed {
 		int slotsHeight = SLOT_SIZE * nRows + SLOT_MARGIN * (nRows - 1);
 
         IconTitle titlebar = new IconTitle();
-        titlebar.icon( new SkillSprite( Dungeon.hero.hiredMerc.mercType.getImage() ) );
+        titlebar.icon(MercIcons.portrait(Dungeon.hero.hiredMerc.mercType));
         titlebar.label( Utils.capitalize( Dungeon.hero.hiredMerc.getNameAndLevel() ) );
         titlebar.health( (float) Dungeon.hero.hiredMerc.HP / Dungeon.hero.hiredMerc.HT);
         titlebar.setRect( 0, 0, windowWidth, 0 );
@@ -407,14 +408,14 @@ public class WndMerc extends WndTabbed {
                 GameScene.selectItem(this, WndBag.Mode.WEAPON, Message.key("custom.generated.entry_equip_weapon_on_merc_10774a8f6e"));
             else  if(item instanceof Armor || item.image() == ItemSpriteSheet.ARMOR)
                 GameScene.selectItem(this, WndBag.Mode.MERC_ARMOR, Message.key("custom.generated.entry_equip_armor_on_merc_311a799114"));
-            else  if(item instanceof PotionOfHealing || item.image() == ItemSpriteSheet.POTION_PLACEHOLDER)
+            else  if(item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation || item.image() == ItemSpriteSheet.POTION_PLACEHOLDER)
                 GameScene.selectItem(this, WndBag.Mode.HEALING_POTION, Message.key("custom.generated.entry_give_potion_of_healing_76a0204f0d"));
 		}
 
 		@Override
 		protected boolean onLongClick() {
             WndMerc.this.hide();
-            if(holdOnly || item instanceof PotionOfHealing)
+            if(holdOnly || item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation)
             {
                 Dungeon.hero.hiredMerc.unEquipItem();
                 return true;
@@ -447,10 +448,8 @@ public class WndMerc extends WndTabbed {
                         item.detach(Dungeon.hero.belongings.backpack);
                     }
                     Dungeon.hero.hiredMerc.equipArmor(item);
-                }  else if(item instanceof PotionOfHealing) {
-                    item.detach(Dungeon.hero.belongings.backpack);
-
-                    Dungeon.hero.hiredMerc.equipItem(new PotionOfHealing());
+                }  else if(item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation) {
+                    Dungeon.hero.hiredMerc.equipItem(item.detach(Dungeon.hero.belongings.backpack));
                 }
                 else
                 {

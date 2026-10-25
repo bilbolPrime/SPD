@@ -14,6 +14,7 @@ import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
+import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 
 public final class WndRebornWelcome extends WndScrollable {
     private static final int PAD = 16;
@@ -53,13 +54,30 @@ public final class WndRebornWelcome extends WndScrollable {
         RenderedTextMultiline greeting = paragraph(message, 9, 0xE8E1F0, textWidth);
         greeting.setPos(PAD, 0);
         content.add(greeting);
-        RenderedTextMultiline description = paragraph(Messages.get(WndWelcome.class, "reborn"),
-                9, 0xBEB1CC, textWidth);
-        description.setPos(PAD, greeting.bottom() + 12);
-        content.add(description);
-        content.setSize(width - SCROLL_GUTTER, description.bottom() + PAD);
+        float bottom = greeting.bottom();
+        if (Game.isFreeDesktop()) {
+            RenderedTextMultiline notice = paragraph(Messages.get(WndWelcome.class, "free_desktop"),
+                    9, 0xE8E1F0, textWidth);
+            notice.setPos(PAD, bottom + 12);
+            content.add(notice);
+            bottom = notice.bottom();
+        }
+        content.setSize(width - SCROLL_GUTTER, bottom + PAD);
 
-        layoutContent(width, header, content, 0);
+        if (Game.isFreeDesktop()) {
+            SteamPageButton steam = new SteamPageButton();
+            Component footer = new Component() {
+                @Override
+                protected void layout() {
+                    steam.setRect(left() + PAD, top(), width() - PAD * 2, 22);
+                }
+            };
+            footer.add(steam);
+            footer.setSize(width, 22 + PAD);
+            layoutContent(width, header, content, footer, 0);
+        } else {
+            layoutContent(width, header, content, 0);
+        }
         decorateFrame(frame, width, height);
     }
 

@@ -248,9 +248,9 @@ public enum GauntletProfile {
                         : new Item[]{new Longsword(), new BattleAxe()};
                 break;
             case HUNTRESS:
-                options = stage == 0 ? new Item[]{new Bow(), new Boomerang()}
-                        : stage == 1 ? new Item[]{new FrostBow(), new Boomerang()}
-                        : new Item[]{new FrostBow(), new FlameBow(), new Boomerang()};
+                options = stage == 0 ? new Item[]{new Bow()}
+                        : stage == 1 ? new Item[]{new FrostBow()}
+                        : new Item[]{new FrostBow(), new FlameBow()};
                 break;
             case NECROMANCER:
                 options = stage == 0 ? new Item[]{new WandOfPoison(), new WandOfMagicMissile()}

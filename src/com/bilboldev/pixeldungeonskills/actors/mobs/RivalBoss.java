@@ -45,6 +45,13 @@ public abstract class RivalBoss extends RebornBoss {
     protected abstract int[] health();
     protected abstract Skill abilityName();
 
+    @Override
+    public RivalSprite sprite() {
+        RivalSprite sprite = (RivalSprite)super.sprite();
+        sprite.appearance(heroClass(), tier());
+        return sprite;
+    }
+
     public boolean meleeWarning() {
         return false;
     }
@@ -116,8 +123,10 @@ public abstract class RivalBoss extends RebornBoss {
                 break;
             }
         }
-        GameScene.bossRemains(floor, cell);
-        PartySession.bossRemains(floor, cell);
+        if (!RebornChallenges.doubleBoss()) {
+            GameScene.bossRemains(floor, cell);
+            PartySession.bossRemains(floor, cell);
+        }
         String[] taunts = {"glory", "first", "late"};
         yell(Message.key(RivalBoss.class, taunts[Random.Int(taunts.length)]));
         notice();
@@ -140,7 +149,7 @@ public abstract class RivalBoss extends RebornBoss {
     }
 
     protected final int nextAbility() {
-        int count = phase == 0 ? 1 : phase == 1 ? Math.min(tier(), 2) : tier();
+        int count = abilityPhase() == 0 ? 1 : abilityPhase() == 1 ? Math.min(tier(), 2) : tier();
         return attacks % count;
     }
 
@@ -189,7 +198,7 @@ public abstract class RivalBoss extends RebornBoss {
     @Override
     protected void recover(int actions) {
         super.recover(actions);
-        cooldown = Math.max(actions, cooldown - phase);
+        cooldown = Math.max(actions, cooldown - abilityPhase());
     }
 
     @Override
@@ -303,9 +312,14 @@ public abstract class RivalBoss extends RebornBoss {
     @Override
     public void die(Object cause) {
         if (defeated) return;
-        if (Dungeon.level instanceof SewerBossLevel) ((SewerBossLevel)Dungeon.level).unseal();
-        if (floor == 10) Dungeon.level.drop(new TomeOfMastery(), pos).sprite.drop();
-        if (floor == 20) Dungeon.level.drop(new ArmorKit(), pos).sprite.drop();
+        if (!RebornChallenges.doubleBoss()) {
+            if (Dungeon.level instanceof SewerBossLevel) ((SewerBossLevel)Dungeon.level).unseal();
+            if (floor == 10) {
+                Dungeon.level.drop(new TomeOfMastery(), pos, this).sprite.drop();
+                IceCaves.dropScroll(this);
+            }
+            if (floor == 20) Dungeon.level.drop(new ArmorKit(), pos, this).sprite.drop();
+        }
         super.die(cause);
     }
 

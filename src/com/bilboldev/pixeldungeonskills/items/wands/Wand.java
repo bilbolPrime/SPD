@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.wands;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -250,7 +252,13 @@ public abstract class Wand extends KindOfWeapon {
 		}
 	}
 
-	protected boolean isKnown() {
+	@Override
+	public int image() {
+		return Dungeon.rules().mode == GameplayMode.REBORN && isKnown()
+				? ItemSpriteSheet.identifiedImage(getClass(), image) : image;
+	}
+
+	public boolean isKnown() {
 		return handler.isKnown( this );
 	}
 
@@ -298,9 +306,15 @@ public abstract class Wand extends KindOfWeapon {
 
 	@Override
 	public String info() {
-		StringBuilder info = new StringBuilder( isKnown() ? desc() : Messages.maybeTranslate( TXT_WOOD, wood ) );
-		if (Dungeon.hero.heroClass == HeroClass.MAGE || Dungeon.hero.heroClass == HeroClass.NECROMANCER) {
-			String battlemageDesc = isKnown() ? message( "bmage_desc" ) : null;
+		return info(Dungeon.hero);
+	}
+
+	@Override
+	public String info(Hero viewer) {
+		boolean known = viewer == null || isKnown();
+		StringBuilder info = new StringBuilder( known ? desc() : Messages.maybeTranslate( TXT_WOOD, wood ) );
+		if (viewer == null || viewer.heroClass == HeroClass.MAGE || viewer.heroClass == HeroClass.NECROMANCER) {
+			String battlemageDesc = viewer != null && known ? message( "bmage_desc" ) : null;
 			if (battlemageDesc != null) {
 				info.append( "\n\n" );
 				info.append( battlemageDesc );
@@ -358,7 +372,7 @@ public abstract class Wand extends KindOfWeapon {
 		return 6 * (lvl < 16 ? 16 - lvl : 1);
 	}
 
-	protected void updateLevel() {
+	public void updateLevel() {
 		maxCharges = Math.min( initialCharges() + level(), 9 );
 		curCharges = Math.min( curCharges, maxCharges );
 	}
@@ -461,9 +475,15 @@ public abstract class Wand extends KindOfWeapon {
 
 				final Wand curWand = (Wand)Wand.curItem;
 
-				curWand.setKnown();
+				boolean closeRange = RebornChallenges.active(RebornChallenges.POINT_BLANK)
+                        && !(curWand instanceof WandOfBlink) && !(curWand instanceof WandOfTeleportation)
+                        && !(curWand instanceof WandOfRegrowth) && !(curWand instanceof WandOfFlock)
+                        && !(curWand instanceof WandOfReach);
+                if (closeRange && !RebornChallenges.targetAllowed(curUser, target)) return;
+                curWand.setKnown();
 
-				final int cell = Ballistica.cast( curUser.pos, target, true, curWand.hitChars );
+				final int cell = Ballistica.cast(curUser.pos, target, !closeRange, curWand.hitChars);
+                if (closeRange) Ballistica.distance = Math.min(2, Ballistica.distance);
 				curUser.sprite.zap( cell, curWand );
 
 				QuickSlot.target( curItem, Actor.findChar( cell ) );

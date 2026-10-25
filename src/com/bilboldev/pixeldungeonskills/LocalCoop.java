@@ -10,6 +10,7 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroAction;
@@ -55,6 +56,8 @@ public final class LocalCoop {
         WandOfMagicCasting wand = new WandOfMagicCasting();
         Runnable command;
         boolean pendingCommand;
+        boolean following;
+        boolean followPaused;
         Skills skills;
         Bundle pendingActions;
 
@@ -253,7 +256,7 @@ public final class LocalCoop {
     public static void beforeActor(Actor actor) {
         if (actor instanceof Hero && contains((Hero)actor)) {
             Hero acting = (Hero)actor;
-            if (!PartySession.network()) selected = acting;
+            if (!PartySession.network() && !following(acting)) selected = acting;
             activate(acting);
             if (!PartySession.network() || acting == PartySession.localHero()) GameScene.coopHeroChanged(false);
         } else if (actor instanceof Buff && ((Buff)actor).target instanceof Hero) {
@@ -273,6 +276,7 @@ public final class LocalCoop {
     }
 
     public static boolean defer(Hero hero, Runnable command) {
+        pauseFollowing(hero);
         if (!contains(hero) || runningCommand || isTurn(hero)) return false;
         Controls state = controls.get(hero);
         state.command = command;
@@ -303,6 +307,114 @@ public final class LocalCoop {
             state.command = null;
             state.pendingCommand = false;
         }
+    }
+
+    public static boolean following(Hero hero) {
+        Controls state = controls.get(hero);
+        return state != null && state.following && !state.followPaused;
+    }
+
+    public static boolean wantsToFollow(Hero hero) {
+        Controls state = controls.get(hero);
+        return state != null && state.following;
+    }
+
+    public static void pauseFollowing(Hero hero) {
+        Controls state = controls.get(hero);
+        if (state == null || !state.following) return;
+        state.followPaused = true;
+        if (!PartySession.network() && Actor.current() == hero) selected = hero;
+    }
+
+    public static void updateFollowing() {
+        if (PartySession.client()) return;
+        for (Hero hero : party) updateFollowing(hero);
+    }
+
+    public static void updateFollowing(Hero hero) {
+        Controls state = controls.get(hero);
+        if (state == null || !state.following) return;
+        Hero leader = partner(hero);
+        if (!hero.isAlive() || leader == null || !leader.isAlive()) {
+            stopFollowing(hero);
+            return;
+        }
+        for (Mob mob : Dungeon.level.mobs) {
+            if (mob.hostile && mob.isAlive() && Dungeon.visible[mob.pos]) {
+                pauseFollowing(hero);
+                return;
+            }
+        }
+        if (hero.paralysed || hero.rooted || hero.buff(Vertigo.class) != null
+                || hero.curAction != null || hero.restoreHealth || hasCommand(hero)) {
+            pauseFollowing(hero);
+            return;
+        }
+        if (state.followPaused && hero.followStep() != -1) {
+            state.followPaused = false;
+            if (isTurn(hero)) {
+                hero.ready = false;
+                hero.next();
+            }
+            if (!PartySession.network()) {
+                selected = leader;
+                GameScene.coopHeroChanged(false);
+            }
+        }
+    }
+
+    public static void stopFollowing(Hero hero) {
+        Controls state = controls.get(hero);
+        if (state == null || !state.following) return;
+        state.following = false;
+        state.followPaused = false;
+        if (!PartySession.network() && Actor.current() == hero) selected = hero;
+    }
+
+    public static boolean follow(Hero hero) {
+        if (!contains(hero) || !hero.isAlive()) return false;
+        Hero leader = partner(hero);
+        if (leader == null || !leader.isAlive() || wantsToFollow(leader)) return false;
+        cancelCommand(hero);
+        hero.curAction = hero.lastAction = null;
+        hero.restoreHealth = false;
+        controls.get(hero).following = true;
+        controls.get(hero).followPaused = false;
+        hero.ready = false;
+        hero.next();
+        if (!PartySession.network()) {
+            selected = leader;
+            activate(leader);
+            GameScene.coopHeroChanged(false);
+        }
+        return true;
+    }
+
+    public static void swapPlaces(Hero hero) {
+        if (!contains(hero) || !hero.isAlive()) return;
+        Hero other = partner(hero);
+        if (other == null || !other.isAlive() || !Level.adjacent(hero.pos, other.pos)
+                || hero.rooted || other.rooted || hero.paralysed || other.paralysed
+                || hero.buff(Vertigo.class) != null || other.buff(Vertigo.class) != null
+                || !Level.passable[hero.pos] || !Level.passable[other.pos]
+                || Level.avoid[hero.pos] || Level.avoid[other.pos]
+                || Level.pit[hero.pos] || Level.pit[other.pos]) {
+            GLog.w("windows.wndpartneractions.swap_blocked");
+            return;
+        }
+        if (defer(hero, () -> swapPlaces(hero))) return;
+        hero.interrupt();
+        other.interrupt();
+        int from = hero.pos, to = other.pos;
+        hero.busy();
+        withHero(hero, () -> hero.move(to));
+        withHero(other, () -> other.move(from));
+        Actor.occupyCell(hero);
+        Actor.occupyCell(other);
+        hero.spend(1 / hero.speed());
+        other.sprite.move(to, from);
+        hero.sprite.move(from, to);
+        Dungeon.observe();
     }
 
     public static boolean hasCommand(Hero hero) {
@@ -374,6 +486,8 @@ public final class LocalCoop {
                 state.put("resting", hero.restoreHealth);
                 state.put("reborn_actions", hero.rebornActions);
                 state.put("command_pending", hasCommand(hero));
+                state.put("following", wantsToFollow(hero));
+                state.put("follow_paused", controls.get(hero).followPaused);
                 state.put("action", storeAction(hero.curAction));
                 state.put("last_action", storeAction(hero.lastAction));
                 Char target = QuickSlot.lastTarget();
@@ -458,6 +572,8 @@ public final class LocalCoop {
             Controls owner = new Controls();
             owner.capture();
             owner.pendingCommand = state.getBoolean("command_pending");
+            owner.following = state.getBoolean("following");
+            owner.followPaused = state.getBoolean("follow_paused");
             owner.pendingActions = state;
             controls.put(hero, owner);
             restored[i] = hero;

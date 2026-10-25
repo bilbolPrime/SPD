@@ -48,6 +48,10 @@ import java.util.Properties;
 
 public class Game extends ApplicationAdapter {
 
+    public static boolean isFreeDesktop() {
+        return true;
+    }
+
     public static final int MODE_PRIVATE = 0;
     public static final String VIBRATOR_SERVICE = "vibrator";
 
@@ -60,8 +64,8 @@ public class Game extends ApplicationAdapter {
     public static float density = 1f;
 
     private static final Properties BUILD_VERSION = loadBuildVersion();
-    public static String version = BUILD_VERSION.getProperty("name", "2.1.0");
-    public static int versionBuild = Integer.parseInt(BUILD_VERSION.getProperty("code", "143"));
+    public static String version = BUILD_VERSION.getProperty("name", "2.2.0");
+    public static int versionBuild = Integer.parseInt(BUILD_VERSION.getProperty("code", "144"));
     public static String vanillaVersion = "Vanilla PD v 1.9.2a";
 
     public static float timeScale = 1f;
@@ -230,8 +234,8 @@ public class Game extends ApplicationAdapter {
             scene.destroy();
             scene = null;
         }
-        instance = null;
-        mContext = null;
+        if (instance == this) instance = null;
+        if (mContext == this) mContext = null;
     }
 
     public static void resetScene() {
@@ -250,7 +254,8 @@ public class Game extends ApplicationAdapter {
     }
 
     public static Scene scene() {
-        return instance.scene;
+        Game game = instance;
+        return game == null ? null : game.scene;
     }
 
     protected Class<? extends Scene> resolveScene(Class<? extends Scene> sceneClass) {
@@ -262,10 +267,10 @@ public class Game extends ApplicationAdapter {
             requestedReset = false;
             try {
                 requestedScene = resolveScene(sceneClass).newInstance();
-                switchScene();
-            } catch (Exception exception) {
-                exception.printStackTrace();
+            } catch (InstantiationException | IllegalAccessException exception) {
+                throw new IllegalStateException("Cannot create scene " + sceneClass.getName(), exception);
             }
+            switchScene();
         }
 
         update();

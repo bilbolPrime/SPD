@@ -24,9 +24,12 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
+import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 
 public class ScrollOfEnchantment extends InventoryScroll {
 
@@ -39,6 +42,24 @@ public class ScrollOfEnchantment extends InventoryScroll {
 	}
 
 	@Override
+	protected boolean accepts(Item item) {
+		if (item instanceof IceWeapon) {
+			GLog.w("items.weapon.ice.already_enchanted");
+			GameScene.show(new WndMessage(Message.key("items.weapon.ice.already_enchanted")));
+			return false;
+		}
+		return true;
+	}
+
+    @Override
+    protected Message itemWarning(Item item) {
+        boolean enchanted = item instanceof Weapon && ((Weapon)item).isEnchanted()
+                || item instanceof Armor && ((Armor)item).glyph != null
+                || item instanceof Bow && item.getClass() != Bow.class;
+        return enchanted ? Message.key(ScrollOfEnchantment.class, "replace") : null;
+    }
+
+    @Override
 	protected void onItemSelected( Item item ) {
 
 		ScrollOfRemoveCurse.uncurse( Dungeon.hero, item );

@@ -15,7 +15,8 @@ public final class PartyParticles {
             EnergyParticle.FACTORY, FlowParticle.FACTORY, LeafParticle.LEVEL_SPECIFIC,
             SacrificialParticle.FACTORY, PoisonParticle.SPLASH, PurpleParticle.BURST, ShadowParticle.CURSE,
             ShadowParticle.UP, ShaftParticle.FACTORY, SmokeParticle.FACTORY, SnowParticle.FACTORY,
-            SparkParticle.FACTORY, WebParticle.FACTORY, WindParticle.FACTORY
+            SparkParticle.FACTORY, WebParticle.FACTORY, WindParticle.FACTORY,
+            IceParticle.SHARDS, IceParticle.SPIKES, IceParticle.MIST
     };
 
     private PartyParticles() { }

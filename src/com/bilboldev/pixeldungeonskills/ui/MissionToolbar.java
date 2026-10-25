@@ -121,10 +121,10 @@ public class MissionToolbar extends Component {
                 ;
             });
 
-        add(btnMerc = new Tool(252, 7, 20, 25) {
+        add(btnMerc = new Tool(Assets.MERC_ICONS, 0, 32, 20, 25) {
             @Override
             protected void onClick() {
-                if(InterlevelScene.missionChosen == 0){
+            	if(InterlevelScene.missionChosen == 0){
 					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
 				}
 				if(InterlevelScene.missionChosen == 1) {
@@ -332,8 +332,13 @@ public class MissionToolbar extends Component {
 		protected Image base;
 
 		public Tool( int x, int y, int width, int height ) {
+			this(Assets.TOOLBAR, x, y, width, height);
+		}
+
+		public Tool(Object asset, int x, int y, int width, int height) {
 			super();
 
+			base.texture(asset);
 			base.frame( x, y, width, height );
 
 			this.width = width;

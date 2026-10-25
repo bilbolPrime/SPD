@@ -22,24 +22,27 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.utils.Random;
 
 public class SheepSprite extends MobSprite {
-	
+
 	public SheepSprite() {
 		super();
-		
+
 		texture( Assets.SHEEP );
-		
+
 		TextureFilm frames = new TextureFilm( texture, 16, 15 );
-		
-		idle = new Animation( 8, true );
-		idle.frames( frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0 );
-		
-		run = idle.clone();	
+
+		idle = idleAnimation(frames);
+
+		run = idle.clone();
 		attack = idle.clone();
-		
+
 		die = new Animation( 20, false );
 		die.frames( frames, 0 );
-		
+
 		play( idle );
 		curFrame = Random.Int( curAnim.frames.length );
+	}
+
+	public static Animation idleAnimation(TextureFilm frames) {
+		return new Animation(8, true).frames(frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0);
 	}
 }

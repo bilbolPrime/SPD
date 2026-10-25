@@ -101,11 +101,11 @@ public class RebornDM300 extends RebornBoss {
             if (!contains(jet, Dungeon.hero.pos)) return false;
             for (int cell : jet) cells.add(cell);
 
-            if (phase > 0) for (int cell : cone(pos, Dungeon.hero.pos, 3))
+            if (abilityPhase() > 0) for (int cell : cone(pos, Dungeon.hero.pos, 3))
                 if (!cells.contains(cell)) cells.add(cell);
             return warn(STEAM, pos, array(cells));
         }
-        if (heat < (phase == 0 ? 3 : 2)) return false;
+        if (heat < (abilityPhase() == 0 ? 3 : 2)) return false;
         int[] cells = ray(pos, Dungeon.hero.pos, 8);
         if (!contains(cells, Dungeon.hero.pos)) return false;
         int end = cells[cells.length - 1];
@@ -170,7 +170,7 @@ public class RebornDM300 extends RebornBoss {
             ventPending = false;
             heat = 0;
             recover(1);
-            cooldown = phase == 0 ? 3 : 2;
+            cooldown = abilityPhase() == 0 ? 3 : 2;
         }
     }
 

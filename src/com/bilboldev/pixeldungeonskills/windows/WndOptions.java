@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import com.bilboldev.noosa.NinePatch;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -29,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 
@@ -46,9 +48,19 @@ public class WndOptions extends WndScrollable {
     private final String messageText;
 
     public WndOptions(Message title, Message message, Message... options) {
-        this(title.toString(), message.toString(), labels(options));
+        this(null, title, message, options);
+    }
+
+    public WndOptions(Image icon, Message title, Message message, Message... options) {
+        this(icon, title.toString(), message.toString(), 1, false, labels(options));
         menuModel = new MenuModel(title, message);
         for (int i = 0; i < options.length; i++) menuModel.add(i, options[i]);
+    }
+
+    public WndOptions(Image icon, Message title, Message message, Message[] options, int[] images, int[] quantities) {
+        this(icon, title.toString(), message.toString(), 2, false, images, quantities, labels(options));
+        menuModel = new MenuModel(title, message);
+        for (int i = 0; i < options.length; i++) menuModel.add(i, options[i], images[i], quantities[i]);
     }
 
     private static String[] labels(Message[] options) {
@@ -62,25 +74,32 @@ public class WndOptions extends WndScrollable {
     }
 
     public WndOptions(Image icon, String title, String message, String... options) {
-        this(icon, title, message, 1, options);
+        this(icon, title, message, 1, true, options);
     }
 
     public WndOptions(String title, String message, int columns, String... options) {
-        this(null, title, message, columns, options);
+        this(null, title, message, columns, true, options);
     }
 
-    private WndOptions(Image icon, String title, String message, int columns, String... options) {
+    protected WndOptions(Image icon, String title, String message, int columns, boolean localize, String... options) {
+        this(icon, title, message, columns, localize, null, null, options);
+    }
+
+    protected WndOptions(Image icon, String title, String message, int columns, boolean localize,
+                         int[] images, int[] quantities, String... options) {
         super();
-        headingText = title == null ? "" : Messages.maybeTranslate(title);
-        messageText = message == null ? "" : Messages.maybeTranslate(message);
+        headingText = title == null ? "" : localize ? Messages.maybeTranslate(title) : title;
+        messageText = message == null ? "" : localize ? Messages.maybeTranslate(message) : message;
         columns = Math.max(1, columns);
-        int windowWidth = boundedWidth(WIDTH * columns);
+        int windowWidth = boundedWidth(images == null ? WIDTH * columns : WIDTH);
         int bodyWidth = Math.max(1, textWidth(windowWidth) - MARGIN * 2);
         int buttonWidth = Math.max(1, (bodyWidth - MARGIN * (columns - 1)) / columns);
+        if (images != null) buttonWidth = Math.min(40, buttonWidth);
 
         Component heading = null;
         if (title != null && !title.isEmpty()) {
-            RenderedTextMultiline label = PixelScene.renderMultiline(Messages.maybeTranslate(title), TITLE_TEXT_SIZE);
+            RenderedTextMultiline label = PixelScene.renderMultiline(null, TITLE_TEXT_SIZE);
+            label.text(headingText, false);
             applyTextScale(label, titleTextScale());
             label.hardlight(titleColor());
             label.maxWidth(windowWidth - MARGIN * 2);
@@ -103,7 +122,8 @@ public class WndOptions extends WndScrollable {
         Component content = new Component();
         float pos = 0;
         if (message != null && !message.isEmpty()) {
-            RenderedTextMultiline explanation = PixelScene.renderMultiline(Messages.maybeTranslate(message), MESSAGE_TEXT_SIZE);
+            RenderedTextMultiline explanation = PixelScene.renderMultiline(null, MESSAGE_TEXT_SIZE);
+            explanation.text(messageText, false);
             applyTextScale(explanation, messageTextScale());
             explanation.maxWidth(bodyWidth);
             explanation.setPos(MARGIN, 0);
@@ -111,10 +131,10 @@ public class WndOptions extends WndScrollable {
             pos = explanation.bottom() + MARGIN;
         }
 
-        float cardHeight = BUTTON_HEIGHT;
+        float cardHeight = images == null ? BUTTON_HEIGHT : buttonWidth;
         for (int i = 0; i < options.length; i++) {
             final int index = i;
-            OptionButton button = new OptionButton(options[i], buttonTextScale(), shouldTranslateOptionLabels()) {
+            OptionButton button = new OptionButton(options[i], buttonTextScale(), localize && shouldTranslateOptionLabels()) {
                 @Override
                 protected void onClick() {
                     hide();
@@ -122,8 +142,13 @@ public class WndOptions extends WndScrollable {
                 }
             };
             int optionWidth = fullWidthOption(i) ? bodyWidth : buttonWidth;
-            button.setRect(MARGIN, pos, optionWidth, BUTTON_HEIGHT);
-            button.setSize(optionWidth, Math.max(BUTTON_HEIGHT, (float)Math.ceil(button.text.height()) + MARGIN * 2));
+            if (images == null) {
+                button.setRect(MARGIN, pos, optionWidth, BUTTON_HEIGHT);
+                button.setSize(optionWidth, Math.max(BUTTON_HEIGHT, (float)Math.ceil(button.text.height()) + MARGIN * 2));
+            } else {
+                button.showItem(images[i], quantities[i]);
+                button.setRect(MARGIN, pos, buttonWidth, buttonWidth);
+            }
             cardHeight = Math.max(cardHeight, button.height());
             content.add(button);
             buttons.add(button);
@@ -131,10 +156,12 @@ public class WndOptions extends WndScrollable {
         }
         if (columns > 1) {
             int cell = 0;
+            float left = images == null ? MARGIN
+                    : MARGIN + (bodyWidth - columns * buttonWidth - MARGIN * (columns - 1)) / 2f;
             for (int i = 0; i < buttons.size(); i++) {
                 boolean fullWidth = fullWidthOption(i);
                 if (fullWidth && cell % columns != 0) cell += columns - cell % columns;
-                buttons.get(i).setRect(MARGIN + (cell % columns) * (buttonWidth + MARGIN),
+                buttons.get(i).setRect(left + (cell % columns) * (buttonWidth + MARGIN),
                         pos + (cell / columns) * (cardHeight + MARGIN), fullWidth ? bodyWidth : buttonWidth, cardHeight);
                 cell += fullWidth ? columns : 1;
             }
@@ -209,11 +236,23 @@ public class WndOptions extends WndScrollable {
     private static class OptionButton extends Component {
         private NinePatch bg;
         private RenderedTextMultiline text;
+        private ItemSprite item;
+        private BitmapText amount;
 
         OptionButton(String label, float textScale, boolean localize) {
             super();
             applyTextScale(text, textScale);
             text.text(label, localize);
+        }
+
+        void showItem(int image, int quantity) {
+            text.visible = false;
+            item = new ItemSprite(image, null);
+            item.scale.set(2);
+            add(item);
+            amount = new BitmapText(quantity > 1 ? Integer.toString(quantity) : "", PixelScene.font1x);
+            amount.measure();
+            add(amount);
         }
 
         boolean click(float x, float y) {
@@ -239,6 +278,12 @@ public class WndOptions extends WndScrollable {
             text.maxWidth(Math.max(1, (int)width - MARGIN * 2));
             text.setPos(PixelScene.align(x + (width - text.width()) / 2f),
                     PixelScene.align(y + (height - text.height()) / 2f));
+            if (item != null) {
+                item.x = PixelScene.align(x + (width - item.width()) / 2f);
+                item.y = PixelScene.align(y + (height - item.height()) / 2f);
+                amount.x = PixelScene.align(x + width - amount.width() - MARGIN);
+                amount.y = PixelScene.align(y + MARGIN);
+            }
         }
 
         protected void onClick() {}

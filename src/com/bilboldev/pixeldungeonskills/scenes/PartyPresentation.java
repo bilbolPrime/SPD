@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,9 +79,9 @@ public final class PartyPresentation {
 
         public Update(Bundle incoming, int sequence) {
             this.sequence = sequence;
-            if (run != PartySession.runIdentity() || depth != Dungeon.depth) clear();
+            if (run != PartySession.runIdentity() || depth != Dungeon.levelKey()) clear();
             run = PartySession.runIdentity();
-            depth = Dungeon.depth;
+            depth = Dungeon.levelKey();
             for (Hero hero : LocalCoop.heroes()) actors.put(hero.id(), hero);
             for (Mob mob : level.mobs) actors.put(mob.id(), mob);
             captureDeaths(incoming);
@@ -225,14 +226,14 @@ public final class PartyPresentation {
     }
 
     public static void capture(Bundle incoming) {
-        if (run != PartySession.runIdentity() || depth != Dungeon.depth) clear();
+        if (run != PartySession.runIdentity() || depth != Dungeon.levelKey()) clear();
         previous.clear();
         direction = null;
         scroll = null;
         run = PartySession.runIdentity();
         if (!PartySession.client() || !(Game.scene() instanceof GameScene) || Dungeon.level == null) return;
         remains = GameScene.takeBossRemains();
-        depth = Dungeon.depth;
+        depth = Dungeon.levelKey();
         for (Hero hero : LocalCoop.heroes()) {
             remember(hero);
         }
@@ -249,7 +250,7 @@ public final class PartyPresentation {
     }
 
     private static void captureDeaths(Bundle incoming) {
-        if (incoming != null && incoming.getInt("depth") == depth && incoming.contains("dead_mobs")) {
+        if (incoming != null && IceCaves.levelKey(incoming) == depth && incoming.contains("dead_mobs")) {
             int[] ids = incoming.getIntArray("dead_mobs"), cells = incoming.getIntArray("dead_cells");
             for (int i = 0; i < ids.length; i++) {
                 Actor actor = Actor.findById(ids[i]);
@@ -263,7 +264,7 @@ public final class PartyPresentation {
     }
 
     public static void restore() {
-        if (!PartySession.client() || run != PartySession.runIdentity() || depth != Dungeon.depth) {
+        if (!PartySession.client() || run != PartySession.runIdentity() || depth != Dungeon.levelKey()) {
             clear();
             return;
         }

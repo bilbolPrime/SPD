@@ -220,12 +220,25 @@ public final class AndroidNetworkAccess implements NetworkAccess.Backend, PartyP
     @Override
     public void paste(PartyPrompts.Result result) {
         Activity current = activity;
-        if (current == null) return;
+        if (current == null) {
+            result.complete(null);
+            return;
+        }
         current.runOnUiThread(() -> {
-            if (activity != current) return;
-            ClipboardManager clipboard = (ClipboardManager)current.getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = clipboard == null ? null : clipboard.getPrimaryClip();
-            result.complete(clip == null || clip.getItemCount() == 0 ? "" : clip.getItemAt(0).coerceToText(current).toString());
+            if (activity != current) {
+                result.complete(null);
+                return;
+            }
+            String text = null;
+            try {
+                ClipboardManager clipboard = (ClipboardManager)current.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = clipboard == null ? null : clipboard.getPrimaryClip();
+                CharSequence value = clip == null || clip.getItemCount() == 0 ? null : clip.getItemAt(0).getText();
+                if (value != null && value.length() <= 4096) text = value.toString();
+            } catch (RuntimeException unavailable) {
+
+            }
+            result.complete(text);
         });
     }
 

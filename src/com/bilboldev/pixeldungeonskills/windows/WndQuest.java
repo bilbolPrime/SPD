@@ -26,7 +26,6 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import java.util.ArrayList;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class WndQuest extends WndScrollable {
 
@@ -49,7 +48,7 @@ public class WndQuest extends WndScrollable {
 
 		int width = boundedWidth(InspectionTitle.windowWidth(landscapeLayout() ? WIDTH_L : WIDTH_P));
 
-		Component titlebar = InspectionTitle.create(questgiver.sprite(), Utils.capitalize(questgiver.name));
+		Component titlebar = InspectionTitle.create(questgiver.sprite(), menuModel.title.toString());
 		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
 

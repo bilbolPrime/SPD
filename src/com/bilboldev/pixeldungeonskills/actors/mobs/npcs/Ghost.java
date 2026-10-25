@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
+import java.util.Locale;
 
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
@@ -26,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Journal;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -296,12 +298,13 @@ public class Ghost extends NPC {
 			}
 		}
 
-		public static void processSewersKill( int pos ) {
+		public static void processSewersKill( Mob source ) {
+			int pos = source.pos;
 			if (spawned && given && !processed && (depth == Dungeon.depth)) {
 				switch (type) {
 				case ROSE:
 					if (Random.Int( left2kill ) == 0) {
-						Dungeon.level.drop( new DriedRose(), pos ).sprite.drop();
+						Dungeon.level.drop( new DriedRose(), pos, source ).sprite.drop();
 						processed = true;
 					} else {
 						left2kill--;
@@ -323,8 +326,15 @@ public class Ghost extends NPC {
 		public static void complete() {
 			weapon = null;
 			armor = null;
+			updateLore();
 
 			Journal.remove( Journal.Feature.GHOST );
+		}
+
+		public static void updateLore() {
+			if (spawned && given) {
+				Lore.quest("ghost_" + type.name().toLowerCase(Locale.ROOT), weapon == null && armor == null);
+			}
 		}
 	}
 
@@ -380,6 +390,7 @@ public class Ghost extends NPC {
 			} else {
 				GameScene.show( new WndQuest(ghost, Message.key("custom.generated.entry_hello_adventurer_once_i_was_like_you_strong_and_4a48502b06")) );
 				Quest.given = true;
+				Quest.updateLore();
 
 				Journal.add( Journal.Feature.GHOST );
 			}
@@ -414,6 +425,7 @@ public class Ghost extends NPC {
 			} else {
 				GameScene.show( new WndQuest(ghost, Message.key("custom.generated.entry_hello_adventurer_once_i_was_like_you_strong_and_bf5814b447")) );
 				Quest.given = true;
+				Quest.updateLore();
 
 				Journal.add( Journal.Feature.GHOST );
 			}
@@ -446,6 +458,7 @@ public class Ghost extends NPC {
 					protected void onSelect( int index ) {
 						if (index == 0) {
 							Quest.given = true;
+							Quest.updateLore();
 
 							CursePersonification d = new CursePersonification();
 							Ghost.replace( ghost, d );

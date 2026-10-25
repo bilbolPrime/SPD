@@ -44,7 +44,7 @@ public class BossWarnings extends Group {
             if (mob instanceof RebornBoss) {
                 RebornBoss boss = (RebornBoss)mob;
                 for (int cell : boss.residueCells()) if (!Level.water[cell]) decorate(cell, boss.pos, boss.residueKind(), true, 1);
-                if (boss.showsWarning() && !(boss instanceof RivalBoss && ((RivalBoss)boss).meleeWarning())) {
+                if (boss.showsWarning() && !boss.meleeWarning()) {
                     int kind = boss.warningKind();
                     int[] warning = boss.warningCells();
                     int from = boss.warningOrigin();
@@ -54,6 +54,8 @@ public class BossWarnings extends Group {
                     for (int cell : warning) decorate(cell, from, kind, false, reach);
                 }
                 if (boss.opening()) opening(boss.pos);
+            } else if (mob instanceof IceMob && !((IceMob)mob).meleeWarning()) {
+                for (int cell : ((IceMob)mob).warningCells()) decorate(cell, mob.pos, RebornBoss.ORDER, false, 5);
             } else if (mob instanceof RebornTengu && ((RebornTengu)mob).opening()) opening(mob.pos);
         }
         for (int i = count; i < pool.size(); i++) pool.get(i).visible = false;

@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
 import com.bilboldev.utils.Random;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ final class RebornLayout {
         ArrayList<Room> leaves = new ArrayList<>();
         ArrayList<Room.Type> roles = new ArrayList<>();
         if (Dungeon.shopOnLevel()) roles.add(Room.Type.SHOP);
-        if (!LocalCoop.active() && MercenaryRecruitment.campFloor(Dungeon.depth)) roles.add(Room.Type.MERCENARY);
+        if ((RunSeed.active() || !LocalCoop.active()) && MercenaryRecruitment.campFloor(Dungeon.depth)) roles.add(Room.Type.MERCENARY);
 
         int specials = Level.pitRoomNeeded ? 3 : 2;
         for (int i = 0; i < specials; i++) roles.add(Room.Type.NULL);

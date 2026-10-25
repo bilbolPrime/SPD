@@ -55,13 +55,13 @@ public class EmoIcon extends Image {
 		if (visible) {
             if(!(this instanceof RatFlag)) {
                 if (growing) {
-                    scale.set(scale.x + Game.elapsed * timeScale);
-                    if (scale.x > maxSize) {
+                    scale.set(Math.min(maxSize, scale.x + Game.elapsed * timeScale));
+                    if (scale.x >= maxSize) {
                         growing = false;
                     }
                 } else {
-                    scale.set(scale.x - Game.elapsed * timeScale);
-                    if (scale.x < 1) {
+                    scale.set(Math.max(1, scale.x - Game.elapsed * timeScale));
+                    if (scale.x <= 1) {
                         growing = true;
                     }
                 }

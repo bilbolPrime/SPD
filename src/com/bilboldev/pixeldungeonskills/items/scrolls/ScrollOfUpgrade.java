@@ -23,6 +23,8 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.armor.Armor;
+import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 
@@ -36,7 +38,15 @@ public class ScrollOfUpgrade extends InventoryScroll {
 		mode = WndBag.Mode.UPGRADEABLE;
 	}
 
-	@Override
+    @Override
+    protected Message itemWarning(Item item) {
+        if (item.isBroken() || item.levelKnown && item.level() < 2) return null;
+        boolean enchanted = item instanceof Weapon && ((Weapon)item).isEnchanted()
+                || item instanceof Armor && ((Armor)item).glyph != null;
+        return enchanted ? Message.key(ScrollOfUpgrade.class, "erase") : null;
+    }
+
+    @Override
 	protected void onItemSelected( Item item ) {
 
 		ScrollOfRemoveCurse.uncurse( Dungeon.hero, item );

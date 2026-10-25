@@ -75,7 +75,10 @@ public enum Icons {
 	POTION_HOLDER,
 	SOUL_FURY,
 	SWITCH_3D,
-	SKILL_ACTIVE;
+	SKILL_ACTIVE,
+	NECROMANCER,
+	MERCENARY,
+	LORE;
 
 	public Image get() {
 		return get( this );
@@ -116,6 +119,15 @@ public enum Icons {
 			break;
 		case HUNTRESS:
 			icon.frame( icon.texture.uvRect( 48, 29, 64, 45 ) );
+			break;
+		case NECROMANCER:
+			icon.frame( icon.texture.uvRect( 16, 150, 32, 166 ) );
+			break;
+		case MERCENARY:
+			icon.frame( icon.texture.uvRect( 32, 150, 48, 166 ) );
+			break;
+		case LORE:
+			icon.frame( icon.texture.uvRect( 48, 150, 64, 166 ) );
 			break;
 		case CLOSE:
 			icon.frame( icon.texture.uvRect( 0, 45, 13, 58 ) );
@@ -214,8 +226,7 @@ public enum Icons {
         icon.frame( icon.texture.uvRect( 43, 83, 54, 97 ) );
        break;
        case ALL_MERCS:
-        icon.frame( icon.texture.uvRect( 54, 83, 71, 97 ) );
-        break;
+        return MercIcons.company();
        case RAT_KING:
         icon.frame( icon.texture.uvRect( 1, 102, 12, 117 ) );
           break;
@@ -251,15 +262,17 @@ public enum Icons {
 	public static Image get( HeroClass cl ) {
 		switch (cl) {
 		case WARRIOR:
-		case MERCENARY:
 			return get( WARRIOR );
 		case MAGE:
-		case NECROMANCER:
 			return get( MAGE );
 		case ROGUE:
 			return get( ROGUE );
 		case HUNTRESS:
 			return get( HUNTRESS );
+		case NECROMANCER:
+			return get( NECROMANCER );
+		case MERCENARY:
+			return get( MERCENARY );
 		default:
 			return null;
 		}

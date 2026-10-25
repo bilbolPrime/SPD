@@ -20,8 +20,7 @@ public class PackratSkill extends PassiveSkillA1 {
     @Override
     public String info()
     {
-        return "Can't have enough.\n\n"
-            + extendedInfo() + costString();
+        return necroMercInfo("packrat_desc", extendedInfo()) + costString();
     }
 
     @Override

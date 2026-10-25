@@ -27,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.Lightning;
 import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
 import com.bilboldev.pixeldungeonskills.effects.BlobEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Wound;
 import com.bilboldev.pixeldungeonskills.effects.Stab;
@@ -222,6 +223,7 @@ final class FirstPersonEffects {
         }
         CharSprite owner = emitter.renderAnchor() instanceof CharSprite ? (CharSprite)emitter.renderAnchor() : null;
         if (owner != null && (!owner.exists || !owner.visible || owner.ch == null)) return;
+        if (emitter instanceof SupporterAura && !view.isThirdPerson() && owner == Dungeon.hero.sprite) return;
         boolean additive = emitter.lightMode();
         for (int i = 0; i < emitter.length && particles < 512; i++) {
             Gizmo g = emitter.memberAt(i);
@@ -238,7 +240,11 @@ final class FirstPersonEffects {
 
                 view.selfEffect(particle);
             } else if (owner != null) {
-                view.attachedParticle(particle, owner, true, additive);
+                if (particle instanceof SupporterAura.Light && ((SupporterAura.Light)particle).followsBody()) {
+                    view.heroGlow(particle, owner);
+                } else {
+                    view.attachedParticle(particle, owner, true, additive);
+                }
             } else if (emitter instanceof BlobEmitter) {
                 view.effectSprite(particle, (particle.x + particle.origin.x) / 16,
                         (particle.y + particle.origin.y) / 16, 0.25,

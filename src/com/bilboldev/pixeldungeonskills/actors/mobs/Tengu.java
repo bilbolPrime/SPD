@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 
@@ -80,6 +82,12 @@ public class Tengu extends Mob {
 
 	@Override
 	public void die( Object cause ) {
+        if (RebornChallenges.doubleBoss() && this instanceof RebornTengu) {
+            super.die(cause);
+            RebornChallenges.bossDefeated(this);
+            yell(Message.key("actors.mobs.tengu.defeated"));
+            return;
+        }
 
 		Badges.Badge badgeToCheck = null;
 		switch (Dungeon.hero.heroClass) {
@@ -97,10 +105,11 @@ public class Tengu extends Mob {
 			break;
 		}
 
-			Dungeon.level.drop( new TomeOfMastery(), pos ).sprite.drop();
+			Dungeon.level.drop( new TomeOfMastery(), pos, this ).sprite.drop();
 
+        IceCaves.dropScroll(this);
 		GameScene.bossSlain();
-		Dungeon.level.drop( new SkeletonKey(), pos ).sprite.drop();
+		Dungeon.level.drop( new SkeletonKey(), pos, this ).sprite.drop();
 		super.die( cause );
 
 		Badges.validateBossSlain();

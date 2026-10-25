@@ -27,7 +27,7 @@ public class ShadowCloneNew extends ShadowCloneSkill {
 
     @Override
     public void execute( Hero hero, String action ) {
-        if (action == Skill.AC_CAST) {
+        if (action == Skill.AC_CAST && hero.canUseSkill(getManaCost())) {
             chooseGameMode();
         }
         else{
@@ -138,7 +138,7 @@ public class ShadowCloneNew extends ShadowCloneSkill {
             nImages--;
         }
 
-        hero.MP -= getManaCost();
+        hero.spendSkillMana(getManaCost());
         StatusPane.manaDropping += getManaCost();
         castTextYell();
         Dungeon.hero.heroSkills.lastUsed = this;
@@ -183,7 +183,7 @@ Hero hero = Dungeon.hero;
             nImages--;
         }
 
-        hero.MP -= getManaCost();
+        hero.spendSkillMana(getManaCost());
         StatusPane.manaDropping += getManaCost();
         castTextYell();
         Dungeon.hero.heroSkills.lastUsed = this;

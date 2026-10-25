@@ -1,9 +1,13 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.util.Log;
 import com.bilboldev.noosa.Game;
+import com.bilboldev.pixeldungeonskills.SupporterEntitlements;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -27,6 +31,7 @@ import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.utils.Bundle;
 import java.io.IOException;
@@ -89,6 +94,7 @@ public final class PartySession {
     private static String status = "";
     private static List<String> hostAddresses = Collections.emptyList();
     private static int hostPort;
+    private static int lobbyChallenges;
     private static HeroClass chosen;
     private static PartyConnection.Peer request;
     private static StartRequest start;
@@ -96,8 +102,13 @@ public final class PartySession {
     private static boolean started, departurePending;
     private static boolean departureRequested, lanAllowed;
     private static int fallenHero = -1;
+    private static int sentAura = -1;
+    private static int partnerAura;
     private static boolean ending, surfaceEnding;
     private static int localIndex;
+    private static int followToken, followRequester = -1, followDepth;
+    private static long followExpires;
+    private static WndOptions followPrompt;
     private static int generation;
     private static int sequence, receivedSequence;
     private static int appliedSequence, sentStep, receivedStep;
@@ -142,6 +153,7 @@ public final class PartySession {
             if (!foreground) return;
             chosen = hero;
             hosting = host;
+            lobbyChallenges = host ? PixelDungeon.rebornChallenges() : 0;
             localIndex = host ? 0 : 1;
             state = host ? LobbyState.HOSTING : LobbyState.DISCOVERING;
             final int attempt = generation;
@@ -154,8 +166,10 @@ public final class PartySession {
                     }
                     lanAllowed = true;
                     connection = new PartyConnection(new Events());
-                    if (host) connection.host(hero, Messages.maybeTranslate(hero.title()));
-                    else connection.discover();
+                    if (host) {
+                        connection.challenges(lobbyChallenges);
+                        connection.host(hero, Messages.maybeTranslate(hero.title()));
+                    } else connection.discover();
                 }
             });
         }
@@ -201,6 +215,10 @@ public final class PartySession {
         return hostPort;
     }
 
+    public static int challenges() {
+        return lobbyChallenges;
+    }
+
     public static String pairingCode() {
         return connection == null ? "" : connection.pairingCode();
     }
@@ -243,6 +261,8 @@ public final class PartySession {
             connection = null;
         }
         runIdentity = new Object();
+        clearFollowRequest();
+        followToken = 0;
         PartyWindows.clear();
         discovered.clear();
         commands.clear();
@@ -257,6 +277,8 @@ public final class PartySession {
         joined = hosting = split = started = departurePending = switching = false;
         departureRequested = lanAllowed = false;
         fallenHero = -1;
+        sentAura = -1;
+        partnerAura = 0;
         ending = surfaceEnding = false;
         localIndex = 0;
         remoteTarget = null;
@@ -318,6 +340,10 @@ public final class PartySession {
         return LocalCoop.partner(network() ? localHero() : Dungeon.hero);
     }
 
+    public static int aura(Hero hero) {
+        return network() && hero != localHero() ? partnerAura : SupporterEntitlements.selectedAura();
+    }
+
     public static Hero turnHero() {
         if (!LocalCoop.active()) return null;
         if (client()) {
@@ -333,11 +359,11 @@ public final class PartySession {
     }
 
     public static void observeActorId(int id) {
-        if (network()) actorIdCeiling = Math.max(actorIdCeiling, id);
+        if (network() || LocalCoop.active()) actorIdCeiling = Math.max(actorIdCeiling, id);
     }
 
     public static int nextActorId(int currentMaximum) {
-        if (!network()) return currentMaximum + 1;
+        if (!network() && !LocalCoop.active()) return currentMaximum + 1;
 
         actorIdCeiling = Math.max(actorIdCeiling, currentMaximum);
         if (actorIdCeiling >= Integer.MAX_VALUE - 1) throw new IllegalStateException("Party actor IDs exhausted");
@@ -409,6 +435,14 @@ public final class PartySession {
             return;
         }
         if (!joined) return;
+        int aura = SupporterEntitlements.selectedAura();
+        if (aura != sentAura && connection != null && connection.connected()) {
+            Bundle appearance = new Bundle();
+            appearance.put("kind", "cosmetics");
+            appearance.put("aura", aura);
+            send(appearance);
+            sentAura = aura;
+        }
         if (awaitingState && client()) requestFullState();
         if (LocalCoop.active() && Game.scene() instanceof GameScene) started = true;
         if (!started) return;
@@ -427,10 +461,11 @@ public final class PartySession {
         if (departurePending && settled() && !switching) leavePartner();
         if (!joined) return;
         PartyWindows.update();
+        updateFollowRequest();
         if (client()) {
             if (pendingState != null && !switching && Window.topWindow() == null
                     && !PartyWindows.busy() && clientTargetToken == 0) {
-                if (Game.scene() instanceof GameScene && Dungeon.depth == pendingState.getInt("depth")) {
+                if (Game.scene() instanceof GameScene && Dungeon.levelKey() == IceCaves.levelKey(pendingState)) {
                     refreshScene();
                 } else {
                     switching = true;
@@ -512,7 +547,11 @@ public final class PartySession {
         if (!client() || pendingState == null) return true;
         applying = true;
         try {
-            if (!started) Generator.reset();
+
+            if (!started) {
+                Generator.reset();
+                SupporterEntitlements.resetRunAura();
+            }
             PartySnapshot.restore(pendingState, 1);
             appliedState = pendingState;
             appliedSequence = receivedSequence;
@@ -583,7 +622,7 @@ public final class PartySession {
     private static void clientReady(boolean showGameOver) {
         playAnimations();
         if (remainsDepth != 0) {
-            if (remainsDepth == Dungeon.depth) GameScene.bossRemains(remainsDepth, remainsCell);
+            if (remainsDepth == Dungeon.levelKey()) GameScene.bossRemains(remainsDepth, remainsCell);
             remainsDepth = 0;
         }
         while (!logs.isEmpty()) GLog.update.dispatch(logs.removeFirst());
@@ -606,7 +645,7 @@ public final class PartySession {
         Bundle message = new Bundle();
         message.put("kind", "command");
         message.put("action", action);
-        message.put("depth", Dungeon.depth);
+        message.put("depth", Dungeon.levelKey());
         message.put("sequence", receivedSequence);
         message.put("payload", payload);
         send(message);
@@ -614,7 +653,7 @@ public final class PartySession {
 
     private static void execute(Bundle message) {
         Hero hero = Dungeon.hero;
-        if (message.getInt("depth") != Dungeon.depth) return;
+        if (message.getInt("depth") != Dungeon.levelKey()) return;
         Bundle payload = message.getBundle("payload");
         int value = payload.getInt("value");
         String action = message.getString("action");
@@ -666,6 +705,22 @@ public final class PartySession {
             case "go":
                 walkToPartner(hero);
                 break;
+            case "follow":
+                followPartner(hero);
+                break;
+            case "unfollow":
+                LocalCoop.stopFollowing(hero);
+                break;
+            case "swap":
+                LocalCoop.swapPlaces(hero);
+                break;
+            case "follow_ask":
+                requestFollow(hero);
+                break;
+            case "follow_reply":
+                if (followRequester == 0 && payload.getInt("token") == followToken)
+                    answerFollow(value == 1);
+                break;
             case "ping":
                 if (pingDelay == 0) announce(hero, Ping.fromId(value));
                 break;
@@ -711,6 +766,81 @@ public final class PartySession {
     public static void goToPartner() {
         Hero hero = network() ? localHero() : Dungeon.hero;
         if (!input(hero, "go", 0)) walkToPartner(hero);
+    }
+
+    public static void followPartner(Hero hero) {
+        if (!input(hero, "follow", 0) && !LocalCoop.follow(hero)) GLog.w("windows.wndpartneractions.follow_loop");
+    }
+
+    public static void askToFollow() {
+        if (!network()) return;
+        if (!input(localHero(), "follow_ask", 0)) requestFollow(localHero());
+    }
+
+    private static void requestFollow(Hero leader) {
+        if (followRequester != -1 || !leader.isAlive() || !LocalCoop.partner(leader).isAlive()) return;
+        if (LocalCoop.wantsToFollow(leader)) {
+            GLog.w("windows.wndpartneractions.follow_loop");
+            return;
+        }
+        followRequester = leader == LocalCoop.primary() ? 0 : 1;
+        followDepth = Dungeon.levelKey();
+        followExpires = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+        followToken++;
+        if (followRequester == 0) {
+            Bundle message = new Bundle();
+            message.put("kind", "follow_request");
+            message.put("token", followToken);
+            message.put("depth", followDepth);
+            send(message);
+        }
+    }
+
+    private static void updateFollowRequest() {
+        if (followRequester == -1) return;
+        if (Dungeon.levelKey() != followDepth || System.nanoTime() >= followExpires
+                || !localHero().isAlive() || partner() == null || !partner().isAlive()) {
+            clearFollowRequest();
+            return;
+        }
+        if (followRequester == localIndex || followPrompt != null || !settled()
+                || Window.topWindow() != null || GameScene.hasCellSelection() || PartyWindows.busy()) return;
+        final int token = followToken;
+        followPrompt = new WndOptions(Messages.get("windows.wndpartneractions.ask_follow"),
+                Messages.get("windows.wndpartneractions.follow_request"),
+                Messages.get("windows.wndpartneractions.accept"), Messages.get("windows.wndpartneractions.decline")) {
+            @Override
+            protected void onSelect(int index) {
+                if (token == followToken && followRequester != -1) answerFollow(index == 0);
+            }
+
+            @Override
+            public void onBackPressed() {
+                super.onBackPressed();
+                onSelect(1);
+            }
+        };
+        GameScene.show(followPrompt);
+    }
+
+    private static void answerFollow(boolean accepted) {
+        boolean current = Dungeon.levelKey() == followDepth && System.nanoTime() < followExpires;
+        if (client()) {
+            Bundle payload = new Bundle();
+            payload.put("token", followToken);
+            payload.put("value", accepted && current ? 1 : 0);
+            command("follow_reply", payload);
+        } else if (accepted && current) {
+            Hero follower = LocalCoop.heroes()[1 - followRequester];
+            LocalCoop.withHero(follower, () -> LocalCoop.follow(follower));
+        }
+        clearFollowRequest();
+    }
+
+    private static void clearFollowRequest() {
+        followRequester = -1;
+        if (followPrompt != null) followPrompt.hide();
+        followPrompt = null;
     }
 
     private static void walkToPartner(Hero hero) {
@@ -905,15 +1035,15 @@ public final class PartySession {
         message.put("actor", actorId);
         message.put("animation", kind);
         message.put("cell", cell);
-        message.put("depth", Dungeon.depth);
+        message.put("depth", Dungeon.levelKey());
         send(message);
     }
 
     public static void move(int actorId, int from, int to) {
         if (!network() || !hosting || applying) return;
-        if (moveDepth != Dungeon.depth) {
+        if (moveDepth != Dungeon.levelKey()) {
             flushMoves();
-            moveDepth = Dungeon.depth;
+            moveDepth = Dungeon.levelKey();
         }
         Bundle message = new Bundle();
         message.put("actor", actorId);
@@ -947,9 +1077,9 @@ public final class PartySession {
 
     public static void mobDied(Mob mob) {
         if (!joined || !hosting || applying) return;
-        if (deathDepth != Dungeon.depth) {
+        if (deathDepth != Dungeon.levelKey()) {
             deaths.clear();
-            deathDepth = Dungeon.depth;
+            deathDepth = Dungeon.levelKey();
         }
         if (deaths.size() == MAX_DEATHS && !deaths.containsKey(mob.id()))
             deaths.remove(deaths.keySet().iterator().next());
@@ -957,9 +1087,9 @@ public final class PartySession {
     }
 
     static void storeDeaths(Bundle state) {
-        if (deathDepth != Dungeon.depth) {
+        if (deathDepth != Dungeon.levelKey()) {
             deaths.clear();
-            deathDepth = Dungeon.depth;
+            deathDepth = Dungeon.levelKey();
         }
         int[] ids = new int[deaths.size()], cells = new int[deaths.size()];
         int index = 0;
@@ -986,6 +1116,10 @@ public final class PartySession {
             PartyMessage.validate(data, hosting, sequence);
             Bundle message = Bundle.read(data.toString().getBytes(StandardCharsets.UTF_8));
             String kind = message.getString("kind");
+            if (kind.equals("cosmetics")) {
+                partnerAura = message.getInt("aura");
+                return;
+            }
             if (!hosting && (kind.equals("state") || kind.equals("departed") || kind.equals("finished")))
                 snapshots.receive(json.length());
             if (hosting) {
@@ -998,10 +1132,19 @@ public final class PartySession {
                 return;
             }
             switch (kind) {
+                case "follow_request":
+                    if (message.getInt("token") > followToken && message.getInt("depth") == Dungeon.levelKey()) {
+                        clearFollowRequest();
+                        followToken = message.getInt("token");
+                        followRequester = 0;
+                        followDepth = message.getInt("depth");
+                        followExpires = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+                    }
+                    break;
                 case "boss_remains":
                     remainsDepth = message.getInt("depth");
                     remainsCell = message.getInt("cell");
-                    if (started && !switching && remainsDepth == Dungeon.depth) {
+                    if (started && !switching && remainsDepth == Dungeon.levelKey()) {
                         GameScene.bossRemains(remainsDepth, remainsCell);
                         remainsDepth = 0;
                     }
@@ -1098,6 +1241,8 @@ public final class PartySession {
     }
 
     private static void disconnect(String reason) {
+        clearFollowRequest();
+        for (Hero hero : LocalCoop.heroes()) LocalCoop.stopFollowing(hero);
         synchronized (connectionLock) {
             generation++;
             if (connection != null) connection.close();
@@ -1152,7 +1297,7 @@ public final class PartySession {
         for (int count = animations.size(); count > 0; count--) {
             PendingAnimation animation = animations.removeFirst();
             if (now - animation.received > TimeUnit.SECONDS.toNanos(2)) continue;
-            if (animation.depth == Dungeon.depth) {
+            if (animation.depth == Dungeon.levelKey()) {
                 if (animation.kind.equals("move")) {
                     if (animation.sequence >= appliedSequence) {
                         PartyPresentation.move(animation.actor, animation.from, animation.cell,
@@ -1288,6 +1433,12 @@ public final class PartySession {
         public void onJoinWithdrawn(PartyConnection.Peer peer) {
             if (!current()) return;
             if (request == peer) request = null;
+        }
+
+        @Override
+        public void onChallenges(int selection) {
+            if (!current() || hosting || !RebornChallenges.valid(selection)) return;
+            lobbyChallenges = selection;
         }
 
         @Override

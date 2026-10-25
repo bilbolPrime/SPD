@@ -129,7 +129,7 @@ public class WndBlacksmith extends WndScrollable {
 			btnReforge.setRect(0, 0, windowWidth, 20);
 			layoutContent(windowWidth, titlebar, textContent(message), items, GAP, btnReforge);
 		} else {
-			resize(WIDTH, (int)btnReforge.bottom());
+			resize(WIDTH, (int)Math.ceil(btnReforge.bottom()));
 		}
 	}
 

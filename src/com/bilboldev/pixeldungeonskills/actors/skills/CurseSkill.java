@@ -31,7 +31,7 @@ public class CurseSkill extends ActiveSkill1{
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if (level > 0 && hero.MP >= getManaCost())
+        if (level > 0 && hero.canUseSkill(getManaCost()))
             actions.add(AC_CAST);
 
         if (hero.skillTree.canLevel(this)){
@@ -42,7 +42,7 @@ public class CurseSkill extends ActiveSkill1{
 
     @Override
     public void execute( Hero hero, String action ) {
-        if (action == Skill.AC_CAST && hero.MP >= getManaCost())
+        if (action == Skill.AC_CAST && hero.canUseSkill(getManaCost()))
         {
             Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.SPARK);
             Dungeon.hero.heroSkills.lastUsed = this;

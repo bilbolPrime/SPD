@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.input.Keys;
@@ -39,12 +40,15 @@ import com.bilboldev.pixeldungeonskills.Rankings;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
+import com.bilboldev.pixeldungeonskills.SupporterEntitlements;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.actors.Online.OnlineHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
@@ -55,7 +59,7 @@ import com.bilboldev.utils.PointF;
 
 public class TitleScene extends PixelScene {
     public enum Page {
-        HOME, HEROES, RANKINGS, BADGES, ABOUT
+        HOME, HEROES, RANKINGS, BADGES, ABOUT, LIBRARY
     }
     static final HeroClass[] HERO_CLASSES = {HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE,
             HeroClass.HUNTRESS, HeroClass.NECROMANCER, HeroClass.MERCENARY};
@@ -81,10 +85,11 @@ public class TitleScene extends PixelScene {
 
     @Override
     public void create() {
+        Lore.clearNotices();
         GauntletRun.finish();
+        SupporterEntitlements.resetRunAura();
         super.create();
         Badges.loadGlobal();
-        VersionNewsInfo.prepareEntitlements();
         Badges.saveGlobal();
         Badges.ensureGlobalFile();
         Rankings.INSTANCE.load();
@@ -118,10 +123,13 @@ public class TitleScene extends PixelScene {
         addAction(Messages.get(TitleScene.class, "play"), 0, true, Page.HEROES);
         addAction(Messages.get(TitleScene.class, "rankings"), 2, false, Page.RANKINGS);
         addAction(Messages.maybeTranslate("Badges"), 3, false, Page.BADGES);
+        TitleMenuButton library = addAction(Messages.get(TitleScene.class, "library"), 1, false, Page.LIBRARY);
+        library.icon(new ItemSprite(ItemSpriteSheet.MASTERY, null));
         addAction(Messages.maybeTranslate("About"), 1, false, Page.ABOUT);
         float menuWidth = Math.min(portrait ? 176 : 164, portrait ? w - 32 : w * 0.35f);
-        float buttonHeight = Math.max(34, 48 * Game.density / zoom);
         float gap = 4;
+        float available = h - (portrait ? 124 : 48) - (buttons.size() - 1) * gap;
+        float buttonHeight = Math.min(Math.max(34, 48 * Game.density / zoom), available / buttons.size());
         float menuHeight = buttons.size() * buttonHeight + (buttons.size() - 1) * gap;
         float menuX = portrait ? (w - menuWidth) / 2 : Math.max(16, w * 0.065f);
         boolean shortLandscape = !portrait && h - menuHeight < 150;
@@ -133,7 +141,7 @@ public class TitleScene extends PixelScene {
         float groupHeight = menuHeight + title.height() + 14;
         float titleY = portrait ? 32 : Math.max(30, (h - groupHeight) / 2);
         float menuY = portrait ? h - 30 - menuHeight : titleY + title.height() + 14;
-        if (shortLandscape) menuY = Math.max(34, (h - 30 - menuHeight) / 2);
+        if (shortLandscape) menuY = Math.max(12, (h - 30 - menuHeight) / 2);
         title.x = align(menuX + (menuWidth - title.width()) / 2);
         title.y = align(titleY);
         if (shortLandscape) {
@@ -271,7 +279,7 @@ public class TitleScene extends PixelScene {
         incoming.active = transition == 1;
     }
 
-    private void addAction(String label, int icon, boolean primary, final Page destination) {
+    private TitleMenuButton addAction(String label, int icon, boolean primary, final Page destination) {
         TitleMenuButton button = new TitleMenuButton(label, icon, primary) {
             @Override
             protected void onClick() {
@@ -280,6 +288,7 @@ public class TitleScene extends PixelScene {
         };
         home.add(button);
         buttons.add(button);
+        return button;
     }
 
     private void shade(int w, int h, boolean portrait) {
@@ -422,6 +431,7 @@ public class TitleScene extends PixelScene {
 
     @Override
     protected void onBackPressed() {
+        if (transitioning()) return;
         HeroClass leader = StartScene.companionLeader();
         if (leader != null) {
             StartScene.cancelStartFlow();

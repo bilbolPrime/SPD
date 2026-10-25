@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */package com.bilboldev.pixeldungeonskills.items.potions;
 
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Splash;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -34,21 +36,11 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Bundle;
 
 public class Potion extends Item {
 
 	public static final String AC_DRINK	= "DRINK";
-
-	private static final String TXT_HARMFUL		= "Harmful potion!";
-	private static final String TXT_BENEFICIAL	= "Beneficial potion";
-	private static final String TXT_YES			= "Yes, I know what I'm doing";
-	private static final String TXT_NO			= "No, I changed my mind";
-	private static final String TXT_R_U_SURE_DRINK =
-		"Are you sure you want to drink it? In most cases you should throw such potions at your enemies.";
-	private static final String TXT_R_U_SURE_THROW =
-		"Are you sure you want to throw it? In most cases it makes sense to drink it.";
 
 	private static final float TIME_TO_DRINK = 1f;
 
@@ -114,6 +106,10 @@ public class Potion extends Item {
 		color = handler.label( this );
 	}
 
+	protected Potion(int image) {
+		this.image = image;
+	}
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
@@ -121,64 +117,34 @@ public class Potion extends Item {
 		return actions;
 	}
 
-	@Override
-	public void execute( final Hero hero, String action ) {
-		if (action.equals( AC_DRINK )) {
+    @Override
+    public void execute(Hero hero, String action) {
+        if (action.equals(AC_DRINK)) {
+            if (isKnown() && (this instanceof PotionOfLiquidFlame || this instanceof PotionOfToxicGas
+                    || this instanceof PotionOfParalyticGas || this instanceof PotionOfFrost)) {
+                confirmAction(hero, Message.key(Potion.class, "sure_drink"),
+                        Message.key(Potion.class, "drink_anyway"), Message.key(Item.class, "cancel"), () -> drink(hero));
+            } else {
+                drink(hero);
+            }
+        } else {
+            super.execute(hero, action);
+        }
+    }
 
-			if (isKnown() && (
-					this instanceof PotionOfLiquidFlame ||
-					this instanceof PotionOfToxicGas ||
-					this instanceof PotionOfParalyticGas)) {
-
-					GameScene.show(
-						new WndOptions(Message.key(Potion.class, "harmful"), Message.key(Potion.class, "sure_drink"), Message.key(Potion.class, "yes"), Message.key(Potion.class, "no")) {
-							@Override
-							protected void onSelect(int index) {
-								if (index == 0) {
-									drink( hero );
-								}
-							};
-						}
-					);
-
-				} else {
-					drink( hero );
-				}
-
-		} else {
-
-			super.execute( hero, action );
-
-		}
-	}
-
-	@Override
-	public void doThrow( final Hero hero ) {
-
-		if (isKnown() && (
-			this instanceof PotionOfExperience ||
-			this instanceof PotionOfHealing ||
-			this instanceof PotionOfLevitation ||
-			this instanceof PotionOfMindVision ||
-			this instanceof PotionOfStrength ||
-			this instanceof PotionOfInvisibility ||
-			this instanceof PotionOfMight)) {
-
-			GameScene.show(
-				new WndOptions(Message.key(Potion.class, "beneficial"), Message.key(Potion.class, "sure_throw"), Message.key(Potion.class, "yes"), Message.key(Potion.class, "no")) {
-					@Override
-					protected void onSelect(int index) {
-						if (index == 0) {
-							Potion.super.doThrow( hero );
-						}
-					};
-				}
-			);
-
-		} else {
-			super.doThrow( hero );
-		}
-	}
+    @Override
+    public void doThrow(Hero hero) {
+        if (isKnown() && (this instanceof PotionOfExperience || this instanceof PotionOfHealing
+                || this instanceof PotionOfLevitation || this instanceof PotionOfMindVision
+                || this instanceof PotionOfStrength || this instanceof PotionOfInvisibility
+                || this instanceof PotionOfMight || this instanceof PotionOfMana || this instanceof PotionOfRejuvenation)) {
+            confirmAction(hero, Message.key(Potion.class, "sure_throw"),
+                    Message.key(Potion.class, "throw_anyway"), Message.key(Item.class, "cancel"),
+                    () -> Potion.super.doThrow(hero));
+        } else {
+            super.doThrow(hero);
+        }
+    }
 
 	protected void drink( Hero hero ) {
 
@@ -208,6 +174,7 @@ public class Potion extends Item {
 			shatter( cell );
 
 		}
+		Lore.used(this);
 	}
 
 	protected void apply( Hero hero ) {
@@ -220,6 +187,12 @@ public class Potion extends Item {
 			Sample.INSTANCE.play( Assets.SND_SHATTER );
 			splash( cell );
 		}
+	}
+
+	@Override
+	public int image() {
+		return Dungeon.rules().mode == GameplayMode.REBORN && isKnown()
+				? ItemSpriteSheet.identifiedImage(getClass(), image) : image;
 	}
 
 	public boolean isKnown() {

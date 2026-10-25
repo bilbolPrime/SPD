@@ -40,7 +40,8 @@ public class Messages {
 		"messages/reborn",
         "messages/reborn_bosses",
         "messages/reborn_rooms",
-        "messages/gauntlet"
+        "messages/gauntlet",
+        "messages/ice_caves"
 	};
 
 	public static final String NO_TEXT_FOUND = "!!!NO TEXT FOUND!!!";

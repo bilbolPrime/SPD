@@ -113,11 +113,11 @@ public class WndUpdateHistory extends WndScrollable {
         boolean compact = width < 170;
         int textX = compact ? 4 : TEXT_X;
         String label = entry.getString("version");
-        if (entry.getInt("build") > lastRead) label += " - _New_";
+        if (entry.has("build") && entry.getInt("build") > lastRead) label += " - _New_";
         HighlightedText title = paragraph(content, label, 9, GOLD, textX, y, width - textX - 5);
         title.setColor(GOLD, 0xFFFF88);
         float top = y;
-        String buildLabel = "Build " + entry.getInt("build");
+        String metadataText = entry.has("build") ? "Build " + entry.getInt("build") : "";
         if (entry.has("builds")) {
             JSONArray builds = entry.getJSONArray("builds");
             StringBuilder grouped = new StringBuilder("Builds ");
@@ -125,17 +125,28 @@ public class WndUpdateHistory extends WndScrollable {
                 if (i > 0) grouped.append(", ");
                 grouped.append(builds.getInt(i));
             }
-            buildLabel = grouped.toString();
+            metadataText = grouped.toString();
         }
-        HighlightedText metadata = paragraph(content, buildLabel + " - " + entry.getString("date"),
-                7, 0xB4A7C2, textX, title.bottom() + 4, width - textX - 5);
-        y = metadata.bottom() + 8;
-        JSONArray notes = entry.getJSONArray("notes");
-        for (int i = 0; i < notes.length(); i++) {
-            rule(content, textX + 1, y + 3, 2, 2, 0xFF9A839E);
-            HighlightedText note = paragraph(content, notes.getString(i), 7, INK,
-                    textX + 8, y, width - textX - 12);
-            y += note.height() + 5;
+        if (entry.has("date")) {
+            if (!metadataText.isEmpty()) metadataText += " - ";
+            metadataText += entry.getString("date");
+        }
+        y = title.bottom() + 8;
+        if (!metadataText.isEmpty()) {
+            HighlightedText metadata = paragraph(content, metadataText,
+                    7, 0xB4A7C2, textX, title.bottom() + 4, width - textX - 5);
+            y = metadata.bottom() + 8;
+        }
+        if (entry.has("sections")) {
+            JSONArray sections = entry.getJSONArray("sections");
+            for (int i = 0; i < sections.length(); i++) {
+                JSONObject section = sections.getJSONObject(i);
+                HighlightedText category = paragraph(content, section.getString("title"), 8, GOLD,
+                        textX, y, width - textX - 5);
+                y = notes(content, section.getJSONArray("notes"), width, textX + 6, category.bottom() + 6) + 7;
+            }
+        } else {
+            y = notes(content, entry.getJSONArray("notes"), width, textX, y);
         }
         if (!compact) {
             rule(content, 9, top + 8, 1, y - top - 3, 0xFF514557);
@@ -144,6 +155,17 @@ public class WndUpdateHistory extends WndScrollable {
         }
         rule(content, textX, y + 3, width - textX - 5, 1, 0xFF39323F);
         return y + 19;
+    }
+
+    private static float notes(Component content, JSONArray notes, int width, int textX, float y)
+            throws JSONException {
+        for (int i = 0; i < notes.length(); i++) {
+            rule(content, textX + 1, y + 3, 2, 2, 0xFF9A839E);
+            HighlightedText note = paragraph(content, notes.getString(i), 7, INK,
+                    textX + 8, y, width - textX - 12);
+            y += note.height() + 5;
+        }
+        return y;
     }
 
     private static float archive(Component content, JSONObject entry, int width, float y) throws JSONException {

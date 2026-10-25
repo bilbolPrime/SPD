@@ -22,8 +22,7 @@ public class ExecuteSkill extends PassiveSkillA3 {
 
     @Override
     public String info() {
-        return "Finish the job.\n\n"
-                + extendedInfo()
+        return necroMercInfo("execute_desc", extendedInfo())
                 + requiresInfo()
                 + costString();
     }

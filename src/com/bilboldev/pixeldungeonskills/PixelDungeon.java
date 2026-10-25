@@ -150,9 +150,11 @@ public class PixelDungeon extends Game {
 
 	@Override
 	public void onDestroy() {
-		PartySession.setForeground(false);
+		if (instance == this) {
+			PartySession.setForeground(false);
+			PartySession.cancelLobby();
+		}
 		if (networkAccess != null) networkAccess.close();
-		PartySession.cancelLobby();
 		super.onDestroy();
 	}
 
@@ -501,6 +503,15 @@ public class PixelDungeon extends Game {
 	public static int challenges() {
 		return Preferences.INSTANCE.getInt( Preferences.KEY_CHALLENGES, 0 );
 	}
+
+    public static int rebornChallenges() {
+        return Preferences.INSTANCE.getInt("reborn_challenges", 0) & RebornChallenges.ALL;
+    }
+
+    public static void rebornChallenges(int value) {
+        if (!RebornChallenges.valid(value)) throw new IllegalArgumentException("Invalid challenges");
+        Preferences.INSTANCE.put("reborn_challenges", value);
+    }
 
 	public static void intro( boolean value ) {
 		Preferences.INSTANCE.put( Preferences.KEY_INTRO, value );

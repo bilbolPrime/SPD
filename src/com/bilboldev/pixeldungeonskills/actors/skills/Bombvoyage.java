@@ -51,7 +51,7 @@ public class Bombvoyage extends ActiveSkill3{
     @Override
     public boolean arrowToBomb()
     {
-        if(active == false || Dungeon.hero.MP < getManaCost() || coolDown())
+        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
         {
             cast = false;
             return false;
@@ -59,7 +59,7 @@ public class Bombvoyage extends ActiveSkill3{
         else
         {
             cast = true;
-            Dungeon.hero.MP -= getManaCost();
+            Dungeon.hero.spendSkillMana(getManaCost());
             StatusPane.manaDropping += getManaCost();
 
             castTextYell();

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -109,6 +110,16 @@ public class Ring extends EquipableItem {
 	}
 
 	public void syncGem() {
+		if (this instanceof GemStone) {
+			image = ItemSpriteSheet.GemStone;
+			gem = "diamond";
+			return;
+		}
+		if (handler == null) {
+			image = ItemSpriteSheet.RING_DIAMOND;
+			gem = "diamond";
+			return;
+		}
 		image	= handler.image( this );
 		gem		= handler.label( this );
 	}
@@ -243,8 +254,14 @@ public class Ring extends EquipableItem {
 		}
 	}
 
+	@Override
+	public int image() {
+		return Dungeon.rules().mode == GameplayMode.REBORN && isKnown()
+				? ItemSpriteSheet.identifiedImage(getClass(), image) : image;
+	}
+
 	public boolean isKnown() {
-		return handler.isKnown( this );
+		return handler != null && handler.isKnown( this );
 	}
 
 	protected void setKnown() {

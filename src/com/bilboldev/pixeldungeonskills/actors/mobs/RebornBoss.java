@@ -61,12 +61,20 @@ public abstract class RebornBoss extends Mob {
         return true;
     }
 
+    public boolean meleeWarning() {
+        return false;
+    }
+
     public int residueKind() {
         return residueKind;
     }
 
     public int phase() {
         return phase;
+    }
+
+    protected int abilityPhase() {
+        return RebornChallenges.active(RebornChallenges.UNCHAINED) ? 2 : phase;
     }
 
     public boolean opening() {
@@ -182,7 +190,7 @@ public abstract class RebornBoss extends Mob {
     }
 
     protected boolean warn(int kind, int from, int[] cells) {
-        if (cells.length == 0 || !hasEscape(cells)) return false;
+        if (!RebornChallenges.canWarn(this) || cells.length == 0 || !hasEscape(cells)) return false;
         warning = cells.clone();
         warningTarget = LocalCoop.active() ? Dungeon.hero : null;
         warningKind = kind;
@@ -279,6 +287,7 @@ public abstract class RebornBoss extends Mob {
                 RebornBoss boss = (RebornBoss)mob;
                 if (contains(boss.warning, cell) || contains(boss.residue, cell)) return true;
             } else if (mob instanceof RebornTengu && contains(((RebornTengu)mob).warningCells(), cell)) return true;
+            else if (mob instanceof IceMob && contains(((IceMob)mob).warningCells(), cell)) return true;
         }
         return false;
     }
@@ -299,11 +308,12 @@ public abstract class RebornBoss extends Mob {
     }
 
     private static boolean[] movementFloorForHero() {
-        if (!Dungeon.bossLevel() || Dungeon.hero == null) return Level.passable;
+        if ((!Dungeon.bossLevel() && !IceCaves.active()) || Dungeon.hero == null) return Level.passable;
         boolean aimed = false;
         for (Mob mob : Dungeon.level.mobs) if (mob.isAlive()) {
             if (mob instanceof RebornBoss && contains(((RebornBoss)mob).warning, Dungeon.hero.pos)) aimed = true;
             if (mob instanceof RebornTengu && contains(((RebornTengu)mob).warningCells(), Dungeon.hero.pos)) aimed = true;
+            if (mob instanceof IceMob && contains(((IceMob)mob).warningCells(), Dungeon.hero.pos)) aimed = true;
         }
         if (!aimed) return Level.passable;
         for (int offset : Level.NEIGHBOURS8) {
@@ -452,8 +462,16 @@ public abstract class RebornBoss extends Mob {
         warning = residue = new int[0];
         clearSummons();
         super.die(source);
+        rewards();
+    }
+
+    protected void rewards() {
+        if (RebornChallenges.doubleBoss()) {
+            RebornChallenges.bossDefeated(this);
+            return;
+        }
         GameScene.bossSlain();
-        Dungeon.level.drop(new SkeletonKey(), pos).sprite.drop();
+        Dungeon.level.drop(new SkeletonKey(), pos, this).sprite.drop();
         Badges.validateBossSlain();
     }
 

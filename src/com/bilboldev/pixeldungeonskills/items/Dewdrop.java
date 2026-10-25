@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -39,6 +40,7 @@ public class Dewdrop extends Item {
 
 	@Override
 	public boolean doPickUp( Hero hero ) {
+		Lore.used( this );
 
 		DewVial vial = hero.belongings.getItem( DewVial.class );
 
@@ -65,6 +67,11 @@ public class Dewdrop extends Item {
 		Sample.INSTANCE.play( Assets.SND_DEWDROP );
 		hero.spendAndNext( TIME_TO_PICK_UP );
 
+		return true;
+	}
+
+	@Override
+	public boolean isIdentified() {
 		return true;
 	}
 

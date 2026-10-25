@@ -5,9 +5,7 @@
     "caption": "Before the surviving records."
   },
   {
-    "version": "0.1.9",
-    "build": 14,
-    "date": "2016-05-29",
+    "version": "0.1.9", "build": 14, "date": "2016-05-29",
     "notes": [
       "Added _storage_ for up to five items, accessible near the entrance on every floor.",
       "Stored items survive death if you resurrect. Starting a new game resets storage.",
@@ -16,44 +14,34 @@
     ]
   },
   {
-    "version": "0.1.9b",
-    "build": 15,
-    "date": "2017-01-09",
+    "version": "0.1.9b", "build": 15, "date": "2017-01-09",
     "notes": [
       "Added the _FlameBow_, which sets targets on fire when its arrows hit."
     ]
   },
   {
-    "version": "0.1.9c",
-    "build": 16,
-    "date": "2017-01-14",
+    "version": "0.1.9c", "build": 16, "date": "2017-01-14",
     "notes": [
       "The Mage's _Spirituality_ skill allows one additional summon for every three points invested.",
       "Added skill descriptions to the class selection screen for quick reference."
     ]
   },
   {
-    "version": "0.1.9d",
-    "build": 17,
-    "date": "2017-01-15",
+    "version": "0.1.9d", "build": 17, "date": "2017-01-15",
     "notes": [
       "Added the _Potion of Mana_, which fully restores mana.",
       "Greatly reduced active skill cooldowns."
     ]
   },
   {
-    "version": "0.1.9e",
-    "build": 18,
-    "date": "2017-01-18",
+    "version": "0.1.9e", "build": 18, "date": "2017-01-18",
     "notes": [
       "Active skills can be used while _starving_.",
       "Published the source code on _SourceForge_."
     ]
   },
   {
-    "version": "0.2.0",
-    "build": 21,
-    "date": "2017-01-23",
+    "version": "0.2.0", "build": 21, "date": "2017-01-23",
     "notes": [
       "Updated to vanilla _Pixel Dungeon 1.9.2a_.",
       "Completely overhauled _skills_.",
@@ -61,22 +49,18 @@
     ]
   },
   {
-    "version": "0.2.1a",
-    "build": 24,
-    "builds": [
-      23,
-      24
-    ],
-    "date": "2017-01-23",
+    "version": "0.2.1",
+    "notes": ["Added a _welcome window_ with update notes."]
+  },
+  {
+    "version": "0.2.1a", "build": 24, "builds": [23, 24], "date": "2017-01-23",
     "notes": [
       "The _quick skill button_ appears after casting or summoning.",
       "Fixed a crash when champions hit summoned units."
     ]
   },
   {
-    "version": "0.2.2b",
-    "build": 25,
-    "date": "2017-01-24",
+    "version": "0.2.2b", "build": 25, "date": "2017-01-24",
     "notes": [
       "Fixed an exploit that granted unlimited skill points.",
       "Fixed _Spirituality_ not saving its level correctly.",
@@ -86,59 +70,50 @@
     ]
   },
   {
-    "version": "0.2.2b",
-    "build": 26,
-    "date": "2017-01-24",
-    "notes": [
-      "Fixed a crash when _Knock Back_ pushed a unit out of bounds."
-    ]
+    "version": "0.2.2b", "build": 26, "date": "2017-01-24",
+    "notes": ["Fixed a crash when _Knock Back_ pushed a unit out of bounds."]
   },
   {
-    "version": "0.2.2b",
-    "build": 27,
-    "date": "2017-01-26",
-    "notes": [
-      "Crash fixes."
-    ]
+    "version": "0.2.2b", "build": 27, "date": "2017-01-26",
+    "notes": ["Crash fixes."]
   },
   {
-    "version": "0.3.0",
-    "build": 31,
-    "date": "2017-01-27",
+    "version": "0.2.3b", "build": 28,
     "notes": [
       "Added _mercenaries_.",
+      "You cannot hire a mercenary of your own class.",
+      "A mercenary's weapon and armor affect their stats.",
+      "Weapon enchantments and armor glyphs also work on mercenaries."
+    ]
+  },
+  {
+    "version": "0.3.0b",
+    "notes": [
+      "_Archer mercenaries_ can fight at range.",
+      "Mercenaries can carry a _Potion of Healing_ and use it to survive a killing blow."
+    ]
+  },
+  {
+    "version": "0.3.0", "build": 31, "date": "2017-01-27",
+    "notes": [
       "Added _Just Kill Me_ difficulty.",
       "Bug fixes."
     ]
   },
   {
-    "version": "0.3.0",
-    "build": 32,
-    "date": "2017-01-27",
-    "notes": [
-      "Fixed restoring previous donations."
-    ]
+    "version": "0.3.0", "build": 32, "date": "2017-01-27",
+    "notes": ["Fixed restoring previous donations."]
   },
   {
-    "version": "0.3.0",
-    "build": 33,
-    "date": "2017-01-27",
-    "notes": [
-      "Fixed the mercenary death animation."
-    ]
+    "version": "0.3.0", "build": 33, "date": "2017-01-27",
+    "notes": ["Fixed the mercenary death animation."]
   },
   {
-    "version": "0.3.0",
-    "build": 34,
-    "date": "2017-01-28",
-    "notes": [
-      "Fixed a crash caused by healing potions."
-    ]
+    "version": "0.3.0", "build": 34, "date": "2017-01-28",
+    "notes": ["Fixed a crash caused by healing potions."]
   },
   {
-    "version": "0.3.1",
-    "build": 35,
-    "date": "2017-01-28",
+    "version": "0.3.1", "build": 35, "date": "2017-01-28",
     "notes": [
       "Fixed the Warrior's _Knock Back_ skill.",
       "Bows can be _enchanted_.",
@@ -148,9 +123,11 @@
     ]
   },
   {
-    "version": "0.3.3",
-    "build": 37,
-    "date": "2017-01-30",
+    "version": "0.3.2b",
+    "notes": ["Added the _Frost Level_ and the _Cold Girl_ encounter."]
+  },
+  {
+    "version": "0.3.3", "build": 37, "date": "2017-01-30",
     "notes": [
       "Fixed mercenary respawning, summoning and death animation bugs.",
       "Mob stats and champion settings can be changed in-game, without making them easier than the current difficulty.",
@@ -159,45 +136,31 @@
     ]
   },
   {
-    "version": "0.3.5",
-    "build": 49,
-    "builds": [
-      46,
-      47,
-      49
-    ],
-    "date": "2017-02-02",
+    "version": "0.3.4b", "build": 40,
     "notes": [
-      "Added a _new level_ and the _Cold Girl_ story.",
+      "The _Cold Girl_ encounter unlocks a skill for each class.",
+      "Warriors learn _Smite_; Mages learn _Summon Skeleton Archer_.",
+      "Rogues learn _KO Arrow_; Huntresses learn _Triple Shot_."
+    ]
+  },
+  {
+    "version": "0.3.5", "build": 49, "builds": [46, 47, 49], "date": "2017-02-02",
+    "notes": [
       "Added the first _cutscene_.",
       "The _Rat King_ can adjust mob defense.",
       "UI tweaks."
     ]
   },
   {
-    "version": "0.3.5",
-    "build": 50,
-    "date": "2017-02-02",
-    "notes": [
-      "Fixed a hunger bug caused by the cutscene."
-    ]
+    "version": "0.3.5", "build": 50, "date": "2017-02-02",
+    "notes": ["Fixed a hunger bug caused by the cutscene."]
   },
   {
-    "version": "0.3.5",
-    "build": 54,
-    "builds": [
-      53,
-      54
-    ],
-    "date": "2017-02-03",
-    "notes": [
-      "Reworked the _Ice Girl_ fight to end earlier and avoid confusion."
-    ]
+    "version": "0.3.5", "build": 54, "builds": [53, 54], "date": "2017-02-03",
+    "notes": ["Reworked the _Ice Girl_ fight to end earlier and avoid confusion."]
   },
   {
-    "version": "0.3.6",
-    "build": 55,
-    "date": "2017-02-05",
+    "version": "0.3.6", "build": 55, "date": "2017-02-05",
     "notes": [
       "The trailer cutscene can be opened from the title screen.",
       "Fixed the HP bar animation when healing.",
@@ -206,19 +169,21 @@
     ]
   },
   {
-    "version": "0.3.7",
-    "build": 58,
-    "date": "2017-02-12",
+    "version": "0.3.7b", "build": 57,
     "notes": [
       "Added the first _scenario_.",
+      "Play as _Hatsune_ in the scenario, with her own skills."
+    ]
+  },
+  {
+    "version": "0.3.7", "build": 58, "date": "2017-02-12",
+    "notes": [
       "Fixed the HP bar animation when using vampiric weapons.",
       "Added a stabbing animation for melee attacks."
     ]
   },
   {
-    "version": "0.3.8",
-    "build": 59,
-    "date": "2017-02-13",
+    "version": "0.3.8", "build": 59, "date": "2017-02-13",
     "notes": [
       "Remastered the first _scenario_.",
       "Fixed the _Scroll of Skill_ not dropping.",
@@ -227,18 +192,14 @@
     ]
   },
   {
-    "version": "0.3.8",
-    "build": 60,
-    "date": "2017-02-14",
+    "version": "0.3.8", "build": 60, "date": "2017-02-14",
     "notes": [
       "Fixed the Huntress's _Iron Tip_ blocking double and triple arrows.",
       "Improved storage placement."
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 61,
-    "date": "2017-02-25",
+    "version": "0.3.9", "build": 61, "date": "2017-02-25",
     "notes": [
       "Replaced the Mage's _Summon Crab_ skill with _Spark_ in new games.",
       "Fixed _Iron Tip_ blocking Bombvoyage and corrected Bombvoyage's mana cost.",
@@ -248,9 +209,7 @@
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 62,
-    "date": "2017-02-26",
+    "version": "0.3.9", "build": 62, "date": "2017-02-26",
     "notes": [
       "Fixed _Bombvoyage_ being unusable.",
       "Replaced the Rogue's _Dead Eye_ skill with _Double Strike_.",
@@ -258,9 +217,7 @@
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 63,
-    "date": "2017-03-05",
+    "version": "0.3.9", "build": 63, "date": "2017-03-05",
     "notes": [
       "Fixed getting stuck while descending into shop levels.",
       "Fixed the Huntress defaulting to arrow damage.",
@@ -270,43 +227,29 @@
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 64,
-    "date": "2017-03-09",
+    "version": "0.3.9", "build": 64, "date": "2017-03-09",
     "notes": [
       "Fixed the game sometimes freezing when interacting with _mercenaries_.",
       "Mercenaries can no longer equip class-specific epic armor."
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 65,
-    "date": "2017-03-18",
-    "notes": [
-      "Fixed skills such as _Spark_ and _KO Arrow_ losing levels when loading a game."
-    ]
+    "version": "0.3.9", "build": 65, "date": "2017-03-18",
+    "notes": ["Fixed skills such as _Spark_ and _KO Arrow_ losing levels when loading a game."]
   },
   {
-    "version": "0.3.9",
-    "build": 66,
-    "date": "2017-03-18",
+    "version": "0.3.9", "build": 66, "date": "2017-03-18",
     "notes": [
       "Fixed a _Mind Vision_ potion crash when a mercenary was not visible.",
       "Added a safeguard to mercenary AI to prevent the game freezing."
     ]
   },
   {
-    "version": "0.3.9",
-    "build": 67,
-    "date": "2017-06-18",
-    "notes": [
-      "The _Rat King_ can control Day and Night modes."
-    ]
+    "version": "0.3.9", "build": 67, "date": "2017-06-18",
+    "notes": ["The _Rat King_ can control Day and Night modes."]
   },
   {
-    "version": "0.4.3",
-    "build": 79,
-    "date": "2018-01-28",
+    "version": "0.4.3", "build": 79, "date": "2018-01-28",
     "notes": [
       "Fixed the campaign and _Cold Girl_ quest corrupting Rogue saves.",
       "Buffed _Spark_: more damage and a chance to blind.",
@@ -314,9 +257,7 @@
     ]
   },
   {
-    "version": "0.4.4",
-    "build": 82,
-    "date": "2018-03-03",
+    "version": "0.4.4", "build": 82, "date": "2018-03-03",
     "notes": [
       "Added _weapon skills_.",
       "_Barbaric weapons_ have a 20% chance to cast level 1 Smite.",
@@ -324,36 +265,28 @@
     ]
   },
   {
-    "version": "0.4.4",
-    "build": 84,
-    "date": "2019-06-23",
+    "version": "0.4.4", "build": 84, "date": "2019-06-23",
     "notes": [
       "Fixed a crash caused by hunger.",
       "Updated the game icon."
     ]
   },
   {
-    "version": "0.4.4",
-    "build": 85,
-    "date": "2019-06-30",
+    "version": "0.4.4", "build": 85, "date": "2019-06-30",
     "notes": [
       "Fixed crashes related to missions and checking unit visibility.",
       "Removed unused imports to reduce APK size."
     ]
   },
   {
-    "version": "0.4.4",
-    "build": 86,
-    "date": "2019-07-07",
+    "version": "0.4.4", "build": 86, "date": "2019-07-07",
     "notes": [
       "Fixed crashes in the game log, swap effect and wound animation.",
       "Fixed a crash in _Cold Girl_ AI."
     ]
   },
   {
-    "version": "0.4.4",
-    "build": 87,
-    "date": "2019-07-14",
+    "version": "0.4.4", "build": 87, "date": "2019-07-14",
     "notes": [
       "Reduced the Rogue's _Shadow Clone_ lifespan by 33%.",
       "Doubled Shadow Clone's mana cost and reduced clone damage.",
@@ -361,18 +294,14 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 88,
-    "date": "2019-07-14",
+    "version": "0.4.5", "build": 88, "date": "2019-07-14",
     "notes": [
       "Fixed a conflict between _Rogue and Huntress saves_.",
       "Some existing saves could be lost; future saves avoid this conflict."
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 89,
-    "date": "2019-07-20",
+    "version": "0.4.5", "build": 89, "date": "2019-07-20",
     "notes": [
       "Added _Super Easy_ difficulty.",
       "New _Shadow Clones_ can be attacked, and their strength depends on skill level.",
@@ -382,18 +311,14 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 90,
-    "date": "2019-07-21",
+    "version": "0.4.5", "build": 90, "date": "2019-07-21",
     "notes": [
       "Disabled the _Cold Girl_ quest pending a rework.",
       "Added the _Call Merc_ button."
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 91,
-    "date": "2019-07-27",
+    "version": "0.4.5", "build": 91, "date": "2019-07-27",
     "notes": [
       "Fixed difficulty damage modifiers not applying to shamans and evil eyes.",
       "Removed marsupial rats' ranged attack.",
@@ -404,9 +329,7 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 92,
-    "date": "2019-08-03",
+    "version": "0.4.5", "build": 92, "date": "2019-08-03",
     "notes": [
       "Fixed warlock difficulty damage modifiers.",
       "Harder difficulties start with more skill points.",
@@ -418,9 +341,7 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 93,
-    "date": "2019-08-10",
+    "version": "0.4.5", "build": 93, "date": "2019-08-10",
     "notes": [
       "Difficulty options are _Easy, Normal and Hell_.",
       "Hidden doors and traps are easier to discover on Easy.",
@@ -429,9 +350,7 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 94,
-    "date": "2019-08-17",
+    "version": "0.4.5", "build": 94, "date": "2019-08-17",
     "notes": [
       "Replaced the Rogue's _Smoke Bomb_ with _Ninja Bomb_, a tier 2 active skill.",
       "Ninja Bomb can put targets to sleep, but does not work on bosses.",
@@ -440,42 +359,26 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 95,
-    "date": "2019-09-28",
-    "notes": [
-      "Crash fixes."
-    ]
+    "version": "0.4.5", "build": 95, "date": "2019-09-28",
+    "notes": ["Crash fixes."]
   },
   {
-    "version": "0.4.5",
-    "build": 96,
-    "date": "2019-11-13",
-    "notes": [
-      "Fixed a crash caused by mob emote icons."
-    ]
+    "version": "0.4.5", "build": 96, "date": "2019-11-13",
+    "notes": ["Fixed a crash caused by mob emote icons."]
   },
   {
-    "version": "0.4.5",
-    "build": 97,
-    "date": "2020-01-29",
-    "notes": [
-      "Fixed a null pointer crash when saving the game."
-    ]
+    "version": "0.4.5", "build": 97, "date": "2020-01-29",
+    "notes": ["Fixed a null pointer crash when saving the game."]
   },
   {
-    "version": "0.4.5",
-    "build": 98,
-    "date": "2020-02-01",
+    "version": "0.4.5", "build": 98, "date": "2020-02-01",
     "notes": [
       "_Betrayal_ scenario added",
       "Fixed _Hatsune's echoes_ being invisible"
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 99,
-    "date": "2020-02-08",
+    "version": "0.4.5", "build": 99, "date": "2020-02-08",
     "notes": [
       "_Necroblade_ replaces _Consume_ with _Dark Bolt_ after level 5",
       "_Dark Bolt_ kills non-boss monsters and summons a slave",
@@ -486,17 +389,13 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 100,
-    "date": "2020-02-09",
+    "version": "0.4.5", "build": 100, "date": "2020-02-09",
     "notes": [
       "_Quick skill button_ shows cool down of last skill"
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 101,
-    "date": "2020-02-29",
+    "version": "0.4.5", "build": 101, "date": "2020-02-29",
     "notes": [
       "_Potion Holder_ added (Thanks to Shattered PD)",
       "_Potion Holder_ will group all your potions",
@@ -505,9 +404,7 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 102,
-    "date": "2020-03-07",
+    "version": "0.4.5", "build": 102, "date": "2020-03-07",
     "notes": [
       "_Warrior's passive skills_ nerfed",
       "Increased mob difficulty on _Hard_",
@@ -515,18 +412,15 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 103,
-    "date": "2020-04-20",
+    "version": "0.4.5", "build": 103, "date": "2020-04-20",
     "notes": [
       "_Soul Blade_ added",
-      "_Necro Blade_ now _tier 3_"
+      "_Necro Blade_ now _tier 3_",
+      "There might be some delay before this becomes approved and available due to google working schedule in the current circumstances"
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 104,
-    "date": "2020-05-31",
+    "version": "0.4.5", "build": 104, "date": "2020-05-31",
     "notes": [
       "Mages can now summon _Fire Elementals_ using the _Wand of Firebolt_!",
       "_Nightmare_ difficulty returns",
@@ -534,35 +428,27 @@
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 105,
-    "date": "2020-06-07",
+    "version": "0.4.5", "build": 105, "date": "2020-06-07",
     "notes": [
       "Mages can now summon a random seed using the _Wand of Regrowth_!",
       "_Soul Blade's Heal_ mana cost increased to _20_"
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 106,
-    "date": "2020-06-13",
+    "version": "0.4.5", "build": 106, "date": "2020-06-13",
     "notes": [
       "Mages can now summon after images using the _Wand of Blink_!",
       "Fixed bug allowing gold duplication using _Brute's hold item perk_."
     ]
   },
   {
-    "version": "0.4.5",
-    "build": 107,
-    "date": "2020-12-20",
+    "version": "0.4.5", "build": 107, "date": "2020-12-20",
     "notes": [
       "_Soul Fury_ scenario added"
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 111,
-    "date": "2021-03-07",
+    "version": "0.5.0b", "build": 111, "date": "2021-03-07",
     "notes": [
       "Added _2.5D walls_!",
       "Player can toggle between _2.5D_ and _classic_ modes in hero selection screen.",
@@ -571,25 +457,19 @@
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 112,
-    "date": "2021-03-08",
+    "version": "0.5.0b", "build": 112, "date": "2021-03-08",
     "notes": [
       "Fixed an ugly bug where _classic mode_ freezes on inspect."
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 113,
-    "date": "2021-03-08",
+    "version": "0.5.0b", "build": 113, "date": "2021-03-08",
     "notes": [
       "Crash fixes."
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 114,
-    "date": "2021-03-13",
+    "version": "0.5.0b", "build": 114, "date": "2021-03-13",
     "notes": [
       "_Rodent Scouts_ added to the _Rat King_ window.",
       "_Rodent Scouts_ roam the dungeon for you exploring.",
@@ -599,9 +479,7 @@
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 116,
-    "date": "2021-03-24",
+    "version": "0.5.0b", "build": 116, "date": "2021-03-24",
     "notes": [
       "_Five brightness options_ added instead of two.",
       "New _fog of war_ added for _2.5D_ mode.",
@@ -609,9 +487,7 @@
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 117,
-    "date": "2021-03-25",
+    "version": "0.5.0b", "build": 117, "date": "2021-03-25",
     "notes": [
       "_Merc Stand Ground_ option added.",
       "When attacked or recalled, mercs will start following you again.",
@@ -621,9 +497,7 @@
     ]
   },
   {
-    "version": "0.5.0b",
-    "build": 118,
-    "date": "2021-04-25",
+    "version": "0.5.0b", "build": 118, "date": "2021-04-25",
     "notes": [
       "_Skills 3.0_ released.",
       "Each class now has a _skill tree_.",
@@ -638,9 +512,7 @@
     ]
   },
   {
-    "version": "0.5.0",
-    "build": 119,
-    "date": "2021-04-30",
+    "version": "0.5.0", "build": 119, "date": "2021-04-30",
     "notes": [
       "_Endurance_ bonus reduced.",
       "_Spark_ damage increased.",
@@ -657,9 +529,7 @@
     ]
   },
   {
-    "version": "0.5.0",
-    "build": 120,
-    "date": "2021-05-01",
+    "version": "0.5.0", "build": 120, "date": "2021-05-01",
     "notes": [
       "_Just Kill Me_ difficulty returns",
       "_Aimed shot_ attack skill bonus increased.",
@@ -672,9 +542,7 @@
     ]
   },
   {
-    "version": "0.5.0",
-    "build": 121,
-    "date": "2021-05-03",
+    "version": "0.5.0", "build": 121, "date": "2021-05-03",
     "notes": [
       "_Shadow Clone_ skill can summon _1 strong or 3 weak clones_.",
       "_Shadow Clone_ skill cool down reduced.",
@@ -688,18 +556,14 @@
     ]
   },
   {
-    "version": "0.5.0",
-    "build": 122,
-    "date": "2021-05-09",
+    "version": "0.5.0", "build": 122, "date": "2021-05-09",
     "notes": [
       "_Gauntlet Mode_ added; Survive for as long as you can.",
       "Fixed _Toughness_ and _Spirit armor_ reducing hunger damage."
     ]
   },
   {
-    "version": "0.5.1",
-    "build": 123,
-    "date": "2021-05-16",
+    "version": "0.5.1", "build": 123, "date": "2021-05-16",
     "notes": [
       "_Gauntlet_ has chance of more rooms to be fair.",
       "Some polishing for Gauntlet mode.",
@@ -707,18 +571,14 @@
     ]
   },
   {
-    "version": "0.5.1",
-    "build": 124,
-    "date": "2021-05-19",
+    "version": "0.5.1", "build": 124, "date": "2021-05-19",
     "notes": [
       "_Multiplicity_ armor glyph removed from gauntlet.",
       "Fixed regenerating while _starving_ in gauntlet."
     ]
   },
   {
-    "version": "0.5.1",
-    "build": 125,
-    "date": "2021-05-29",
+    "version": "0.5.1", "build": 125, "date": "2021-05-29",
     "notes": [
       "_Gauntlet_ now has rat only mobs.",
       "Added _Ranged Rat_ and _Rat Brute_ for gauntlet.",
@@ -727,18 +587,14 @@
     ]
   },
   {
-    "version": "0.5.1",
-    "build": 126,
-    "date": "2021-06-02",
+    "version": "0.5.1", "build": 126, "date": "2021-06-02",
     "notes": [
       "Hero starts with _scroll of skill_ if _Tengu_ beaten before for that class.",
       "Fixed _Gauntlet_ giving weaker tier armor and weapon."
     ]
   },
   {
-    "version": "0.5.1",
-    "build": 128,
-    "date": "2021-06-05",
+    "version": "0.5.1", "build": 128, "date": "2021-06-05",
     "notes": [
       "Increased champ drop rate by _20%_ for all difficulties.",
       "Grass in _Gauntlet_ mode drops _dew drops_ instead of seeds.",
@@ -746,9 +602,7 @@
     ]
   },
   {
-    "version": "1.0.2",
-    "build": 133,
-    "date": "2026-05-18",
+    "version": "1.0.2", "build": 133, "date": "2026-05-18",
     "notes": [
       "Added _windowed mode_ on desktop, available in settings.",
       "Escape opens the in-game menu.",
@@ -756,18 +610,15 @@
     ]
   },
   {
-    "version": "1.0.3",
-    "build": 134,
-    "date": "2026-05-30",
+    "version": "1.0.3", "build": 134, "date": "2026-05-30",
     "notes": [
       "Added _more languages_ and translated missing text.",
+      "Added Google Play achievements.",
       "Improved desktop window controls and mouse-wheel scrolling."
     ]
   },
   {
-    "version": "1.0.5",
-    "build": 136,
-    "date": "2026-06-06",
+    "version": "1.0.5", "build": 136, "date": "2026-06-06",
     "notes": [
       "Added the _Necromancer_ and _Mercenary_ classes, with their own skills and subclasses.",
       "Added guns and ammunition for the Mercenary.",
@@ -776,9 +627,7 @@
     ]
   },
   {
-    "version": "1.1.0",
-    "build": 137,
-    "date": "2026-09-09",
+    "version": "1.1.0", "build": 137, "date": "2026-09-09",
     "notes": [
       "Translated the new _Necromancer_ and _Mercenary_ skills.",
       "Fixed Meditation's prerequisite. Raise Skeleton Archer now requires _Lich_.",
@@ -786,9 +635,11 @@
     ]
   },
   {
-    "version": "1.1.1",
-    "build": 139,
-    "date": "2026-09-26",
+    "version": "1.1.0", "build": 138, "date": "2026-09-09",
+    "notes": ["Fixed _donation purchases_ on Android."]
+  },
+  {
+    "version": "1.1.1", "build": 139, "date": "2026-09-26",
     "notes": [
       "Long descriptions, quests and menus now _scroll_ instead of running off-screen.",
       "Fixed window sizing, clipped text and touch handling.",
@@ -796,9 +647,7 @@
     ]
   },
   {
-    "version": "1.2.0",
-    "build": 140,
-    "date": "2026-10-03",
+    "version": "1.2.0", "build": 140, "date": "2026-10-03",
     "notes": [
       "Added _keyboard and controller bindings_ in settings.",
       "Added desktop shortcuts for movement, skills, inventory and quick slots.",
@@ -806,9 +655,7 @@
     ]
   },
   {
-    "version": "1.3.0",
-    "build": 141,
-    "date": "2026-10-17",
+    "version": "1.3.0", "build": 141, "date": "2026-10-17",
     "notes": [
       "Added optional _first-person_ and _third-person_ dungeon views.",
       "Added desktop camera controls and a radar for the perspective views.",
@@ -816,9 +663,7 @@
     ]
   },
   {
-    "version": "2.0.0",
-    "build": 142,
-    "date": "2026-10-19",
+    "version": "2.0.0", "build": 142, "date": "2026-10-19",
     "notes": [
       "Added _Reborn_: new dungeon layouts, encounters and boss fights.",
       "Added special rooms and mercenaries recruited inside the dungeon.",
@@ -828,9 +673,7 @@
     ]
   },
   {
-    "version": "2.1.0",
-    "build": 143,
-    "date": "2026-10-23",
+    "version": "2.1.0", "build": 143, "date": "2026-10-25",
     "notes": [
       "Added _party mode_.",
       "Nerfed the Warrior's _Toughness_ and _Regeneration_ passives.",
@@ -849,6 +692,101 @@
       "Fixed grass and raised terrain drawing over heroes and thrown items. Raised objects no longer show patches of floor in first- and third-person views.",
       "Explored terrain stays visible through fog in first- and third-person views, using your brightness setting.",
       "Fixed caves boss crashes in older saves and dungeon generation crashes on older Android versions."
+    ]
+  },
+  {
+    "version": "2.2.0",
+    "build": 144,
+    "date": "2026-10-31",
+    "sections": [
+      {
+        "title": "Lore",
+        "notes": [
+          "Added _Lore_: a library of items, creatures, heroes and skills.",
+          "Fill your Lore by identifying items and meeting creatures in solo games. See their stats, skills, badges and the drops you have found.",
+          "Try out _item upgrades and hero equipment_ in Lore. Use the prefixes, enchantments and glyphs you have discovered to see how they change your gear."
+        ]
+      },
+      {
+        "title": "Badges",
+        "notes": [
+          "Added _Know It All_, a badge for discovering everything in Lore, including recipes, equipment effects, quests and creature drops.",
+          "The all-class and all-subclass badges now include the _Necromancer and Mercenary_. Badges you already earned stay unlocked."
+        ]
+      },
+      {
+        "title": "Seeds and challenges",
+        "notes": [
+          "Added _10 Reborn challenges_. Classic keeps its original challenges.",
+          "New Reborn games have a _seed made of six icons_, shown in saved games, hero info and rankings. Enter a seed to revisit a dungeon.",
+          "Use _Copy seed_ and _Paste seed_ to share dungeons. Custom seeds have a purple border.",
+          "Custom seeds do not count toward badges, achievements, Lore discoveries or rankings.",
+          "Reborn ranking entries now show the seed and all challenge icons.",
+          "Reborn regions now have their own dungeon layouts, from sewer waterways and prison corridors to open caverns, city plazas and bridges over the Halls."
+        ]
+      },
+      {
+        "title": "Ice Caves",
+        "notes": [
+          "Added the _Ice Caves_, an optional Reborn route through frozen mines. Read a _Scroll of Frost_ in the Prison to enter.",
+          "You can also _tear a Scroll of Frost_ to freeze enemies across the floor without harming them. Damage breaks the ice. Bosses and creatures immune to frost are unaffected.",
+          "Help a _stranded prospector_ in the Ice Caves. Bring him torches or clear out iceclaws, then choose a Scroll of Upgrade or two rations.",
+          "Defeat the boss at the end of the Ice Caves for a unique weapon drop per hero."
+        ]
+      },
+      {
+        "title": "Dungeons and mercenaries",
+        "notes": [
+          "Reborn creatures now show their active effects above their health bars. Inspect a champion to see its skills.",
+          "Archer Maiden recruitment and champion settings no longer require a donation.",
+          "Mercenary camps now appear on every regular Reborn floor. The Archer Maiden can appear alongside the other mercenary types.",
+          "Gave the Brute, Wizard, Thief and Archer their own faces and matching portraits.",
+          "Classic heroes can hire any mercenary, including their own class's equivalent."
+        ]
+      },
+      {
+        "title": "Items and combat",
+        "notes": [
+          "Identified _scrolls, rings, wands and potions_ now have distinct sprites in Reborn.",
+          "Healing and mana potions now restore you over 10 turns in Reborn. Hired mercenaries still heal instantly.",
+          "Added the rare _Potion of Rejuvenation_, which instantly restores all health and mana. Brew one from three Sungrass seeds in Reborn.",
+          "Added the _Scroll of Focus_: active skill cooldowns are reduced by 25% (at least one turn) for 100 turns.",
+          "Loading a save now preserves whether an item's curse has been identified.",
+          "Added warnings before using known harmful scrolls and potions, equipping known cursed gear or replacing an enchantment.",
+          "The _Scroll of Sacrifice_ now trades 20% of your maximum health for 1 strength.",
+          "Damage breaks _Frost_ again."
+        ]
+      },
+      {
+        "title": "Party mode",
+        "notes": [
+          "Tap your party partner to _follow them_ or _swap places_. In online games, you can also ask your partner to follow you.",
+          "Smoothed out animations in online party games. Fixed missing death animations and problems when changing floors.",
+          "Fixed party storage failing to open and items being taken from the wrong hero's storage.",
+          "While following a partner, the camera follows the leader in local parties and your own hero in online games.",
+          "Following pauses for combat and resumes when the danger clears. Moving while following or selecting the follower's portrait in a local party cancels it."
+        ]
+      },
+      {
+        "title": "Supporter cosmetics",
+        "notes": [
+          "Supporters get a _cosmetic icon_ beside the keys and stairs. Tap it to choose a _hero aura_. You can preview every aura before donating. All gameplay is free.",
+          "Android donations now have one _$4.99 option_, which unlocks all auras. Past donations count too. The _$0.99 monthly subscription_ also unlocks every aura while active. Both award the supporter badge."
+        ]
+      },
+      {
+        "title": "Interface and fixes",
+        "notes": [
+          "Fixed garbled translations and missing values in descriptions and combat messages.",
+          "Rival inspection windows now show their animated portraits.",
+          "Sleep and alert icons keep their normal size after returning to the game.",
+          "Chasms below raised walls now show the dark drop instead of an extra wall face.",
+          "Fixed Android crashes on the title screen and when resuming the game.",
+          "The resume movement button no longer appears after death.",
+          "Fixed an Android crash when leaving the Gauntlet.",
+          "The Huntress no longer receives extra boomerangs in the Gauntlet."
+        ]
+      }
     ]
   }
 ]

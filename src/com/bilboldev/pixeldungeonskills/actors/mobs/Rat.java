@@ -57,7 +57,7 @@ public class Rat extends Mob {
 
 	@Override
 	public void die( Object cause ) {
-		Ghost.Quest.processSewersKill( pos );
+		Ghost.Quest.processSewersKill( this );
 
 		super.die( cause );
 	}

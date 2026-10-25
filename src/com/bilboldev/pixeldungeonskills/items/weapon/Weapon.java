@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -27,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.enchantments.*;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -105,7 +107,7 @@ abstract public class Weapon extends KindOfWeapon {
 		if ((hitsToKnow = bundle.getInt( UNFAMILIRIARITY )) == 0) {
 			hitsToKnow = HITS_TO_KNOW;
 		}
-		enchantment = (Enchantment)bundle.get( ENCHANTMENT );
+		enchant((Enchantment)bundle.get( ENCHANTMENT ));
 		imbue = bundle.getEnum( IMBUE, Imbue.class );
 	}
 
@@ -149,14 +151,17 @@ abstract public class Weapon extends KindOfWeapon {
 
 		int damage = super.damageRoll( hero );
 
-		if ((hero.rangedWeapon != null) == (hero.heroClass == HeroClass.HUNTRESS)) {
-			int exStr = hero.STR() - STR();
-			if (exStr > 0) {
-				damage += Random.IntRange( 0, exStr );
-			}
+		int exStr = excessStrengthDamage(hero);
+		if (exStr > 0) {
+			damage += Random.IntRange(0, exStr);
 		}
 
 		return damage;
+	}
+
+	public int excessStrengthDamage(Hero hero) {
+		return (hero.rangedWeapon != null) == (hero.heroClass == HeroClass.HUNTRESS)
+				? Math.max(0, hero.STR() - STR()) : 0;
 	}
 
     @Override
@@ -224,8 +229,12 @@ abstract public class Weapon extends KindOfWeapon {
 	}
 
 	public Weapon enchant( Enchantment ench ) {
-		enchantment = ench;
+		enchantment = this instanceof IceWeapon || RebornChallenges.active(RebornChallenges.PLAIN_STEEL) ? null : ench;
 		return this;
+	}
+
+	public Enchantment enchantment() {
+		return enchantment;
 	}
 
 	public Weapon enchant() {

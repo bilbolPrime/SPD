@@ -26,30 +26,53 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.Presentation;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.ui.HealthBar;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
+import com.bilboldev.pixeldungeonskills.ui.LibraryChampionSkills;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndInfoMob extends WndTitledMessage {
+public class WndInfoMob extends WndScrollable {
 
 	public WndInfoMob( Mob mob ) {
-		
-		super(Presentation.reborn() ? new RebornMobTitle(mob) : new MobTitle(mob), desc(mob),
-				InspectionTitle.windowWidth(0));
-		
+
+		int width = boundedWidth(InspectionTitle.windowWidth(0));
+		Component heading = Presentation.reborn() ? new RebornMobTitle(mob) : new MobTitle(mob);
+		heading.setRect(0, 0, width, 0);
+		Component body = new Component();
+		HighlightedText description = new HighlightedText(6);
+		description.text(desc(mob), textWidth(width));
+		body.add(description);
+		float bottom = description.bottom();
+		if (mob.buff(RebornChampion.class) != null) {
+			HighlightedText intro = new HighlightedText(6);
+			intro.text(Messages.get(RebornChampion.class, "skills"), textWidth(width));
+			intro.setPos(0, bottom + 8);
+			body.add(intro);
+			LibraryChampionSkills skills = new LibraryChampionSkills(textWidth(width),
+					RebornChampion.skillsFor(mob.getClass()));
+			skills.setPos(0, intro.bottom() + 6);
+			body.add(skills);
+			bottom = skills.bottom();
+		}
+		body.setSize(textWidth(width), bottom);
+		layoutContent(width, heading, body, 2);
+
 	}
-	
+
 	private static String desc( Mob mob ) {
 		if (Presentation.reborn()) return mob.displayDescription();
-		
+
 		StringBuilder builder = new StringBuilder( mob.displayDescription() );
-		
+
 		builder.append( "\n\n" + mob.state.status() + "." );
-		
+
 		return builder.toString();
 	}
 
@@ -153,49 +176,49 @@ public class WndInfoMob extends WndTitledMessage {
 			height = count == 0 ? 0 : ((count - 1) / columns + 1) * (SIZE + 2) - 2;
 		}
 	}
-	
+
 	private static class MobTitle extends Component {
-		
+
 		private static final int GAP	= 2;
-		
+
 		private CharSprite image;
 		private BitmapText name;
 		private HealthBar health;
 		private BuffIndicator buffs;
-		
+
 		public MobTitle( Mob mob ) {
-			
+
 			name = PixelScene.createText( Utils.capitalize( mob.displayName() ), 9 );
 			name.hardlight( titleColor() );
-			name.measure();	
+			name.measure();
 			add( name );
-			
+
 			image = mob.sprite();
 			add( image );
-			
+
 			health = new HealthBar();
 			health.level( (float)mob.HP / mob.HT );
 			add( health );
-			
+
 			buffs = new BuffIndicator( mob );
 			add( buffs );
 		}
-		
+
 		@Override
 		protected void layout() {
-			
+
 			image.x = 0;
 			image.y = Math.max( 0, name.height() + GAP + health.height() - image.height );
-			
+
 			name.x = image.width + GAP;
 			name.y = image.height - health.height() - GAP - name.baseLine();
-			
+
 			float w = width - image.width - GAP;
-			
-			health.setRect( image.width + GAP, image.height - health.height(), w, health.height() ); 
-			
-			buffs.setPos( 
-				name.x + name.width() + GAP, 
+
+			health.setRect( image.width + GAP, image.height - health.height(), w, health.height() );
+
+			buffs.setPos(
+				name.x + name.width() + GAP,
 				name.y + name.baseLine() - BuffIndicator.SIZE );
 
 			height = health.bottom();

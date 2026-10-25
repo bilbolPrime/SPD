@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Gizmo;
 import com.bilboldev.noosa.Group;
+import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
@@ -75,8 +80,25 @@ public final class PartyWindows {
         if (message.getBoolean("closed")) return;
         String[] labels = new String[message.getInt("choices")];
         for (int i = 0; i < labels.length; i++) labels[i] = PartyText.render(message.getBundle("choice" + i));
-        clientWindow = new WndPartyMenu(next, PartyText.render(message.getBundle("title")),
-                PartyText.render(message.getBundle("text")), labels);
+        int[] images = null, quantities = null;
+        if (message.contains("reward0")) {
+            images = new int[labels.length];
+            quantities = new int[labels.length];
+            for (int i = 0; i < labels.length; i++) {
+                Bundle reward = message.getBundle("reward" + i);
+                images[i] = reward.getInt("image");
+                quantities[i] = reward.getInt("quantity");
+            }
+        }
+        Bundle title = message.getBundle("title");
+        Image icon = null;
+        if (message.contains("image")) {
+            icon = new ItemSprite(message.getInt("image"), null);
+        } else if (title.getInt("id") == PartyCatalog.message(Messages.key(RebornChallenges.class, "point_blank"))) {
+            icon = new ItemSprite(ItemSpriteSheet.KNUCKLEDUSTER, null);
+        }
+        clientWindow = new WndPartyMenu(next, icon, PartyText.render(title),
+                PartyText.render(message.getBundle("text")), labels, images, quantities);
         GameScene.show(clientWindow);
     }
 
@@ -179,12 +201,22 @@ public final class PartyWindows {
             if (menu == null) throw new IllegalArgumentException("Missing party menu: " + shown.getClass().getName());
             message.put("title", PartyText.encode(menu.title));
             message.put("text", PartyText.encode(menu.description));
+            if (menu.image >= 0) message.put("image", menu.image);
             for (MenuModel.Choice choice : menu.choices) {
                 if (choice.button == null || belongsTo(choice.button, shown)) choices.add(choice);
             }
         }
         message.put("choices", choices.size());
-        for (int i = 0; i < choices.size(); i++) message.put("choice" + i, PartyText.encode(choices.get(i).label));
+        for (int i = 0; i < choices.size(); i++) {
+            MenuModel.Choice choice = choices.get(i);
+            message.put("choice" + i, PartyText.encode(choice.label));
+            if (choice.image >= 0) {
+                Bundle reward = new Bundle();
+                reward.put("image", choice.image);
+                reward.put("quantity", choice.quantity);
+                message.put("reward" + i, reward);
+            }
+        }
         PartySession.sendUi(message);
     }
 

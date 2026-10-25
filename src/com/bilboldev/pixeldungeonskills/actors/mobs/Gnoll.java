@@ -25,17 +25,17 @@ import com.bilboldev.pixeldungeonskills.sprites.GnollSprite;
 import com.bilboldev.utils.Random;
 
 public class Gnoll extends Mob {
-	
+
 	{
 		name = "gnoll scout";
 		spriteClass = GnollSprite.class;
-		
+
 		HP = HT = 12;
 		defenseSkill = 4;
-		
+
 		EXP = 2;
 		maxLvl = 8;
-		
+
 		loot = Gold.class;
 		lootChance = 0.5f;
 
@@ -43,25 +43,25 @@ public class Gnoll extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 2, 5 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 11;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 2;
 	}
-	
+
 	@Override
 	public void die( Object cause ) {
-		Ghost.Quest.processSewersKill( pos );
+		Ghost.Quest.processSewersKill( this );
 		super.die( cause );
 	}
 
@@ -70,7 +70,7 @@ public class Gnoll extends Mob {
         champEffect(enemy, damage);
         return damage;
     }
-	
+
 	@Override
 	public String description() {
 		return

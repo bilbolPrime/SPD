@@ -3,11 +3,11 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.utils.Random;
 
 enum RebornRoomDimensions {
-    SEWERS(11, 13, 1.3f, 1.5f),
-    PRISON(13, 14, 1.5f, 1.5f),
-    CAVES(10, 12, 1.4f, 0.5f),
-    CITY(9, 11, 1.1f, 3f),
-    HALLS(10, 12, 2f, 2f);
+    SEWERS(9, 13, 1.3f, 1.5f),
+    PRISON(9, 13, 2.2f, 3f),
+    CAVES(10, 14, 1.4f, 0.5f),
+    CITY(9, 13, 1.1f, 3f),
+    HALLS(9, 13, 2f, 2f);
 
     final int minRooms, maxRooms;
     private final float aspect, shapePreference;
@@ -60,7 +60,7 @@ enum RebornRoomDimensions {
                 break;
             case PRISON:
                 shorter = Math.min(shorter, Random.IntRange(4, 5));
-                longer = Math.min(longer, Random.IntRange(6, 7));
+                longer = Math.min(longer, Random.IntRange(9, 15));
                 break;
             case CAVES:
                 if (Random.Int(3) == 0) {

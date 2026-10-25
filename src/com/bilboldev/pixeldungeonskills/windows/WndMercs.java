@@ -28,7 +28,6 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TouchArea;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
@@ -55,10 +54,10 @@ import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
+import com.bilboldev.pixeldungeonskills.ui.MercIcons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
-import com.bilboldev.utils.RectF;
 import java.util.ArrayList;
 
 public class WndMercs extends WndTabbed {
@@ -85,21 +84,17 @@ public class WndMercs extends WndTabbed {
     float pos = 5;
     float GAP = 2;
 
-    private static final int WIDTH_P	= 120;
+    private static final int WIDTH_P	= 132;
     private static final int WIDTH_L	= 144;
 
     protected static final int TAB_WIDTH	= 25;
 
-    private static final String TXT_TITLE =  "Hire A Mercenary";
+    @Override
+    protected int tabHeight() {
+        return 29;
+    }
 
-    private static final String TXT_MERCENARIES_DETAIL = "Mercenaries will fight for you in exchange for a fee.\n \n"
-            + "There are five mercenary classes each with strengths and weaknesses. \n"
-            + "Each class has one skill with the exception of the Archer Maiden who knows two.\n"
-            + "Skills level with the mercenary and are capped at level 3. \n"
-            + "Mercenaries have the same level as the hero and level with him. \n \n"
-            + "You can unequip an item from a merc by tapping on it and holding down. \n \n"
-            + "Mercs will consume any healing potion equipped on them if about to die. \n \n"
-            + "You cannot hire the mercenary equivalent of your class.";
+    private static final String TXT_TITLE =  "Hire A Mercenary";
 
     private static final String TXT_NO_GOLD = "Insufficient Gold";
     private final ControlRow equipmentControls = new ControlRow();
@@ -138,7 +133,7 @@ public class WndMercs extends WndTabbed {
         ArrayList<RedButton> actions = new ArrayList<>();
 
         if(mode == Mode.ALL) {
-            titlebar = new IconTitle(new SkillSprite(96), TXT_TITLE);
+            titlebar = new IconTitle(MercIcons.company(), TXT_TITLE);
             titlebar.setRect(0, 0, width, 0);
             add(titlebar);
 
@@ -147,7 +142,7 @@ public class WndMercs extends WndTabbed {
             BitmapTextMultiline info = PixelScene.createMultiline(6);
             content.add(info);
 
-            info.text(TXT_MERCENARIES_DETAIL);
+            info.text(Messages.get("custom.generated.entry_mercenaries_will_fight_for_you_in_exchange_for_a_45fbaccd78"));
             info.maxWidth = textWidth(width);
             info.measure();
             info.y = pos;
@@ -158,7 +153,7 @@ public class WndMercs extends WndTabbed {
         else
         {
             String mercName = MercenaryRecruitment.displayName(getMercType(mode));
-            titlebar = new IconTitle(new SkillSprite(getImage(mode)), Messages.get(
+            titlebar = new IconTitle(MercIcons.portrait(getMercType(mode)), Messages.get(
                     mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "custom.merc.hire_title_an" : "custom.merc.hire_title_a",
                     new Object[]{mercName}));
             titlebar.setRect(0, 0, width, 0);
@@ -550,8 +545,7 @@ public class WndMercs extends WndTabbed {
             equipmentControls.setPos(0, content.height());
             content.add(equipmentControls);
             content.setSize(textWidth(width), equipmentControls.bottom());
-            if ((Dungeon.rules().allowsOnDemandHiring() || MercenaryRecruitment.atRecruiter(camp))
-                    && (mode != Mode.ARCHERMAIDEN || MercenaryRecruitment.maidenAvailable())) {
+            if (Dungeon.rules().allowsOnDemandHiring() || MercenaryRecruitment.atRecruiter(camp)) {
                 RedButton btnHire = new ActionButton(Messages.get("custom.merc.hire_button",
                         new Object[]{mercName, getGoldCost(mode)})) {
                     @Override
@@ -576,23 +570,6 @@ public class WndMercs extends WndTabbed {
                 menuModel.add(btnHire, Message.key("custom.merc.hire_button", nameText, getGoldCost(mode)));
 
             }
-            else if (Dungeon.rules().allowsOnDemandHiring())
-            {
-                RedButton btnHire = new ActionButton("Unlock") {
-                    @Override
-                    protected void onClick() {
-                        Image tmp = new  SkillSprite(104);
-                        parent.add(new previewInformation(tmp,
-                                Message.key("custom.generated.entry_archer_maiden_760746f689"),
-                                Message.key("custom.generated.entry_please_consider_donating_to_unlock_this_feature_5b14e9ead8")));
-                    }
-                };
-
-                btnHire.setSize(Math.min(width, 120), 20);
-                actions.add(btnHire);
-                menuModel.add(btnHire, Message.key("custom.generated.entry_unlock_1526a17ee7"));
-
-            }
 
         }
 
@@ -601,52 +578,19 @@ public class WndMercs extends WndTabbed {
 
         if (camp != null) return;
 
-        MercenaryTab tabAll = new MercenaryTab(Mode.ALL);
-        tabAll.setSize(TAB_WIDTH, tabHeight());
-        add(tabAll);
-        menuModel.add(tabAll, Message.key("custom.generated.entry_hire_a_mercenary_719a392723"));
-        tabAll.select(mode == Mode.ALL);
-
-        if (Dungeon.hero.heroClass != HeroClass.WARRIOR && Dungeon.hero.heroClass != HeroClass.MERCENARY) {
-            MercenaryTab tabBrute = new MercenaryTab(Mode.BRUTE);
-            tabBrute.setSize(TAB_WIDTH, tabHeight());
-            add(tabBrute);
-        menuModel.add(tabBrute, MercenaryRecruitment.nameText(getMercType(tabBrute.mode)));
-            tabBrute.select(mode == Mode.BRUTE);
-        }
-
-        if (Dungeon.hero.heroClass != HeroClass.MAGE && Dungeon.hero.heroClass != HeroClass.NECROMANCER) {
-        MercenaryTab tabWizard = new MercenaryTab(Mode.WIZARD);
-        tabWizard.setSize(TAB_WIDTH, tabHeight());
-        add(tabWizard);
-        menuModel.add(tabWizard, MercenaryRecruitment.nameText(getMercType(tabWizard.mode)));
-        tabWizard.select(mode == Mode.WIZARD);
-        }
-
-        if(Dungeon.hero.heroClass != HeroClass.ROGUE) {
-        MercenaryTab tabThief = new MercenaryTab(Mode.THIEF);
-        tabThief.setSize(TAB_WIDTH, tabHeight());
-        add(tabThief);
-        menuModel.add(tabThief, MercenaryRecruitment.nameText(getMercType(tabThief.mode)));
-        tabThief.select(mode == Mode.THIEF);
-        }
-
-        if (Dungeon.hero.heroClass != HeroClass.HUNTRESS
-                && (!Dungeon.rules().hasRebornEncounters() || !MercenaryRecruitment.maidenAvailable())) {
-        MercenaryTab tabArcher = new MercenaryTab(Mode.ARCHER);
-        tabArcher.setSize(TAB_WIDTH, tabHeight());
-        add(tabArcher);
-        menuModel.add(tabArcher, MercenaryRecruitment.nameText(getMercType(tabArcher.mode)));
-        tabArcher.select(mode == Mode.ARCHER);
-        }
-
-        if (!Dungeon.rules().hasRebornEncounters() || (Dungeon.hero.heroClass != HeroClass.HUNTRESS
-                && MercenaryRecruitment.maidenAvailable())) {
-        MercenaryTab tabMaiden = new MercenaryTab(Mode.ARCHERMAIDEN);
-        tabMaiden.setSize(TAB_WIDTH, tabHeight());
-        add(tabMaiden);
-        menuModel.add(tabMaiden, MercenaryRecruitment.nameText(getMercType(tabMaiden.mode)));
-        tabMaiden.select(mode == Mode.ARCHERMAIDEN);
+        int tabWidth = Math.min(TAB_WIDTH, (width + chrome.marginHor() - 2) / Mode.values().length);
+        for (Mode choice : Mode.values()) {
+            if (choice != Mode.ALL && Dungeon.rules().hasRebornEncounters()
+                    && (choice == Mode.ARCHER || !MercenaryRecruitment.eligible(Dungeon.hero.heroClass, getMercType(choice)))) {
+                continue;
+            }
+            MercenaryTab tab = new MercenaryTab(choice);
+            tab.setSize(tabWidth, tabHeight());
+            add(tab);
+            menuModel.add(tab, choice == Mode.ALL
+                    ? Message.key("custom.generated.entry_hire_a_mercenary_719a392723")
+                    : MercenaryRecruitment.nameText(getMercType(choice)));
+            tab.select(mode == choice);
         }
 
     }
@@ -685,20 +629,6 @@ public class WndMercs extends WndTabbed {
 
         return Message.key("custom.generated.entry_health_20_level_x_3_strength_13_level_x_0_33_spe_e7e4bca58b");
     }
-    private int getImage(Mode mode)
-    {
-        switch (mode)
-        {
-            case BRUTE: return 0;
-            case WIZARD: return 24;
-            case THIEF: return 48;
-            case ARCHER: return 72;
-            case ARCHERMAIDEN: return 104;
-        }
-
-        return 0;
-    }
-
     private String getName(Mode mode)
     {
         switch (mode)
@@ -773,16 +703,11 @@ public class WndMercs extends WndTabbed {
         @Override
         protected void layout() {
             super.layout();
+            if (bg == null) return;
 
-            icon.copy( icon );
-            icon.x = x + (width - icon.width) / 2;
-            icon.y = y + (height - icon.height) / 2 - 2 - (selected ? 0 : 1);
-            if (!selected && icon.y < y + CUT) {
-                RectF frame = icon.frame();
-                frame.top += (y - icon.y) / icon.texture.height;
-                icon.frame( frame );
-                icon.y = y;
-            }
+            icon.x = PixelScene.align(WndMercs.this.camera, x + (width - icon.width()) / 2);
+            icon.y = PixelScene.align(WndMercs.this.camera,
+                    y + bg.marginTop() + (height - bg.marginVer() - icon.height()) / 2);
         }
     }
 

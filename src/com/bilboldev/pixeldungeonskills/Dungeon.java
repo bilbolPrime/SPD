@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills;
 
+import com.bilboldev.pixeldungeonskills.levels.IceCavesLevel;
+import com.bilboldev.pixeldungeonskills.levels.IceBossLevel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,14 +38,18 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
@@ -87,6 +93,7 @@ public class Dungeon {
 	public static boolean dewVial;
 
 	public static int challenges;
+    public static int challengeBosses;
 
 	public static Hero hero;
 	public static Level level;
@@ -94,6 +101,7 @@ public class Dungeon {
 	public static int depth;
 	public static int gold;
     public static int rebornEncounterSeed;
+    public static RunSeed seed;
 	public static boolean showGold;
 
     public static int difficulty;
@@ -111,9 +119,22 @@ public class Dungeon {
         return runRules;
     }
 
+    public static int levelKey() {
+        return IceCaves.levelKey(depth);
+    }
+
+    public static boolean hasLevel(int floor) {
+        int key = IceCaves.levelKey(floor);
+        if (LocalCoop.active()) return LocalCoop.level(key) != null;
+        String filename = SaveSlots.levelFile(hero.heroClass, saveSlot, key);
+        for (String file : Game.instance.fileList()) if (filename.equals(file)) return true;
+        return false;
+    }
+
     static Runnable enterGauntlet() {
         final int oldSlot = saveSlot, oldDifficulty = difficulty, oldChallenges = challenges, oldDepth = depth, oldGold = gold;
         final RunRules oldRules = runRules;
+        final RunSeed oldSeed = seed;
         final boolean oldPlayable = playableRun, oldNight = nightMode;
         final Difficulties oldCurrentDifficulty = currentDifficulty;
         saveSlot = SaveSlots.FIRST;
@@ -128,6 +149,7 @@ public class Dungeon {
             public void run() {
                 saveSlot = oldSlot;
                 runRules = oldRules;
+                seed = oldSeed;
                 playableRun = oldPlayable;
                 difficulty = oldDifficulty;
                 currentDifficulty = oldCurrentDifficulty;
@@ -148,6 +170,7 @@ public class Dungeon {
             throw new IllegalArgumentException("Invalid difficulty");
         saveSlot = slot;
         runRules = selectedRules;
+        seed = null;
         playableRun = true;
         hero = null;
         level = null;
@@ -163,6 +186,8 @@ public class Dungeon {
     }
 
     private static void useSpecialRunRules() {
+        SupporterEntitlements.resetRunAura();
+        seed = null;
         LocalCoop.clear();
         saveSlot = SaveSlots.FIRST;
         runRules = RunRules.CLASSIC;
@@ -181,11 +206,24 @@ public class Dungeon {
 	public static SparseArray<ArrayList<Item>> droppedItems;
 
 	public static void init() {
+		Lore.clearNotices();
+        SupporterEntitlements.resetRunAura();
+        if (runRules.hasSeed()) {
+            if (seed == null) seed = RunSeed.random();
+        } else seed = null;
+        try (Random.Scope random = RunSeed.scope(RunSeed.INITIAL, 0)) {
+            initialize();
+        }
+    }
+
+    private static void initialize() {
         rebornEncounterSeed = runRules.hasRebornEncounters() ? Random.Int(1000000) : 0;
         RivalEncounter.reset();
+        IceCaves.reset();
+        challengeBosses = 0;
 		playableRun = true;
 
-		challenges = runRules.challenges(PixelDungeon.challenges());
+		challenges = runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
 		Skill.skillTrack = 0;
 		Actor.clear();
 
@@ -334,8 +372,10 @@ public class Dungeon {
     }
 
 	public static void initGauntlet() {
+		Lore.clearNotices();
 
         if (!GauntletRun.active()) throw new IllegalStateException("Start an isolated Gauntlet session first");
+        SupporterEntitlements.resetRunAura();
 		challenges = 0;
 		Skill.skillTrack = 0;
 
@@ -386,6 +426,13 @@ public class Dungeon {
 	}
 
 	public static Level newLevel() {
+        try (Random.Scope random = RunSeed.scope(RunSeed.FLOOR, IceCaves.levelKey(depth + 1));
+             Generator.Scope loot = RunSeed.active() ? Generator.isolate() : null) {
+            return createLevel();
+        }
+    }
+
+    private static Level createLevel() {
 
 		Dungeon.level = null;
 		Actor.clear();
@@ -404,7 +451,11 @@ public class Dungeon {
 		Arrays.fill( visible, false );
 
 		Level level;
-		switch (depth) {
+        if (IceCaves.active() && depth >= IceCaves.FIRST && depth <= IceCaves.LAST) {
+            level = depth == IceCaves.LAST
+                    ? new IceBossLevel()
+                    : new IceCavesLevel();
+        } else switch (depth) {
 		case 1:
 		case 2:
 		case 3:
@@ -464,6 +515,9 @@ public class Dungeon {
 		}
 
 		level.create();
+        Wandmaker.Quest.prepareItem(level);
+
+        MercenaryRecruitment.finishCamp(level);
 
 		Statistics.qualifiedForNoKilling = !bossLevel();
 
@@ -489,6 +543,8 @@ public class Dungeon {
 	}
 
 	public static boolean bossLevel( int depth ) {
+        if (IceCaves.active() && depth >= IceCaves.FIRST && depth <= IceCaves.LAST)
+            return depth == IceCaves.LAST;
 		return depth == 5 || depth == 10 || depth == 15 || depth == 20 || depth == 25 || depth == ColdGirl.FROST_DEPTH || depth == 0;
 	}
 
@@ -519,8 +575,15 @@ public class Dungeon {
 			Actor.add( level.respawner() );
 		}
 
-       if(hero.hiredMerc != null)
-            hero.checkMerc = true;
+        if (!LocalCoop.active()) {
+            for (Mob mob : level.mobs) {
+                if (mob instanceof HiredMerc && mob.isAlive()) {
+                    hero.hiredMerc = (HiredMerc)mob;
+                    break;
+                }
+            }
+        }
+        hero.checkMerc = hero.hiredMerc != null && !level.mobs.contains(hero.hiredMerc);
         if(!LocalCoop.active() && depth != ColdGirl.FROST_DEPTH && depth != 0) {
             Actor mercRespawn = level.mercRespawner();
             if (mercRespawn != null) {
@@ -536,7 +599,7 @@ public class Dungeon {
 	}
 
 	public static void dropToChasm( Item item ) {
-		int depth = Dungeon.depth + 1;
+		int depth = IceCaves.levelKey(Dungeon.depth + 1);
 		ArrayList<Item> dropped = (ArrayList<Item>)Dungeon.droppedItems.get( depth );
 		if (dropped == null) {
 			Dungeon.droppedItems.put( depth, dropped = new ArrayList<Item>() );
@@ -592,9 +655,12 @@ public class Dungeon {
 
 	public static void storePartyWorld(Bundle bundle) {
 		runRules.store(bundle);
+        if (RunSeed.active()) seed.store(bundle);
 		bundle.put("reborn_encounter_seed", rebornEncounterSeed);
         RivalEncounter.store(bundle);
+        IceCaves.store(bundle);
 		bundle.put(CHALLENGES, challenges);
+        bundle.put("challenge_bosses", challengeBosses);
 		bundle.put(GOLD, gold);
 		bundle.put(DEPTH, depth);
 		bundle.put(POS, potionOfStrength);
@@ -626,11 +692,14 @@ public class Dungeon {
 		RunRules restored = RunRules.restore(bundle);
 		if (restored.mode != GameplayMode.REBORN) throw new IOException("Party rules must be Reborn");
 		runRules = restored;
+        seed = RunSeed.restore(bundle, restored);
 		playableRun = true;
 		setDifficulty(restored.difficulty(Difficulties.NORMAL.ordinal()));
 		rebornEncounterSeed = bundle.getInt("reborn_encounter_seed");
         RivalEncounter.restore(bundle);
+        IceCaves.restore(bundle);
 		challenges = restored.challenges(bundle.getInt(CHALLENGES));
+        challengeBosses = bundle.getInt("challenge_bosses");
 		gold = bundle.getInt(GOLD);
 		depth = bundle.getInt(DEPTH);
 		potionOfStrength = bundle.getInt(POS);
@@ -669,9 +738,12 @@ public class Dungeon {
 
 			bundle.put( VERSION, Game.version );
 			runRules.store(bundle);
+            if (RunSeed.active()) seed.store(bundle);
             if (runRules.hasRebornEncounters()) bundle.put("reborn_encounter_seed", rebornEncounterSeed);
             RivalEncounter.store(bundle);
+            IceCaves.store(bundle);
 			bundle.put( CHALLENGES, challenges );
+            bundle.put("challenge_bosses", challengeBosses);
 			bundle.put( HERO, hero );
 			bundle.put( GOLD, gold );
 			bundle.put( DEPTH, depth );
@@ -728,7 +800,7 @@ public class Dungeon {
 
 	public static void saveLevel() throws IOException {
 		if (LocalCoop.active()) {
-			LocalCoop.rememberLevel(depth, level);
+			LocalCoop.rememberLevel(levelKey(), level);
 			return;
 		}
 		if (GauntletRun.active()) return;
@@ -738,9 +810,10 @@ public class Dungeon {
 
 		Bundle bundle = new Bundle();
 		runRules.store(bundle);
+        if (RunSeed.active()) seed.store(bundle);
 		bundle.put( LEVEL, level );
 
-		OutputStream output = Game.instance.openFileOutput(SaveSlots.levelFile(hero.heroClass, saveSlot, depth), Game.MODE_PRIVATE);
+		OutputStream output = Game.instance.openFileOutput(SaveSlots.levelFile(hero.heroClass, saveSlot, levelKey()), Game.MODE_PRIVATE);
 
 		if(output == null){
 			return;
@@ -801,12 +874,17 @@ public class Dungeon {
 	}
 
 	private static void loadGame(Bundle bundle, boolean fullLoad, RunRules restored) throws IOException {
+		Lore.clearNotices();
+		SupporterEntitlements.resetRunAura();
 		LocalCoop.clear();
 		runRules = restored;
+        seed = RunSeed.restore(bundle, restored);
         rebornEncounterSeed = bundle.getInt("reborn_encounter_seed");
         RivalEncounter.restore(bundle);
+        IceCaves.restore(bundle);
 
 		Dungeon.challenges = runRules.challenges(bundle.getInt(CHALLENGES));
+        challengeBosses = bundle.getInt("challenge_bosses");
 
 		Dungeon.level = null;
 		Dungeon.depth = -1;
@@ -883,6 +961,11 @@ public class Dungeon {
 				droppedItems.put( i, dropped );
 			}
 		}
+        for (int i = 1000 + IceCaves.FIRST; i <= 1000 + IceCaves.LAST; i++) {
+            ArrayList<Item> dropped = new ArrayList<>();
+            for (Bundlable item : bundle.getCollection(String.format(DROPPED, i))) dropped.add((Item)item);
+            if (!dropped.isEmpty()) droppedItems.put(i, dropped);
+        }
 	}
 
 	public static Level loadLevel( HeroClass cl ) throws IOException {
@@ -891,10 +974,13 @@ public class Dungeon {
 		Dungeon.level = null;
 		Actor.clear();
 
-		Bundle bundle = gameBundle(SaveSlots.levelFile(cl, saveSlot, depth));
+		Bundle bundle = gameBundle(SaveSlots.levelFile(cl, saveSlot, levelKey()));
 		RunRules levelRules = RunRules.restore(bundle);
 		if (levelRules.mode != runRules.mode || levelRules.version != runRules.version)
 			throw new IOException("Floor rules do not match this run");
+        RunSeed floorSeed = RunSeed.restore(bundle, levelRules);
+        if (RunSeed.active() && (floorSeed.code != seed.code || floorSeed.custom != seed.custom))
+            throw new IOException("Floor seed does not match this run");
 		Level restored = (Level)bundle.get(LEVEL);
 		if (restored == null) throw new IOException("Unable to restore floor");
 		return restored;
@@ -931,9 +1017,10 @@ public class Dungeon {
 
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) throws IOException {
 		info.rules = RunRules.restore(bundle);
+        info.seed = RunSeed.restore(bundle, info.rules);
 		if (bundle.getBundle(HERO).isNull()) throw new IOException("Missing hero data");
 		info.depth = bundle.getInt( DEPTH );
-		info.challenges = info.rules.challenges(bundle.getInt(CHALLENGES)) != 0;
+		info.challenges = info.rules.challenges(bundle.getInt(CHALLENGES));
 		if (info.depth == -1) {
 			info.depth = bundle.getInt( "maxDepth" );
 		}
@@ -1025,6 +1112,7 @@ public class Dungeon {
 
 		GameScene.afterObserve();
 		GauntletScene.afterObserve();
+		Lore.observe();
 	}
 
 	public static boolean[] passable = new boolean[Level.LENGTH];

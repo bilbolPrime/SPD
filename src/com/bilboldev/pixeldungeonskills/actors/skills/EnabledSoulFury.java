@@ -41,7 +41,7 @@ public class EnabledSoulFury extends SoulFury {
 
     @Override
     public void execute( Hero hero, String action ) {
-        if(action == Skill.AC_CAST)
+        if(action == Skill.AC_CAST && hero.canUseSkill(getManaCost()))
         {
             Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, castText);
             Dungeon.hero.HP = Dungeon.hero.HT = 1000;

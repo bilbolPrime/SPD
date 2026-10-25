@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +57,7 @@ import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Bundlable;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Callback;
@@ -204,6 +206,33 @@ public class Item implements Bundlable {
 		execute( hero, defaultAction );
 	}
 
+    protected void confirmAction(Hero hero, Message warning, Message proceed, Message cancel, Runnable action) {
+        WndOptions window = new WndOptions(new ItemSprite(this), Message.itemName(this), warning, proceed, cancel) {
+            private boolean answered;
+
+            @Override
+            protected void onSelect(int index) {
+                if (answered) return;
+                answered = true;
+                if (index == 0 && hero.isAlive() && (hero.belongings.backpack.contains(Item.this) || isEquipped(hero))) {
+                    LocalCoop.withHero(hero, () -> {
+                        curUser = hero;
+                        curItem = Item.this;
+                        action.run();
+                    });
+                }
+            }
+
+            @Override
+            public void onBackPressed() {
+                answered = true;
+                super.onBackPressed();
+            }
+        };
+        window.menuModel().image = image();
+        GameScene.show(window);
+    }
+
 	protected void onThrow( int cell ) {
 		Heap heap = Dungeon.level.drop( this, cell );
 		if (!heap.isEmpty()) {
@@ -220,6 +249,7 @@ public class Item implements Bundlable {
     }
 
 	public boolean collect( Bag container ) {
+        RebornChallenges.plain(this);
 
 		ArrayList<Item> items = container.items;
 
@@ -526,6 +556,10 @@ public class Item implements Bundlable {
 		return desc();
 	}
 
+	public String info(Hero viewer) {
+		return info();
+	}
+
 	public String displayInfo() {
 		String info = info();
 		String translatedDesc = message( "desc" );
@@ -603,6 +637,7 @@ public class Item implements Bundlable {
 	public void randomPrefix() {
 		if (weaponEffect == null && WeaponEffect.supports(this) && Random.Int(100) < 50) {
 			weaponEffect = WeaponEffect.random(this);
+            RebornChallenges.plain(this);
 		}
 	}
 
@@ -649,6 +684,7 @@ public class Item implements Bundlable {
 
 		if (bundle.contains(EFFECT)) {
 			weaponEffect = WeaponEffect.restore(bundle.getString(EFFECT));
+            RebornChallenges.plain(this);
 		}
 
 		int level = bundle.getInt( LEVEL );
@@ -669,6 +705,8 @@ public class Item implements Bundlable {
 	}
 
 	public void cast( final Hero user, int dst ) {
+        if ((this instanceof MissileWeapon || this instanceof Bomb)
+                && !RebornChallenges.targetAllowed(user, dst)) return;
 
 		final int cell = Ballistica.cast( user.pos, dst, false, true );
 		user.sprite.zap( cell );
@@ -749,8 +787,9 @@ public class Item implements Bundlable {
     }
 
     public void castSPD( final Hero user, int dst, int skip ) {
-
-        final int cell = Ballistica.cast( user.pos, dst, skip);
+        if (!RebornChallenges.targetAllowed(user, dst)) return;
+        final int cell = RebornChallenges.active(RebornChallenges.POINT_BLANK)
+                ? Ballistica.cast(user.pos, dst, false, true) : Ballistica.cast(user.pos, dst, skip);
         user.sprite.zap( cell );
         user.busy();
 

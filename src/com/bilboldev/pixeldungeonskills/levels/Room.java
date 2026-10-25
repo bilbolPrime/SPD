@@ -23,8 +23,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Collections;
 
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.levels.painters.*;
 import com.bilboldev.utils.Bundlable;
 import com.bilboldev.utils.Bundle;
@@ -35,8 +39,8 @@ import com.bilboldev.utils.Rect;
 
 public class Room extends Rect implements Graph.Node, Bundlable {
 
-	public HashSet<Room> neigbours = new HashSet<Room>();
-	public HashMap<Room, Door> connected = new HashMap<Room, Door>();
+	public HashSet<Room> neigbours = RunSeed.active() ? new LinkedHashSet<Room>() : new HashSet<Room>();
+	public HashMap<Room, Door> connected = RunSeed.active() ? new LinkedHashMap<Room, Door>() : new HashMap<Room, Door>();
 
 	public int distance;
 	public int price = 1;
@@ -192,6 +196,7 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 	}
 
 	public static void shuffleTypes() {
+		if (RunSeed.active()) Collections.sort(SPECIALS);
 		int size = SPECIALS.size();
 		for (int i=0; i < size - 1; i++) {
 			int j = Random.Int( i, size );

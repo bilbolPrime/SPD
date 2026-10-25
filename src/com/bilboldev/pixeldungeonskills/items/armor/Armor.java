@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -101,6 +102,7 @@ public class Armor extends EquipableItem {
 		}
 		inscribe( (Glyph)bundle.get( GLYPH ) );
 		prefix = ArmorPrefix.restore(bundle.getString(PREFIX));
+        RebornChallenges.plain(this);
 	}
 
 	@Override
@@ -248,6 +250,11 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public String info() {
+		return info(Dungeon.hero);
+	}
+
+	@Override
+	public String info(Hero viewer) {
 		StringBuilder info = new StringBuilder( desc() );
 		info.append(prefixInfo());
 
@@ -255,20 +262,20 @@ public class Armor extends EquipableItem {
 			info.append( "\n\n" );
 			info.append( Messages.get( Armor.class, "curr_absorb", tier, 0, Math.max( DR(), 0 ), STR ) );
 
-			if (STR > Dungeon.hero.STR()) {
+			if (viewer != null && STR > viewer.STR()) {
 				info.append( "\n\n" );
 				info.append( Messages.get( Armor.class, "too_heavy" ) );
 			}
 		} else {
 			info.append( "\n\n" );
 			info.append( Messages.get( Armor.class, "avg_absorb", tier, 0, typicalDR(), typicalSTR() ) );
-			if (typicalSTR() > Dungeon.hero.STR()) {
+			if (viewer != null && typicalSTR() > viewer.STR()) {
 				info.append( " " );
 				info.append( Messages.get( Armor.class, "probably_too_heavy" ) );
 			}
 		}
 
-		if (isEquipped( Dungeon.hero )) {
+		if (viewer != null && isEquipped( viewer )) {
 			if (cursed) {
 				info.append( "\n\n" );
 				info.append( Messages.get( Armor.class, "cursed_worn" ) );
@@ -316,6 +323,7 @@ public class Armor extends EquipableItem {
 		if (prefix == null && Random.Int(100) < 50) {
 			ArmorPrefix[] prefixes = ArmorPrefix.values();
 			prefix = prefixes[Random.Int(prefixes.length)];
+            RebornChallenges.plain(this);
 		}
 	}
 
@@ -333,7 +341,7 @@ public class Armor extends EquipableItem {
 	}
 
 	public Armor inscribe( Glyph glyph ) {
-		this.glyph = glyph;
+		this.glyph = RebornChallenges.active(RebornChallenges.PLAIN_STEEL) ? null : glyph;
 		return this;
 	}
 

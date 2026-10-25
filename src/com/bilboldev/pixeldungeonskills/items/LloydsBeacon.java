@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import java.util.ArrayList;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
@@ -115,7 +116,7 @@ public class LloydsBeacon extends Item {
 
 		if (action == AC_SET) {
 
-			returnDepth = Dungeon.depth;
+			returnDepth = Dungeon.levelKey();
 			returnPos = hero.pos;
 
 			hero.spend( LloydsBeacon.TIME_TO_USE );
@@ -128,7 +129,7 @@ public class LloydsBeacon extends Item {
 
 		} else if (action == AC_RETURN) {
 
-			if (returnDepth == Dungeon.depth) {
+			if (returnDepth == Dungeon.levelKey()) {
 				reset();
 				WandOfBlink.appear( hero, returnPos );
 				Dungeon.level.press( returnPos, hero );
@@ -171,6 +172,7 @@ public class LloydsBeacon extends Item {
 
 	@Override
 	public String info() {
-		return TXT_INFO + (returnDepth == -1 ? "" : Utils.format( TXT_SET, returnDepth ) );
+		return TXT_INFO + (returnDepth == -1 ? "" : Utils.format( TXT_SET,
+                IceCaves.branchKey(returnDepth) ? returnDepth - 1000 : returnDepth ) );
 	}
 }

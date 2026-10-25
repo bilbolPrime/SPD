@@ -1,5 +1,9 @@
 package com.bilboldev.pixeldungeonskills.levels;
 
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.RunSeed;
+
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
@@ -147,6 +151,35 @@ public final class RebornEncounters {
                     || tile == Terrain.GRASS || tile == Terrain.HIGH_GRASS || tile == Terrain.WATER)) result.add(p);
         }
         return result;
+    }
+
+    static void challenges(RegularLevel level) {
+        if (!RebornChallenges.active(RebornChallenges.OUTNUMBERED)
+                && !RebornChallenges.active(RebornChallenges.SURVIVAL)) return;
+        long seed = Dungeon.seed == null ? Dungeon.rebornEncounterSeed : Dungeon.seed.value(RunSeed.CHALLENGES, Dungeon.depth);
+        java.util.Random random = new java.util.Random(seed);
+        ArrayList<Mob> original = new ArrayList<>(level.mobs);
+        original.sort((a, b) -> Integer.compare(a.pos, b.pos));
+        if (RebornChallenges.active(RebornChallenges.OUTNUMBERED)) {
+            ArrayList<Integer> cells = new ArrayList<>();
+            for (Room room : level.rooms) {
+                if (room.type == Room.Type.STANDARD) cells.addAll(safeCells(level, room, 4));
+            }
+            for (Mob source : original) {
+                if (!source.hostile || source instanceof NPC || cells.isEmpty()) continue;
+                try {
+                    Mob extra = source.getClass().newInstance();
+                    extra.pos = cells.remove(random.nextInt(cells.size()));
+                    extra.challengeExtra = true;
+                    add(level, extra);
+                } catch (ReflectiveOperationException failure) {
+                    throw new IllegalStateException("Could not populate challenge encounter", failure);
+                }
+            }
+        }
+        ArrayList<Mob> all = new ArrayList<>(level.mobs);
+        all.sort((a, b) -> Integer.compare(a.pos, b.pos));
+        for (Mob mob : all) RebornChallenges.promote(mob, random);
     }
 
     private static void add(RegularLevel level, Mob mob) {

@@ -117,7 +117,9 @@ public class DungeonTileSheet {
 	}
 
 	public static int stitchChasmTile(int above){
-		return chasmStitcheable.get(above, CHASM);
+		int tile = chasmStitcheable.get(above, CHASM);
+
+		return tile == CHASM_WALL ? CHASM : tile;
 	}
 
 	private static final int FLAT_WALLS         =                           xy(1, 5);

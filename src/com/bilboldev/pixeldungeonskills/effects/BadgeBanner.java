@@ -30,49 +30,49 @@ public class BadgeBanner extends Image {
 		FADE_IN, STATIC, FADE_OUT
 	};
 	private State state;
-	
+
 	private static final float DEFAULT_SCALE	= 3;
-	
+
 	private static final float FADE_IN_TIME		= 0.2f;
 	private static final float STATIC_TIME		= 1f;
 	private static final float FADE_OUT_TIME	= 1.0f;
-	
+
 	private int index;
 	private float time;
-	
+
 	private static TextureFilm atlas;
-	
+
 	private static BadgeBanner current;
-	
+
 	private BadgeBanner( int index ) {
-		
+
 		super( Assets.BADGES );
-		
+
 		if (atlas == null) {
 			atlas = new TextureFilm( texture, 16, 16 );
 		}
-		
+
 		this.index = index;
-		
+
 		frame( atlas.get( index ) );
 		origin.set( width / 2, height / 2 );
-		
+
 		alpha( 0 );
 		scale.set( 2 * DEFAULT_SCALE );
-		
+
 		state = State.FADE_IN;
 		time = FADE_IN_TIME;
-		
+
 		Sample.INSTANCE.play( Assets.SND_BADGE );
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
+
 		time -= Game.elapsed;
 		if (time >= 0) {
-			
+
 			switch (state) {
 			case FADE_IN:
 				float p = time / FADE_IN_TIME;
@@ -85,9 +85,9 @@ public class BadgeBanner extends Image {
 				alpha( time /  FADE_OUT_TIME );
 				break;
 			}
-			
+
 		} else {
-			
+
 			switch (state) {
 			case FADE_IN:
 				time = STATIC_TIME;
@@ -104,10 +104,10 @@ public class BadgeBanner extends Image {
 				killAndErase();
 				break;
 			}
-				
+
 		}
 	}
-	
+
 	@Override
 	public void kill() {
 		if (current == this) {
@@ -115,11 +115,11 @@ public class BadgeBanner extends Image {
 		}
 		super.kill();
 	}
-	
+
 	public static void highlight( Image image, int index ) {
-		
+
 		PointF p = new PointF();
-		
+
 		switch (index) {
 		case 0:
 		case 1:
@@ -254,28 +254,31 @@ public class BadgeBanner extends Image {
 		case 63:
 			p.offset( 4, 4 );
 			break;
+		case 64:
+			p.offset( 7, 4 );
+			break;
 		}
-		
-		p.x *= image.scale.x; 
+
+		p.x *= image.scale.x;
 		p.y *= image.scale.y;
-		p.offset( 
-			-image.origin.x * (image.scale.x - 1), 
+		p.offset(
+			-image.origin.x * (image.scale.x - 1),
 			-image.origin.y * (image.scale.y - 1) );
 		p.offset( image.point() );
-		
+
 		Speck star = new Speck();
 		star.reset( 0, p.x, p.y, Speck.DISCOVER );
 		star.camera = image.camera();
 		image.parent.add( star );
 	}
-	
+
 	public static BadgeBanner show( int image ) {
 		if (current != null) {
 			current.killAndErase();
 		}
 		return (current = new BadgeBanner( image ));
 	}
-	
+
 	public static Image image( int index ) {
 		Image image = new Image( Assets.BADGES );
 		if (atlas == null) {

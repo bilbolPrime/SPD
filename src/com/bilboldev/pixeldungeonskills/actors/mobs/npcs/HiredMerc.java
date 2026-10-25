@@ -21,6 +21,7 @@ import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.armor.LeatherArmor;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
+import com.bilboldev.pixeldungeonskills.items.potions.PotionOfRejuvenation;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
@@ -217,8 +218,6 @@ public class HiredMerc extends NPC {
         }
     }
 
-    public static boolean archerMaidenUnlocked = false;
-    public static final String MAIDEN_UNLOCK_BY= "This feature is locked.";
     public static final int COST_RATE = 15;
 
     public MERC_TYPES mercType = MERC_TYPES.Brute;
@@ -266,7 +265,7 @@ public class HiredMerc extends NPC {
 
     public HiredMerc()
     {
-
+        mercType.setSkills(this);
     }
 
     public HiredMerc(MERC_TYPES merc)
@@ -293,7 +292,7 @@ public class HiredMerc extends NPC {
     {
         if(weapon != null)
         {
-            Dungeon.level.drop( weapon, pos ).sprite.drop();
+            Dungeon.level.drop( weapon, pos, this ).sprite.drop();
         }
         weapon = null;
     }
@@ -315,7 +314,7 @@ public class HiredMerc extends NPC {
     {
         if(armor != null)
         {
-            Dungeon.level.drop( armor, pos ).sprite.drop();
+            Dungeon.level.drop( armor, pos, this ).sprite.drop();
             armor = null;
             if(HP > 0)
                 ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
@@ -332,7 +331,7 @@ public class HiredMerc extends NPC {
     {
         if(carrying != null)
         {
-            Dungeon.level.drop( carrying, pos ).sprite.drop();
+            Dungeon.level.drop( carrying, pos, this ).sprite.drop();
         }
         carrying = null;
     }
@@ -412,12 +411,37 @@ public class HiredMerc extends NPC {
 
     @Override
     public void storeInBundle( Bundle bundle ) {
-
+        super.storeInBundle( bundle );
+        bundle.put( LEVEL, level );
+        bundle.put( MERC_TYPE, mercType);
+        bundle.put( WEAPON, weapon );
+        bundle.put( ARMOR, armor );
+        bundle.put("carrying", carrying);
+        bundle.put("mercskill", skill.level);
+        bundle.put("stand_guard", standGuard);
+        bundle.put("skill_counter", skillCounter);
+        bundle.put("ranged_cooldown", rangedAttackCooldown);
     }
 
     @Override
     public void restoreFromBundle( Bundle bundle ) {
 
+        if (!bundle.contains(MERC_TYPE)) {
+            HP = 0;
+            return;
+        }
+        super.restoreFromBundle( bundle );
+        mercType = MERC_TYPES.valueOf(bundle.getString(MERC_TYPE));
+        mercType.setSkills(this);
+        level = bundle.getInt(LEVEL);
+        defenseSkill = mercType.getDefence(level);
+        weapon = (Item)bundle.get(WEAPON);
+        armor = (Item)bundle.get(ARMOR);
+        carrying = (Item)bundle.get("carrying");
+        skillLevel(bundle.getInt("mercskill"));
+        standGuard = bundle.getBoolean("stand_guard");
+        skillCounter = bundle.getInt("skill_counter");
+        rangedAttackCooldown = bundle.getInt("ranged_cooldown");
     }
 
     public void spawn( int level ) {
@@ -575,11 +599,12 @@ public class HiredMerc extends NPC {
     public void die(Object src)
     {
 
-        if(carrying instanceof PotionOfHealing)
+        if(carrying instanceof PotionOfHealing || carrying instanceof PotionOfRejuvenation)
         {
-            GLog.p("custom.generated.manual.merc_consumed_potion", Message.actor(this));
+            GLog.p("actors.mobs.npcs.hiredmerc.drink", Message.actor(this), Message.itemName(carrying));
             super.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.4f, 4);
             HP = HT;
+            if (carrying instanceof PotionOfRejuvenation) MP = MMP;
             carrying = null;
             return;
         }

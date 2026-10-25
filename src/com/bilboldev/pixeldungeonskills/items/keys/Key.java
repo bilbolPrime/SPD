@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.keys;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.utils.Bundle;
@@ -24,44 +26,61 @@ import com.bilboldev.utils.Bundle;
 public class Key extends Item {
 
 	public static final float TIME_TO_UNLOCK = 1f;
-	
+
 	{
 		stackable = false;
 	}
-	
+
 	public int depth;
-	
+
 	public Key() {
 		super();
-		depth = Dungeon.depth;
+		depth = Dungeon.levelKey();
 	}
-	
+
 	private static final String DEPTH = "depth";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( DEPTH, depth );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		depth = bundle.getInt( DEPTH );
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public String status() {
-		return depth + "\u007F";
+		return displayDepth() + "\u007F";
 	}
+
+    public int displayDepth() {
+        return IceCaves.branchKey(depth) ? depth - 1000 : depth;
+    }
+
+    @Override
+    public String desc() {
+        String text = super.desc();
+        if (IceCaves.branchKey(depth))
+            text += "\n\n" + Messages.get(Key.class, "ice_depth", displayDepth());
+        return text;
+    }
+
+    @Override
+    public String displayInfo() {
+        return info();
+    }
 }
