@@ -1,6 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
-
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -35,15 +35,10 @@ import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
-
 import java.util.HashSet;
 
-/**
- * Created by Moussa on 24-Jan-17.
- */
 public class HiredMerc extends NPC {
 
     public static enum MERC_TYPES
@@ -91,7 +86,7 @@ public class HiredMerc extends NPC {
                 case Wizard: return  level;
                 case Thief: return 3 * level;
                 case Archer: return 3 * level;
-                case ArcherMaiden: return 3 + level  + getStrength(level); // Can't equip armor
+                case ArcherMaiden: return 3 + level  + getStrength(level);
             }
             return 1;
         }
@@ -108,7 +103,6 @@ public class HiredMerc extends NPC {
             }
             return "";
         }
-
 
         public float speedModifier()
         {
@@ -224,14 +218,15 @@ public class HiredMerc extends NPC {
     }
 
     public static boolean archerMaidenUnlocked = false;
-    public static final String MAIDEN_UNLOCK_BY= "Please consider donating to unlock this feature.";
+    public static final String MAIDEN_UNLOCK_BY= "This feature is locked.";
     public static final int COST_RATE = 15;
-
-    public static final String TXT_LEVEL_UP = "Stronger by the second...";
-    public static final String TXT_CANT_EQUIP = "Too heavy for me Sir";
 
     public MERC_TYPES mercType = MERC_TYPES.Brute;
 
+    @Override
+    public Message nameMessage() {
+        return MercenaryRecruitment.nameText(mercType);
+    }
 
     public int rangedAttackCooldown = 0;
     public static final int RANGED_COOLDOWN = 5;
@@ -248,7 +243,6 @@ public class HiredMerc extends NPC {
     public Item carrying = null;
 
     public boolean hackFix = false;
-
 
     public static final String MERC_TYPE = "merctype";
 
@@ -278,10 +272,9 @@ public class HiredMerc extends NPC {
     public HiredMerc(MERC_TYPES merc)
     {
         this.mercType = merc;
-        //skill = mercType.getSkill();
+
         mercType.setSkills(this);
-       // mercType.setEquipment(this); // done in hiring phase now
-        //skill.level++;
+
     }
 
     public void equipWeapon(Item item)
@@ -292,7 +285,7 @@ public class HiredMerc extends NPC {
         if(canEquip(weapon) == false)
         {
             unEquipWeapon();
-            sprite.showStatus( CharSprite.NEGATIVE, TXT_CANT_EQUIP );
+            sprite.showStatus( CharSprite.NEGATIVE, Message.key("custom.generated.entry_too_heavy_for_me_sir_f11bfd2153"));
         }
     }
 
@@ -312,7 +305,7 @@ public class HiredMerc extends NPC {
         if(canEquip(armor) == false)
         {
             unEquipArmor();
-            sprite.showStatus( CharSprite.NEGATIVE, TXT_CANT_EQUIP );
+            sprite.showStatus( CharSprite.NEGATIVE, Message.key("custom.generated.entry_too_heavy_for_me_sir_f11bfd2153"));
         }
         else
             ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
@@ -335,7 +328,6 @@ public class HiredMerc extends NPC {
         carrying = item;
     }
 
-
     public void unEquipItem()
     {
         if(carrying != null)
@@ -344,7 +336,6 @@ public class HiredMerc extends NPC {
         }
         carrying = null;
     }
-
 
     public int getArmorTier()
     {
@@ -362,7 +353,6 @@ public class HiredMerc extends NPC {
         return false;
     }
 
-
     @Override
     public int defenseProc( Char enemy, int damage ) {
         try {
@@ -373,11 +363,10 @@ public class HiredMerc extends NPC {
         }
         catch (Exception ex)
         {
-            // Being careful
+
         }
 
-
-
+        standGuard = false;
         return damage;
     }
 
@@ -391,8 +380,9 @@ public class HiredMerc extends NPC {
                 ((Mob)enemy).aggro( this );
         }
         try {
-        if(weapon != null && !(weapon instanceof Bow))
+        if (weapon != null && !(weapon instanceof Bow)) {
             ((Weapon)weapon).proc( this, enemy, damage );
+        }
 
             if(weapon instanceof Bow)
             {
@@ -401,51 +391,34 @@ public class HiredMerc extends NPC {
         }
         catch (Exception ex)
         {
-            // Being careful
+
         }
 
         try
         {
-            if(skill.venomousAttack()) // <--- Venom when present
+            if(skill.venomousAttack())
                 Buff.affect(enemy, Poison.class).set(Poison.durationFactor(enemy));
 
-            if(skill.cripple()) // <-- KneeShot
+            if(skill.cripple())
                 Buff.affect(enemy, Cripple.class);
         }
         catch (Exception ex)
         {
-            // never too careful
+
         }
 
         return damage;
     }
 
-
     @Override
     public void storeInBundle( Bundle bundle ) {
-        /*
-        super.storeInBundle( bundle );
-        bundle.put( LEVEL, level );
-        bundle.put( MERC_TYPE, mercType);
-        bundle.put( WEAPON, weapon );
-        bundle.put( ARMOR, armor );
-        */
+
     }
 
     @Override
     public void restoreFromBundle( Bundle bundle ) {
-         /*
-        super.restoreFromBundle( bundle );
-        mercType = MERC_TYPES.valueOf(bundle.getString(MERC_TYPE));
-        skill = mercType.getSkill();
-        weapon = (KindOfWeapon)bundle.get( WEAPON );
 
-        armor = (Armor)bundle.get( ARMOR );
-
-        spawn( bundle.getInt( LEVEL) , HP);
-        */
     }
-
 
     public void spawn( int level ) {
         this.level = level;
@@ -473,16 +446,18 @@ public class HiredMerc extends NPC {
             skill.level = level;
     }
 
-
-
     public void level()
     {
         level++;
         HT = mercType.getHealth(level);
         HP = HT;
-        sprite.showStatus( CharSprite.POSITIVE, TXT_LEVEL_UP );
+        try
+        {
+            sprite.showStatus( CharSprite.POSITIVE, Message.key("custom.generated.entry_stronger_by_the_second_30c2020f61"));
 
-        if(skill.level < Skill.MAX_LEVEL)
+        }
+      catch (Exception e){}
+        if(skill.level < Skill.MERC_MAX_LEVEL)
             skill.level++;
     }
 
@@ -522,9 +497,6 @@ public class HiredMerc extends NPC {
         return ((Weapon) weapon).damageRoll(this);
     }
 
-
-
-
     @Override
     protected boolean canAttack( Char enemy ) {
 
@@ -534,10 +506,8 @@ public class HiredMerc extends NPC {
         if(mercType == MERC_TYPES.ArcherMaiden)
             return Ballistica.castMaiden(pos, enemy.pos) == enemy.pos;
 
-
         return Ballistica.cast( pos, enemy.pos, false, true ) == enemy.pos;
     }
-
 
     @Override
     public boolean doAttack(Char enemy)
@@ -547,7 +517,7 @@ public class HiredMerc extends NPC {
 
         if(rangedAttackCooldown < RANGED_COOLDOWN)
         {
-            sprite.showStatus(CharSprite.NEUTRAL, "Reloading Sir");
+            sprite.showStatus(CharSprite.NEUTRAL, Message.key("custom.generated.entry_reloading_sir_ee0e387808"));
             spend( attackDelay() );
             next();
             return false;
@@ -556,16 +526,24 @@ public class HiredMerc extends NPC {
         return super.doAttack(enemy);
     }
 
+    private boolean standGuard = false;
 
+    public void standGuard(boolean standGuard){
+        this.standGuard = standGuard;
+        if(sprite != null)
+            sprite.showStatus(CharSprite.NEUTRAL, standGuard ? Message.key("custom.generated.entry_standing_guard_e4ea2add65") : Message.key("custom.generated.entry_got_your_back_c4ade2ebe0"));
+    }
+
+    public boolean getStandGuard(){
+        return standGuard;
+    }
 
     @Override
     protected boolean act() {
 
-        spend( 0.01f ); // Fail safe to prevent complete game freeze.
+        spend( 0.01f );
 
         skillCounter++;
-      //  if(skillCounter % DEGRADE_RATE == 0)
-      //      HP--;
 
         rangedAttackCooldown++;
 
@@ -578,18 +556,18 @@ public class HiredMerc extends NPC {
         if(mercType.getSpecialSkillTime() != -1 && skillCounter % mercType.getSpecialSkillTime() == 0)
             skill.mercSummon();
 
-
-
-
         if (HP <= 0) {
 
-           // if(((MercSprite)super.sprite()).halo != null)
-             //   ((MercSprite)super.sprite()).halo.putOut();
             die( null );
             return true;
         } else {
-
-            return super.act();
+            if(!standGuard)
+                return super.act();
+            else
+            {
+                spend( TICK );
+                return true;
+            }
         }
     }
 
@@ -599,7 +577,7 @@ public class HiredMerc extends NPC {
 
         if(carrying instanceof PotionOfHealing)
         {
-            GLog.p(" " + name + " consumed a Potion Of Healing ");
+            GLog.p("custom.generated.manual.merc_consumed_potion", Message.actor(this));
             super.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.4f, 4);
             HP = HT;
             carrying = null;
@@ -614,6 +592,15 @@ public class HiredMerc extends NPC {
 
         Dungeon.hero.hiredMerc = null;
 
+    }
+
+    public void disband() {
+        HP = 0;
+        super.die(null);
+        unEquipWeapon();
+        unEquipArmor();
+        unEquipItem();
+        if (Dungeon.hero.hiredMerc == this) Dungeon.hero.hiredMerc = null;
     }
 
     protected Char chooseEnemy() {
@@ -651,7 +638,6 @@ public class HiredMerc extends NPC {
         return IMMUNITIES;
     }
 
-
     private class Wandering implements AiState {
 
         @Override
@@ -686,7 +672,7 @@ public class HiredMerc extends NPC {
 
         @Override
         public String status() {
-            return Utils.format("This %s is wandering", name);
+            return stateMessage( "wandering" );
         }
     }
 

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -8,20 +9,15 @@ import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class SoulFury extends ActiveSkill3{
-
 
     {
         name = "Soul Fury";
-        castText = "Forgive me girls";
+        castText = Message.key("custom.generated.entry_forgive_me_girls_e160de0197");
         tier = 3;
         image = 123;
         mana = 3;
     }
-
 
     @Override
     public float getAlpha()
@@ -45,17 +41,10 @@ public class SoulFury extends ActiveSkill3{
     }
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.25 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;
     }
-
 
     @Override
     public String info()

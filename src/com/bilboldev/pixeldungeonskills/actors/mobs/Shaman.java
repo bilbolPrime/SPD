@@ -17,12 +17,17 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornCurse;
 import com.bilboldev.pixeldungeonskills.effects.particles.SparkParticle;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -38,19 +43,19 @@ import com.bilboldev.utils.Random;
 public class Shaman extends Mob implements Callback {
 
 	private static final float TIME_TO_ZAP	= 2f;
-	
-	private static final String TXT_LIGHTNING_KILLED = "%s's lightning bolt killed you...";
-	
+
+	private static final String TXT_LIGHTNING_KILLED = "custom.generated.entry_s_s_lightning_bolt_killed_you_7897991f1d";
+
 	{
 		name = "gnoll shaman";
 		spriteClass = ShamanSprite.class;
-		
+
 		HP = HT = 18;
 		defenseSkill = 8;
-		
+
 		EXP = 6;
 		maxLvl = 14;
-		
+
 		loot = Generator.Category.SCROLL;
 		lootChance = 0.33f;
 
@@ -58,77 +63,84 @@ public class Shaman extends Mob implements Callback {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 2, 6 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 11;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 4;
 	}
-	
+
 	@Override
 	protected boolean canAttack( Char enemy ) {
 		return Ballistica.cast( pos, enemy.pos, false, true ) == enemy.pos;
 	}
-	
+
 	@Override
 	protected boolean doAttack( Char enemy ) {
 
 		if (Level.distance( pos, enemy.pos ) <= 1) {
-			
+
 			return super.doAttack( enemy );
-			
+
 		} else {
-			
-			boolean visible = Level.fieldOfView[pos] || Level.fieldOfView[enemy.pos]; 
-			if (visible) {
-				((ShamanSprite)sprite).zap( enemy.pos );
-			}
-			
-			spend( TIME_TO_ZAP );
-			
-			if (hit( this, enemy, true )) {
-				int dmg = Random.Int( 2, 12 );
-				if (Level.water[enemy.pos] && !enemy.flying) {
-					dmg *= 1.5f;
+			float delay = prepareRebornAttack(enemy, TIME_TO_ZAP);
+			RebornChampion champion = buff(RebornChampion.class);
+			try {
+				boolean visible = Level.fieldOfView[pos] || Level.fieldOfView[enemy.pos];
+				if (visible) {
+					((ShamanSprite)sprite).zap( enemy.pos );
 				}
-				if(enemy == Dungeon.hero)
-				{
-					dmg *= Dungeon.currentDifficulty.damageModifier();
-					dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier(); //  <--- Warrior Toughness if present
-					dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg); // <--- Mage SpiritArmor if present
-				}
-				enemy.damage( dmg, LightningTrap.LIGHTNING );
-				
-				enemy.sprite.centerEmitter().burst( SparkParticle.FACTORY, 3 );
-				enemy.sprite.flash();
-				
-				if (enemy == Dungeon.hero) {
-					
-					Camera.main.shake( 2, 0.3f );
-					
-					if (!enemy.isAlive()) {
-						Dungeon.fail( Utils.format( ResultDescriptions.MOB, 
-							Utils.indefinite( name ), Dungeon.depth ) );
-						GLog.n( TXT_LIGHTNING_KILLED, name );
+
+				spend( delay );
+
+				if (hit( this, enemy, true )) {
+					int dmg = Random.Int( 2, 12 );
+					if (Level.water[enemy.pos] && !enemy.flying) {
+						dmg *= 1.5f;
 					}
+					dmg = RebornCurse.spellDamage(this, dmg);
+
+					if (enemy == Dungeon.hero || LocalCoop.contains(enemy))
+					{
+						dmg = adjustHeroDamage((Hero)enemy, dmg);
+					}
+
+					enemy.damageFrom( dmg, LightningTrap.LIGHTNING, this );
+					if (champion != null) champion.onHit(enemy);
+
+					enemy.sprite.centerEmitter().burst( SparkParticle.FACTORY, 3 );
+					enemy.sprite.flash();
+
+					if (enemy == Dungeon.hero || LocalCoop.contains(enemy)) {
+
+						Camera.main.shake( 2, 0.3f );
+
+						if (!enemy.isAlive()) {
+							Dungeon.fail( Utils.format( ResultDescriptions.MOB,
+								Utils.indefinite( name ), Dungeon.depth ), this );
+							GLog.n(TXT_LIGHTNING_KILLED, Message.actor(this));
+						}
+					}
+				} else {
+					enemy.sprite.showStatus( CharSprite.NEUTRAL,  enemy.defenseText() );
 				}
-			} else {
-				enemy.sprite.showStatus( CharSprite.NEUTRAL,  enemy.defenseVerb() );
+
+				return !visible;
+			} finally {
+				if (champion != null) champion.finishAttack();
 			}
-			
-			return !visible;
 		}
 	}
-	
+
 	@Override
 	public void call() {
 		next();
@@ -147,12 +159,12 @@ public class Shaman extends Mob implements Callback {
 			"battle spells to compensate for lack of might, not hesitating to use them " +
 			"on those who question their status in a tribe.";
 	}
-	
+
 	private static final HashSet<Class<?>> RESISTANCES = new HashSet<Class<?>>();
 	static {
 		RESISTANCES.add( LightningTrap.Electricity.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;

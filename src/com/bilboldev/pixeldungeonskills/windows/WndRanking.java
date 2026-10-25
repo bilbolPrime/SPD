@@ -17,33 +17,43 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
+import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.ui.BadgesList;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
-import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class WndRanking extends WndTabbed {
+
+    @Override
+    protected com.bilboldev.pixeldungeonskills.ui.RebornChrome.Material rebornMaterial() {
+        return com.bilboldev.pixeldungeonskills.ui.RebornChrome.Material.STONE;
+    }
 	
 	private static final String TXT_ERROR		= "Unable to load additional information";
 	
@@ -51,10 +61,8 @@ public class WndRanking extends WndTabbed {
 	private static final String TXT_ITEMS	= "Items";
 	private static final String TXT_BADGES	= "Badges";
 	
-	private static final int WIDTH			= 112;
-	private static final int HEIGHT			= 134;
-	
-	private static final int TAB_WIDTH	= 40;
+	private final int windowWidth;
+	private final int windowHeight;
 	
 	private Thread thread;
 	private String error = null;
@@ -64,7 +72,9 @@ public class WndRanking extends WndTabbed {
 	public WndRanking( final String gameFile ) {
 		
 		super();
-		resize( WIDTH, HEIGHT );
+		windowWidth = boundedWidth(190);
+		windowHeight = Math.max(48, Math.min(200, (int)(Game.height / camera.zoom) - frameHeight() - 8));
+		resize( windowWidth, windowHeight );
 		
 		thread = new Thread() {
 			@Override
@@ -79,13 +89,11 @@ public class WndRanking extends WndTabbed {
 		};
 		thread.start();
 
-
-
 		busy = Icons.BUSY.get();	
 		busy.origin.set( busy.width / 2, busy.height / 2 );
 		busy.angularSpeed = 720;
-		busy.x = (WIDTH - busy.width) / 2;
-		busy.y = (HEIGHT - busy.height) / 2;
+		busy.x = (windowWidth - busy.width) / 2;
+		busy.y = (windowHeight - busy.height) / 2;
 		add( busy );
 	}
 	
@@ -119,7 +127,7 @@ public class WndRanking extends WndTabbed {
 			add( pages[i] );
 			
 			Tab tab = new RankingTab( labels[i], pages[i] );
-			tab.setSize( TAB_WIDTH, tabHeight() );
+			tab.setSize( (windowWidth + chrome.marginHor() - 2) / 3f, tabHeight() );
 			add( tab );
 		}
 		
@@ -147,34 +155,16 @@ public class WndRanking extends WndTabbed {
 	private class StatsTab extends Group {
 		
 		private static final int GAP	= 4;
-		
-		private static final String TXT_TITLE	= "Level %d %s (SPD)";
-		
-		private static final String TXT_CHALLENGES	= "Challenges";
-		
-		private static final String TXT_HEALTH	= "Health";
-		private static final String TXT_STR		= "Strength";
-		
-		private static final String TXT_DURATION	= "Game Duration";
-		
-		private static final String TXT_DEPTH	= "Maximum Depth";
-		private static final String TXT_ENEMIES	= "Mobs Killed";
-		private static final String TXT_GOLD	= "Gold Collected";
-		
-		private static final String TXT_FOOD	= "Food Eaten";
-		private static final String TXT_ALCHEMY	= "Potions Cooked";
-		private static final String TXT_ANKHS	= "Ankhs Used";
-
-        private static final String TXT_DIFF	= "Difficulty";
 
 		public StatsTab() {
 			super();
+			ControlRow content = new ControlRow();
 
             if(Dungeon.hero == null)
             {
                 IconTitle title = new IconTitle();
                 title.label( "ERROR loading data" );
-                title.setRect( 0, 0, WIDTH, 0 );
+				title.setRect( 0, 0, windowWidth, 0 );
                 add( title );
                 return;
             }
@@ -183,68 +173,79 @@ public class WndRanking extends WndTabbed {
 			
 			IconTitle title = new IconTitle();
 			title.icon( HeroSprite.avatar( Dungeon.hero.heroClass, Dungeon.hero.tier() ) );
-			title.label( Utils.format( TXT_TITLE, Dungeon.hero.lvl, heroClass ).toUpperCase( Locale.ENGLISH ) );
-			title.setRect( 0, 0, WIDTH, 0 );
-			add( title );
+			title.label( Utils.format( Messages.get( StatsTab.class, "title" ), Dungeon.hero.lvl, heroClass ).toUpperCase( Locale.ENGLISH ) );
+			title.setRect( 0, 0, textWidth(windowWidth), 0 );
+			content.add( title );
 			
 			float pos = title.bottom();
 			
 			if (Dungeon.challenges > 0) {
-				RedButton btnCatalogus = new RedButton( TXT_CHALLENGES ) {
+				RedButton btnChallenges = new ActionButton( Messages.get( StatsTab.class, "challenges" ) ) {
+					{ content.addControl(hotArea); }
 					@Override
 					protected void onClick() {
 						Game.scene().add( new WndChallenges( Dungeon.challenges, false ) );
 					}
 				};
-				btnCatalogus.setRect( 0, pos + GAP, btnCatalogus.reqWidth() + 2, btnCatalogus.reqHeight() + 2 );
-				add( btnCatalogus );
+				btnChallenges.setRect( 0, pos + GAP,
+						Math.min(textWidth(windowWidth), btnChallenges.reqWidth() + 2), 18 );
+				btnChallenges.setSize(btnChallenges.width(), Math.max(18, btnChallenges.reqHeight() + 2));
+				content.add( btnChallenges );
 				
-				pos = btnCatalogus.bottom();
+				pos = btnChallenges.bottom();
 			}
 			
 			pos += GAP + GAP;
 			
-			pos = statSlot( this, TXT_STR, Integer.toString( Dungeon.hero.STR ), pos );
-			pos = statSlot( this, TXT_HEALTH, Integer.toString( Dungeon.hero.HT ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "str" ), Integer.toString( Dungeon.hero.STR ), pos );
+			pos = statSlot( content, "Health", Integer.toString( Dungeon.hero.HT ), pos );
 			
 			pos += GAP;
 			
-			pos = statSlot( this, TXT_DURATION, Integer.toString( (int)Statistics.duration ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "duration" ), Integer.toString( (int)Statistics.duration ), pos );
 			
 			pos += GAP;
 			
-			pos = statSlot( this, TXT_DEPTH, Integer.toString( Statistics.deepestFloor ), pos );
-			pos = statSlot( this, TXT_ENEMIES, Integer.toString( Statistics.enemiesSlain ), pos );
-			pos = statSlot( this, TXT_GOLD, Integer.toString( Statistics.goldCollected ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "depth" ), Integer.toString( Statistics.deepestFloor ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "enemies" ), Integer.toString( Statistics.enemiesSlain ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "gold" ), Integer.toString( Statistics.goldCollected ), pos );
 			
 			pos += GAP;
 			
-			pos = statSlot( this, TXT_FOOD, Integer.toString( Statistics.foodEaten ), pos );
-			pos = statSlot( this, TXT_ALCHEMY, Integer.toString( Statistics.potionsCooked ), pos );
-			pos = statSlot( this, TXT_ANKHS, Integer.toString( Statistics.ankhsUsed ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "food" ), Integer.toString( Statistics.foodEaten ), pos );
+			pos = statSlot( content, Messages.get( StatsTab.class, "alchemy" ), Integer.toString( Statistics.potionsCooked ), pos );
+			pos = statSlot( content, "Ankhs Used", Integer.toString( Statistics.ankhsUsed ), pos );
 
-            pos = statSlot( this, TXT_DIFF, Difficulties.title(Dungeon.hero.difficulty), pos );
+			pos = statSlot( content, "Difficulty", Dungeon.rules().mode == GameplayMode.REBORN
+					? GameplayMode.REBORN.title() : Difficulties.title(Dungeon.hero.difficulty), pos );
+			content.setSize(textWidth(windowWidth), pos);
+			ScrollPane list = content.scrollPane(content);
+			camera = WndRanking.this.camera;
+			add(list);
+			list.setSize(windowWidth, windowHeight);
 		}
 		
 		private float statSlot( Group parent, String label, String value, float pos ) {
 			
-			BitmapText txt = PixelScene.createText( label, 7 );
-			txt.y = pos;
-			parent.add( txt );
-			
-			txt = PixelScene.createText( value, 7 );
-			txt.measure();
-			txt.x = PixelScene.align( WIDTH * 0.65f );
-			txt.y = pos;
-			parent.add( txt );
-			
-			return pos + GAP + txt.baseLine();
+			BitmapTextMultiline name = PixelScene.createMultiline(Messages.maybeTranslate(label), 8);
+			name.maxWidth = (int)(windowWidth * .6f) - GAP;
+			name.measure();
+			name.y = pos;
+			parent.add(name);
+			BitmapTextMultiline number = PixelScene.createMultiline(value, 8);
+			number.maxWidth = textWidth(windowWidth) - (int)(windowWidth * .6f);
+			number.measure();
+			number.x = PixelScene.align(windowWidth * .6f);
+			number.y = pos;
+			parent.add(number);
+			return pos + GAP + Math.max(name.height(), number.height());
 		}
 	}
 	
 	private class ItemsTab extends Group {
 		
-		private int count;
+		private final Component content = new Component();
+		private final ArrayList<LabelledItemButton> items = new ArrayList<>();
 		private float pos;
 		
 		public ItemsTab() {
@@ -254,73 +255,73 @@ public class WndRanking extends WndTabbed {
             {
                 IconTitle title = new IconTitle();
                 title.label( "ERROR loading data" );
-                title.setRect( 0, 0, WIDTH, 0 );
+				title.setRect( 0, 0, windowWidth, 0 );
                 add( title );
                 return;
             }
 
 			Belongings stuff = Dungeon.hero.belongings;
-			if (stuff.weapon != null) {
-				addItem( stuff.weapon );
-			}
-			if (stuff.armor != null) {
-				addItem( stuff.armor );
-			}
-			if (stuff.ring1 != null) {
-				addItem( stuff.ring1 );
-			}
-			if (stuff.ring2 != null) {
-				addItem( stuff.ring2 );
-			}
-			
-			Item primary = getQuickslot( QuickSlot.primaryValue );
-			Item secondary = getQuickslot( QuickSlot.secondaryValue );
-			
-			if (count >= 4 && primary != null && secondary != null) {
-				
-				float size = ItemButton.SIZE;
-				
-				ItemButton slot = new ItemButton( primary );
-				slot.setRect( 0, pos, size, size );
-				add( slot );
-				
-				slot = new ItemButton( secondary );
-				slot.setRect( size + 1, pos, size, size );
-				add( slot );
-			} else {
-				if (primary != null) {
-					addItem( primary );
+			addItem( stuff.weapon );
+			addItem( stuff.armor );
+			addItem( stuff.ring1 );
+			addItem( stuff.ring2 );
+			addItem( stuff.bow );
+
+			if (!stuff.backpack.items.isEmpty() || Dungeon.gold > 0) {
+				addHeading( stuff.backpack.name() );
+				for (Item item : stuff.backpack) {
+					addItem( item );
 				}
-				if (secondary != null) {
-					addItem( secondary );
+				if (Dungeon.gold > 0) {
+					addItem( new Gold( Dungeon.gold ) );
 				}
 			}
+
+			if (!Dungeon.hero.storage.backpack.items.isEmpty()) {
+				addHeading( "Storage" );
+				for (Item item : Dungeon.hero.storage.backpack) {
+					addItem( item );
+				}
+			}
+
+			content.setSize( windowWidth, pos );
+			ScrollPane list = new ScrollPane( content ) {
+				@Override
+				public void onClick( float x, float y ) {
+					for (LabelledItemButton slot : items) {
+						if (slot.inside( x, y )) {
+							Sample.INSTANCE.play( Assets.SND_CLICK, 0.7f, 0.7f, 1.2f );
+							slot.onClick();
+							break;
+						}
+					}
+				}
+			};
+			camera = WndRanking.this.camera;
+			add( list );
+			list.setSize( windowWidth, windowHeight );
 		}
-		
+
 		private void addItem( Item item ) {
-			LabelledItemButton slot = new LabelledItemButton( item );
-			slot.setRect( 0, pos, width, LabelledItemButton.SIZE );
-			add( slot );
-			
-			pos += slot.height() + 1;
-			count++;
-		}
-		
-		private Item getQuickslot( Object value ) {
-			if (value instanceof Item && Dungeon.hero.belongings.backpack.contains( (Item)value )) {
-					
-					return (Item)value;
-					
-			} else if (value instanceof Class){
-				
-				@SuppressWarnings("unchecked")
-				Item item = Dungeon.hero.belongings.getItem( (Class<? extends Item>)value );
-				if (item != null) {
-					return item;
-				}
+			if (item == null) {
+				return;
 			}
-			
-			return null;
+			LabelledItemButton slot = new LabelledItemButton( item );
+			slot.setRect( 0, pos, windowWidth - 4, LabelledItemButton.SIZE );
+			content.add( slot );
+			items.add( slot );
+			pos += slot.height() + 1;
+		}
+
+		private void addHeading( String title ) {
+			if (pos > 0) {
+				pos += 4;
+			}
+			BitmapText heading = PixelScene.createText( Utils.capitalize( Messages.maybeTranslate( title ) ), 7 );
+			heading.hardlight( titleColor() );
+			heading.y = pos;
+			content.add( heading );
+			pos += heading.baseLine() + 3;
 		}
 	}
 	
@@ -333,7 +334,7 @@ public class WndRanking extends WndTabbed {
             {
                 IconTitle title = new IconTitle();
                 title.label( "ERROR loading data" );
-                title.setRect( 0, 0, WIDTH, 0 );
+				title.setRect( 0, 0, windowWidth, 0 );
                 add( title );
                 return;
             }
@@ -343,7 +344,7 @@ public class WndRanking extends WndTabbed {
 			ScrollPane list = new BadgesList( false );
 			add( list );
 			
-			list.setSize( WIDTH, HEIGHT );
+			list.setSize( windowWidth, windowHeight );
 		}
 	}
 	
@@ -375,7 +376,7 @@ public class WndRanking extends WndTabbed {
 		@Override
 		protected void createChildren() {	
 			
-			bg = new ColorBlock( SIZE, SIZE, 0xFF4A4D44 );
+			bg = com.bilboldev.pixeldungeonskills.ui.RebornSlot.create(SIZE, SIZE, 0xFF4A4D44);
 			add( bg );
 			
 			slot = new ItemSlot();

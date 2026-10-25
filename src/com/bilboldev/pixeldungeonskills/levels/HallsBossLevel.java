@@ -20,10 +20,14 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Yog;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RebornYog;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RebornBossSpawn;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlameParticle;
 import com.bilboldev.pixeldungeonskills.items.Heap;
@@ -35,37 +39,41 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class HallsBossLevel extends Level {
-	
+
 	{
 		color1 = 0x801500;
 		color2 = 0xa68521;
-		
+
 		viewDistance = 3;
+        if (Dungeon.rules().hasRebornBosses()) viewDistance = 7;
 	}
-	
+
 	private static final int ROOM_LEFT		= WIDTH / 2 - 1;
 	private static final int ROOM_RIGHT		= WIDTH / 2 + 1;
 	private static final int ROOM_TOP		= HEIGHT / 2 - 1;
 	private static final int ROOM_BOTTOM	= HEIGHT / 2 + 1;
-	
+
 	private int stairs = -1;
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
-	
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_HALLS;
+		if(!Difficulties.is3d)
+			return Assets.TILES_HALLS;
+
+		return Assets.TILES_HALLS_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_HALLS;
 	}
-	
+
 	private static final String STAIRS	= "stairs";
 	private static final String ENTERED	= "entered";
 	private static final String DROPPED	= "droppped";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
@@ -73,7 +81,7 @@ public class HallsBossLevel extends Level {
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
@@ -81,20 +89,21 @@ public class HallsBossLevel extends Level {
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
 	}
-	
+
 	@Override
 	protected boolean build() {
-		
+		if (Dungeon.rules().hasRebornBosses()) return buildReborn();
+
 		for (int i=0; i < 5; i++) {
-			
+
 			int top = Random.IntRange( 2, ROOM_TOP - 1 );
 			int bottom = Random.IntRange( ROOM_BOTTOM + 1, 22 );
 			Painter.fill( this, 2 + i * 4, top, 4, bottom - top + 1, Terrain.EMPTY );
-			
+
 			if (i == 2) {
 				exit = (i * 4 + 3) + (top - 1) * WIDTH ;
 			}
-			
+
 			for (int j=0; j < 4; j++) {
 				if (Random.Int( 2 ) == 0) {
 					int y = Random.IntRange( top + 1, bottom - 1 );
@@ -102,15 +111,15 @@ public class HallsBossLevel extends Level {
 				}
 			}
 		}
-		
+
 		map[exit] = Terrain.LOCKED_EXIT;
-		
-		Painter.fill( this, ROOM_LEFT - 1, ROOM_TOP - 1, 
+
+		Painter.fill( this, ROOM_LEFT - 1, ROOM_TOP - 1,
 			ROOM_RIGHT - ROOM_LEFT + 3, ROOM_BOTTOM - ROOM_TOP + 3, Terrain.WALL );
-		Painter.fill( this, ROOM_LEFT, ROOM_TOP, 
+		Painter.fill( this, ROOM_LEFT, ROOM_TOP,
 			ROOM_RIGHT - ROOM_LEFT + 1, ROOM_BOTTOM - ROOM_TOP + 1, Terrain.EMPTY );
-		
-		entrance = Random.Int( ROOM_LEFT + 1, ROOM_RIGHT - 1 ) + 
+
+		entrance = Random.Int( ROOM_LEFT + 1, ROOM_RIGHT - 1 ) +
 			Random.Int( ROOM_TOP + 1, ROOM_BOTTOM - 1 ) * WIDTH;
 		map[entrance] = Terrain.ENTRANCE;
 
@@ -136,28 +145,47 @@ public class HallsBossLevel extends Level {
 				map[i] = Terrain.WATER;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
+    private boolean buildReborn() {
+
+        Painter.fill(this, 6, 4, 21, 22, Terrain.EMPTY);
+        for (int y = 4; y <= 25; y++) for (int x = 6; x <= 26; x++) {
+            if ((x < 9 || x > 23) && (y < 7 || y > 22)) map[x + y * WIDTH] = Terrain.WALL;
+            else if ((x == 7 || x == 25) || y == 24) map[x + y * WIDTH] = Terrain.WATER;
+        }
+        for (int y : new int[]{9, 20}) for (int x : new int[]{11, 21}) map[x + y * WIDTH] = Terrain.STATUE;
+        Painter.fill(this, ROOM_LEFT - 1, ROOM_TOP - 1, 5, 5, Terrain.WALL);
+        Painter.fill(this, ROOM_LEFT, ROOM_TOP, 3, 3, Terrain.EMPTY);
+        entrance = 16 + 16 * WIDTH;
+        map[entrance] = Terrain.ENTRANCE;
+        storage = 17 + 17 * WIDTH;
+        map[storage] = Terrain.STORAGE;
+        exit = 16 + 3 * WIDTH;
+        map[exit] = Terrain.LOCKED_EXIT;
+        return true;
+    }
+
 	@Override
-	protected void decorate() {	
-		
+	protected void decorate() {
+
 		for (int i=0; i < LENGTH; i++) {
-			if (map[i] == Terrain.EMPTY && Random.Int( 10 ) == 0) { 
+			if (map[i] == Terrain.EMPTY && Random.Int( 10 ) == 0) {
 				map[i] = Terrain.EMPTY_DECO;
 			}
 		}
 	}
-	
+
 	@Override
-	protected void createMobs() {	
+	protected void createMobs() {
 	}
-	
+
 	public Actor respawner() {
 		return null;
 	}
-	
+
 	@Override
 	protected void createItems() {
 		Item item = Bones.get();
@@ -169,21 +197,22 @@ public class HallsBossLevel extends Level {
 			drop( item, pos ).type = Heap.Type.SKELETON;
 		}
 	}
-	
+
 	@Override
 	public int randomRespawnCell() {
 		return -1;
 	}
-	
+
 	@Override
 	public void press( int cell, Char hero ) {
-		
+
 		super.press( cell, hero );
-		
-		if (!enteredArena && hero == Dungeon.hero && cell != entrance) {
-			
+
+		if (!enteredArena && (hero == Dungeon.hero || LocalCoop.contains(hero)) && cell != entrance) {
+			if (!gatherParty(hero, cell, entrance)) return;
+
 			enteredArena = true;
-			
+
 			for (int i=ROOM_LEFT-1; i <= ROOM_RIGHT + 1; i++) {
 				doMagic( (ROOM_TOP - 1) * WIDTH + i );
 				doMagic( (ROOM_BOTTOM + 1) * WIDTH + i );
@@ -196,7 +225,14 @@ public class HallsBossLevel extends Level {
 			GameScene.updateMap();
 
 			Dungeon.observe();
-			
+
+            if (Dungeon.rules().hasRebornBosses()) {
+                RebornYog boss = new RebornYog();
+                boss.pos = 16 + 7 * WIDTH;
+                if (Actor.findChar(boss.pos) != null || !passable[boss.pos]) boss.pos = RebornBossSpawn.farthest(this, cell, 0);
+                GameScene.add(boss);
+                boss.spawnFists();
+            } else {
 			Yog boss = new Yog();
 			do {
 				boss.pos = Random.Int( LENGTH );
@@ -205,31 +241,32 @@ public class HallsBossLevel extends Level {
 				Dungeon.visible[boss.pos]);
 			GameScene.add( boss );
 			boss.spawnFists();
-			
+            }
+
 			stairs = entrance;
 			entrance = -1;
 		}
 	}
-	
+
 	private void doMagic( int cell ) {
 		set( cell, Terrain.EMPTY_SP );
 		CellEmitter.get( cell ).start( FlameParticle.FACTORY, 0.1f, 3 );
 	}
-	
+
 	@Override
 	public Heap drop( Item item, int cell ) {
-		
+
 		if (!keyDropped && item instanceof SkeletonKey) {
 			keyDropped = true;
-			
+
 			entrance = stairs;
 			set( entrance, Terrain.ENTRANCE );
 			GameScene.updateMap( entrance );
 		}
-		
+
 		return super.drop( item, cell );
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -246,7 +283,7 @@ public class HallsBossLevel extends Level {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc(int tile) {
 		switch (tile) {
@@ -254,12 +291,12 @@ public class HallsBossLevel extends Level {
 			return "It looks like lava, but it's cold and probably safe to touch.";
 		case Terrain.STATUE:
 		case Terrain.STATUE_SP:
-			return "The pillar is made of real humanoid skulls. Awesome."; 
+			return "The pillar is made of real humanoid skulls. Awesome.";
 		default:
 			return super.tileDesc( tile );
 		}
 	}
-	
+
 	@Override
 	public void addVisuals( Scene scene ) {
 		HallsLevel.addVisuals( this, scene );

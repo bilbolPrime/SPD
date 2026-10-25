@@ -22,9 +22,9 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfMending;
 
 public class ManaRegeneration extends Buff {
-	
+
 	private static final float REGENERATION_DELAY = 10;
-	
+
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
@@ -32,7 +32,7 @@ public class ManaRegeneration extends Buff {
 			if (target.MP < target.MMP) {
 				target.MP += 1;
 			}
-            if(((Hero)target).heroClass == HeroClass.MAGE)
+			if (((Hero)target).heroClass == HeroClass.MAGE || ((Hero)target).heroClass == HeroClass.NECROMANCER)
             {
                 if (target.MP < target.MMP) {
                     target.MP += 1;
@@ -40,19 +40,21 @@ public class ManaRegeneration extends Buff {
             }
 
 			int bonus = 0;
-            if(((Hero)target).heroClass == HeroClass.MAGE)
+			if (((Hero)target).heroClass == HeroClass.MAGE || ((Hero)target).heroClass == HeroClass.NECROMANCER)
             {
                 bonus = 1;
             }
 
-            bonus += ((Hero)target).heroSkills.passiveA2.manaRegenerationBonus(); // <-- Mage mdeitation if present
+            bonus += ((Hero)target).heroSkills.passiveA2.manaRegenerationBonus();
+
+			bonus += ((Hero)target).skillTree.getManaRegenerationBonus();
 
 			spend( (float)(REGENERATION_DELAY / Math.pow( 1.2, bonus )) );
-			
+
 		} else {
-			
+
 			diactivate();
-			
+
 		}
 
 		return true;

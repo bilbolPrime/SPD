@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.levels.painters;
 
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Joe;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatKing;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Gold;
@@ -34,21 +35,21 @@ public class RatKingPainter extends Painter {
 
 		fill( level, room, Terrain.WALL );
 		fill( level, room, 1, Terrain.EMPTY_SP );
-		
+
 		Room.Door entrance = room.entrance();
 		entrance.set( Room.Door.Type.HIDDEN );
 		int door = entrance.x + entrance.y * Level.WIDTH;
-		
+
 		for (int i=room.left + 1; i < room.right; i++) {
 			addChest( level, (room.top + 1) * Level.WIDTH + i, door );
 			addChest( level, (room.bottom - 1) * Level.WIDTH + i, door );
 		}
-		
+
 		for (int i=room.top + 2; i < room.bottom - 1; i++) {
 			addChest( level, i * Level.WIDTH + room.left + 1, door );
 			addChest( level, i * Level.WIDTH + room.right - 1, door );
 		}
-		
+
 		while (true) {
 			Heap chest = level.heaps.get( room.random() );
 			if (chest != null) {
@@ -56,21 +57,25 @@ public class RatKingPainter extends Painter {
 				break;
 			}
 		}
-		
+
 		RatKing king = new RatKing();
 		king.pos = room.random( 1 );
 		level.mobs.add( king );
+
+		Joe joe = new Joe();
+		joe.pos = room.random( 1 );
+		level.mobs.add( joe );
 	}
-	
+
 	private static void addChest( Level level, int pos, int door ) {
-		
-		if (pos == door - 1 || 
-			pos == door + 1 || 
-			pos == door - Level.WIDTH || 
+
+		if (pos == door - 1 ||
+			pos == door + 1 ||
+			pos == door - Level.WIDTH ||
 			pos == door + Level.WIDTH) {
 			return;
 		}
-		
+
 		Item prize;
 		switch (Random.Int( 10 )) {
 		case 0:
@@ -88,7 +93,7 @@ public class RatKingPainter extends Painter {
 			prize = new Gold( Random.IntRange( 1, 5 ) );
 			break;
 		}
-		
+
 		level.drop( prize, pos ).type = Heap.Type.CHEST;
 	}
 }

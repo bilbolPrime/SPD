@@ -17,10 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
-
 import com.bilboldev.pixeldungeonskills.sprites.RatKingSprite;
 
 public class RatKing extends NPC {
@@ -28,54 +28,57 @@ public class RatKing extends NPC {
 	{
 		name = "rat king";
 		spriteClass = RatKingSprite.class;
-		
+
 		state = SLEEPEING;
 	}
-	
+
 	@Override
 	public int defenseSkill( Char enemy ) {
 		return 1000;
 	}
-	
+
 	@Override
 	public float speed() {
 		return 2f;
 	}
-	
+
 	@Override
 	protected Char chooseEnemy() {
 		return null;
 	}
-	
+
 	@Override
 	public void damage( int dmg, Object src ) {
 	}
-	
+
 	@Override
 	public void add( Buff buff ) {
 	}
-	
+
 	@Override
 	public boolean reset() {
 		return true;
 	}
-	
+
 	@Override
 	public void interact() {
 		sprite.turnTo( pos, Dungeon.hero.pos );
 		if (state == SLEEPEING) {
 			notice();
-			yell( "I'm not sleeping!" );
+			yell(Message.key(RatKing.class, "not_sleeping"));
 			state = WANDERING;
 		} else {
-			yell( "What is it? I have no time for this nonsense. My kingdom won't rule itself!" );
+			yell(Message.key(RatKing.class, "what_is_it"));
 		}
 	}
-	
+
+	@Override
+	public String displayName() {
+		return com.bilboldev.pixeldungeonskills.messages.Messages.get( RatKing.class, "name" );
+	}
+
 	@Override
 	public String description() {
-		return 
-			"This rat is a little bigger than a regular marsupial rat " +
-			"and it's wearing a tiny crown on its head.";
+		return com.bilboldev.pixeldungeonskills.messages.Messages.get( RatKing.class, "desc" );
 	}
 }

@@ -28,20 +28,20 @@ public class PotionOfMindVision extends Potion {
 	{
 		name = "Potion of Mind Vision";
 	}
-	
+
 	@Override
 	protected void apply( Hero hero ) {
 		setKnown();
 		Buff.affect( hero, MindVision.class, MindVision.DURATION );
 		Dungeon.observe();
-		
+
 		if (Dungeon.level.mobs.size() > 0) {
-			GLog.i( "You can somehow feel the presence of other creatures' minds!" );
+			GLog.i(PotionOfMindVision.class, "see_mobs");
 		} else {
-			GLog.i( "You can somehow tell that you are alone on this level at the moment." );
+			GLog.i(PotionOfMindVision.class, "see_none");
 		}
 	}
-	
+
 	@Override
 	public String desc() {
 		return
@@ -49,7 +49,7 @@ public class PotionOfMindVision extends Potion {
 			"of distant creatures, enabling you to sense biological presences through walls. " +
 			"Also this potion will permit you to see through nearby walls and doors.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 35 * quantity : super.price();

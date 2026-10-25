@@ -17,576 +17,323 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
-import java.util.HashMap;
-
-import com.bilboldev.noosa.BitmapText;
-import com.bilboldev.noosa.BitmapTextMultiline;
-import com.bilboldev.noosa.Camera;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import java.util.ArrayList;
 import com.bilboldev.noosa.Game;
-import com.bilboldev.noosa.Group;
-import com.bilboldev.noosa.Image;
-import com.bilboldev.noosa.audio.Sample;
-import com.bilboldev.noosa.particles.BitmaskEmitter;
-import com.bilboldev.noosa.particles.Emitter;
-import com.bilboldev.noosa.ui.Button;
-import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GamesInProgress;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.SaveSlots;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
-import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
-import com.bilboldev.pixeldungeonskills.effects.Speck;
-import com.bilboldev.pixeldungeonskills.effects.BannerSprites.Type;
-import com.bilboldev.pixeldungeonskills.ui.Archs;
-import com.bilboldev.pixeldungeonskills.ui.ExitButton;
-import com.bilboldev.pixeldungeonskills.ui.Icons;
-import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.ResumeButton;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
-import com.bilboldev.pixeldungeonskills.windows.WndChallenges;
-import com.bilboldev.pixeldungeonskills.windows.WndClass;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
+import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
-import com.bilboldev.utils.Callback;
+import com.bilboldev.pixeldungeonskills.windows.WndPartyLobby;
 
-public class StartScene extends PixelScene {
+public class StartScene extends TitleScene {
+    private enum Step {
+        SLOT, MODE, PARTY, NEARBY, CONTROLS, LOBBY, COMPANION, DEPART, DIFFICULTY, CONFIRM
+    }
+    private static class StartFlow {
+        final HeroClass heroClass;
+        Step step;
+        int slot = SaveSlots.FIRST;
+        GameplayMode mode = GameplayMode.CLASSIC;
+        int difficulty = Difficulties.NORMAL.ordinal();
+        HeroClass companion;
+        boolean splitControls;
+        boolean network;
+        boolean hosting;
+        float departureTime;
+        StartFlow(HeroClass heroClass, Step step) {
+            this.heroClass = heroClass;
+            this.step = step;
+        }
+    }
+    private static StartFlow pendingStart;
+    private static Window activeStartWindow;
+    public static HeroClass curClass;
 
-	private static final float BUTTON_HEIGHT	= 24;
-	private static final float GAP				= 2;
-	
-	private static final String TXT_LOAD	= "Load Game";
-	private static final String TXT_NEW		= "New Game";
-	
-	private static final String TXT_ERASE		= "Erase current game";
-	private static final String TXT_DPTH_LVL	= "Depth: %d, level: %d";
-	
-	private static final String TXT_REALLY	= "Do you really want to start new game?";
-	private static final String TXT_WARNING	= "Your current game progress will be erased.";
-	private static final String TXT_YES		= "Yes, start new game";
-	private static final String TXT_NO		= "No, return to main menu";
-	
-	private static final String TXT_UNLOCK	= "To unlock this character class, slay the 3rd boss with any other class";
-	
-	private static final String TXT_WIN_THE_GAME = 
-		"To unlock \"Challenges\", win the game with any character class.";
-	
-	private static final float WIDTH_P	= 116;
-	private static final float HEIGHT_P	= 220;
-	
-	private static final float WIDTH_L	= 224;
-	private static final float HEIGHT_L	= 124;
-	
-	private static HashMap<HeroClass, ClassShield> shields = new HashMap<HeroClass, ClassShield>();
-	
-	private float buttonX;
-	private float buttonY;
-	
-	private GameButton btnLoad;
-	private GameButton btnNewGame;
-	
-	private boolean huntressUnlocked;
-	private Group unlock;
-	
-	public static HeroClass curClass;
-	
-	@Override
-	public void create() {
-		
-		super.create();
-		
-		Badges.loadGlobal();
-		
-		uiCamera.visible = false;
-		
-		int w = Camera.main.width;
-		int h = Camera.main.height;
-		
-		float width, height;
-		if (PixelDungeon.landscape()) {
-			width = WIDTH_L;
-			height = HEIGHT_L;
-		} else {
-			width = WIDTH_P;
-			height = HEIGHT_P;
-		}
+    @Override
+    protected Page initialPage() {
+        return Page.HEROES;
+    }
 
-		float left = (w - width) / 2;
-		float top = (h - height) / 2; 
-		float bottom = h - top;
-		
-		Archs archs = new Archs();
-		archs.setSize( w, h );
-		add( archs ); 
-		
-		Image title = BannerSprites.get( Type.SELECT_YOUR_HERO );
-		title.x = align( (w - title.width()) / 2 );
-		title.y = align( top );
-		add( title );
-		
-		buttonX = left;
-		buttonY = bottom - BUTTON_HEIGHT;
+    static void beginStartFlow(PixelScene host, HeroClass heroClass) {
+        curClass = heroClass;
+        pendingStart = new StartFlow(heroClass, Step.SLOT);
+        ensureStartDialog(host);
+    }
 
+    static void beginPartyFlow(PixelScene host, HeroClass heroClass) {
+        curClass = heroClass;
+        pendingStart = new StartFlow(heroClass, Step.PARTY);
+        pendingStart.mode = GameplayMode.REBORN;
+        ensureStartDialog(host);
+    }
 
-        ResumeButton btnResume = new ResumeButton(){
+    static void cancelStartFlow() {
+        pendingStart = null;
+        activeStartWindow = null;
+    }
 
-         @Override
-        public void onClick()
-         {
-             Game.switchScene(MissionStartScene.class);
-         }
+    public static void finishNetworkStart() {
+        TitleScene.leavingForRun();
+    }
+    static void releaseWindow() {
+        activeStartWindow = null;
+    }
+    static HeroClass pendingHero() {
+        return pendingStart == null ? null : pendingStart.heroClass;
+    }
 
+    static HeroClass companionLeader() {
+        return pendingStart != null && (pendingStart.step == Step.COMPANION || pendingStart.step == Step.DEPART)
+                ? pendingStart.heroClass : null;
+    }
+
+    static boolean choosingCompanion() {
+        return pendingStart != null && pendingStart.step == Step.COMPANION;
+    }
+
+    static boolean chooseCompanion(HeroClass heroClass) {
+        if (!choosingCompanion() || heroClass == pendingStart.heroClass) return false;
+        pendingStart.companion = heroClass;
+        pendingStart.step = Step.DEPART;
+        pendingStart.departureTime = PixelDungeon.titleAnimation() ? .4f : 0;
+        return true;
+    }
+
+    static void updateDeparture(float elapsed) {
+        if (pendingStart == null || pendingStart.step != Step.DEPART || Window.topWindow() != null) return;
+        pendingStart.departureTime -= elapsed;
+        if (pendingStart.departureTime <= 0) startNewGame(pendingStart);
+    }
+
+    static void ensureStartDialog(final PixelScene host) {
+        if (pendingStart == null || (activeStartWindow != null && activeStartWindow.parent == host)) return;
+        final StartFlow flow = pendingStart;
+        final Step step = flow.step;
+        if (step == Step.COMPANION || step == Step.DEPART) return;
+        if (step == Step.SLOT) {
+            activeStartWindow = new com.bilboldev.pixeldungeonskills.windows.WndSaveSlots(flow.heroClass, host instanceof TitleScene) {
+                @Override
+                protected void onSelect(int slot, boolean replace) {
+                    activeStartWindow = null;
+                    if (pendingStart != flow) return;
+                    flow.slot = slot;
+                    GamesInProgress.Info info = GamesInProgress.check(flow.heroClass, slot);
+                    if (info != null && !replace) {
+                        pendingStart = null;
+                        if (info.unavailable) {
+                            host.add(new WndMessage(Message.key(StartScene.class, "unavailable_message")));
+                        } else {
+                            PartySession.cancelLobby();
+                            LocalCoop.clear();
+                            curClass = flow.heroClass;
+                            InterlevelScene.continueSlot = slot;
+                            MissionScene.scenePause = false;
+                            InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
+                            TitleScene.leavingForRun();
+                            Game.switchScene(InterlevelScene.class);
+                        }
+                    } else {
+                        flow.step = Step.MODE;
+                        ensureStartDialog(host);
+                    }
+                }
+
+                @Override
+                public void onBackPressed() {
+                    pendingStart = null;
+                    activeStartWindow = null;
+                    super.onBackPressed();
+                }
+            };
+            host.add(activeStartWindow);
+            return;
+        }
+        if (step == Step.LOBBY) {
+            activeStartWindow = new WndPartyLobby(flow.hosting, () -> {
+                pendingStart = null;
+                activeStartWindow = null;
+            }, request -> {
+                if (pendingStart != flow) return;
+                activeStartWindow = null;
+                flow.network = true;
+                flow.companion = request.second;
+                startNewGame(flow);
+            });
+            host.add(activeStartWindow);
+            return;
+        }
+        ArrayList<String> options = new ArrayList<String>();
+        String title;
+        String message;
+        switch (step) {
+            case MODE:
+                title = Messages.get(StartScene.class, "gameplay_title");
+                message = Messages.get(StartScene.class, "gameplay_message");
+                options.add(GameplayMode.CLASSIC.title());
+                options.add(GameplayMode.REBORN.title());
+                break;
+            case DIFFICULTY:
+                title = Messages.maybeTranslate("Game Difficulty");
+                message = Messages.maybeTranslate("Cannot be changed in game!");
+                options.add(Difficulties.EASY.title());
+                options.add(Difficulties.NORMAL.title());
+                options.add(Difficulties.HELL.title());
+                options.add(Difficulties.SUICIDE.title());
+                options.add(Difficulties.JUSTKILLME.title());
+                break;
+            case PARTY:
+                title = Messages.get(StartScene.class, "party_mode");
+                message = Messages.get(StartScene.class, "party_where");
+                options.add(Messages.get(StartScene.class, "same_device"));
+                options.add(Messages.get(StartScene.class, "nearby_party"));
+                break;
+            case NEARBY:
+                title = Messages.get(StartScene.class, "nearby_party");
+                message = Messages.get(StartScene.class, "nearby_message");
+                options.add(Messages.get(StartScene.class, "host_party"));
+                options.add(Messages.get(StartScene.class, "join_party"));
+                break;
+            case CONTROLS:
+                title = Messages.get(StartScene.class, "party_controls");
+                message = Messages.get(StartScene.class, "controls_message");
+                options.add(Messages.get(StartScene.class, "shared_controls"));
+                options.add(Messages.get(StartScene.class, "split_controls"));
+                break;
+            case CONFIRM:
+                title = Messages.get(StartScene.class, "start_mode", flow.mode.title());
+                message = Difficulties.description(flow.difficulty);
+
+                if (SaveSlots.exists(flow.heroClass, flow.slot))
+                    message += "\n\n" + Messages.get(StartScene.class, "replace_warning");
+                options.add(Messages.get(StartScene.class, "start_run"));
+                options.add(Messages.get(StartScene.class, "cancel_run"));
+                break;
+            default:
+                throw new IllegalStateException("Unknown new-game step");
+        }
+        activeStartWindow = new WndOptions(title, message, options.toArray(new String[0])) {
             @Override
-            public void update() {
-
-
+            protected boolean shouldTranslateOptionLabels() {
+                return false;
             }
 
+            @Override
+            protected float titleTextScale() {
+                return step == Step.CONFIRM && isDesktopRuntime() ? desktopOverlayTextScale() : 1f;
+            }
 
+            @Override
+            protected float messageTextScale() {
+                return step == Step.CONFIRM && isDesktopRuntime() ? desktopOverlayTextScale() * 0.75f : 1f;
+            }
+
+            @Override
+            protected void onSelect(int index) {
+                activeStartWindow = null;
+                if (pendingStart != flow) return;
+                switch (step) {
+                    case MODE:
+                        {
+                            flow.mode = index == 0 ? GameplayMode.CLASSIC : GameplayMode.REBORN;
+                            if (flow.mode == GameplayMode.REBORN) {
+                                startNewGame(flow);
+                                return;
+                            } else {
+                                flow.step = Step.DIFFICULTY;
+                            }
+                        }
+                        break;
+                    case PARTY:
+                        if (index == 1) {
+                            flow.step = Step.NEARBY;
+                        } else if (isDesktopRuntime()) {
+                            flow.step = Step.CONTROLS;
+                        } else {
+                            choosePartner(host, flow);
+                            return;
+                        }
+                        break;
+                    case NEARBY:
+                        openLobby(flow, index == 0);
+                        break;
+                    case CONTROLS:
+                        flow.splitControls = index == 1;
+                        choosePartner(host, flow);
+                        return;
+                    case DIFFICULTY:
+                        flow.difficulty = Difficulties.getNormalizedDifficulty(index);
+                        flow.step = Step.CONFIRM;
+                        break;
+                    case CONFIRM:
+                        pendingStart = null;
+                        if (index == 0) startNewGame(flow);
+                        return;
+                }
+                ensureStartDialog(host);
+            }
+
+            @Override
+            public void onBackPressed() {
+                pendingStart = null;
+                activeStartWindow = null;
+                super.onBackPressed();
+            }
         };
-
-        btnResume.setPos(Camera.main.width - btnResume.width(), Camera.main.height / 2 - btnResume.height() / 2);
-        btnResume.visible = true;
-        add( btnResume );
-
-		btnNewGame = new GameButton( TXT_NEW ) {
-			@Override
-			protected void onClick() {
-				if (GamesInProgress.check( curClass ) != null) {
-					StartScene.this.add( new WndOptions( TXT_REALLY, TXT_WARNING, TXT_YES, TXT_NO ) {
-						@Override
-						protected void onSelect( int index ) {
-							if (index == 0) {
-                                chooseDifficulty();
-							}
-						}
-					} );
-					
-				} else {
-                    chooseDifficulty();
-				}
-			}
-		};
-		add( btnNewGame );
-
-		btnLoad = new GameButton( TXT_LOAD ) {	
-			@Override
-			protected void onClick() {
-                MissionScene.scenePause = false;
-				InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
-				Game.switchScene( InterlevelScene.class );
-			}
-		};
-		add( btnLoad );	
-		
-		float centralHeight = buttonY - title.y - title.height();
-		
-		HeroClass[] classes = {
-			HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE, HeroClass.HUNTRESS	
-		};
-		for (HeroClass cl : classes) {
-			ClassShield shield = new ClassShield( cl );
-			shields.put( cl, shield );
-			add( shield );
-		}
-		if (PixelDungeon.landscape()) {
-			float shieldW = width / 4;
-			float shieldH = Math.min( centralHeight, shieldW );
-			top = title.y + title.height + (centralHeight - shieldH) / 2;
-			for (int i=0; i < classes.length; i++) {
-				ClassShield shield = shields.get( classes[i] );
-				shield.setRect( left + i * shieldW, top, shieldW, shieldH );
-			}
-			
-			ChallengeButton challenge = new ChallengeButton();
-			challenge.setPos( 
-				w / 2 - challenge.width() / 2,
-				top + shieldH - challenge.height() / 2 );
-			add( challenge );
-			
-		} else {
-			float shieldW = width / 2;
-			float shieldH = Math.min( centralHeight / 2, shieldW * 1.2f );
-			top = title.y + title.height() + centralHeight / 2 - shieldH;
-			for (int i=0; i < classes.length; i++) {
-				ClassShield shield = shields.get( classes[i] );
-				shield.setRect( 
-					left + (i % 2) * shieldW, 
-					top + (i / 2) * shieldH, 
-					shieldW, shieldH );
-			}
-			
-			ChallengeButton challenge = new ChallengeButton();
-			challenge.setPos( 
-				w / 2 - challenge.width() / 2,
-				top + shieldH - challenge.height() / 2 );
-			add( challenge );
-		}
-		
-		unlock = new Group();
-		add( unlock );
-		
-		if (!(huntressUnlocked = Badges.isUnlocked( Badges.Badge.BOSS_SLAIN_3 ))) {
-		
-			BitmapTextMultiline text = PixelScene.createMultiline( TXT_UNLOCK, 9 );
-			text.maxWidth = (int)width;
-			text.measure();
-			
-			float pos = (bottom - BUTTON_HEIGHT) + (BUTTON_HEIGHT - text.height()) / 2;
-			for (BitmapText line : text.new LineSplitter().split()) {
-				line.measure();
-				line.hardlight( 0xFFFF00 );
-				line.x = PixelScene.align( w / 2 - line.width() / 2 );
-				line.y = PixelScene.align( pos );
-				unlock.add( line );
-				
-				pos += line.height(); 
-			}
-		}
-        huntressUnlocked = true; // Just let it go... let it go... bla bla bla
-		ExitButton btnExit = new ExitButton();
-		btnExit.setPos( Camera.main.width - btnExit.width(), 0 );
-		add( btnExit );
-		
-		curClass = null;
-		updateClass( HeroClass.values()[PixelDungeon.lastClass()] );
-		
-		fadeIn();
-		
-		Badges.loadingListener = new Callback() {
-			@Override
-			public void call() {
-				if (Game.scene() == StartScene.this) {
-					PixelDungeon.switchNoFade( StartScene.class );
-				}
-			}
-		};
-	}
-
-
-    private void chooseDifficulty()
-    {
-        StartScene.this.add( new WndOptions( "Game Difficulty", "Cannot be changed in game!", Difficulties.EASY.title(), Difficulties.NORMAL.title(), Difficulties.HELL.title() ) {
-            @Override
-            protected void onSelect( int index ) {
-                chooseDifficultyFinal(index);
-            }
-        } );
-
-
+        host.add(activeStartWindow);
     }
 
-    private void chooseDifficultyFinal(int index)
-    {
-        String title = "";
-        String Description = Difficulties.description(Difficulties.getNormalizedDifficulty(index));
-        final int diff = index;
-
-
-        StartScene.this.add( new WndOptions( title, Description, "Yes", "No" ) {
-
-            @Override
-            protected void onSelect( int index ) {
-                if(index == 0)
-                    startNewGame(diff);
-            }
-        } );
-
-
+    private static void choosePartner(PixelScene host, StartFlow flow) {
+        flow.step = Step.COMPANION;
+        if (host instanceof ClassicStartScene) {
+            ((ClassicStartScene)host).refreshHeroes();
+        } else {
+            TitleScene.selectedHero = null;
+            ((TitleScene)host).refreshHeroes();
+        }
     }
 
-	@Override
-	public void destroy() {
-		
-		Badges.saveGlobal();
-		Badges.loadingListener = null;
-		
-		super.destroy();
-	}
-	
-	private void updateClass( HeroClass cl ) {
+    private static void openLobby(StartFlow flow, boolean hosting) {
+        flow.hosting = hosting;
+        flow.step = Step.LOBBY;
+        if (hosting) {
+            PartySession.host(flow.heroClass);
+        } else {
+            PartySession.discover(flow.heroClass);
+        }
+    }
 
-        if(cl == HeroClass.HATSUNE)
-            cl = HeroClass.WARRIOR;
+    private static void startNewGame(StartFlow flow) {
+        pendingStart = null;
+        curClass = flow.heroClass;
+        TitleScene.leavingForRun();
+        if (!flow.network) PartySession.cancelLobby();
+        LocalCoop.clear();
+        Dungeon.prepareNewRun(flow.slot, flow.mode, flow.difficulty);
+        if (flow.companion == null) {
+            Dungeon.deleteGame(flow.heroClass, flow.slot, true);
+        } else {
+            if (!flow.network) PartySession.sameDevice(flow.splitControls);
+            LocalCoop.prepare(flow.heroClass, flow.companion);
+        }
+        InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+        InterlevelScene.noStory = false;
+        MissionScene.scenePause = false;
+        if (PixelDungeon.intro()) {
+            PixelDungeon.intro(false);
+            Game.switchScene(IntroScene.class);
+        } else {
+            Game.switchScene(InterlevelScene.class);
+        }
+    }
 
-
-		if (curClass == cl) {
-			add( new WndClass( cl ) );
-			return;
-		}
-		
-		if (curClass != null) {
-			shields.get( curClass ).highlight( false );
-		}
-		shields.get( curClass = cl ).highlight( true );
-		
-		if (cl != HeroClass.HUNTRESS || huntressUnlocked) {
-		
-			unlock.visible = false;
-			
-			GamesInProgress.Info info = GamesInProgress.check( curClass );
-			if (info != null) {
-				
-				btnLoad.visible = true;
-				btnLoad.secondary( Utils.format( TXT_DPTH_LVL, info.depth, info.level ), info.challenges );
-				
-				btnNewGame.visible = true;
-				btnNewGame.secondary( TXT_ERASE, false );
-				
-				float w = (Camera.main.width - GAP) / 2 - buttonX;
-				
-				btnLoad.setRect(
-					buttonX, buttonY, w, BUTTON_HEIGHT );
-				btnNewGame.setRect(
-					btnLoad.right() + GAP, buttonY, w, BUTTON_HEIGHT );
-				
-			} else {
-				btnLoad.visible = false;
-				
-				btnNewGame.visible = true;
-				btnNewGame.secondary( null, false );
-				btnNewGame.setRect( buttonX, buttonY, Camera.main.width - buttonX * 2, BUTTON_HEIGHT );
-			}
-			
-		} else {
-			
-			unlock.visible = true;
-			btnLoad.visible = false;
-			btnNewGame.visible = false;
-			
-		}
-	}
-	
-	private void startNewGame(int diff) {
-
-		Dungeon.hero = null;
-        diff = Difficulties.getNormalizedDifficulty(diff);
-        Dungeon.difficulty = diff;
-        Dungeon.currentDifficulty = Difficulties.values()[diff];
-        Dungeon.currentDifficulty.reset();
-		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-		MissionScene.scenePause = false;
-		if (PixelDungeon.intro()) {
-			PixelDungeon.intro( false );
-			Game.switchScene( IntroScene.class );
-		} else {
-			Game.switchScene( InterlevelScene.class );
-		}	
-	}
-	
-	@Override
-	protected void onBackPressed() {
-		PixelDungeon.switchNoFade( TitleScene.class );
-	}
-	
-	private static class GameButton extends RedButton {
-		
-		private static final int SECONDARY_COLOR_N	= 0xCACFC2;
-		private static final int SECONDARY_COLOR_H	= 0xFFFF88;
-		
-		private BitmapText secondary;
-		
-		public GameButton( String primary ) {
-			super( primary );
-			
-			this.secondary.text( null );
-		}
-		
-		@Override
-		protected void createChildren() {
-			super.createChildren();
-			
-			secondary = createText( 6 );
-			add( secondary );
-		}
-		
-		@Override
-		protected void layout() {
-			super.layout();
-			
-			if (secondary.text().length() > 0) {
-				text.y = align( y + (height - text.height() - secondary.baseLine()) / 2 );
-				
-				secondary.x = align( x + (width - secondary.width()) / 2 );
-				secondary.y = align( text.y + text.height() ); 
-			} else {
-				text.y = align( y + (height - text.baseLine()) / 2 );
-			}
-		}
-		
-		public void secondary( String text, boolean highlighted ) {
-			secondary.text( text );
-			secondary.measure();
-			
-			secondary.hardlight( highlighted ? SECONDARY_COLOR_H : SECONDARY_COLOR_N );
-		}
-	}
-	
-	private class ClassShield extends Button {
-		
-		private static final float MIN_BRIGHTNESS	= 0.6f;
-		
-		private static final int BASIC_NORMAL		= 0x444444;
-		private static final int BASIC_HIGHLIGHTED	= 0xCACFC2;
-		
-		private static final int MASTERY_NORMAL		= 0x666644;
-		private static final int MASTERY_HIGHLIGHTED= 0xFFFF88;
-		
-		private static final int WIDTH	= 24;
-		private static final int HEIGHT	= 28;
-		private static final int SCALE	= 2;
-		
-		private HeroClass cl;
-		
-		private Image avatar;
-		private BitmapText name;
-		private Emitter emitter;
-		
-		private float brightness;
-		
-		private int normal;
-		private int highlighted;
-		
-		public ClassShield( HeroClass cl ) {
-			super();
-		
-			this.cl = cl;
-			
-			avatar.frame( cl.ordinal() * WIDTH, 0, WIDTH, HEIGHT );
-			avatar.scale.set( SCALE );
-			
-			if (Badges.isUnlocked( cl.masteryBadge() )) {
-				normal = MASTERY_NORMAL;
-				highlighted = MASTERY_HIGHLIGHTED;
-			} else {
-				normal = BASIC_NORMAL;
-				highlighted = BASIC_HIGHLIGHTED;
-			}
-			
-			name.text( cl.name() );
-			name.measure();
-			name.hardlight( normal );
-			
-			brightness = MIN_BRIGHTNESS;
-			updateBrightness();
-		}
-		
-		@Override
-		protected void createChildren() {
-			
-			super.createChildren();
-			
-			avatar = new Image( Assets.AVATARS );
-			add( avatar );
-			
-			name = PixelScene.createText( 9 );
-			add( name );
-			
-			emitter = new BitmaskEmitter( avatar );
-			add( emitter );
-		}
-		
-		@Override
-		protected void layout() {
-			
-			super.layout();
-			
-			avatar.x = align( x + (width - avatar.width()) / 2 );
-			avatar.y = align( y + (height - avatar.height() - name.height()) / 2 );
-			
-			name.x = align( x + (width - name.width()) / 2 );
-			name.y = avatar.y + avatar.height() + SCALE;
-		}
-		
-		@Override
-		protected void onTouchDown() {
-			
-			emitter.revive();
-			emitter.start( Speck.factory( Speck.LIGHT ), 0.05f, 7 );
-			
-			Sample.INSTANCE.play( Assets.SND_CLICK, 1, 1, 1.2f );
-			updateClass( cl );
-		}
-		
-		@Override
-		public void update() {
-			super.update();
-			
-			if (brightness < 1.0f && brightness > MIN_BRIGHTNESS) {
-				if ((brightness -= Game.elapsed) <= MIN_BRIGHTNESS) {
-					brightness = MIN_BRIGHTNESS;
-				}
-				updateBrightness();
-			}
-		}
-		
-		public void highlight( boolean value ) {
-			if (value) {
-				brightness = 1.0f;
-				name.hardlight( highlighted );
-			} else {
-				brightness = 0.999f;
-				name.hardlight( normal );
-			}
-
-			updateBrightness();
-		}
-		
-		private void updateBrightness() {
-			avatar.gm = avatar.bm = avatar.rm = avatar.am = brightness;
-		}
-	}
-	
-	private class ChallengeButton extends Button {
-		
-		private Image image;
-		
-		public ChallengeButton() {
-			super();
-			
-			width = image.width;
-			height = image.height;
-			
-			image.am = Badges.isUnlocked( Badges.Badge.VICTORY ) ? 1.0f : 0.5f;
-		}
-		
-		@Override
-		protected void createChildren() {
-			
-			super.createChildren();
-			
-			image = Icons.get( PixelDungeon.challenges() > 0 ? Icons.CHALLENGE_ON :Icons.CHALLENGE_OFF );
-			add( image );
-		}
-		
-		@Override
-		protected void layout() {
-			
-			super.layout();
-			
-			image.x = align( x );
-			image.y = align( y  );
-		}
-		
-		@Override
-		protected void onClick() {
-			if (Badges.isUnlocked( Badges.Badge.VICTORY )) {
-				StartScene.this.add( new WndChallenges( PixelDungeon.challenges(), true ) {
-					public void onBackPressed() {
-						super.onBackPressed();
-						image.copy( Icons.get( PixelDungeon.challenges() > 0 ? 
-							Icons.CHALLENGE_ON :Icons.CHALLENGE_OFF ) );
-					};
-				} );
-			} else {
-				StartScene.this.add( new WndMessage( TXT_WIN_THE_GAME ) );
-			}
-		}
-		
-		@Override
-		protected void onTouchDown() {
-			Sample.INSTANCE.play( Assets.SND_CLICK );
-		}
-	}
 }

@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items.bags;
 
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
@@ -26,15 +27,15 @@ public class WandHolster extends Bag {
 	{
 		name = "wand holster";
 		image = ItemSpriteSheet.HOLSTER;
-		
+
 		size = 12;
 	}
-	
+
 	@Override
 	public boolean grab( Item item ) {
 		return item instanceof Wand;
 	}
-	
+
 	@Override
 	public boolean collect( Bag container ) {
 		if (super.collect( container )) {
@@ -48,23 +49,27 @@ public class WandHolster extends Bag {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public void onDetach( ) {
 		for (Item item : items) {
 			((Wand)item).stopCharging();
 		}
 	}
-	
+
 	@Override
 	public int price() {
 		return 50;
 	}
-	
+
 	@Override
 	public String info() {
-		return
-			"This slim holder is made of leather of some exotic animal. " +
-			"It allows to compactly carry up to " + size + " wands.";
+		return desc();
+	}
+
+	@Override
+	protected String message( String key, Object... args ) {
+		String value = Messages.get( "items.bags.magicalholster." + key, args );
+		return Messages.NO_TEXT_FOUND.equals( value ) ? super.message( key, args ) : value;
 	}
 }

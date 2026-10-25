@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
@@ -42,63 +43,63 @@ import com.bilboldev.utils.Random;
 
 public class Burning extends Buff implements Hero.Doom {
 
-	private static final String TXT_BURNS_UP		= "%s burns up!";
-	private static final String TXT_BURNED_TO_DEATH	= "You burned to death...";
-	
+	private static final String TXT_BURNS_UP		= "actors.buffs.burning.burnsup";
+	private static final String TXT_BURNED_TO_DEATH	= "actors.buffs.burning.ondeath";
+
 	private static final float DURATION = 8f;
-	
+
 	private float left;
-	
+
 	private static final String LEFT	= "left";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( LEFT, left );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle(bundle);
 		left = bundle.getFloat( LEFT );
 	}
-	
+
 	@Override
 	public boolean act() {
-		
+
 		if (target.isAlive()) {
-			
+
 			if (target instanceof Hero) {
 				Buff.prolong( target, Light.class, TICK * 1.01f );
 			}
 
 			target.damage( Random.Int( 1, 5 ), this );
-			
+
 			if (target instanceof Hero) {
-				
+
 				Item item = ((Hero)target).belongings.randomUnequipped();
 				if (item instanceof Scroll) {
-					
+
 					item = item.detach( ((Hero)target).belongings.backpack );
-					GLog.w( TXT_BURNS_UP, item.toString() );
-					
+					GLog.w(TXT_BURNS_UP, Message.item(item));
+
 					Heap.burnFX( target.pos );
-					
+
 				} else if (item instanceof MysteryMeat) {
-					
+
 					item = item.detach( ((Hero)target).belongings.backpack );
-					ChargrilledMeat steak = new ChargrilledMeat(); 
+					ChargrilledMeat steak = new ChargrilledMeat();
 					if (!steak.collect( ((Hero)target).belongings.backpack )) {
 						Dungeon.level.drop( steak, target.pos ).sprite.drop();
 					}
-					GLog.w( TXT_BURNS_UP, item.toString() );
-					
+					GLog.w(TXT_BURNS_UP, Message.item(item));
+
 					Heap.burnFX( target.pos );
-					
+
 				}
-				
+
 			} else if (target instanceof Thief && ((Thief)target).item instanceof Scroll) {
-				
+
 				((Thief)target).item = null;
 				target.sprite.emitter().burst( ElmoParticle.FACTORY, 6 );
 			}
@@ -106,33 +107,33 @@ public class Burning extends Buff implements Hero.Doom {
 		} else {
 			detach();
 		}
-		
+
 		if (Level.flamable[target.pos]) {
 			GameScene.add( Blob.seed( target.pos, 4, Fire.class ) );
 		}
-		
+
 		spend( TICK );
 		left -= TICK;
-		
+
 		if (left <= 0 ||
 			Random.Float() > (2 + (float)target.HP / target.HT) / 3 ||
 			(Level.water[target.pos] && !target.flying)) {
-			
+
 			detach();
 		}
 
 		return true;
 	}
-	
+
 	public void reignite( Char ch ) {
 		left = duration( ch );
 	}
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.FIRE;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Burning";
@@ -145,10 +146,10 @@ public class Burning extends Buff implements Hero.Doom {
 
 	@Override
 	public void onDeath() {
-		
+
 		Badges.validateDeathFromFire();
-		
-		Dungeon.fail( Utils.format( ResultDescriptions.BURNING, Dungeon.depth ) );
-		GLog.n( TXT_BURNED_TO_DEATH );
+
+		Dungeon.fail( Utils.format( ResultDescriptions.BURNING, Dungeon.depth ), Burning.class );
+		GLog.n(TXT_BURNED_TO_DEATH);
 	}
 }

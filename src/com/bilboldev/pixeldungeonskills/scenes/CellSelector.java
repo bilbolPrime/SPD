@@ -17,73 +17,98 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.TouchArea;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.GauntletRun;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.PointF;
 
 public class CellSelector extends TouchArea {
 
 	public Listener listener = null;
-	
+
 	public boolean enabled;
-	
+
 	private float dragThreshold;
-	
-	public CellSelector( DungeonTilemap map ) {
+
+	public CellSelector( DungeonTilemapOld map ) {
 		super( map );
 		camera = map.camera();
-		
+
 		dragThreshold = PixelScene.defaultZoom * DungeonTilemap.SIZE / 2;
 	}
-	
+
 	@Override
 	protected void onClick( Touch touch ) {
+        FirstPersonView view = GameScene.firstPersonView();
+        if (view != null) {
+            int cell = view.clickedCell(touch);
+            if (cell >= 0) select(cell);
+            return;
+        }
 		if (dragging) {
-			
+
 			dragging = false;
-			
+
 		} else {
-			
-			select( ((DungeonTilemap)target).screenToTile( 
-				(int)touch.current.x, 
-				(int)touch.current.y ) );
+
+			if(target instanceof DungeonTerrainTilemap)
+			{
+				select( ((DungeonTerrainTilemap)target).screenToTile(
+						(int)touch.current.x,
+						(int)touch.current.y ) );
+			}
+			else
+			{
+				select( ((DungeonTilemapOld)target).screenToTile(
+						(int)touch.current.x,
+						(int)touch.current.y ) );
+			}
+
 		}
 	}
-	
+
 	public void select( int cell ) {
 		if (enabled && listener != null && cell != -1) {
-			
+
 			listener.onSelect( cell );
 			GameScene.ready();
-			
+
 		} else {
-			
+
 			GameScene.cancel();
-			
+
 		}
 	}
-	
+
 	private boolean pinching = false;
 	private Touch another;
 	private float startZoom;
 	private float startSpan;
-	
+
 	@Override
 	protected void onTouchDown( Touch t ) {
+        FirstPersonView view = GameScene.firstPersonView();
+        if (view != null) {
+            view.pointerDown(t);
+            return;
+        }
 
 		if (t != touch && another == null) {
-					
+
 			if (!touch.down) {
 				touch = t;
 				onTouchDown( t );
 				return;
 			}
-			
+
 			pinching = true;
-			
+
 			another = t;
 			startSpan = PointF.distance( touch.current, another.current );
 			startZoom = camera.zoom;
@@ -91,16 +116,14 @@ public class CellSelector extends TouchArea {
 			dragging = false;
 		}
 	}
-	
+
 	@Override
 	protected void onTouchUp( Touch t ) {
+        if (GameScene.isPerspectiveView()) return;
 		if (pinching && (t == touch || t == another)) {
 
 			pinching = false;
-			
-			int zoom = Math.round( camera.zoom );
-			camera.zoom( zoom );
-			PixelDungeon.zoom( (int)(zoom - PixelScene.defaultZoom) );
+			applyZoom( camera.zoom );
 
 			dragging = true;
 			if (t == touch) {
@@ -109,49 +132,78 @@ public class CellSelector extends TouchArea {
 			another = null;
 			lastPos.set( touch.current );
 		}
-	}	
+	}
 
 	private boolean dragging = false;
 	private PointF lastPos = new PointF();
-	
+
 	@Override
 	protected void onDrag( Touch t ) {
-		 
+        FirstPersonView view = GameScene.firstPersonView();
+        if (view != null) {
+            view.pointerDrag(t);
+            return;
+        }
+
 		camera.target = null;
 
 		if (pinching) {
 
 			float curSpan = PointF.distance( touch.current, another.current );
-			camera.zoom( GameMath.gate( 
-				PixelScene.minZoom, 
-				startZoom * curSpan / startSpan, 
+			camera.zoom( GameMath.gate(
+				PixelScene.minZoom,
+				startZoom * curSpan / startSpan,
 				PixelScene.maxZoom ) );
 
 		} else {
-		
+
 			if (!dragging && PointF.distance( t.current, t.start ) > dragThreshold) {
-				
+
 				dragging = true;
 				lastPos.set( t.current );
-				
+
 			} else if (dragging) {
 				camera.scroll.offset( PointF.diff( lastPos, t.current ).invScale( camera.zoom ) );
-				lastPos.set( t.current );	
-			}	
+				lastPos.set( t.current );
+			}
 		}
-		
-	}	
-	
+
+	}
+
+	public void zoomByAmount( float amount ) {
+		if (amount != 0) {
+			applyZoom( camera.zoom + amount );
+		}
+	}
+
+    void resetViewGesture() {
+        reset();
+        dragging = false;
+        pinching = false;
+        another = null;
+    }
+
+	private void applyZoom( float zoom ) {
+		int roundedZoom = Math.round( GameMath.gate(
+			PixelScene.minZoom,
+			zoom,
+			PixelScene.maxZoom ) );
+		camera.zoom( roundedZoom );
+		int offset = (int)(roundedZoom - PixelScene.defaultZoom);
+		if (GauntletRun.active()) GauntletRun.zoomOffset(offset);
+		else PixelDungeon.zoom(offset);
+	}
+
 	public void cancel() {
 		if (listener != null) {
 			listener.onSelect( null );
 		}
-		
+
 		GameScene.ready();
 	}
-	
+
 	public interface Listener {
 		void onSelect( Integer cell );
-		String prompt();
+		Message prompt();
 	}
 }

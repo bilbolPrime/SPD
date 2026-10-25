@@ -1,19 +1,24 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
-
-
-
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.HuntressSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MageSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MercenarySkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.NecromancerSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.RogueSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
-import com.bilboldev.pixeldungeonskills.windows.WndSkill;
+import com.bilboldev.pixeldungeonskills.windows.WndSkillNew;
+import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.utils.Bundle;
-
 
 public enum CurrentSkills{
 
-    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress") , HATSUNE("hatsune");
-
+    WARRIOR("warrior"), MAGE("mage"), ROGUE("rogue"), HUNTRESS("huntress") , HATSUNE("hatsune"), ONLINE("online")
+    , NECROMANCER("necromancer"), MERCENARY("mercenary");
 
     public enum BRANCHES {PASSIVEA, PASSIVEB, ACTIVE}
 
@@ -83,9 +88,39 @@ public enum CurrentSkills{
                 passiveB3 = new Summoner();
                 branchA = new MageActive();
                 active1 = new SummonRat();
-                //active2 = new SummonCrab();
+
                 active2 = new Spark();
                 active3 = new SummonSkeleton();
+                break;
+
+            case NECROMANCER:
+                branchPA = new MagePassiveA();
+                passiveA1 = new SpiritualitySkill();
+                passiveA2 = new MeditationSkill();
+                passiveA3 = new MasterOfDeathSkill();
+                branchPB = new MagePassiveB();
+                passiveB1 = new RaiseSkeletonArcherSkill();
+                passiveB2 = new SummonGhostSkill();
+                passiveB3 = new SummonerSkill();
+                branchA = new MageActive();
+                active1 = new CurseSkill();
+                active2 = new RaiseSkeletonSkill();
+                active3 = new SummonSkeletonSkill();
+                break;
+
+            case MERCENARY:
+                branchPA = new MercenaryPassiveA();
+                passiveA1 = new PackratSkill();
+                passiveA2 = new HeadShotSkill();
+                passiveA3 = new ToughnessSkill();
+                branchPB = new MercenaryPassiveB();
+                passiveB1 = new SteadyAimSkill();
+                passiveB2 = new NoWitnessesSkill();
+                passiveB3 = new MarshalSkill();
+                branchA = new MercenaryActive();
+                active1 = new WantedSkill();
+                active2 = new KnockBackSkill();
+                active3 = new ExecuteSkill();
                 break;
 
             case ROGUE:
@@ -99,7 +134,7 @@ public enum CurrentSkills{
                 passiveB3 = new SilentDeath();
                 branchA = new RogueActive();
                 active1 = new DoubleStab();
-                //active2 = new DeadEye();
+
                 active2 = new NinjaBomb();
                 active3 = new ShadowCloneNew();
                 break;
@@ -114,7 +149,7 @@ public enum CurrentSkills{
                 passiveB2 = new KneeShot();
                 passiveB3 = new IronTip();
                 branchA = new HuntressActive();
-                active1 =  new AimedShot(); //new SpiritArrow();
+                active1 =  new AimedShot();
                 active2 = new DoubleShot();
                 active3 = new Bombvoyage();
                 break;
@@ -143,7 +178,44 @@ public enum CurrentSkills{
                 active3.level = 10;
                 Skill.availableSkill = 0;
                 break;
+            case ONLINE:
+                branchPA = new LegendPassiveA();
+                passiveA1 = new Spirituality();
+                passiveA1.level = 10;
+                passiveA2 = new Meditation();
+                passiveA2.level = 10;
+                passiveA3 = new SpiritArmor();
+                passiveA3.level = 10;
+                passiveA3.active = true;
+                branchPB = new LegendActiveA();
+                passiveB1 = new SummonSkeletonArcher();
+                passiveB1.level = 10;
+                passiveB2 = new DarkBolt();
+                passiveB2.level = 10;
+                passiveB3 = new Dominance();
+                passiveB3.level = 10;
+                branchA = new LegendActiveA();
+                active1 = new Echo();
+                active1.level = 10;
+                active2 = new SoulSpark();
+                active2.level = 10;
+                active3 = new SoulFury();
+                active3.level = 10;
+                Skill.availableSkill = 0;
+                break;
         }
+    }
+
+    public SkillTree getSkillTree(){
+        switch (this){
+            case HUNTRESS: return new HuntressSkillTree(0, 0).build();
+            case ROGUE: return new RogueSkillTree(0, 0).build();
+            case MAGE: return new MageSkillTree(0, 0).build();
+            case NECROMANCER: return new NecromancerSkillTree(0, 0).build();
+            case MERCENARY: return new MercenarySkillTree(0, 0).build();
+        }
+
+        return new WarriorSkillTree(0,0 ).build();
     }
 
     public int totalSpent(BRANCHES branch)
@@ -192,11 +264,17 @@ public enum CurrentSkills{
         }
     }
 
-
     public void showLastUsed()
     {
-        if(lastUsed != null)
-            GameScene.show(new WndSkill(null, lastUsed));
+        if(lastUsed != null) {
+            if(lastUsed.quickCast && lastUsed.canCast()){
+                lastUsed.execute(Dungeon.hero, Skill.AC_CAST);
+            }
+            else {
+                WndSkillsNew tmp = null;
+                GameScene.show(new WndSkillNew(tmp, lastUsed));
+            }
+        }
 
     }
 
@@ -249,12 +327,22 @@ public enum CurrentSkills{
                 active1 = new Smite();
                 active1.level = preserveLevel;
                 break;
+            case MERCENARY:
+                preserveLevel = active1.level;
+                active1 = new IAmTheLawSkill();
+                active1.level = preserveLevel;
+                break;
             case HUNTRESS:
                 preserveLevel = active2.level;
                 active2 = new TripleShot();
                 active2.level = preserveLevel;
                 break;
             case MAGE:
+                preserveLevel = active3.level;
+                active3 = new SummonSkeletonArcher();
+                active3.level = preserveLevel;
+                break;
+            case NECROMANCER:
                 preserveLevel = active3.level;
                 active3 = new SummonSkeletonArcher();
                 active3.level = preserveLevel;
@@ -266,19 +354,23 @@ public enum CurrentSkills{
         }
     }
 
-    public String unlockableSkillName()
+    public Message unlockableSkillName()
     {
         switch (this) {
             case WARRIOR:
-               return "Smite";
+               return Message.key("actors.hero.spells.smite.name");
+            case MERCENARY:
+                return Message.key("actors.hero.spells.smite.name");
             case MAGE:
-                return "Summon Skeleton Archer";
+                return Message.key("custom.generated.entry_summon_skeleton_archer_f8a9b6ed36");
+            case NECROMANCER:
+                return Message.key("custom.generated.entry_summon_skeleton_archer_f8a9b6ed36");
             case ROGUE:
-                return "KO Arrow";
+                return Message.key("custom.generated.entry_ko_arrow_0d5d7955db");
             case HUNTRESS:
-                return "Triple Shot";
+                return Message.key("custom.generated.entry_triple_shot_cdf39fc8c5");
         }
 
-        return "";
+        return Message.empty();
     }
 }

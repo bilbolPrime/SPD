@@ -22,10 +22,10 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundle;
-
 import java.util.ArrayList;
 
 public class GemStone extends Ring {
@@ -33,7 +33,6 @@ public class GemStone extends Ring {
 	{
 		name = "Gemstone";
 	}
-	
 
 	public int charge = 0;
 
@@ -43,12 +42,12 @@ public class GemStone extends Ring {
         if(charge == 20)
         {
             image = ItemSpriteSheet.GemStonePart;
-            GLog.p("Gem stone partially charged!");
+            GLog.p("custom.generated.entry_gem_stone_partially_charged_df7e4a50d1");
         }
         if(charge == 40)
         {
             image = ItemSpriteSheet.GemStoneFull;
-            GLog.p("Gem stone fully charged!");
+            GLog.p("custom.generated.entry_gem_stone_fully_charged_8d3c9eded6");
         }
     }
 
@@ -62,11 +61,11 @@ public class GemStone extends Ring {
             CellEmitter.center(hero.pos).burst(Speck.factory(Speck.HEALING), 1);
             if(charge == 40)
             {
-                GLog.p("Gemstone fully healed you!");
+                GLog.p("custom.generated.entry_gemstone_fully_healed_you_a8c6f6c699");
                 Dungeon.hero.HP = Dungeon.hero.HT;
             }
             else
-                GLog.p("Gemstone heals for " + charge + "HP!");
+                GLog.p("custom.generated.manual.gemstone_heals_for_s_hp", charge);
             charge = 0;
         }
         else
@@ -112,17 +111,17 @@ public class GemStone extends Ring {
 		identify();
 		return super.doPickUp(hero);
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public void use() {
-		// Do nothing (it can't degrade)
+
 	}
-	
+
 	@Override
 	public String desc() {
 		return isKnown() ?
@@ -149,7 +148,7 @@ public class GemStone extends Ring {
 
         } else if (cursed && cursedKnown) {
 
-            return desc() + "\n\nYou can feel a malevolent magic lurking within the " + name() + ".";
+			return desc() + "\n\n" + Messages.get( Ring.class, "curse_known" );
 
         } else {
 

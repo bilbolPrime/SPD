@@ -19,6 +19,8 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
@@ -34,9 +36,6 @@ public class SkillSlot extends Button {
 
 	protected SkillSprite icon;
 	protected BitmapText activeText;
-
-
-
 
 	public SkillSlot() {
 		super();
@@ -60,45 +59,50 @@ public class SkillSlot extends Button {
             icon.alpha( alpha );
         }
 
-        if(skill.active) {
+        if( skill.useDelay != 0 &&  skill.availableAfter > skill.skillTrack){
+			activeText = new BitmapText(PixelScene.font1x);
+			activeText.text("CD " + (int)(skill.availableAfter - skill.skillTrack));
+			activeText.hardlight( Window.titleColor() );
+			add(activeText);
+		}
+
+        else if(skill.active) {
             activeText = new BitmapText(PixelScene.font1x);
             activeText.text("Active");
-            activeText.hardlight( Window.TITLE_COLOR );
+            activeText.hardlight( Window.titleColor() );
             add(activeText);
         }
 
         layout();
 	}
-		
+
 	@Override
 	protected void createChildren() {
-		
+
 		super.createChildren();
-		
+
 		icon = new SkillSprite();
 		add( icon );
 
-
 	}
-	
+
 	@Override
 	protected void layout() {
 		super.layout();
-		
+
 		icon.x = x + (width - icon.width) / 2;
 		icon.y = y + (height - icon.height) / 2;
-		
+
 		if (activeText != null) {
             activeText.x = x + 3;
             activeText.y = y + 11;
 		}
 	}
 
-	
 	public void enable( boolean value ) {
-		
+
 		active = value;
-		
+
 		float alpha = value ? ENABLED : DISABLED;
 		icon.alpha( alpha );
 	}

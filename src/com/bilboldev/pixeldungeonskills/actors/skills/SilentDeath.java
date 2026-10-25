@@ -1,17 +1,16 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.utils.Random;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
-public class SilentDeath extends PassiveSkillB3{
+import java.util.ArrayList;
 
+public class SilentDeath extends PassiveSkillB3{
 
     {
         name = "Silent Death";
-        castText = "Eternal Slumber";
+        castText = Message.key("custom.generated.entry_eternal_slumber_332843bd03");
         tier = 3;
         image = 59;
     }
@@ -21,11 +20,11 @@ public class SilentDeath extends PassiveSkillB3{
 
         if(Random.Int(100) < 10 * level)
         {
-            castText = "Eternal Slumber";
+            castText = Message.key("custom.generated.entry_eternal_slumber_332843bd03");
             castTextYell();
             return true;
         }
-        castText = "Almost had him...";
+        castText = Message.key("custom.generated.entry_almost_had_him_a5fd432b44");
         castTextYell();
         return false;
     }
@@ -39,7 +38,42 @@ public class SilentDeath extends PassiveSkillB3{
     @Override
     public String info()
     {
-        return "10% per level chance to instantly kill a sleeping enemy.\n"
-                + costUpgradeInfo();
+        return "Chance to instantly kill sleeping enemies with melee attacks.\n\n"
+                + extendedInfo()
+                + requiresInfo() + costString();
+    }
+
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ":  +" + (int)(i * 10) + "% chance of insta-kill.";
+
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
+
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Assassin";
+        }
+
+        return "";
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(Assassin.class);
+        return toReturn;
     }
 }

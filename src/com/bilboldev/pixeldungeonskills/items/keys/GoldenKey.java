@@ -20,16 +20,14 @@ package com.bilboldev.pixeldungeonskills.items.keys;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class GoldenKey extends Key {
-	
+
 	{
 		name = "golden key";
 		image = ItemSpriteSheet.GOLDEN_KEY;
 	}
-	
+
 	@Override
 	public String info() {
-		return 
-			"The notches on this golden key are tiny and intricate. " +
-			"Maybe it can open some chest lock?";
+		return desc();
 	}
 }

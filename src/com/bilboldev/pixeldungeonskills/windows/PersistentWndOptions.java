@@ -1,11 +1,14 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
-/**
- * Created by Moussa on 28-Jan-17.
- */
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 public class PersistentWndOptions extends WndOptions {
 
     public PersistentWndOptions(String title, String message, String... options) {
+        super(title, message, options);
+    }
+
+    public PersistentWndOptions(Message title, Message message, Message... options) {
         super(title, message, options);
     }
 

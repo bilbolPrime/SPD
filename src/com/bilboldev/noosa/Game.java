@@ -18,29 +18,40 @@
 package com.bilboldev.noosa;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import com.bilboldev.glscripts.Script;
 import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.glwrap.Vertexbuffer;
 import com.bilboldev.input.Keys;
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
+import com.bilboldev.pixeldungeonskills.online.SignalRService;
+import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.utils.BitmapCache;
 import com.bilboldev.utils.SystemTime;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.media.AudioManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -49,59 +60,65 @@ import android.view.View;
 public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTouchListener {
 
 	public static Game instance;
-	
-	// Actual size of the screen
+	private static final String TAG = "Game";
+
+    public SignalRService mService;
+    private boolean mBound = false;
+
+    public static Context mContext;
+
 	public static int width;
 	public static int height;
-	
-	// Density: mdpi=1, hdpi=1.5, xhdpi=2...
+
+	public static int graphicsContext;
+
 	public static float density = 1;
-	
+
 	public static String version;
     public static int versionBuild;
 	public static String vanillaVersion = "Vanilla PD v 1.9.2a";
 
-	// Current scene
 	protected Scene scene;
-	// New scene we are going to switch to
+
 	protected Scene requestedScene;
-	// true if scene switch is requested
+
 	protected boolean requestedReset = true;
-	// New scene class
-	protected Class<? extends Scene> sceneClass;
-	
-	// Current time in milliseconds
+	private Runnable afterSceneCreate;
+
+	protected Class<? extends Scene>
+            sceneClass;
+
 	protected long now;
-	// Milliseconds passed since previous update 
+
 	protected long step;
-	
+
 	public static float timeScale = 1f;
 	public static float elapsed = 0f;
-	
+
 	protected GLSurfaceView view;
 	protected SurfaceHolder holder;
-	
-	// Accumulated touch events
+
 	protected ArrayList<MotionEvent> motionEvents = new ArrayList<MotionEvent>();
-	
-	// Accumulated key events
+
 	protected ArrayList<KeyEvent> keysEvents = new ArrayList<KeyEvent>();
-	
+
 	public Game( Class<? extends Scene> c ) {
 		super();
 		sceneClass = c;
 	}
-	
-	@Override
+
+    @Override
 	protected void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
-		
+
+        mContext = this;
+
 		BitmapCache.context = TextureCache.context = instance = this;
-		
+
 		DisplayMetrics m = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics( m );
 		density = m.density;
-		
+
 		try {
 			version = getPackageManager().getPackageInfo( getPackageName(), 0 ).versionName;
             versionBuild = getPackageManager().getPackageInfo( getPackageName(), 0 ).versionCode;
@@ -110,53 +127,79 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
             versionBuild = 0;
 		}
 
-        VersionNewsInfo.alreadySeen = false; // Static variables tend to stick between games
+        VersionNewsInfo.alreadySeen = false;
 
 		setVolumeControlStream( AudioManager.STREAM_MUSIC );
-
-
 
 		view = new GLSurfaceView( this );
 		view.setEGLContextClientVersion( 2 );
 		view.setEGLConfigChooser( false );
-        // Addresses java.lang.IllegalArgumentException: No config chosen
+
         view.setEGLConfigChooser(8 , 8, 8, 8, 16, 0);
 		view.setRenderer( this );
 		view.setOnTouchListener( this );
 		setContentView( view );
+
+        try
+        {
+
+        }
+        catch(Exception ex)
+        {
+            Log.e("", ex.getMessage());
+        }
 	}
-	
+
+public void BindSignarlR()
+{
+    try
+    {
+         Intent intent = new Intent();
+         intent.setClass(mContext, SignalRService.class);
+          bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+    catch(Exception ex)
+    {
+        Log.e("", ex.getMessage());
+    }
+}
+
 	@Override
 	public void onResume() {
 		super.onResume();
-		
+
 		now = 0;
 		view.onResume();
-		
+
 		Music.INSTANCE.resume();
 		Sample.INSTANCE.resume();
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();
-		
+
 		if (scene != null) {
 			scene.pause();
 		}
-		
+
 		view.onPause();
 		Script.reset();
-		
+
 		Music.INSTANCE.pause();
 		Sample.INSTANCE.pause();
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		destroyGame();
-		
+
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+
 		Music.INSTANCE.mute();
 		Sample.INSTANCE.reset();
 	}
@@ -169,49 +212,49 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onKeyDown( int keyCode, KeyEvent event ) {
-		
-		if (keyCode == Keys.VOLUME_DOWN || 
+
+		if (event == null || keyCode == Keys.VOLUME_DOWN ||
 			keyCode == Keys.VOLUME_UP) {
-			
+
 			return false;
 		}
-		
-		synchronized (motionEvents) {
-			keysEvents.add( event );
+
+		synchronized (keysEvents) {
+			keysEvents.add( new KeyEvent( event ) );
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onKeyUp( int keyCode, KeyEvent event ) {
-		
-		if (keyCode == Keys.VOLUME_DOWN || 
+
+		if (event == null || keyCode == Keys.VOLUME_DOWN ||
 			keyCode == Keys.VOLUME_UP) {
-			
+
 			return false;
 		}
-		
-		synchronized (motionEvents) {
-			keysEvents.add( event );
+
+		synchronized (keysEvents) {
+			keysEvents.add( new KeyEvent( event ) );
 		}
 		return true;
 	}
-	
+
 	@Override
 	public void onDrawFrame( GL10 gl ) {
-		
+
 		if (width == 0 || height == 0) {
 			return;
 		}
-		
+
 		SystemTime.tick();
 		long rightNow = SystemTime.now;
 		step = (now == 0 ? 0 : rightNow - now);
 		now = rightNow;
-		
+
 		step();
 
 		NoosaScript.get().resetCamera();
@@ -222,84 +265,124 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 
 	@Override
 	public void onSurfaceChanged( GL10 gl, int width, int height ) {
-		
+
 		GLES20.glViewport( 0, 0, width, height );
-		
+
 		Game.width = width;
 		Game.height = height;
 
 	}
 
-	@Override
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+    }
+
+    @Override
+    protected void onStop() {
+
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+        super.onStop();
+    }
+
+    @Override
 	public void onSurfaceCreated( GL10 gl, EGLConfig config ) {
+		graphicsContext++;
 		GLES20.glEnable( GL10.GL_BLEND );
-		// For premultiplied alpha:
-		// GLES20.glBlendFunc( GL10.GL_ONE, GL10.GL_ONE_MINUS_SRC_ALPHA );
+
 		GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
-		
+
 		GLES20.glEnable( GL10.GL_SCISSOR_TEST );
-		
+
 		TextureCache.reload();
+		RenderedText.reloadCache();
+
+		Vertexbuffer.refreshAllBuffers();
 	}
-	
+
+	public void reloadCache(){
+		TextureCache.reload();
+		RenderedText.reloadCache();
+
+		Vertexbuffer.refreshAllBuffers();
+	}
+
 	protected void destroyGame() {
 		if (scene != null) {
 			scene.destroy();
 			scene = null;
 		}
-		
+
 		instance = null;
 	}
-	
+
 	public static void resetScene() {
 		switchScene( instance.sceneClass );
 	}
-	
+
+	public static void resetScene(Runnable afterCreate) {
+		resetScene();
+		instance.afterSceneCreate = afterCreate;
+	}
+
 	public static void switchScene( Class<? extends Scene> c ) {
 		instance.sceneClass = c;
 		instance.requestedReset = true;
+		instance.afterSceneCreate = null;
 	}
-	
+
 	public static Scene scene() {
 		return instance.scene;
 	}
-	
+
+	protected Class<? extends Scene> resolveScene(Class<? extends Scene> sceneClass) {
+		return sceneClass;
+	}
+
 	protected void step() {
-		
+
 		if (requestedReset) {
 			requestedReset = false;
 			try {
-				requestedScene = sceneClass.newInstance();
+				requestedScene = resolveScene(sceneClass).newInstance();
 				switchScene();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		update();
 	}
-	
+
 	protected void draw() {
 		scene.draw();
 	}
-	
+
 	protected void switchScene() {
+		Runnable afterCreate = afterSceneCreate;
+		afterSceneCreate = null;
 
 		Camera.reset();
-		
+
 		if (scene != null) {
 			scene.destroy();
 		}
 		scene = requestedScene;
 		scene.create();
-		
+		if (afterCreate != null && !requestedReset) afterCreate.run();
+
 		Game.elapsed = 0f;
 		Game.timeScale = 1f;
 	}
-	
+
 	protected void update() {
 		Game.elapsed = Game.timeScale * step * 0.001f;
-		
+		PartySession.update();
+
 		synchronized (motionEvents) {
 			Touchscreen.processTouchEvents( motionEvents );
 			motionEvents.clear();
@@ -308,12 +391,42 @@ public class Game extends Activity implements GLSurfaceView.Renderer, View.OnTou
 			Keys.processTouchEvents( keysEvents );
 			keysEvents.clear();
 		}
-		
-		scene.update();		
+
+		scene.update();
 		Camera.updateAll();
 	}
-	
+
 	public static void vibrate( int milliseconds ) {
 		((Vibrator)instance.getSystemService( VIBRATOR_SERVICE )).vibrate( milliseconds );
+	}
+
+    public final ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+
+            SignalRService.LocalBinder binder = (SignalRService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+	public void showWindow(Window w){
+		try
+		{
+
+		if(scene != null){
+			scene.add(w);
+		}
+		}
+		catch (Exception e){
+
+		}
 	}
 }

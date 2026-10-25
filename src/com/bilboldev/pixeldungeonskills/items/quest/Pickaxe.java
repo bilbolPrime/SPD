@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.quest;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
 import com.bilboldev.noosa.audio.Sample;
@@ -40,114 +41,114 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Callback;
 
 public class Pickaxe extends Weapon {
-	
+
 	public static final String AC_MINE	= "MINE";
-	
+
 	public static final float TIME_TO_MINE = 2;
-	
-	private static final String TXT_NO_VEIN = "There is no dark gold vein near you to mine";
-	
+
+	private static final String TXT_NO_VEIN = "custom.generated.entry_there_is_no_dark_gold_vein_near_you_to_mine_d208a5123f";
+
 	private static final Glowing BLOODY = new Glowing( 0x550000 );
-	
+
 	{
 		name = "pickaxe";
 		image = ItemSpriteSheet.PICKAXE;
-		
+
 		unique = true;
-		
+
 		defaultAction = AC_MINE;
-		
+
 		STR = 14;
 	}
-	
+
 	public boolean bloodStained = false;
-	
+
 	@Override
 	public int min() {
 		return 3;
 	}
-	
+
 	@Override
 	public int max() {
 		return 12;
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_MINE );
 		return actions;
 	}
-	
+
 	@Override
 	public void execute( final Hero hero, String action ) {
-		
+
 		if (action == AC_MINE) {
-			
+
 			if (Dungeon.depth < 11 || Dungeon.depth > 15) {
-				GLog.w( TXT_NO_VEIN );
+				GLog.w(TXT_NO_VEIN);
 				return;
 			}
-			
+
 			for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
-				
+
 				final int pos = hero.pos + Level.NEIGHBOURS8[i];
 				if (Dungeon.level.map[pos] == Terrain.WALL_DECO) {
-				
+
 					hero.spend( TIME_TO_MINE );
 					hero.busy();
-					
+
 					hero.sprite.attack( pos, new Callback() {
-						
+
 						@Override
 						public void call() {
 
 							CellEmitter.center( pos ).burst( Speck.factory( Speck.STAR ), 7 );
 							Sample.INSTANCE.play( Assets.SND_EVOKE );
-							
+
 							Level.set( pos, Terrain.WALL );
 							GameScene.updateMap( pos );
-							
+
 							DarkGold gold = new DarkGold();
 							if (gold.doPickUp( Dungeon.hero )) {
-								GLog.i( Hero.TXT_YOU_NOW_HAVE, gold.name() );
+								GLog.i("custom.generated.entry_you_now_have_s_f58f5ff690", Message.itemName(gold));
 							} else {
 								Dungeon.level.drop( gold, hero.pos ).sprite.drop();
 							}
-							
+
 							Hunger hunger = hero.buff( Hunger.class );
 							if (hunger != null && !hunger.isStarving()) {
 								hunger.satisfy( -Hunger.STARVING / 10 );
 								BuffIndicator.refreshHero();
 							}
-							
+
 							hero.onOperateComplete();
 						}
-					} );
-					
+					}, this );
+
 					return;
 				}
 			}
-			
-			GLog.w( TXT_NO_VEIN );
-			
+
+			GLog.w(TXT_NO_VEIN);
+
 		} else {
-			
+
 			super.execute( hero, action );
-			
+
 		}
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public void proc( Char attacker, Char defender, int damage ) {
 		if (!bloodStained && defender instanceof Bat && (defender.HP <= damage)) {
@@ -155,31 +156,30 @@ public class Pickaxe extends Weapon {
 			updateQuickslot();
 		}
 	}
-	
+
 	private static final String BLOODSTAINED = "bloodStained";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
-		
+
 		bundle.put( BLOODSTAINED, bloodStained );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
-		
+
 		bloodStained = bundle.getBoolean( BLOODSTAINED );
 	}
-	
+
 	@Override
 	public Glowing glowing() {
 		return bloodStained ? BLOODY : null;
 	}
-	
+
 	@Override
 	public String info() {
-		return
-			"This is a large and sturdy tool for breaking rocks. Probably it can be used as a weapon.";
+		return desc();
 	}
 }

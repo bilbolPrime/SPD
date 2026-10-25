@@ -17,7 +17,9 @@
  */
 package com.bilboldev.pixeldungeonskills.items.food;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class OverpricedRation extends Food {
@@ -28,14 +30,39 @@ public class OverpricedRation extends Food {
 		energy = Hunger.STARVING - Hunger.HUNGRY;
 		message = "That food tasted ok.";
 	}
-	
+
 	@Override
 	public String info() {
-		return "It looks exactly like a standard ration of food but smaller.";
+		return desc();
 	}
-	
+
+	@Override
+	public String name() {
+		return localized( "name", name );
+	}
+
+	@Override
+	public String coreName() {
+		return localized( "name", name );
+	}
+
+	@Override
+	public String desc() {
+		return localized( "desc", super.desc() );
+	}
+
+	@Override
+	protected Message eatMessage() {
+		return Message.key("items.food.smallration.eat_msg");
+	}
+
 	@Override
 	public int price() {
 		return 20 * quantity;
+	}
+
+	private String localized( String key, String fallback ) {
+		String value = Messages.get( "items.food.smallration." + key );
+		return Messages.NO_TEXT_FOUND.equals( value ) ? fallback : value;
 	}
 }

@@ -37,7 +37,7 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class RemoteBombGround extends Item {
-	
+
 	{
 		name = "remote bomb";
 		image = ItemSpriteSheet.RemoteBomb;
@@ -64,41 +64,37 @@ public class RemoteBombGround extends Item {
 	protected void onThrow( int cell ) {
 		if (Level.pit[cell]) {
 			super.onThrow( cell );
-		} 
-
+		}
 
     }
-
 
     @Override
     public boolean doPickUp( Hero hero ) {
-        GLog.i("Cannot be retrieved anymore...");
+        GLog.i("items.remotebombground.unavailable");
         return false;
     }
 
-
-	
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public Item random() {
 		quantity = 1;
 		return this;
-	}	
-	
+	}
+
 	@Override
 	public int price() {
 		return 10 * quantity;
 	}
-	
+
 	@Override
 	public String info() {
 		return
@@ -139,7 +135,6 @@ public class RemoteBombGround extends Item {
                 }
             }
         }
-
 
     }
 }

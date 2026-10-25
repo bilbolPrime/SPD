@@ -17,65 +17,61 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 
-import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
-import com.bilboldev.noosa.ColorBlock;
-import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TouchArea;
-import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Component;
-import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
-import com.bilboldev.pixeldungeonskills.actors.Actor;
-import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
-import com.bilboldev.pixeldungeonskills.actors.hero.Storage;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
-import com.bilboldev.pixeldungeonskills.actors.skills.BranchSkill;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
+import com.bilboldev.pixeldungeonskills.actors.skills.MercArcherSkillA;
+import com.bilboldev.pixeldungeonskills.actors.skills.MercArcherSkillB;
+import com.bilboldev.pixeldungeonskills.actors.skills.MercBruteSkillA;
+import com.bilboldev.pixeldungeonskills.actors.skills.MercThiefSkillA;
+import com.bilboldev.pixeldungeonskills.actors.skills.MercWizardSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Item;
-import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.armor.LeatherArmor;
-import com.bilboldev.pixeldungeonskills.items.bags.Bag;
-import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
-import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
-import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
-import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
-import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
-import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
-import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
-import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
-import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
-import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
-import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
-
+import com.bilboldev.utils.RectF;
 import java.util.ArrayList;
 
 public class WndMercs extends WndTabbed {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.PARCHMENT;
+    }
+
+    @Override
+    protected ScrollPane createScrollPane(Component content) {
+        return equipmentControls.scrollPane(content);
+    }
 
 	public static enum Mode {
 		ALL,
@@ -105,98 +101,114 @@ public class WndMercs extends WndTabbed {
             + "Mercs will consume any healing potion equipped on them if about to die. \n \n"
             + "You cannot hire the mercenary equivalent of your class.";
 
-
-
     private static final String TXT_NO_GOLD = "Insufficient Gold";
+    private final ControlRow equipmentControls = new ControlRow();
 
-    public static int maxHeight = 0;
+    private final MercenaryCamp camp;
 
-    public WndMercs(final Mode mode)
+    public static Mode modeFor(HiredMerc.MERC_TYPES type) {
+        switch (type) {
+            case Brute: return Mode.BRUTE;
+            case Wizard: return Mode.WIZARD;
+            case Thief: return Mode.THIEF;
+            case Archer: return Mode.ARCHER;
+            case ArcherMaiden: return Mode.ARCHERMAIDEN;
+            default: throw new IllegalArgumentException("Unknown mercenary");
+        }
+    }
+
+    public WndMercs(final Mode mode) {
+        this(mode, null);
+    }
+
+    public WndMercs(final Mode mode, MercenaryCamp camp)
     {
         super();
+        this.camp = camp;
+        Message nameText = MercenaryRecruitment.nameText(getMercType(mode));
+        menuModel = mode == Mode.ALL
+                ? new MenuModel(Message.key("custom.generated.entry_hire_a_mercenary_719a392723"),
+                        Message.key("custom.generated.entry_mercenaries_will_fight_for_you_in_exchange_for_a_45fbaccd78"))
+                : new MenuModel(Message.key(mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "custom.merc.hire_title_an" : "custom.merc.hire_title_a", nameText),
+                        Message.paragraphs(getMercDetails(mode), getMercStats(mode)));
 
-        int width = PixelDungeon.landscape() ? WIDTH_L : WIDTH_P;
+        int width = boundedWidth(landscapeLayout() ? WIDTH_L : WIDTH_P);
+        Component titlebar;
+        Component content = new Component();
+        ArrayList<RedButton> actions = new ArrayList<>();
 
         if(mode == Mode.ALL) {
-            Component titlebar = new IconTitle(new SkillSprite(96), TXT_TITLE);
+            titlebar = new IconTitle(new SkillSprite(96), TXT_TITLE);
             titlebar.setRect(0, 0, width, 0);
             add(titlebar);
 
-            resize(width, (int) titlebar.bottom());
-
-
-            pos = (int) titlebar.bottom() + GAP * 2;
-
+            pos = 0;
 
             BitmapTextMultiline info = PixelScene.createMultiline(6);
-            add(info);
+            content.add(info);
 
             info.text(TXT_MERCENARIES_DETAIL);
-            info.maxWidth = width;
+            info.maxWidth = textWidth(width);
             info.measure();
             info.y = pos;
 
             pos = (int) info.y + (int) info.height() + GAP * 2;
 
-            if(maxHeight < pos)
-                maxHeight = (int)pos;
-
-            resize(width,  maxHeight);
         }
         else
         {
-            Component titlebar = new IconTitle(new SkillSprite(getImage(mode)), "Hire " + (mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "An " : "A ") +   getName(mode));
+            String mercName = MercenaryRecruitment.displayName(getMercType(mode));
+            titlebar = new IconTitle(new SkillSprite(getImage(mode)), Messages.get(
+                    mode == Mode.ARCHER || mode == Mode.ARCHERMAIDEN ? "custom.merc.hire_title_an" : "custom.merc.hire_title_a",
+                    new Object[]{mercName}));
             titlebar.setRect(0, 0, width, 0);
             add(titlebar);
 
-            resize(width, (int) titlebar.bottom());
-
-
-            pos = (int) titlebar.bottom() + GAP * 2;
-
+            pos = 0;
 
             BitmapTextMultiline info = PixelScene.createMultiline(6);
-            add(info);
+            content.add(info);
 
-            info.text(getMercDetails(mode));
-            info.maxWidth = width;
+            info.text(getMercDetails(mode).toString());
+            info.maxWidth = textWidth(width);
             info.measure();
             info.y = pos;
 
             pos = (int) info.y + (int) info.height() + GAP * 2;
 
-            BitmapText stats = PixelScene.createText( Utils.capitalize(getName(mode) + " Stats" ), 9 );
-            stats.hardlight( TITLE_COLOR );
+            BitmapText stats = PixelScene.createText(Messages.get(WndMercs.class, "stats", mercName), 9);
+            stats.hardlight( titleColor() );
             stats.measure();
-            add( stats );
+            content.add( stats );
 
             stats.y = pos;
 
             pos = stats.y + stats.height() + GAP;
 
             BitmapTextMultiline infoStats = PixelScene.createMultiline(6);
-            add(infoStats);
+            content.add(infoStats);
 
-            infoStats.text(getMercStats(mode));
-            infoStats.maxWidth = width;
+            infoStats.text(getMercStats(mode).toString());
+            infoStats.maxWidth = textWidth(width);
             infoStats.measure();
             infoStats.y = pos;
 
             pos = infoStats.y + infoStats.height() + 2 * GAP;
 
-            BitmapText equipment = PixelScene.createText( Utils.capitalize("Standard Layout" ), 9 );
-            equipment.hardlight( TITLE_COLOR );
+            content.setSize(textWidth(width), pos);
+            pos = 0;
+            BitmapText equipment = PixelScene.createText( Messages.maybeTranslate( "Standard Layout" ), 9 );
+            equipment.hardlight( titleColor() );
             equipment.measure();
-            add( equipment );
+            equipmentControls.add( equipment );
 
             equipment.y = pos;
 
             pos = equipment.y + equipment.height() + GAP;
 
-
             if(mode == Mode.BRUTE) {
                 final Image imageWeapon = new ItemSprite(new Mace());
-                add(imageWeapon);
+                equipmentControls.add(imageWeapon);
 
                 imageWeapon.x = 0;
                 imageWeapon.y = pos;
@@ -206,14 +218,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageWeapon);
-                        parent.add(new previewInformation(tmp, "Mace", "A Brute favorite.."));
+                        WndMercs.this.add(new previewInformation(tmp, new Mace()));
                     }
                 };
-                add(hotArea_imageWeapon);
-
+                equipmentControls.add(hotArea_imageWeapon);
 
                 final Image imageArmor = new ItemSprite(new LeatherArmor());
-                add(imageArmor);
+                equipmentControls.add(imageArmor);
 
                 imageArmor.x = imageWeapon.x + imageWeapon.width() + GAP;
                 imageArmor.y = pos;
@@ -223,13 +234,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageArmor);
-                        parent.add(new previewInformation(tmp, "Leather Armor", "Leather Armor provides basic protection"));
+                        WndMercs.this.add(new previewInformation(tmp, new LeatherArmor()));
                     }
                 };
-                add(hotArea_imageArmo);
+                equipmentControls.add(hotArea_imageArmo);
 
                 final Image image = new ItemSprite(new ChargrilledMeat());
-                add(image);
+                equipmentControls.add(image);
 
                 image.x = imageArmor.x + imageArmor.width() + GAP;
                 image.y = pos + 2;
@@ -239,13 +250,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(image);
-                        parent.add(new previewInformation(tmp, "Meat", "These Brutes are always hungry..."));
+                        WndMercs.this.add(new previewInformation(tmp, new ChargrilledMeat()));
                     }
                 };
-                add(hotArea_image);
+                equipmentControls.add(hotArea_image);
 
                 final Image imageSkill = new SkillSprite(3);
-                add(imageSkill);
+                equipmentControls.add(imageSkill);
 
                 imageSkill.x = image.x + image.width() + GAP;
                 imageSkill.y = pos;
@@ -255,17 +266,17 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkill);
-                        parent.add(new previewInformation(tmp, "Toughness", "Brutes are physically strong. They take less damage than what others would have."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercBruteSkillA()));
                     }
                 };
-                add(hotArea_imageSkill);
+                equipmentControls.add(hotArea_imageSkill);
 
                 pos = image.y + image.height() + GAP * 3;
             }
             else if(mode == Mode.WIZARD)
             {
                 final Image imageWeapon = new ItemSprite(new Knuckles());
-                add(imageWeapon);
+                equipmentControls.add(imageWeapon);
 
                 imageWeapon.x = 0;
                 imageWeapon.y = pos + 2;
@@ -275,14 +286,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageWeapon);
-                        parent.add(new previewInformation(tmp, "Knuckles", "A weak weapon."));
+                        WndMercs.this.add(new previewInformation(tmp, new Knuckles()));
                     }
                 };
-                add(hotArea_imageWeapon);
-
+                equipmentControls.add(hotArea_imageWeapon);
 
                 final Image imageArmor = new ItemSprite(new ClothArmor());
-                add(imageArmor);
+                equipmentControls.add(imageArmor);
 
                 imageArmor.x = imageWeapon.x + imageWeapon.width() + GAP;
                 imageArmor.y = pos + 2;
@@ -292,13 +302,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageArmor);
-                        parent.add(new previewInformation(tmp, "Cloths", "Basic cloths."));
+                        WndMercs.this.add(new previewInformation(tmp, new ClothArmor()));
                     }
                 };
-                add(hotArea_imageArmo);
+                equipmentControls.add(hotArea_imageArmo);
 
                 final Image image = new ItemSprite(new PotionOfHealing());
-                add(image);
+                equipmentControls.add(image);
 
                 image.x = imageArmor.x + imageArmor.width() + GAP;
                 image.y = pos + 2;
@@ -308,13 +318,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(image);
-                        parent.add(new previewInformation(tmp, "Healing Potion", "A Healing Potion."));
+                        WndMercs.this.add(new previewInformation(tmp, new PotionOfHealing()));
                     }
                 };
-                add(hotArea_image);
+                equipmentControls.add(hotArea_image);
 
                 final Image imageSkill = new SkillSprite(41);
-                add(imageSkill);
+                equipmentControls.add(imageSkill);
 
                 imageSkill.x = image.x + image.width() + GAP;
                 imageSkill.y = pos;
@@ -324,17 +334,17 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkill);
-                        parent.add(new previewInformation(tmp, "Summon Rat", "The wizard summons rats to fight for him."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercWizardSkillA()));
                     }
                 };
-                add(hotArea_imageSkill);
+                equipmentControls.add(hotArea_imageSkill);
 
                 pos = image.y + image.height() + GAP * 3;
             }
             else if(mode == Mode.THIEF)
             {
                 final Image imageWeapon = new ItemSprite(new Dagger());
-                add(imageWeapon);
+                equipmentControls.add(imageWeapon);
 
                 imageWeapon.x = 0;
                 imageWeapon.y = pos + 1;
@@ -344,14 +354,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageWeapon);
-                        parent.add(new previewInformation(tmp, "Dagger", "A basic dagger."));
+                        WndMercs.this.add(new previewInformation(tmp, new Dagger()));
                     }
                 };
-                add(hotArea_imageWeapon);
-
+                equipmentControls.add(hotArea_imageWeapon);
 
                 final Image imageArmor = new ItemSprite(new ClothArmor());
-                add(imageArmor);
+                equipmentControls.add(imageArmor);
 
                 imageArmor.x = imageWeapon.x + imageWeapon.width() + GAP;
                 imageArmor.y = pos + 2;
@@ -361,13 +370,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageArmor);
-                        parent.add(new previewInformation(tmp, "Cloths", "Basic cloths."));
+                        WndMercs.this.add(new previewInformation(tmp, new ClothArmor()));
                     }
                 };
-                add(hotArea_imageArmo);
+                equipmentControls.add(hotArea_imageArmo);
 
                 final Image image = new ItemSprite(new PotionOfHealing());
-                add(image);
+                equipmentControls.add(image);
 
                 image.x = imageArmor.x + imageArmor.width() + GAP;
                 image.y = pos + 2;
@@ -377,13 +386,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(image);
-                        parent.add(new previewInformation(tmp, "Healing Potion", "A Healing Potion."));
+                        WndMercs.this.add(new previewInformation(tmp, new PotionOfHealing()));
                     }
                 };
-                add(hotArea_image);
+                equipmentControls.add(hotArea_image);
 
                 final Image imageSkill = new SkillSprite(57);
-                add(imageSkill);
+                equipmentControls.add(imageSkill);
 
                 imageSkill.x = image.x + image.width() + GAP;
                 imageSkill.y = pos;
@@ -393,17 +402,17 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkill);
-                        parent.add(new previewInformation(tmp, "Venom", "Thieves have a small chance of poisoning enemies in combat."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercThiefSkillA()));
                     }
                 };
-                add(hotArea_imageSkill);
+                equipmentControls.add(hotArea_imageSkill);
 
                 pos = image.y + image.height() + GAP * 3;
             }
             else if(mode == Mode.ARCHER)
             {
                 final Image imageWeapon = new ItemSprite(new Bow());
-                add(imageWeapon);
+                equipmentControls.add(imageWeapon);
 
                 imageWeapon.x = 0;
                 imageWeapon.y = pos + 1;
@@ -413,14 +422,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageWeapon);
-                        parent.add(new previewInformation(tmp, "Bow", "A basic bow."));
+                        WndMercs.this.add(new previewInformation(tmp, new Bow()));
                     }
                 };
-                add(hotArea_imageWeapon);
-
+                equipmentControls.add(hotArea_imageWeapon);
 
                 final Image imageArmor = new ItemSprite(new ClothArmor());
-                add(imageArmor);
+                equipmentControls.add(imageArmor);
 
                 imageArmor.x = imageWeapon.x + imageWeapon.width() + GAP;
                 imageArmor.y = pos + 2;
@@ -430,13 +438,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageArmor);
-                        parent.add(new previewInformation(tmp, "Cloths", "Basic cloths."));
+                        WndMercs.this.add(new previewInformation(tmp, new ClothArmor()));
                     }
                 };
-                add(hotArea_imageArmo);
+                equipmentControls.add(hotArea_imageArmo);
 
                 final Image image = new ItemSprite(new PotionOfHealing());
-                add(image);
+                equipmentControls.add(image);
 
                 image.x = imageArmor.x + imageArmor.width() + GAP;
                 image.y = pos + 2;
@@ -446,13 +454,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(image);
-                        parent.add(new previewInformation(tmp, "Healing Potion", "A Healing Potion."));
+                        WndMercs.this.add(new previewInformation(tmp, new PotionOfHealing()));
                     }
                 };
-                add(hotArea_image);
+                equipmentControls.add(hotArea_image);
 
                 final Image imageSkill = new SkillSprite(82);
-                add(imageSkill);
+                equipmentControls.add(imageSkill);
 
                 imageSkill.x = image.x + image.width();
                 imageSkill.y = pos + 1;
@@ -462,17 +470,17 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkill);
-                        parent.add(new previewInformation(tmp, "Knee Shot", "High accuracy and knowledge in body anatomy allow the archer to hit weak spots crippling targets."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercArcherSkillA()));
                     }
                 };
-                add(hotArea_imageSkill);
+                equipmentControls.add(hotArea_imageSkill);
 
                 pos = image.y + image.height() + GAP * 3;
             }
             else if(mode == Mode.ARCHERMAIDEN)
             {
                 final Image imageWeapon = new ItemSprite(new FrostBow());
-                add(imageWeapon);
+                equipmentControls.add(imageWeapon);
 
                 imageWeapon.x = 0;
                 imageWeapon.y = pos + 1;
@@ -482,16 +490,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageWeapon);
-                        parent.add(new previewInformation(tmp, "FrostBow", "A bow imbued with magic. It can freeze targets on occasion."));
+                        WndMercs.this.add(new previewInformation(tmp, new FrostBow()));
                     }
                 };
-                add(hotArea_imageWeapon);
-
-
-
+                equipmentControls.add(hotArea_imageWeapon);
 
                 final Image image = new ItemSprite(new PotionOfHealing());
-                add(image);
+                equipmentControls.add(image);
 
                 image.x = imageWeapon.x + imageWeapon.width() + GAP;
                 image.y = pos + 2;
@@ -501,13 +506,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(image);
-                        parent.add(new previewInformation(tmp, "Healing Potion", "A Healing Potion."));
+                        WndMercs.this.add(new previewInformation(tmp, new PotionOfHealing()));
                     }
                 };
-                add(hotArea_image);
+                equipmentControls.add(hotArea_image);
 
                 final Image imageSkill = new SkillSprite(82);
-                add(imageSkill);
+                equipmentControls.add(imageSkill);
 
                 imageSkill.x = image.x + image.width();
                 imageSkill.y = pos + 1;
@@ -517,13 +522,13 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkill);
-                        parent.add(new previewInformation(tmp, "Knee Shot", "High accuracy and knowledge in body anatomy allow the archer maiden to hit weak spots crippling targets."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercArcherSkillA()));
                     }
                 };
-                add(hotArea_imageSkill);
+                equipmentControls.add(hotArea_imageSkill);
 
                 final Image imageSkillB = new SkillSprite(106);
-                add(imageSkillB);
+                equipmentControls.add(imageSkillB);
 
                 imageSkillB.x = imageSkill.x + imageSkill.width() + GAP;
                 imageSkillB.y = pos + 1;
@@ -533,95 +538,88 @@ public class WndMercs extends WndTabbed {
                     protected void onClick(Touchscreen.Touch touch) {
                         Image tmp = new Image();
                         tmp.copy(imageSkillB);
-                        parent.add(new previewInformation(tmp, "Keen Eye", "Can shoot through friendly units without harming them."));
+                        WndMercs.this.add(new previewInformation(tmp, new MercArcherSkillB()));
                     }
                 };
-                add(hotArea_imageSkillB);
+                equipmentControls.add(hotArea_imageSkillB);
 
                 pos = image.y + image.height() + GAP * 3;
             }
 
-            if(mode != Mode.ARCHERMAIDEN || HiredMerc.archerMaidenUnlocked == true) {
-                RedButton btnHire = new RedButton("Hire " + getName(mode) + " For " + getGoldCost(mode) + " gold") {
+            equipmentControls.setSize(textWidth(width), pos);
+            equipmentControls.setPos(0, content.height());
+            content.add(equipmentControls);
+            content.setSize(textWidth(width), equipmentControls.bottom());
+            if ((Dungeon.rules().allowsOnDemandHiring() || MercenaryRecruitment.atRecruiter(camp))
+                    && (mode != Mode.ARCHERMAIDEN || MercenaryRecruitment.maidenAvailable())) {
+                RedButton btnHire = new ActionButton(Messages.get("custom.merc.hire_button",
+                        new Object[]{mercName, getGoldCost(mode)})) {
                     @Override
                     protected void onClick() {
-                        if (Dungeon.gold < getGoldCost(mode)) {
-                            text(TXT_NO_GOLD);
-                        } else {
-
-                            //Dungeon.hero.checkMerc = true;
-                            ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
-                            for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
-                                int p = Dungeon.hero.pos + Level.NEIGHBOURS8[i];
-                                if (Actor.findChar(p) == null && (Level.passable[p] || Level.avoid[p])) {
-                                    respawnPoints.add( p );
+                        final HiredMerc previous = Dungeon.hero.hiredMerc;
+                        if (WndMercs.this.camp != null && previous != null) {
+                            GameScene.show(new WndOptions(Message.key(WndMercs.class, "replace_title"),
+                                    Message.key(WndMercs.class, "replace_message", nameText, getGoldCost(mode)),
+                                    Message.key(WndMercs.class, "replace_confirm"),
+                                    Message.key("scenes.startscene.cancel_run")) {
+                                @Override
+                                protected void onSelect(int index) {
+                                    if (index == 0) completeHire(mode, previous);
                                 }
-                            }
-                            if(respawnPoints.size() > 0) {
-                                Dungeon.gold -= getGoldCost(mode);
-                                Dungeon.hero.hiredMerc = new HiredMerc(getMercType(mode));
-                                Dungeon.hero.hiredMerc.spawn(Dungeon.hero.lvl);
-                                Dungeon.hero.hiredMerc.HP = Dungeon.hero.hiredMerc.mercType.getHealth(Dungeon.hero.lvl);
-                                Dungeon.hero.hiredMerc.mercType.setEquipment(Dungeon.hero.hiredMerc);
-                                Dungeon.hero.hiredMerc.pos = respawnPoints.get(0);
-                                GameScene.add( Dungeon.hero.hiredMerc );
-                                ((MercSprite) Dungeon.hero.hiredMerc.sprite).updateArmor();
-                                WandOfBlink.appear(Dungeon.hero.hiredMerc, respawnPoints.get(0));
-
-                                Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
-                            }
-                            hide();
-                            //WndStory.showStory("Your mercenary will arrive shortly");
-                        }
-
+                            });
+                        } else completeHire(mode, null);
                     }
                 };
 
-                btnHire.setRect((width - 120) / 2 > 0 ? (width - 120) / 2 : 0, pos,
-                        120, 20);
-                add(btnHire);
+                btnHire.setSize(Math.min(width, 120), 20);
+                actions.add(btnHire);
+                menuModel.add(btnHire, Message.key("custom.merc.hire_button", nameText, getGoldCost(mode)));
 
-                pos = btnHire.bottom() + GAP;
             }
-            else
+            else if (Dungeon.rules().allowsOnDemandHiring())
             {
-                RedButton btnHire = new RedButton("Unlock") {
+                RedButton btnHire = new ActionButton("Unlock") {
                     @Override
                     protected void onClick() {
                         Image tmp = new  SkillSprite(104);
-                        parent.add(new previewInformation(tmp, "Archer Maiden", HiredMerc.MAIDEN_UNLOCK_BY));
+                        parent.add(new previewInformation(tmp,
+                                Message.key("custom.generated.entry_archer_maiden_760746f689"),
+                                Message.key("custom.generated.entry_please_consider_donating_to_unlock_this_feature_5b14e9ead8")));
                     }
                 };
 
-                btnHire.setRect((width - 120) / 2 > 0 ? (width - 120) / 2 : 0, pos,
-                        120, 20);
-                add(btnHire);
+                btnHire.setSize(Math.min(width, 120), 20);
+                actions.add(btnHire);
+                menuModel.add(btnHire, Message.key("custom.generated.entry_unlock_1526a17ee7"));
 
-                pos = btnHire.bottom() + GAP;
             }
 
-            if(maxHeight < pos)
-                maxHeight = (int)pos;
-
-            resize(width,  maxHeight);
         }
+
+        if (mode == Mode.ALL) content.setSize(textWidth(width), pos);
+        layoutContent(width, titlebar, content, GAP * 2, actions.toArray(new RedButton[0]));
+
+        if (camp != null) return;
 
         MercenaryTab tabAll = new MercenaryTab(Mode.ALL);
         tabAll.setSize(TAB_WIDTH, tabHeight());
         add(tabAll);
+        menuModel.add(tabAll, Message.key("custom.generated.entry_hire_a_mercenary_719a392723"));
         tabAll.select(mode == Mode.ALL);
 
-        if(Dungeon.hero.heroClass != HeroClass.WARRIOR) {
+        if (Dungeon.hero.heroClass != HeroClass.WARRIOR && Dungeon.hero.heroClass != HeroClass.MERCENARY) {
             MercenaryTab tabBrute = new MercenaryTab(Mode.BRUTE);
             tabBrute.setSize(TAB_WIDTH, tabHeight());
             add(tabBrute);
+        menuModel.add(tabBrute, MercenaryRecruitment.nameText(getMercType(tabBrute.mode)));
             tabBrute.select(mode == Mode.BRUTE);
         }
 
-        if(Dungeon.hero.heroClass != HeroClass.MAGE) {
+        if (Dungeon.hero.heroClass != HeroClass.MAGE && Dungeon.hero.heroClass != HeroClass.NECROMANCER) {
         MercenaryTab tabWizard = new MercenaryTab(Mode.WIZARD);
         tabWizard.setSize(TAB_WIDTH, tabHeight());
         add(tabWizard);
+        menuModel.add(tabWizard, MercenaryRecruitment.nameText(getMercType(tabWizard.mode)));
         tabWizard.select(mode == Mode.WIZARD);
         }
 
@@ -629,80 +627,63 @@ public class WndMercs extends WndTabbed {
         MercenaryTab tabThief = new MercenaryTab(Mode.THIEF);
         tabThief.setSize(TAB_WIDTH, tabHeight());
         add(tabThief);
+        menuModel.add(tabThief, MercenaryRecruitment.nameText(getMercType(tabThief.mode)));
         tabThief.select(mode == Mode.THIEF);
         }
 
-        if(Dungeon.hero.heroClass != HeroClass.HUNTRESS) {
+        if (Dungeon.hero.heroClass != HeroClass.HUNTRESS
+                && (!Dungeon.rules().hasRebornEncounters() || !MercenaryRecruitment.maidenAvailable())) {
         MercenaryTab tabArcher = new MercenaryTab(Mode.ARCHER);
         tabArcher.setSize(TAB_WIDTH, tabHeight());
         add(tabArcher);
+        menuModel.add(tabArcher, MercenaryRecruitment.nameText(getMercType(tabArcher.mode)));
         tabArcher.select(mode == Mode.ARCHER);
         }
 
+        if (!Dungeon.rules().hasRebornEncounters() || (Dungeon.hero.heroClass != HeroClass.HUNTRESS
+                && MercenaryRecruitment.maidenAvailable())) {
         MercenaryTab tabMaiden = new MercenaryTab(Mode.ARCHERMAIDEN);
         tabMaiden.setSize(TAB_WIDTH, tabHeight());
         add(tabMaiden);
+        menuModel.add(tabMaiden, MercenaryRecruitment.nameText(getMercType(tabMaiden.mode)));
         tabMaiden.select(mode == Mode.ARCHERMAIDEN);
+        }
 
     }
 
-    private String getMercDetails(Mode mode)
-    {
-        switch(mode)
-        {
-            case BRUTE: return "Brutes are strong mercenaries who rely in physical fitness.\n \n";
-            case WIZARD: return "Wizards choose the path of magic. They are physically weak so they rely on summoned units.\n \n";
-            case THIEF: return "Thieves rely on stealth and poison in combat. Each strike has a small chance of poisoning enemies.\n \n";
-            case ARCHER: return "Archers are physically weak so they strike from a distance. Chance of crippling enemies.\n \n";
-            case ARCHERMAIDEN: return "Archer Maidens are elite Archers. Only the select few reach this rank.\n \n";
-        }
-
-        return "Brutes are strong mercenaries who rely in physical fitness.\n \n";
+    private void completeHire(Mode mode, HiredMerc replacement) {
+        Message error = MercenaryRecruitment.hire(getMercType(mode), camp, replacement);
+        if (error != null) GameScene.show(new WndMessage(error));
+        else hide();
     }
 
-    private String getMercStats(Mode mode)
+    private Message getMercDetails(Mode mode)
     {
         switch(mode)
         {
-            case BRUTE: return "- Health: 20 + level x 3\n"
-                    + "- Strength: 13 + level x 0.33\n"
-                    + "- Speed: Slow\n"
-                    + "- Skill: Endurance\n"
-                    + "- Special: Can equip any item in carry slot.\n"
-                    + "- Cost: 100 gold + 25 gold per level.\n";
-
-            case WIZARD: return "- Health: 10 + level\n"
-                    + "- Strength: 10 + level x 0.2\n"
-                    + "- Speed: Normal\n"
-                    + "- Skill: Summon Rat\n"
-                    + "- Special: Summons minions.\n"
-                    + "- Cost: 80 gold + 20 gold per level.\n";
-            case THIEF:  return "- Health: 15 + level x 2\n"
-                    + "- Strength: 13 + level x 0.25\n"
-                    + "- Speed: Very Fast\n"
-                    + "- Skill: Venom\n"
-                    + "- Special: Poisons enemies with his skill.\n"
-                    + "- Cost: 70 gold + 15 gold per level.\n";
-            case ARCHER:  return "- Health: 15 + level x 2\n"
-                    + "- Strength: 11 + level x 0.25\n"
-                    + "- Speed: Fast\n"
-                    + "- Skill: Knee Shot\n"
-                    + "- Special: Attacks from a distance.\n"
-                    + "- Cost: 90 gold + 20 gold per level.\n";
-            case ARCHERMAIDEN:  return "- Health: 17 + level x 2\n"
-                    + "- Strength: 12 + level x 0.25\n"
-                    + "- Speed: Fast\n"
-                    + "- Skills: Knee Shot and Keen Eye\n"
-                    + "- Special: Exclusive access to the Keen Eye skill.\n"
-                    + "- Cost: 90 gold + 25 gold per level.\n";
+            case BRUTE: return Message.key("custom.generated.entry_brutes_are_strong_mercenaries_who_rely_in_physic_fd81660656");
+            case WIZARD: return Message.key("custom.generated.entry_wizards_choose_the_path_of_magic_they_are_physic_55a9e927c6");
+            case THIEF: return Message.key("custom.generated.entry_thieves_rely_on_stealth_and_poison_in_combat_eac_3b37bfa564");
+            case ARCHER: return Message.key("custom.generated.entry_archers_are_physically_weak_so_they_strike_from_537fd3fc47");
+            case ARCHERMAIDEN: return Message.key("custom.generated.entry_archer_maidens_are_elite_archers_only_the_select_4286165e61");
         }
 
-        return "- Health: 20 + level x 3\n"
-                + "- Strength: 13 + level x 0.33\n"
-                + "- Speed: Slow\n"
-                + "- Skill: Endurance\n"
-                + "- Special: Can equip any item in carry slot.\n"
-                + "- Cost: 100 gold + 25 gold per level.\n";
+        return Message.key("custom.generated.entry_brutes_are_strong_mercenaries_who_rely_in_physic_fd81660656");
+    }
+
+    private Message getMercStats(Mode mode)
+    {
+        switch(mode)
+        {
+            case BRUTE: return Message.key("custom.generated.entry_health_20_level_x_3_strength_13_level_x_0_33_spe_e7e4bca58b");
+
+            case WIZARD: return Message.key("custom.generated.entry_health_10_level_strength_10_level_x_0_2_speed_no_071549bb80");
+            case THIEF:  return Message.key("custom.generated.entry_health_15_level_x_2_strength_13_level_x_0_25_spe_a03557c072");
+            case ARCHER:  return Message.key("custom.generated.entry_health_15_level_x_2_strength_11_level_x_0_25_spe_246d573315");
+            case ARCHERMAIDEN:  return Message.key("custom.generated.entry_health_17_level_x_2_strength_12_level_x_0_25_spe_a604f99651");
+        }
+
+        return Message.key("custom.generated.entry_health_20_level_x_3_strength_13_level_x_0_33_spe_e7e4bca58b");
     }
     private int getImage(Mode mode)
     {
@@ -748,22 +729,13 @@ public class WndMercs extends WndTabbed {
 
     private int getGoldCost(Mode mode)
     {
-        switch (mode)
-        {
-            case BRUTE: return 100 + Dungeon.hero.lvl * 25;
-            case WIZARD: return 80 + Dungeon.hero.lvl * 20;
-            case THIEF: return 75 + Dungeon.hero.lvl * 15;
-            case ARCHER: return 90 + Dungeon.hero.lvl * 20;
-            case ARCHERMAIDEN: return 90 + Dungeon.hero.lvl * 25;
-        }
-
-        return 0;
+        return mode == Mode.ALL ? 0 : MercenaryRecruitment.cost(getMercType(mode), Dungeon.hero.lvl);
     }
 
     @Override
     protected void onClick( Tab tab ) {
 
-        parent.add(new WndMercs(((MercenaryTab)tab).mode));
+        parent.add(new WndMercs(((MercenaryTab)tab).mode, camp));
         hide();
     }
 
@@ -821,16 +793,12 @@ public class WndMercs extends WndTabbed {
         private SkillSprite image;
         private BitmapText title;
 
-
         public MercenaryTitle(int image, String name) {
-
-
 
             this.image = new SkillSprite(image);
 
-
             title = PixelScene.createText( Utils.capitalize(name ), 9 );
-            title.hardlight( TITLE_COLOR );
+            title.hardlight( titleColor() );
             title.measure();
             add( title );
             add(this.image);
@@ -846,31 +814,60 @@ public class WndMercs extends WndTabbed {
             title.x = image.width + GAP;
             title.y = image.height - GAP - title.baseLine();
 
-
-
             height = image.y + image.height();
         }
     }
 
-    private class previewInformation extends Window
+    private static String localizePreviewText( String text ) {
+        if (text == null || text.length() == 0) {
+            return "";
+        }
+
+        if (text.indexOf('\n') < 0) {
+            return Messages.maybeTranslate( text );
+        }
+
+        String[] lines = text.split("\\n", -1);
+        StringBuilder builder = new StringBuilder( text.length() );
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                builder.append( '\n' );
+            }
+            if (lines[i].length() == 0) {
+                continue;
+            }
+            builder.append( Messages.maybeTranslate( lines[i] ) );
+        }
+        return builder.toString();
+    }
+
+    private class previewInformation extends WndScrollable
     {
-        public previewInformation(Image image, String title, String description)
+        public previewInformation(Image image, Item item)
+        {
+            this( image, item == null ? Message.empty() : Message.itemName(item), item == null ? Message.empty() : Message.description(item) );
+        }
+
+        public previewInformation(Image image, Skill skill)
+        {
+            this( image, skill == null ? Message.empty() : Message.skillName(skill), skill == null ? Message.empty() : Message.skillDescription(skill) );
+        }
+
+        public previewInformation(Image image, Message title, Message description)
         {
 
+            menuModel = new MenuModel(title, description);
             IconTitle titlebar = new IconTitle();
             titlebar.icon( image);
-            titlebar.label( Utils.capitalize( title ), TITLE_COLOR );
-            titlebar.setRect( 0, 0, 100, 0 );
+            titlebar.label( Utils.capitalize(title.toString()), titleColor() );
+            int windowWidth = boundedWidth(100);
+            titlebar.setRect( 0, 0, windowWidth, 0 );
             add( titlebar );
 
-            BitmapTextMultiline txtInfo = PixelScene.createMultiline( description, 6 );
-            txtInfo.maxWidth = 100;
+            BitmapTextMultiline txtInfo = PixelScene.createMultiline( description.toString(), 6 );
+            txtInfo.maxWidth = textWidth(windowWidth);
             txtInfo.measure();
-            txtInfo.x = titlebar.left();
-            txtInfo.y = titlebar.bottom() + GAP;
-            add( txtInfo );
-
-            resize( 100, (int) txtInfo.y + (int) txtInfo.height() + (int)GAP);
+            layoutContent(windowWidth, titlebar, textContent(txtInfo), GAP);
         }
     }
 

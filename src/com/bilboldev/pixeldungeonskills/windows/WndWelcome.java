@@ -17,14 +17,27 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
+import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
 
-public class WndWelcome extends WndTitledMessage {
+public class WndWelcome extends WndScrollable {
+    public WndWelcome(String message) {
+        int width = boundedWidth(176);
+        IconTitle title = new IconTitle(Icons.SKILLS.get(), Messages.get(WndWelcome.class, "title"));
+        title.setRect(0, 0, width, 0);
+        RenderedTextMultiline body = PixelScene.renderMultiline(message + "\n\n"
+                + Messages.get(WndWelcome.class, "classic"), 8);
+        body.maxWidth(textWidth(width));
 
-	private static final String TXT_TITLE =  "Welcome";
+        layoutContent(width, title, body, 6);
+    }
 
-	public WndWelcome(String message) {
-		super( Icons.SKILLS.get(), TXT_TITLE, message );
-	}
-
+    @Override
+    public void hide() {
+        VersionNewsInfo.closeWelcome();
+        super.hide();
+    }
 }

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -28,70 +29,70 @@ import com.bilboldev.utils.Random;
 
 abstract public class KindOfWeapon extends EquipableItem {
 
-	private static final String TXT_EQUIP_CURSED	= "you wince as your grip involuntarily tightens around your %s";
-	
+	private static final String TXT_EQUIP_CURSED	= "custom.generated.entry_you_wince_as_your_grip_involuntarily_tightens_ar_c1cf47aee2";
+
 	protected static final float TIME_TO_EQUIP = 1f;
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( isEquipped( hero ) ? AC_UNEQUIP : AC_EQUIP );
 		return actions;
 	}
-	
+
 	@Override
 	public boolean isEquipped( Hero hero ) {
 		return hero.belongings.weapon == this;
 	}
-	
+
 	@Override
 	public boolean doEquip( Hero hero ) {
-		
+
 		detachAll( hero.belongings.backpack );
-		
+
 		if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip( hero, true )) {
-			
+
 			hero.belongings.weapon = this;
 			activate( hero );
-			
+
 			QuickSlot.refresh();
-			
+
 			cursedKnown = true;
 			if (cursed) {
 				equipCursed( hero );
-				GLog.n( TXT_EQUIP_CURSED, name() );
+				GLog.n(TXT_EQUIP_CURSED, Message.itemName(this));
 			}
-			
+
 			hero.spendAndNext( TIME_TO_EQUIP );
 			return true;
-			
+
 		} else {
-			
+
 			collect( hero.belongings.backpack );
 			return false;
 		}
 	}
-	
+
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
-			
+
 			hero.belongings.weapon = null;
 			return true;
-			
+
 		} else {
-			
+
 			return false;
-			
+
 		}
 	}
-	
+
 	public void activate( Hero hero ) {
 	}
-	
+
 	abstract public int min();
 	abstract public int max();
-	
+
 	public int damageRoll( Hero owner ) {
 		return Random.NormalIntRange( min(), max() );
 	}
@@ -99,16 +100,16 @@ abstract public class KindOfWeapon extends EquipableItem {
     public int damageRoll( HiredMerc merc ) {
         return Random.NormalIntRange( min(), max() );
     }
-	
+
 	public float acuracyFactor( Hero hero ) {
 		return 1f;
 	}
-	
+
 	public float speedFactor( Hero hero ) {
 		return 1f;
 	}
-	
+
 	public void proc( Char attacker, Char defender, int damage ) {
 	}
-	
+
 }

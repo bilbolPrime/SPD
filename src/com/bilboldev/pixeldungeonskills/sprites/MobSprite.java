@@ -17,30 +17,32 @@
  */
 package com.bilboldev.pixeldungeonskills.sprites;
 
+import com.bilboldev.pixeldungeonskills.network.PartyEffects;
+
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.noosa.tweeners.ScaleTweener;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.utils.PointF;
 import com.bilboldev.utils.Random;
 
 public class MobSprite extends CharSprite {
 
-	private static final float FADE_TIME	= 3f;
+	protected static final float FADE_TIME	= 3f;
 	private static final float FALL_TIME	= 1f;
-	
+
 	@Override
 	public void update() {
 		sleeping = ch != null && ((Mob)ch).state == ((Mob)ch).SLEEPEING;
 		super.update();
 	}
-	
+
 	@Override
 	public void onComplete( Animation anim ) {
-		
+
 		super.onComplete( anim );
-		
-		if (anim == die) {	
+
+		if (anim == die) {
 			parent.add( new AlphaTweener( this, 0, FADE_TIME ) {
 				@Override
 				protected void onComplete() {
@@ -50,12 +52,14 @@ public class MobSprite extends CharSprite {
 			} );
 		}
 	}
-	
+
 	public void fall() {
-		
+		PartyEffects.actor(
+				PartyEffects.FALL, this);
+
 		origin.set( width / 2, height - DungeonTilemap.SIZE / 2 );
 		angularSpeed = Random.Int( 2 ) == 0 ? -720 : 720;
-		
+
 		parent.add( new ScaleTweener( this, new PointF( 0, 0 ), FALL_TIME ) {
 			@Override
 			protected void onComplete() {

@@ -1,16 +1,14 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 import com.bilboldev.utils.Random;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class IronTip extends PassiveSkillB3{
-
 
     {
         name = "Iron Tip";
-        castText = "Don't forget to share...";
+        castText = Message.key("custom.generated.entry_don_t_forget_to_share_884e9f6a94");
         image = 83;
         tier = 3;
     }
@@ -23,7 +21,7 @@ public class IronTip extends PassiveSkillB3{
 
         if(level > 0 && Random.Int(level + 1) > 0)
         {
-            //castTextYell();
+
             multiTargetActive = true;
             return level;
         }
@@ -37,7 +35,6 @@ public class IronTip extends PassiveSkillB3{
     {
         return true;
     }
-
 
     @Override
     public String info()

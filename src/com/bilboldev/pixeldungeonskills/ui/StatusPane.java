@@ -30,6 +30,8 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.BloodParticle;
@@ -41,13 +43,14 @@ import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 
 public class StatusPane extends Component {
-	
+
 	private NinePatch shield;
 	private Image avatar;
 	private Emitter blood;
-	
+	private Hero shownHero;
+
 	private int lastTier = 0;
-	
+
 	private Image hp;
     private Image hp_dropping;
     private Image mp_dropping;
@@ -63,25 +66,26 @@ public class StatusPane extends Component {
 
 	private int lastLvl = -1;
 	private int lastKeys = -1;
-	
+
 	private BitmapText level;
 	private BitmapText depth;
 	private BitmapText keys;
-	
+
 	private DangerIndicator danger;
 	private LootIndicator loot;
 	private ResumeButton resume;
 	private BuffIndicator buffs;
 	private Compass compass;
-	
+
 	private MenuButton btnMenu;
 
 	@Override
 	protected void createChildren() {
-		
-		shield = new NinePatch( Assets.STATUS, 80, 0, 30   + 18, 0 );
+		shownHero = Dungeon.hero;
+
+		shield = new NinePatch( RebornHud.texture( Assets.STATUS ), 80, 0, 30   + 18, 0 );
 		add( shield );
-		
+
 		add( new TouchArea( 0, 1, 30, 30 ) {
 			@Override
 			protected void onClick( Touch touch ) {
@@ -90,25 +94,25 @@ public class StatusPane extends Component {
 					Camera.main.focusOn( sprite );
 				}
 				GameScene.show( new WndHero() );
-			};			
+			};
 		} );
-		
+
 		btnMenu = new MenuButton();
 		add( btnMenu );
-		
+
 		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
 		add( avatar );
-		
+
 		blood = new BitmaskEmitter( avatar );
 		blood.pour( BloodParticle.FACTORY, 0.3f );
 		blood.autoKill = false;
 		blood.on = false;
 		add( blood );
-		
+
 		compass = new Compass( Dungeon.level.exit );
 		add( compass );
-		
-		hp = new Image( Assets.HP_BAR );	
+
+		hp = new Image( Assets.HP_BAR );
 		add( hp );
 
         hp_dropping = new Image( Assets.HP_BAR_DROPPING );
@@ -139,36 +143,36 @@ public class StatusPane extends Component {
 		keys = new BitmapText( PixelScene.font1x );
 		keys.hardlight( 0xCACFC2 );
 		add( keys );
-		
+
 		danger = new DangerIndicator();
 		add( danger );
-		
+
 		loot = new LootIndicator();
 		add( loot );
-		
+
 		resume = new ResumeButton();
 		add( resume );
-		
+
 		buffs = new BuffIndicator( Dungeon.hero );
 		add( buffs );
 
         takingDamage = 0;
         manaDropping = 0;
 	}
-	
+
 	@Override
 	protected void layout() {
-		
+
 		height = 32;
-		
+
 		shield.size( width, shield.height );
-		
+
 		avatar.x = PixelScene.align( camera(), shield.x + 15 - avatar.width / 2 );
 		avatar.y = PixelScene.align( camera(), shield.y + 16 - avatar.height / 2 );
-		
+
 		compass.x = avatar.x + avatar.width / 2 - compass.origin.x;
 		compass.y = avatar.y + avatar.height / 2 - compass.origin.y;
-		
+
 		hp.x = 30;
 		hp.y = 3;
         hp_dropping.x = 30;
@@ -182,50 +186,51 @@ public class StatusPane extends Component {
 		depth.y = 6;
 
 		keys.y = 6;
-		
+
 		layoutTags();
-		
+
 		buffs.setPos( 36, 16 );
-		
+
 		btnMenu.setPos( width - btnMenu.width(), 1 );
 	}
-	
+
 	private void layoutTags() {
-		
+
 		float pos = 18;
-		
+
 		if (tagDanger) {
 			danger.setPos( width - danger.width(), pos );
 			pos = danger.bottom() + 1;
 		}
-		
+
 		if (tagLoot) {
 			loot.setPos( width - loot.width(), pos );
 			pos = loot.bottom() + 1;
 		}
-		
+
 		if (tagResume) {
 			resume.setPos( width - resume.width(), pos );
 		}
 	}
-	
+
 	private boolean tagDanger	= false;
 	private boolean tagLoot		= false;
 	private boolean tagResume	= false;
-	
+
 	@Override
 	public void update() {
+		if (LocalCoop.active() && shownHero != Dungeon.hero) showHero(Dungeon.hero);
 		super.update();
 
 		if (tagDanger != danger.visible || tagLoot != loot.visible || tagResume != resume.visible) {
-			
+
 			tagDanger = danger.visible;
 			tagLoot = loot.visible;
 			tagResume = resume.visible;
-			
+
 			layoutTags();
 		}
-		
+
 		float health = (float)(Dungeon.hero.HP) / Dungeon.hero.HT;
 
         if(Dungeon.hero.HP == 0)
@@ -250,7 +255,7 @@ public class StatusPane extends Component {
 			avatar.resetColor();
 			blood.on = false;
 		}
-		
+
 		hp.scale.x = health;
         hp_dropping.x = hp.x + hp.width() - 20 * health;
         hp_dropping.scale.x = health_drop;
@@ -276,14 +281,14 @@ public class StatusPane extends Component {
         }
 
 		if (Dungeon.hero.lvl != lastLvl) {
-			
+
 			if (lastLvl != -1) {
 				Emitter emitter = (Emitter)recycle( Emitter.class );
 				emitter.revive();
 				emitter.pos( 27, 27 );
 				emitter.burst( Speck.factory( Speck.STAR ), 12 );
 			}
-			
+
 			lastLvl = Dungeon.hero.lvl;
 			level.text( Integer.toString( lastLvl ) );
 			level.measure();
@@ -305,45 +310,84 @@ public class StatusPane extends Component {
 			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
 		}
 	}
-	
+
+	private void showHero(Hero hero) {
+		shownHero = hero;
+		lastTier = hero.tier();
+		lastLvl = lastKeys = -1;
+		avatar.copy(HeroSprite.avatar(hero.heroClass, lastTier));
+		avatar.resetColor();
+
+		Emitter previousBlood = blood;
+		blood = new BitmaskEmitter(avatar);
+		blood.pour(BloodParticle.FACTORY, 0.3f);
+		blood.autoKill = false;
+		blood.on = false;
+		replace(previousBlood, blood);
+		previousBlood.destroy();
+
+		BuffIndicator previousBuffs = buffs;
+		buffs = new BuffIndicator(hero);
+		replace(previousBuffs, buffs);
+		previousBuffs.destroy();
+
+		takingDamage = manaDropping = 0;
+		takingDamageCooldownCounter = manaDroppingCooldownCounter = 0;
+		hp_dropping.scale.x = mp_dropping.scale.x = 0;
+		hero.belongings.countIronKeys();
+		layout();
+	}
+
+	public void rebind(Hero hero) {
+		if (shownHero == null || shownHero.id() != hero.id() || shownHero.heroClass != hero.heroClass) {
+			showHero(hero);
+			return;
+		}
+		takingDamage += Math.max(0, shownHero.HP - hero.HP);
+		manaDropping += Math.max(0, shownHero.MP - hero.MP);
+		shownHero = hero;
+		buffs.rebind(hero);
+		hero.belongings.countIronKeys();
+	}
+
 	private static class MenuButton extends Button {
-		
+
 		private Image image;
-		
+
 		public MenuButton() {
 			super();
-			
+
 			width = image.width + 4;
 			height = image.height + 4;
 		}
-		
+
 		@Override
 		protected void createChildren() {
 			super.createChildren();
-			
-			image = new Image( Assets.STATUS, 114, 3, 12, 11 );
+
+			image = new Image( RebornHud.texture( Assets.STATUS ), 114, 3, 12, 11 );
 			add( image );
 		}
-		
+
 		@Override
 		protected void layout() {
 			super.layout();
-			
+
 			image.x = x + 2;
 			image.y = y + 2;
 		}
-		
+
 		@Override
 		protected void onTouchDown() {
 			image.brightness( 1.5f );
 			Sample.INSTANCE.play( Assets.SND_CLICK );
 		}
-		
+
 		@Override
 		protected void onTouchUp() {
 			image.resetColor();
 		}
-		
+
 		@Override
 		protected void onClick() {
 			GameScene.show( new WndGame() );

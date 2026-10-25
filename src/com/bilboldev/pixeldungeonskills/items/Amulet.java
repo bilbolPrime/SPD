@@ -25,58 +25,63 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.scenes.AmuletScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class Amulet extends Item {
-	
+
 	private static final String AC_END = "END THE GAME";
-	
+
 	{
 		name = "Amulet of Yendor";
 		image = ItemSpriteSheet.AMULET;
-		
+
 		unique = true;
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_END );
 		return actions;
 	}
-	
+
 	@Override
 	public void execute( Hero hero, String action ) {
 		if (action == AC_END) {
-			
+
 			showAmuletScene( false );
-			
+
 		} else {
-			
+
 			super.execute( hero, action );
-			
+
 		}
 	}
-	
+
 	@Override
 	public boolean doPickUp( Hero hero ) {
 		if (super.doPickUp( hero )) {
-			
+
 			if (!Statistics.amuletObtained) {
 				Statistics.amuletObtained = true;
 				Badges.validateVictory();
 
 				showAmuletScene( true );
 			}
-			
+
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
 	private void showAmuletScene( boolean showText ) {
+		if (PartySession.network()) {
+            AmuletScene.showPartyEnding(showText);
+            return;
+        }
 		try {
 			Dungeon.saveAll();
 			AmuletScene.noText = !showText;
@@ -84,21 +89,19 @@ public class Amulet extends Item {
 		} catch (IOException e) {
 		}
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public String info() {
-		return 
-			"The Amulet of Yendor is the most powerful known artifact of unknown origin. It is said that the amulet " +
-			"is able to fulfil any wish if its owner's will-power is strong enough to \"persuade\" it to do it.";
+		return desc();
 	}
 }

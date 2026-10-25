@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.Collection;
 
 import com.bilboldev.noosa.audio.Sample;
@@ -26,7 +27,6 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
-import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.EquipableItem;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.quest.DarkGold;
@@ -64,134 +64,133 @@ public class Blacksmith extends NPC {
 		"Oh, you have returned... Better late dan never.";
 	private static final String TXT_GET_LOST =
 		"I'm busy. Get lost!";
-	
-	private static final String TXT_LOOKS_BETTER	= "your %s certainly looks better now";
-	
+
+	private static final String TXT_LOOKS_BETTER	= "custom.generated.entry_your_s_certainly_looks_better_now_820141699f";
+
 	{
 		name = "troll blacksmith";
 		spriteClass = BlacksmithSprite.class;
 	}
-	
+
 	@Override
 	protected boolean act() {
-		throwItem();		
+		throwItem();
 		return super.act();
 	}
-	
+
 	@Override
 	public void interact() {
-		
+
 		sprite.turnTo( pos, Dungeon.hero.pos );
-		
+
 		if (!Quest.given) {
-			
-			GameScene.show( new WndQuest( this, 
-				Quest.alternative ? TXT_BLOOD_1 : TXT_GOLD_1 ) {
-				
+
+			GameScene.show( new WndQuest(this, Quest.alternative ? Message.key("custom.generated.entry_hey_human_wanna_be_useful_eh_take_dis_pickaxe_an_8917d0831b") : Message.key("custom.generated.entry_hey_human_wanna_be_useful_eh_take_dis_pickaxe_an_597aa8f33b")) {
+
 				@Override
 				public void onBackPressed() {
 					super.onBackPressed();
-					
+
 					Quest.given = true;
 					Quest.completed = false;
-					
+
 					Pickaxe pick = new Pickaxe();
 					if (pick.doPickUp( Dungeon.hero )) {
-						GLog.i( Hero.TXT_YOU_NOW_HAVE, pick.name() );
+						GLog.i("custom.generated.entry_you_now_have_s_f58f5ff690", Message.itemName(pick));
 					} else {
 						Dungeon.level.drop( pick, Dungeon.hero.pos ).sprite.drop();
 					}
 				};
 			} );
-			
+
 			Journal.add( Journal.Feature.TROLL );
-			
+
 		} else if (!Quest.completed) {
 			if (Quest.alternative) {
-				
+
 				Pickaxe pick = Dungeon.hero.belongings.getItem( Pickaxe.class );
 				if (pick == null) {
-					tell( TXT2 );
+					tell(Message.key("actors.mobs.npcs.blacksmith.lost_pick"));
 				} else if (!pick.bloodStained) {
-					tell( TXT4 );
+					tell(Message.key("custom.generated.entry_i_said_i_need_bat_blood_on_the_pickaxe_chop_chop_35b7166235"));
 				} else {
 					if (pick.isEquipped( Dungeon.hero )) {
 						pick.doUnequip( Dungeon.hero, false );
 					}
 					pick.detach( Dungeon.hero.belongings.backpack );
-					tell( TXT_COMPLETED );
-					
+					tell(Message.key("custom.generated.entry_oh_you_have_returned_better_late_dan_never_12886947b9"));
+
 					Quest.completed = true;
 					Quest.reforged = false;
 				}
-				
+
 			} else {
-				
+
 				Pickaxe pick = Dungeon.hero.belongings.getItem( Pickaxe.class );
 				DarkGold gold = Dungeon.hero.belongings.getItem( DarkGold.class );
 				if (pick == null) {
-					tell( TXT2 );
+					tell(Message.key("actors.mobs.npcs.blacksmith.lost_pick"));
 				} else if (gold == null || gold.quantity() < 15) {
-					tell( TXT3 );
+					tell(Message.key("custom.generated.entry_dark_gold_ore_15_pieces_seriously_is_it_dat_hard_c63523ff3e"));
 				} else {
 					if (pick.isEquipped( Dungeon.hero )) {
 						pick.doUnequip( Dungeon.hero, false );
 					}
 					pick.detach( Dungeon.hero.belongings.backpack );
 					gold.detachAll( Dungeon.hero.belongings.backpack );
-					tell( TXT_COMPLETED );
-					
+					tell(Message.key("custom.generated.entry_oh_you_have_returned_better_late_dan_never_12886947b9"));
+
 					Quest.completed = true;
 					Quest.reforged = false;
 				}
-				
+
 			}
 		} else if (!Quest.reforged) {
-			
+
 			GameScene.show( new WndBlacksmith( this, Dungeon.hero ) );
-			
+
 		} else {
-			
-			tell( TXT_GET_LOST );
-			
+
+			tell(Message.key("actors.mobs.npcs.blacksmith.get_lost"));
+
 		}
 	}
-	
-	private void tell( String text ) {
-		GameScene.show( new WndQuest( this, text ) );
+
+	private void tell( Message text ) {
+		GameScene.show( new WndQuest(this, text) );
 	}
-	
-	public static String verify( Item item1, Item item2 ) {
-		
+
+	public static Message verify( Item item1, Item item2 ) {
+
 		if (item1 == item2) {
-			return "Select 2 different items, not the same item twice!";
+			return Message.key("custom.generated.entry_select_2_different_items_not_the_same_item_twice_8d69937618");
 		}
-		
+
 		if (item1.getClass() != item2.getClass()) {
-			return "Select 2 items of the same type!";
+			return Message.key("custom.generated.entry_select_2_items_of_the_same_type_f9099de249");
 		}
-		
+
 		if (!item1.isIdentified() || !item2.isIdentified()) {
-			return "I need to know what I'm working with, identify them first!";
+			return Message.key("custom.generated.entry_i_need_to_know_what_i_m_working_with_identify_th_273cd0e619");
 		}
-		
+
 		if (item1.cursed || item2.cursed) {
-			return "I don't work with cursed items!";
+			return Message.key("custom.generated.entry_i_don_t_work_with_cursed_items_6c5c655749");
 		}
-		
+
 		if (item1.level() < 0 || item2.level() < 0) {
-			return "It's a junk, the quality is too poor!";
+			return Message.key("custom.generated.entry_it_s_a_junk_the_quality_is_too_poor_9011d9c01a");
 		}
-		
+
 		if (!item1.isUpgradable() || !item2.isUpgradable()) {
-			return "I can't reforge these items!";
+			return Message.key("custom.generated.entry_i_can_t_reforge_these_items_ab02a9e2e0");
 		}
-		
+
 		return null;
 	}
-	
+
 	public static void upgrade( Item item1, Item item2 ) {
-		
+
 		Item first, second;
 		if (item2.level() > item1.level()) {
 			first = item2;
@@ -209,7 +208,7 @@ public class Blacksmith extends NPC {
 			((EquipableItem)first).doUnequip( Dungeon.hero, true );
 		}
 		first.upgrade();
-		GLog.p( TXT_LOOKS_BETTER, first.name() );
+		GLog.p(TXT_LOOKS_BETTER, Message.itemName(first));
 		Dungeon.hero.spendAndNext( 2f );
 		Badges.validateItemLevelAquired( first );
 
@@ -219,79 +218,79 @@ public class Blacksmith extends NPC {
 		second.detachAll( Dungeon.hero.belongings.backpack );
 
 		Quest.reforged = true;
-		
+
 		Journal.remove( Journal.Feature.TROLL );
 	}
-	
+
 	@Override
 	public int defenseSkill( Char enemy ) {
 		return 1000;
 	}
-	
+
 	@Override
 	public void damage( int dmg, Object src ) {
 	}
-	
+
 	@Override
 	public void add( Buff buff ) {
 	}
-	
+
 	@Override
 	public boolean reset() {
 		return true;
 	}
-	
+
 	@Override
 	public String description() {
-		return 
+		return
 			"This troll blacksmith looks like all trolls look: he is tall and lean, and his skin resembles stone " +
 			"in both color and texture. The troll blacksmith is tinkering with unproportionally small tools.";
 	}
 
 	public static class Quest {
-		
+
 		private static boolean spawned;
-		
+
 		private static boolean alternative;
 		private static boolean given;
 		private static boolean completed;
 		private static boolean reforged;
-		
+
 		public static void reset() {
 			spawned		= false;
 			given		= false;
 			completed	= false;
 			reforged	= false;
 		}
-		
+
 		private static final String NODE	= "blacksmith";
-		
+
 		private static final String SPAWNED		= "spawned";
 		private static final String ALTERNATIVE	= "alternative";
 		private static final String GIVEN		= "given";
 		private static final String COMPLETED	= "completed";
 		private static final String REFORGED	= "reforged";
-		
+
 		public static void storeInBundle( Bundle bundle ) {
-			
+
 			Bundle node = new Bundle();
-			
+
 			node.put( SPAWNED, spawned );
-			
+
 			if (spawned) {
 				node.put( ALTERNATIVE, alternative );
 				node.put( GIVEN, given );
 				node.put( COMPLETED, completed );
 				node.put( REFORGED, reforged );
 			}
-			
+
 			bundle.put( NODE, node );
 		}
-		
+
 		public static void restoreFromBundle( Bundle bundle ) {
 
 			Bundle node = bundle.getBundle( NODE );
-			
+
 			if (!node.isNull() && (spawned = node.getBoolean( SPAWNED ))) {
 				alternative	=  node.getBoolean( ALTERNATIVE );
 				given = node.getBoolean( GIVEN );
@@ -301,21 +300,21 @@ public class Blacksmith extends NPC {
 				reset();
 			}
 		}
-		
+
 		public static void spawn( Collection<Room> rooms ) {
 			if (!spawned && Dungeon.depth > 11 && Random.Int( 15 - Dungeon.depth ) == 0) {
-				
+
 				Room blacksmith = null;
 				for (Room r : rooms) {
 					if (r.type == Type.STANDARD && r.width() > 4 && r.height() > 4) {
 						blacksmith = r;
 						blacksmith.type = Type.BLACKSMITH;
-						
+
 						spawned = true;
 						alternative = Random.Int( 2 ) == 0;
-						
+
 						given = false;
-						
+
 						break;
 					}
 				}

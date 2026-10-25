@@ -1,6 +1,8 @@
 /*
  * Pixel Dungeon
  * Copyright (C) 2012-2015 Oleg Dolya
+ * Desktop scaling adapted from Shattered Pixel Dungeon
+ * Copyright (C) 2014-2026 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,25 +30,32 @@ import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Game;
+import com.bilboldev.noosa.Gizmo;
+import com.bilboldev.noosa.RenderedText;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.Visual;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
+import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
+import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.utils.BitmapCache;
 
 public class PixelScene extends Scene {
-	
-	// Minimum virtual display size for portrait orientation
+
 	public static final float MIN_WIDTH_P		= 128;
 	public static final float MIN_HEIGHT_P		= 224;
-	
-	// Minimum virtual display size for landscape orientation
+
 	public static final float MIN_WIDTH_L		= 224;
 	public static final float MIN_HEIGHT_L		= 160;
+
+	private static final float MIN_WIDTH_DESKTOP = 360;
+	private static final float MIN_HEIGHT_DESKTOP = 200;
 	
 	public static float defaultZoom = 0;
+	public static int minDefaultZoom;
+	public static int maxDefaultZoom;
 	public static float minZoom;
 	public static float maxZoom;
 	
@@ -57,6 +66,14 @@ public class PixelScene extends Scene {
 	public static BitmapText.Font font2x;
 	public static BitmapText.Font font25x;
 	public static BitmapText.Font font3x;
+
+	@Override
+	public Gizmo add(Gizmo child) {
+		super.add(child);
+
+		if (child instanceof Window) bringToFront(child);
+		return child;
+	}
 	
 	@Override
 	public void create() {
@@ -65,8 +82,13 @@ public class PixelScene extends Scene {
 		
 		GameScene.scene = null;
 		
+		boolean desktop = PixelDungeon.supportsWindowedMode();
+		boolean landscape = com.bilboldev.pixeldungeonskills.ui.Window.landscapeLayout();
 		float minWidth, minHeight;
-		if (PixelDungeon.landscape()) {
+		if (desktop) {
+			minWidth = landscape ? MIN_WIDTH_DESKTOP : MIN_HEIGHT_DESKTOP;
+			minHeight = landscape ? MIN_HEIGHT_DESKTOP : MIN_WIDTH_DESKTOP;
+		} else if (landscape) {
 			minWidth = MIN_WIDTH_L;
 			minHeight = MIN_HEIGHT_L;
 		} else {
@@ -74,22 +96,18 @@ public class PixelScene extends Scene {
 			minHeight = MIN_HEIGHT_P;
 		}
 		
-		defaultZoom = (int)Math.ceil( Game.density * 2.5 );
-		while ((
-			Game.width / defaultZoom < minWidth || 
-			Game.height / defaultZoom < minHeight
-			) && defaultZoom > 1) {
-			
-			defaultZoom--;
-		}
-			
-		if (PixelDungeon.scaleUp()) {
-			while (
-				Game.width / (defaultZoom + 1) >= minWidth && 
-				Game.height / (defaultZoom + 1) >= minHeight) {
-				
-				defaultZoom++;
-			}	
+		maxDefaultZoom = Math.max(1, (int)Math.min(Game.width / minWidth, Game.height / minHeight));
+		minDefaultZoom = Math.min(maxDefaultZoom, Math.max(2, (int)Math.ceil(Game.density * 2)));
+		defaultZoom = PixelDungeon.uiScale();
+		if (defaultZoom < minDefaultZoom || defaultZoom > maxDefaultZoom) {
+			if (desktop) {
+				defaultZoom = Math.max(2, (int)Math.ceil(Game.density * 3.75f));
+				defaultZoom = Math.max(defaultZoom, (maxDefaultZoom + 1) / 2);
+				defaultZoom = Math.min(defaultZoom, maxDefaultZoom);
+			} else {
+
+				defaultZoom = minDefaultZoom;
+			}
 		}
 		minZoom = 1;
 		maxZoom = defaultZoom * 2;	
@@ -101,36 +119,35 @@ public class PixelScene extends Scene {
 		Camera.add( uiCamera );
 		
 		if (font1x == null) {
-			
-			// 3x5 (6)
+
 			font1x = Font.colorMarked( 
 				BitmapCache.get( Assets.FONTS1X ), 0x00000000, BitmapText.Font.LATIN_FULL );
 			font1x.baseLine = 6;
 			font1x.tracking = -1;
-			
-			// 5x8 (10)
+
 			font15x = Font.colorMarked( 
 					BitmapCache.get( Assets.FONTS15X ), 12, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font15x.baseLine = 9;
 			font15x.tracking = -1;
-			
-			// 6x10 (12)
+
 			font2x = Font.colorMarked( 
 				BitmapCache.get( Assets.FONTS2X ), 14, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font2x.baseLine = 11;
 			font2x.tracking = -1;
-			
-			// 7x12 (15)
+
 			font25x = Font.colorMarked( 
 				BitmapCache.get( Assets.FONTS25X ), 17, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font25x.baseLine = 13;
 			font25x.tracking = -1;
-			
-			// 9x15 (18)
+
 			font3x = Font.colorMarked( 
 				BitmapCache.get( Assets.FONTS3X ), 22, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font3x.baseLine = 17;
 			font3x.tracking = -2;
+		}
+
+		if (RenderedText.getFont() == null) {
+			RenderedText.setFont( Assets.PIXEL_FONT_TTF );
 		}
 	}
 	
@@ -232,12 +249,27 @@ public class PixelScene extends Scene {
 		
 		return result;
 	}
+
+	public static RenderedTextMultiline renderMultiline(String text, int size ){
+		RenderedTextMultiline result = new RenderedTextMultiline( text, size* (int)defaultZoom);
+		result.zoom(1/(float)defaultZoom);
+		return result;
+	}
+
+	public static RenderedText renderText( int size ) {
+		return renderText( null, size );
+	}
+
+	public static RenderedText renderText( String text, int size ) {
+		RenderedText result = new RenderedText( text, size * (int)defaultZoom );
+		result.scale.set( 1 / (float)defaultZoom );
+		return result;
+	}
 	
 	public static float align( Camera camera, float pos ) {
 		return ((int)(pos * camera.zoom)) / camera.zoom;
 	}
-	
-	// This one should be used for UI elements
+
 	public static float align( float pos ) {
 		return ((int)(pos * defaultZoom)) / defaultZoom;
 	}
@@ -247,7 +279,11 @@ public class PixelScene extends Scene {
 		v.x = align( c, v.x );
 		v.y = align( c, v.y );
 	}
-	
+
+	public static void align2( Visual v ) {
+		v.x = align( v.x );
+		v.y = align( v.y );
+	}
 	public static boolean noFade = false;
 	protected void fadeIn() {
 		if (noFade) {

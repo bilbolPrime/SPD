@@ -17,10 +17,12 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfElements.Resistance;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 
 public class Weakness extends FlavourBuff {
 
@@ -42,6 +44,9 @@ public class Weakness extends FlavourBuff {
 			Hero hero = (Hero)target;
 			hero.weakened = true;
 			hero.belongings.discharge();
+			if (hero == Dungeon.hero) {
+				QuickSlot.refresh();
+			}
 			
 			return true;
 		} else {
@@ -53,6 +58,9 @@ public class Weakness extends FlavourBuff {
 	public void detach() {
 		super.detach();
 		((Hero)target).weakened = false;
+		if (target == Dungeon.hero) {
+			QuickSlot.refresh();
+		}
 	}
 	
 	public static float duration( Char ch ) {

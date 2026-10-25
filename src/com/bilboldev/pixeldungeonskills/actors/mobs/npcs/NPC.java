@@ -18,21 +18,56 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.utils.Random;
 
+import java.util.ArrayList;
+
 public abstract class NPC extends Mob {
-	
+
+	private transient Hero owner = LocalCoop.active() ? Dungeon.hero : null;
+
+	public Hero owner() {
+		return LocalCoop.active() && owner != null ? owner : Dungeon.hero;
+	}
+
+	public void partyOwner(Hero hero) {
+		if (LocalCoop.active()) owner = hero;
+	}
+
 	{
 		HP = HT = 1;
 		EXP = 0;
-	
+
 		hostile = false;
 		state = PASSIVE;
 	}
-	
+
+	@Override
+	protected Char chooseNonHeroEnemy() {
+
+		if (state != PASSIVE && state != FLEEING
+				&& buff(Amok.class) == null && buff(Terror.class) == null) {
+			ArrayList<Mob> enemies = new ArrayList<Mob>();
+			for (Mob mob : Dungeon.level.mobs) {
+				if (mob != this && mob.hostile && mob.isAlive()
+						&& Level.fieldOfView[mob.pos] && mob.invisible <= 0
+						&& !isCharmedBy(mob) && canAttack(mob)) {
+					enemies.add(mob);
+				}
+			}
+			if (!enemies.isEmpty()) return Random.element(enemies);
+		}
+		return chooseEnemy();
+	}
+
 	protected void throwItem() {
 		Heap heap = Dungeon.level.heaps.get( pos );
 		if (heap != null) {
@@ -43,10 +78,10 @@ public abstract class NPC extends Mob {
 			Dungeon.level.drop( heap.pickUp(), n ).sprite.drop( pos );
 		}
 	}
-	
+
 	@Override
 	public void beckon( int cell ) {
 	}
-	
+
 	abstract public void interact();
 }

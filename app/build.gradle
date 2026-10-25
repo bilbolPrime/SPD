@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.bilboldev.pixeldungeonskills'
+    compileSdkVersion 36
+
+    sourceSets {
+        main {
+            java.srcDirs = [rootProject.file('src')]
+            res.srcDirs = [rootProject.file('res')]
+            assets.srcDirs = [rootProject.file('assets')]
+        }
+    }
+
+    androidResources {
+        ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:CVS:thumbs.db:picasa.ini:*~:*.dat'
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+
+    defaultConfig {
+        applicationId "com.bilboldev.pixeldungeonskills"
+        minSdkVersion 21
+        targetSdkVersion 36
+        versionCode rootProject.ext.appVersionCode
+        versionName rootProject.ext.appVersionName
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    rootProject.file('proguard-game.pro')
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jcraft:jorbis:0.0.17'
+}

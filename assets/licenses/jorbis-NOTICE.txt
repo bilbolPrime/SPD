@@ -1,0 +1,13 @@
+JOrbis 0.0.17 / Jogg
+Copyright (C) 2000 ymnk, JCraft, Inc.
+Licensed under the GNU Library General Public License, version 2 or later.
+The accompanying upstream license copy is version 2.1, in jorbis-LGPL-2.1.txt.
+
+Upstream project and corresponding source:
+https://www.jcraft.com/jorbis/
+https://github.com/ymnk/jorbis
+https://repo.maven.apache.org/maven2/org/jcraft/jorbis/0.0.17/jorbis-0.0.17-sources.jar
+
+The unmodified decoder dependency is used on Android and desktop. The game's
+PcmVorbisFile adapter converts decoded stereo samples using JOrbis's synthesis
+offsets. No changes are made to the dependency archive.

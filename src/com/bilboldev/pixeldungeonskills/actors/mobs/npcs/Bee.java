@@ -30,52 +30,52 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class Bee extends NPC {
-	
+
 	{
 		name = "golden bee";
 		spriteClass = BeeSprite.class;
-		
+
 		viewDistance = 4;
-		
+
 		WANDERING = new Wandering();
-		
+
 		flying = true;
 		state = WANDERING;
 	}
 
 	private int level;
-	
+
 	private static final String LEVEL	= "level";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( LEVEL, level );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		spawn( bundle.getInt( LEVEL ) );
 	}
-	
+
 	public void spawn( int level ) {
 		this.level = level;
-		
+
 		HT = (3 + level) * 5;
 		defenseSkill = 9 + level;
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return defenseSkill;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( HT / 10, HT / 4 );
 	}
-	
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
 		if (enemy instanceof Mob) {
@@ -83,7 +83,7 @@ public class Bee extends NPC {
 		}
 		return damage;
 	}
-	
+
 	@Override
 	protected boolean act() {
 		HP--;
@@ -94,9 +94,9 @@ public class Bee extends NPC {
 			return super.act();
 		}
 	}
-	
+
 	protected Char chooseEnemy() {
-		
+
 		if (enemy == null || !enemy.isAlive()) {
 			HashSet<Mob> enemies = new HashSet<Mob>();
 			for (Mob mob:Dungeon.level.mobs) {
@@ -104,64 +104,68 @@ public class Bee extends NPC {
 					enemies.add( mob );
 				}
 			}
-			
+
 			return enemies.size() > 0 ? Random.element( enemies ) : null;
-			
+
 		} else {
-			
+
 			return enemy;
-			
+
 		}
 	}
-	
+
 	@Override
 	public String description() {
-		return
-			"Despite their small size, golden bees tend " +
-			"to protect their master fiercely. They don't live long though.";
+		String localized = message( "desc" );
+		return localized != null ? localized : super.description();
+	}
+
+	@Override
+	public String displayDescription() {
+		return description();
 	}
 
 	@Override
 	public void interact() {
-		
+
 		int curPos = pos;
-		
+
 		moveSprite( pos, Dungeon.hero.pos );
 		move( Dungeon.hero.pos );
-		
+
 		Dungeon.hero.sprite.move( Dungeon.hero.pos, curPos );
 		Dungeon.hero.move( curPos );
-		
+
 		Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
 		Dungeon.hero.busy();
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( Poison.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;
 	}
-	
+
 	private class Wandering implements AiState {
 
 		@Override
 		public boolean act( boolean enemyInFOV, boolean justAlerted ) {
 			if (enemyInFOV) {
-				
+
 				enemySeen = true;
-				
+
 				notice();
 				state = HUNTING;
 				target = enemy.pos;
-				
+
 			} else {
-				
+
 				enemySeen = false;
-				
+
 				int oldPos = pos;
 				if (getCloser( Dungeon.hero.pos )) {
 					spend( 1 / speed() );
@@ -169,14 +173,14 @@ public class Bee extends NPC {
 				} else {
 					spend( TICK );
 				}
-				
+
 			}
 			return true;
 		}
-		
+
 		@Override
 		public String status() {
-			return Utils.format( "This %s is wandering", name );
+			return stateMessage( "wandering" );
 		}
 	}
 }

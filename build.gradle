@@ -1,0 +1,17 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.3'
+    }
+}
+
+ext {
+    appName = 'Skillful Pixel Dungeon'
+    appVersionName = '2.1.0'
+    appVersionCode = 143
+    versionTag = "v${appVersionName}"
+    gdxVersion = '1.13.1'
+}

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
 import com.bilboldev.noosa.audio.Sample;
@@ -33,49 +34,54 @@ import com.bilboldev.pixeldungeonskills.effects.SpellSprite;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.pixeldungeonskills.windows.WndChooseWay;
 
 public class TomeOfMastery extends Item {
 
-	private static final String TXT_BLINDED	= "You can't read while blinded";
-	
+	private static final String TXT_BLINDED	= "custom.generated.entry_you_can_t_read_while_blinded_5d97b63e8c";
+
 	public static final float TIME_TO_READ = 10;
-	
+
 	public static final String AC_READ	= "READ";
-	
+
 	{
 		stackable = false;
 		name = Dungeon.hero != null && Dungeon.hero.subClass != HeroSubClass.NONE ? "Tome of Remastery" : "Tome of Mastery";
 		image = ItemSpriteSheet.MASTERY;
-		
+
 		unique = true;
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_READ );
 		return actions;
 	}
-	
+
 	@Override
 	public void execute( Hero hero, String action ) {
 		if (action.equals( AC_READ )) {
-			
+
 			if (hero.buff( Blindness.class ) != null) {
-				GLog.w( TXT_BLINDED );
+				GLog.w(TXT_BLINDED);
 				return;
 			}
-			
+
 			curUser = hero;
-			
+
 			switch (hero.heroClass) {
 			case WARRIOR:
 				read( hero, HeroSubClass.GLADIATOR, HeroSubClass.BERSERKER );
 				break;
 			case MAGE:
 				read( hero, HeroSubClass.BATTLEMAGE, HeroSubClass.WARLOCK );
+				break;
+			case NECROMANCER:
+				read( hero, HeroSubClass.SPIRIT_BINDER, HeroSubClass.LICH );
+				break;
+			case MERCENARY:
+				read( hero, HeroSubClass.MARSHAL, HeroSubClass.EXECUTIONER );
 				break;
 			case ROGUE:
 				read( hero, HeroSubClass.ASSASSIN, HeroSubClass.FREERUNNER );
@@ -84,36 +90,36 @@ public class TomeOfMastery extends Item {
 				read( hero, HeroSubClass.SNIPER, HeroSubClass.WARDEN );
 				break;
 			}
-			
-		} else {			
-			super.execute( hero, action );		
+
+		} else {
+			super.execute( hero, action );
 		}
 	}
-	
+
 	@Override
 	public boolean doPickUp( Hero hero ) {
 		Badges.validateMastery();
 		return super.doPickUp( hero );
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public String info() {
-		return 
+		return
 			"This worn leather book is not that thick, but you feel somehow, " +
 			"that you can gather a lot from it. Remember though that reading " +
 			"this tome may require some time.";
 	}
-	
+
 	private void read( Hero hero, HeroSubClass sc1, HeroSubClass sc2 ) {
 		if (hero.subClass == sc1) {
 			GameScene.show( new WndChooseWay( this, sc2 ) );
@@ -123,25 +129,27 @@ public class TomeOfMastery extends Item {
 			GameScene.show( new WndChooseWay( this, sc1, sc2 ) );
 		}
 	}
-	
+
 	public void choose( HeroSubClass way ) {
-		
+
 		detach( curUser.belongings.backpack );
-		
+
 		curUser.spend( TomeOfMastery.TIME_TO_READ );
 		curUser.busy();
-		
+
 		curUser.subClass = way;
-		
+
 		curUser.sprite.operate( curUser.pos );
 		Sample.INSTANCE.play( Assets.SND_MASTERY );
-		
+
 		SpellSprite.show( curUser, SpellSprite.MASTERY );
 		curUser.sprite.emitter().burst( Speck.factory( Speck.MASTERY ), 12 );
-		GLog.w( "You have chosen the way of the %s!", Utils.capitalize( way.title() ) );
-		
-		if (way == HeroSubClass.BERSERKER && curUser.HP <= curUser.HT * Fury.LEVEL) {
+		GLog.w("custom.generated.entry_you_have_chosen_the_way_of_the_s_dd56d8b0ea", Message.capitalize(Message.subclass(way, false)));
+
+		if ((way == HeroSubClass.BERSERKER || way == HeroSubClass.EXECUTIONER) && curUser.HP <= curUser.HT * Fury.LEVEL) {
 			Buff.affect( curUser, Fury.class );
 		}
+
+		((Hero)curUser).skillTree.subclassChosen(way);
 	}
 }

@@ -17,18 +17,25 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+import com.bilboldev.noosa.ui.Component;
+
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Heap.Type;
 import com.bilboldev.pixeldungeonskills.items.Item;
-import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndInfoItem extends Window {
-	
+public class WndInfoItem extends WndScrollable {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.IRON;
+    }
+
 	private static final String TXT_CHEST			= "Chest";
 	private static final String TXT_LOCKED_CHEST	= "Locked chest";
 	private static final String TXT_CRYSTAL_CHEST	= "Crystal chest";
@@ -56,7 +63,7 @@ public class WndInfoItem extends Window {
 			
 			Item item = heap.peek();
 			
-			int color = TITLE_COLOR;
+			int color = titleColor();
 			if (item.levelKnown) {
 				if (item.level() < 0) {
 					color = ItemSlot.DEGRADED;				
@@ -64,8 +71,12 @@ public class WndInfoItem extends Window {
 					color = item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED;				
 				}
 			}
-			fillFields( item.image(), item.glowing(), color, item.toString(), item.info() );
-			
+			fillFields( item.image(), item.glowing(), color, item.toString(), item.displayInfo() );
+
+			if(heap.type == Type.FOR_SALE){
+				Dungeon.showGold = true;
+			}
+
 		} else {
 			
 			String title;
@@ -88,7 +99,7 @@ public class WndInfoItem extends Window {
 				info = TXT_NEED_KEY;
 			}
 			
-			fillFields( heap.image(), heap.glowing(), TITLE_COLOR, title, info );
+			fillFields( heap.image(), heap.glowing(), titleColor(), title, info );
 			
 		}
 	}
@@ -97,7 +108,7 @@ public class WndInfoItem extends Window {
 		
 		super();
 		
-		int color = TITLE_COLOR;
+		int color = titleColor();
 		if (item.levelKnown) {
 			if (item.level() < 0 || item.isBroken()) {
 				color = ItemSlot.DEGRADED;				
@@ -106,24 +117,25 @@ public class WndInfoItem extends Window {
 			}
 		}
 		
-		fillFields( item.image(), item.glowing(), color, item.toString(), item.info() );
+		fillFields( item.image(), item.glowing(), color, item.toString(), item.displayInfo() );
 	}
 	
 	private void fillFields( int image, ItemSprite.Glowing glowing, int titleColor, String title, String info ) {
+		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 		
-		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new ItemSprite( image, glowing ) );
-		titlebar.label( Utils.capitalize( title ), titleColor );
-		titlebar.setRect( 0, 0, WIDTH, 0 );
+		Component titlebar = InspectionTitle.create(new ItemSprite(image, glowing),
+				Utils.capitalize(title), titleColor, Float.NaN);
+		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
-		
-		BitmapTextMultiline txtInfo = PixelScene.createMultiline( info, 6 );
-		txtInfo.maxWidth = WIDTH;
-		txtInfo.measure();
-		txtInfo.x = titlebar.left();
-		txtInfo.y = titlebar.bottom() + GAP;
-		add( txtInfo );
-		
-		resize( WIDTH, (int)(txtInfo.y + txtInfo.height()) );
+
+		HighlightedText infoHighlighted = new HighlightedText(  6 );
+		infoHighlighted.text(info, textWidth(windowWidth));
+		layoutContent(windowWidth, titlebar, infoHighlighted, GAP);
+	}
+
+	@Override
+	public void hide(){
+		Dungeon.showGold = false;
+		super.hide();
 	}
 }

@@ -1,0 +1,27 @@
+package com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects;
+
+import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
+import com.bilboldev.pixeldungeonskills.effects.particles.EarthParticle;
+
+public class KneeShot extends WeaponEffect {
+    {
+        Name = "KneeShot";
+    }
+
+    @Override
+    protected boolean canAffect(Char source, Char target) {
+        return super.canAffect(source, target) && !Bestiary.isBoss(target)
+                && !target.immunities().contains(Cripple.class);
+    }
+
+    @Override
+    public void onHit(Char source, Char target, int damageDealt) {
+        if (!canAffect(source, target)) return;
+        Buff.prolong(target, Cripple.class, Cripple.DURATION);
+        showHit(target, 0xE5AB75, EarthParticle.FACTORY, Assets.SND_HIT);
+    }
+}

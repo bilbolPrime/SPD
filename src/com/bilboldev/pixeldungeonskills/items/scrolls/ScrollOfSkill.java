@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
-import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
@@ -26,22 +25,22 @@ public class ScrollOfSkill extends Scroll {
 	{
 		name = "Scroll of Skill";
 	}
-	
+
 	@Override
 	protected void doRead() {
 
         Skill.availableSkill++;
 
-        GLog.w( "The scroll contains valuable information about your specialties!" );
-        GLog.p( "+1 skill point!" );
+        GLog.w("custom.generated.entry_the_scroll_contains_valuable_information_about_y_71a9c70e20");
+        GLog.p("custom.generated.entry_1_skill_point_4d16d28c09");
 		setKnown();
 
 		curUser.spendAndNext( TIME_TO_READ );
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"When read, words of wisdom will increase your skill.";
 	}
 }

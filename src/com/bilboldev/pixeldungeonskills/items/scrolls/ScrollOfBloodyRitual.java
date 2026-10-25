@@ -33,12 +33,12 @@ public class ScrollOfBloodyRitual extends Scroll {
 	{
 		name = "Scroll of Bloody Ritual";
 	}
-	
+
 	@Override
 	protected void doRead() {
-		
+
 		GameScene.flash( 0xFF0000 );
-		
+
 		Sample.INSTANCE.play( Assets.SND_BLAST );
 		Invisibility.dispel();
 
@@ -54,21 +54,21 @@ public class ScrollOfBloodyRitual extends Scroll {
         Dungeon.hero.HP = Dungeon.hero.HT;
         StatusPane.takingDamage = 0;
 
-        GLog.n("Scroll of bloody ritual took away " + damage + " of your max hp!");
-        GLog.p("A dark aura heals all your wounds... but you are not comfortable with the aura around you...");
+		GLog.n("custom.generated.entry_scroll_of_bloody_ritual_took_away_s_of_your_max_a58fb692bc", damage);
+        GLog.p("custom.generated.entry_a_dark_aura_heals_all_your_wounds_but_you_are_no_32239c76c0");
 		Dungeon.observe();
-		
+
 		setKnown();
-		
+
 		curUser.spendAndNext( TIME_TO_READ );
 	}
-	
+
 	@Override
 	public String desc() {
 		return
 			"The scroll holds the secret of a forbidden ritual. In exchange for the reader's well being, the scroll damages everyone nearby and fully heals him.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 80 * quantity : super.price();

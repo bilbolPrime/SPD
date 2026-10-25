@@ -29,9 +29,8 @@ import java.util.ArrayList;
 public class Bow extends MissileWeapon {
 
 	{
-		name = "bow";
+        name = "Bow";
 		image = ItemSpriteSheet.Bow;
-
 
         stackable = false;
 	}
@@ -66,7 +65,6 @@ public class Bow extends MissileWeapon {
     @Override
     public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 
-
         if ( collect( hero.belongings.backpack )) {
             hero.belongings.bow = null;
             updateQuickslot();
@@ -86,19 +84,20 @@ public class Bow extends MissileWeapon {
 		quantity = number;
 	}
 
-
 	@Override
 	public String desc() {
-		return 
-			"A basic bow used to fire arrows and bomb arrows.";
+        String localized = message( "desc" );
+        return localized != null ? localized :
+            "A basic bow used to fire arrows and bomb arrows.";
 	}
-	
+
 	@Override
 	public Item random() {
+		randomPrefix();
 		quantity = 1;
 		return this;
 	}
-	
+
 	@Override
 	public int price() {
 		return quantity * 15;
@@ -137,7 +136,9 @@ public class Bow extends MissileWeapon {
     @Override
     public Bow enchant()
     {
-        return Random.Int(10) < 8 ? new FrostBow() : new FlameBow();
+        Bow bow = Random.Int(10) < 8 ? new FrostBow() : new FlameBow();
+        bow.weaponEffect = weaponEffect;
+        return bow;
     }
 
     @Override
@@ -150,13 +151,26 @@ public class Bow extends MissileWeapon {
     public String info() {
 
         StringBuilder info = new StringBuilder( desc() );
-
-
+        info.append(prefixInfo());
         return info.toString();
     }
 
     public void bowSpecial(Char target)
     {
 
+    }
+
+    public float damageBonus(){
+	    if(level < 3)
+	        return  1 + 0.2f * level;
+	    if(level < 5)
+	        return  1 + 0.6f + (level - 3) * 0.1f;
+
+	    return  1 + 0.8f + (level - 5) * 0.05f;
+    }
+
+    @Override
+    public boolean isUpgradable(){
+	    return  true;
     }
 }

@@ -17,24 +17,34 @@
  */
 package com.bilboldev.pixeldungeonskills.sprites;
 
+import com.bilboldev.pixeldungeonskills.network.PartyEffects;
+
 import com.bilboldev.noosa.tweeners.PosTweener;
 import com.bilboldev.noosa.tweeners.Tweener;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.PointF;
 
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+
 public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private static final float SPEED	= 240f;
-	
+
 	private Callback callback;
-	
+
 	public MissileSprite() {
 		super();
 		originToCenter();
 	}
-	
+
+	@Override
+	public float groundY() {
+
+		return y + DungeonTilemap.SIZE;
+	}
+
 	public void reset( int from, int to, Item item, Callback listener ) {
 		if (item == null) {
 			reset( from, to, 0, null, listener );
@@ -42,31 +52,32 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			reset( from, to, item.image(), item.glowing(), listener );
 		}
 	}
-	
+
 	public void reset( int from, int to, int image, Glowing glowing, Callback listener ) {
+		PartyEffects.missile(from, to, image, glowing);
 		revive();
-		
+
 		view( image, glowing );
-		
-		this.callback = listener;
+
+		this.callback = LocalCoop.callback(listener);
 
 		point( DungeonTilemap.tileToWorld( from ) );
 		PointF dest = DungeonTilemap.tileToWorld( to );
-		
-		PointF d = PointF.diff( dest, point() ); 
+
+		PointF d = PointF.diff( dest, point() );
 		speed.set( d ).normalize().scale( SPEED );
-		
-		if (image == 31 || image == 108 || image == 109 || image == 110 || image == ItemSpriteSheet.Arrow || image == ItemSpriteSheet.BombArrow  || image == ItemSpriteSheet.CupidArrow) {
+
+		if (image == 31 || image == 108 || image == 109 || image == 110 || image == ItemSpriteSheet.Arrow || image == ItemSpriteSheet.BombArrow  || image == ItemSpriteSheet.CupidArrow || image == ItemSpriteSheet.JOE_SPEAR || image == ItemSpriteSheet.BULLET) {
 
 			angularSpeed = 0;
 			angle = 135 - (float)(Math.atan2( d.x, d.y ) / 3.1415926 * 180);
-			
+
 		} else {
-			
+
 			angularSpeed = image == 15 || image == 106 ? 1440 : 720;
-			
+
 		}
-		
+
 		PosTweener tweener = new PosTweener( this, dest, d.length() / SPEED );
 		tweener.listener = this;
 		parent.add( tweener );

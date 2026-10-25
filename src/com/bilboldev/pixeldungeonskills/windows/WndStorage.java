@@ -17,8 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
@@ -44,9 +46,14 @@ import com.bilboldev.pixeldungeonskills.plants.Plant.Seed;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 public class WndStorage extends WndTabbed {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.IRON;
+    }
 
 	public static enum Mode {
 		ALL,
@@ -73,7 +80,7 @@ public class WndStorage extends WndTabbed {
 
 	private Listener listener;
 	private WndStorage.Mode mode;
-	private String title;
+	private Message title;
 
 	private int nCols;
 	private int nRows;
@@ -87,43 +94,38 @@ public class WndStorage extends WndTabbed {
 
     public boolean noDegrade = !PixelDungeon.itemDeg();
 
-	public WndStorage(Storage bag, Listener listener, Mode mode, String title) {
-		
+	public WndStorage(Storage bag, Listener listener, Mode mode, Message title) {
+
 		super();
-		
+
 		this.listener = listener;
 		this.mode = mode;
 		this.title = title;
-		
+        menuModel = new MenuModel(title != null ? title : Message.key("custom.generated.entry_storage_9e092dda4f"), Message.empty());
+
 		lastMode = mode;
 		lastBag = bag;
-		
-		nCols = PixelDungeon.landscape() ? COLS_L : COLS_P;
+
+		nCols = landscapeLayout() ? COLS_L : COLS_P;
 		nRows = (5) / nCols + ((5) % nCols > 0 ? 1 : 0);
-		
+
 		int slotsWidth = SLOT_SIZE * nCols + SLOT_MARGIN * (nCols - 1);
 		int slotsHeight = SLOT_SIZE * nRows + SLOT_MARGIN * (nRows - 1);
-		
-		BitmapText txtTitle = PixelScene.createText( title != null ? title : Utils.capitalize( "Storage" ), 9 );
-		txtTitle.hardlight( TITLE_COLOR );
+
+		BitmapText txtTitle = PixelScene.createText( menuModel.title.toString(), 9 );
+		txtTitle.hardlight( titleColor() );
 		txtTitle.measure();
 		txtTitle.x = (int)(slotsWidth - txtTitle.width()) / 2;
 		txtTitle.y = (int)(TITLE_HEIGHT - txtTitle.height()) / 2;
 		add( txtTitle );
-		
+
 		placeItems( bag );
-		
+
 		resize( slotsWidth, slotsHeight + TITLE_HEIGHT );
 
 	}
 
-	
-
-	
 	protected void placeItems( Storage container ) {
-		
-
-
 
 		boolean backpack = (container == Dungeon.hero.storage);
 		if (!backpack) {
@@ -131,41 +133,41 @@ public class WndStorage extends WndTabbed {
 			col = 0;
 			row = 1;
 		}
-		
-		// Items in the bag
+
 		for (Item item : container.backpack.items) {
 			placeItem( item );
 		}
-		
-		// Free space
+
 		while (count-(backpack ? 0 : nCols) < 5) {
 			placeItem( null );
 		}
 
 	}
-	
+
 	protected void placeItem( final Item item ) {
-		
+
 		int x = col * (SLOT_SIZE + SLOT_MARGIN);
 		int y = TITLE_HEIGHT + row * (SLOT_SIZE + SLOT_MARGIN);
-		
-		add( new ItemButton( item ).setPos( x, y ) );
-		
+
+		ItemButton button = new ItemButton(item);
+        add(button.setPos(x, y));
+        if (item != null) menuModel.add(button, Message.item(item));
+
 		if (++col >= nCols) {
 			col = 0;
 			row++;
 		}
-		
+
 		count++;
 	}
-	
+
 	@Override
 	public void onMenuPressed() {
 		if (listener == null) {
 			hide();
 		}
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		if (listener != null) {
@@ -173,43 +175,43 @@ public class WndStorage extends WndTabbed {
 		}
 		super.onBackPressed();
 	}
-	
+
 	@Override
 	protected void onClick( Tab tab ) {
 		hide();
-		//GameScene.show( new WndStorage( ((BagTab)tab).bag, listener, mode, title ) );
+
 	}
-	
+
 	@Override
 	protected int tabHeight() {
 		return 20;
 	}
-	
+
 	private class BagTab extends Tab {
-		
+
 		private Image icon;
 
 		private Bag bag;
-		
+
 		public BagTab( Bag bag ) {
 			super();
-			
+
 			this.bag = bag;
-			
+
 			icon = icon();
 			add( icon );
 		}
-		
+
 		@Override
 		protected void select( boolean value ) {
 			super.select( value );
 			icon.am = selected ? 1.0f : 0.6f;
 		}
-		
+
 		@Override
 		protected void layout() {
 			super.layout();
-			
+
 			icon.copy( icon() );
 			icon.x = x + (width - icon.width) / 2;
 			icon.y = y + (height - icon.height) / 2 - 2 - (selected ? 0 : 1);
@@ -220,7 +222,7 @@ public class WndStorage extends WndTabbed {
 				icon.y = y + CUT;
 			}
 		}
-		
+
 		private Image icon() {
 			if (bag instanceof SeedPouch) {
 				return Icons.get( Icons.SEED_POUCH );
@@ -235,66 +237,66 @@ public class WndStorage extends WndTabbed {
 			}
 		}
 	}
-	
-	private static class Placeholder extends Item {		
+
+	private static class Placeholder extends Item {
 		{
 			name = null;
 		}
-		
+
 		public Placeholder( int image ) {
 			this.image = image;
 		}
-		
+
 		@Override
 		public boolean isIdentified() {
 			return true;
 		}
-		
+
 		@Override
 		public boolean isEquipped( Hero hero ) {
 			return true;
 		}
 	}
-	
+
 	private class ItemButton extends ItemSlot {
-		
+
 		private static final int NORMAL		= 0xFF4A4D44;
 		private static final int EQUIPPED	= 0xFF63665B;
-		
+
 		private static final int NBARS	= 3;
-		
+
 		private Item item;
 		private ColorBlock bg;
-		
+
 		private ColorBlock durability[];
-		
+
 		public ItemButton( Item item ) {
-			
+
 			super( item );
 
 			this.item = item;
 			if (item instanceof Gold) {
 				bg.visible = false;
 			}
-			
+
 			width = height = SLOT_SIZE;
 		}
-		
+
 		@Override
-		protected void createChildren() {	
-			bg = new ColorBlock( SLOT_SIZE, SLOT_SIZE, NORMAL );
+		protected void createChildren() {
+			bg = com.bilboldev.pixeldungeonskills.ui.RebornSlot.create(SLOT_SIZE, SLOT_SIZE, NORMAL);
 			add( bg );
-			
+
 			super.createChildren();
 		}
-		
+
 		@Override
 		protected void layout() {
 			bg.x = x;
 			bg.y = y;
 
             if(noDegrade == true)
-                durability = null; // no durability
+                durability = null;
 
 			if (durability != null) {
 				for (int i=0; i < NBARS; i++) {
@@ -302,13 +304,13 @@ public class WndStorage extends WndTabbed {
 					durability[i].y = y + height - 3;
 				}
 			}
-			
+
 			super.layout();
 		}
-		
+
 		@Override
 		public void item( Item item ) {
-			
+
 			super.item( item );
 			if (item != null) {
 
@@ -320,16 +322,14 @@ public class WndStorage extends WndTabbed {
 					bg.ra = 0.1f;
 					bg.ba = 0.1f;
 				}
-				
 
-				
 				if (item.name() == null) {
 					enable( false );
 				} else {
-					enable( 
+					enable(
 						mode == Mode.QUICKSLOT && (item.defaultAction != null) ||
 						mode == Mode.FOR_SALE && (item.price() > 0) && (!item.isEquipped( Dungeon.hero ) || !item.cursed) ||
-						mode == Mode.UPGRADEABLE && item.isUpgradable() || 
+						mode == Mode.UPGRADEABLE && item.isUpgradable() ||
 						mode == Mode.UNIDENTIFED && !item.isIdentified() ||
 						mode == Mode.WEAPON && (item instanceof MeleeWeapon || item instanceof Boomerang) ||
 						mode == Mode.ARMOR && (item instanceof Armor) ||
@@ -343,31 +343,31 @@ public class WndStorage extends WndTabbed {
 				bg.color( NORMAL );
 			}
 		}
-		
+
 		@Override
 		protected void onTouchDown() {
 			bg.brightness( 1.5f );
 			Sample.INSTANCE.play( Assets.SND_CLICK, 0.7f, 0.7f, 1.2f );
 		};
-		
+
 		protected void onTouchUp() {
 			bg.brightness( 1.0f );
 		};
-		
+
 		@Override
 		protected void onClick() {
 			if (listener != null) {
-				
+
 				hide();
 				listener.onSelect( item );
-				
+
 			} else {
-				
+
 				WndStorage.this.add( new WndItemStorage( WndStorage.this, item ) );
-				
+
 			}
 		}
-		
+
 		@Override
 		protected boolean onLongClick() {
 
@@ -375,7 +375,7 @@ public class WndStorage extends WndTabbed {
 
 		}
 	}
-	
+
 	public interface Listener {
 		void onSelect(Item item);
 	}

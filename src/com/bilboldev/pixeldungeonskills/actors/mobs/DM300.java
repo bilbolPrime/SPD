@@ -17,8 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
-
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -46,15 +46,15 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
 public class DM300 extends Mob {
-	
+
 	{
 		name = Dungeon.depth == Statistics.deepestFloor ? "DM-300" : "DM-350";
 		spriteClass = DM300Sprite.class;
-		
+
 		HP = HT = 200;
 		EXP = 30;
 		defenseSkill = 18;
-		
+
 		loot = new RingOfThorns().random();
 		lootChance = 0.333f;
 
@@ -62,56 +62,56 @@ public class DM300 extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 18, 24 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 28;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 10;
 	}
-	
+
 	@Override
 	public boolean act() {
 		GameScene.add( Blob.seed( pos, 30, ToxicGas.class ) );
 		return super.act();
 	}
-	
+
 	@Override
 	public void move( int step ) {
 		super.move( step );
-		
+
 		if (Dungeon.level.map[step] == Terrain.INACTIVE_TRAP && HP < HT) {
-			
+
 			HP += Random.Int( 1, HT - HP );
 			sprite.emitter().burst( ElmoParticle.FACTORY, 5 );
-			
+
 			if (Dungeon.visible[step] && Dungeon.hero.isAlive()) {
-				GLog.n( "DM-300 repairs itself!" );
+				GLog.n("custom.generated.entry_dm_300_repairs_itself_4120bf6c91");
 			}
 		}
 
 		int[] cells = {
-			step-1, step+1, step-Level.WIDTH, step+Level.WIDTH, 
-			step-1-Level.WIDTH, 
-			step-1+Level.WIDTH, 
-			step+1-Level.WIDTH, 
+			step-1, step+1, step-Level.WIDTH, step+Level.WIDTH,
+			step-1-Level.WIDTH,
+			step-1+Level.WIDTH,
+			step+1-Level.WIDTH,
 			step+1+Level.WIDTH
 		};
 		int cell = cells[Random.Int( cells.length )];
-		
+
 		if (Dungeon.visible[cell]) {
 			CellEmitter.get( cell ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
 			Camera.main.shake( 3, 0.7f );
 			Sample.INSTANCE.play( Assets.SND_ROCKS );
-			
+
 			if (Level.water[cell]) {
 				GameScene.ripple( cell );
 			} else if (Dungeon.level.map[cell] == Terrain.EMPTY) {
@@ -125,26 +125,26 @@ public class DM300 extends Mob {
 			Buff.prolong( ch, Paralysis.class, 2 );
 		}
 	}
-	
+
 	@Override
 	public void die( Object cause ) {
-		
+
 		super.die( cause );
-		
+
 		GameScene.bossSlain();
 		Dungeon.level.drop( new SkeletonKey(), pos ).sprite.drop();
-		
+
 		Badges.validateBossSlain();
-		
-		yell( "Mission failed. Shutting down." );
+
+		yell(Message.key("custom.generated.entry_mission_failed_shutting_down_0099c77c6a"));
 	}
-	
+
 	@Override
 	public void notice() {
 		super.notice();
-		yell( "Unauthorised personnel detected." );
+		yell(Message.key("custom.generated.entry_unauthorised_personnel_detected_291dc4258c"));
 	}
-	
+
 	@Override
 	public String description() {
 		return
@@ -152,23 +152,23 @@ public class DM300 extends Mob {
 			"golems, elementals and even demons. Eventually it led their civilization to the decline. The DM-300 and similar " +
 			"machines were typically used for construction and mining, and in some cases, for city defense.";
 	}
-	
+
 	private static final HashSet<Class<?>> RESISTANCES = new HashSet<Class<?>>();
 	static {
 		RESISTANCES.add( Death.class );
 		RESISTANCES.add( ScrollOfPsionicBlast.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( ToxicGas.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;

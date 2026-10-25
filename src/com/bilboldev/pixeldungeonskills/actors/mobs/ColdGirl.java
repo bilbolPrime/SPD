@@ -17,12 +17,12 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -43,10 +43,8 @@ import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
-import com.bilboldev.pixeldungeonskills.sprites.CursePersonificationSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ColdGirlSprite;
 import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
-import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.pixeldungeonskills.windows.PersistentWndOptions;
@@ -54,12 +52,11 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.Random;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
 public class ColdGirl extends Mob {
-	
+
 	{
 		name = "Cold Girl";
 		spriteClass = ColdGirlSprite.class;
@@ -102,7 +99,6 @@ public class ColdGirl extends Mob {
     public static int cameFromPos = 1;
     public int skillCharge = 5;
 
-
     public void turnToSis()
     {
         isSister = true;
@@ -113,37 +109,33 @@ public class ColdGirl extends Mob {
 	public int damageRoll() {
 		return Random.NormalIntRange( 8, 15 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 28;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 10;
 	}
-	
+
 	@Override
 	public boolean act() {
 
 		return super.act();
 	}
-	
+
 	@Override
 	public void move( int step ) {
 		super.move( step );
 
-
 	}
-
-
-
 
     @Override
     public int attackProc( Char enemy, int damage ) {
 
-        if(Level.adjacent(pos, enemy.pos) == true && damage < HP)  // Curse
+        if(Level.adjacent(pos, enemy.pos) == true && damage < HP)
         {
             if (firstDamage) {
                 speak("I have to feel your pain too?!");
@@ -174,14 +166,14 @@ public class ColdGirl extends Mob {
                         Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
 
                         enemy.pos = newPos;
-                        // FIXME
+
                         if (enemy instanceof Mob) {
                             Dungeon.level.mobPress( (Mob)enemy );
                         } else {
                             Dungeon.level.press( newPos, enemy );
                         }
 
-                        enemy.sprite.bloodBurstA( sprite.center(), enemy.HP );
+                        enemy.sprite.bloodBurstA( ((CharSprite)sprite).center(), enemy.HP );
                     }
 
                     for(int s = 0; s < skelSpawns.size(); s++)
@@ -216,7 +208,7 @@ public class ColdGirl extends Mob {
                 enemy.sprite.bloodBurstA( sprite.center(), enemy.HP );
                 speak("Are you done yet?!");
                 hostile = false;
-                if(Level.adjacent(pos, enemy.pos) == true)  // Knockback
+                if(Level.adjacent(pos, enemy.pos) == true)
                 {
                     for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
                         int ofs = Level.NEIGHBOURS8[i];
@@ -227,7 +219,7 @@ public class ColdGirl extends Mob {
                                 Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
 
                                 enemy.pos = newPos;
-                                // FIXME
+
                                 if (enemy instanceof Mob) {
                                     Dungeon.level.mobPress( (Mob)enemy );
                                 } else {
@@ -272,17 +264,14 @@ public class ColdGirl extends Mob {
         if(enemy instanceof Mob && !(enemy instanceof HiredMerc))
         {
 
-            //if(firstTroll)
                 speak("I have no time for fodder");
-            //GameScene.flash( 0x0042ff );
-            //Sample.INSTANCE.play( Assets.SND_BLAST );
+
             firstTroll = false;
             trollMinion(enemy);
             return -1;
         }
 
-
-        if(Level.adjacent(pos, enemy.pos) == false)  // Space-Swap
+        if(Level.adjacent(pos, enemy.pos) == false)
         {
             if(skillCharge > 0) {
                 int tmpPos = pos;
@@ -301,7 +290,7 @@ public class ColdGirl extends Mob {
                     speak("I have no time for this");
                     heroSpeak("EH?!");
                 } else {
-                   // speak("Space Swap!");
+
                     heroSpeak("...");
                 }
                 firstSwap = false;
@@ -330,7 +319,6 @@ public class ColdGirl extends Mob {
                 }
                 while(throwAt < 0 || throwAt > Level.passable.length || Level.passable[throwAt] == false);
 
-
                 final int throwAtFinal = throwAt;
                 ((MissileSprite) this.sprite.parent.recycle(MissileSprite.class)).
                         reset(ColdGirl.this.pos, throwAt, Dungeon.hero.belongings.weapon, new Callback() {
@@ -340,7 +328,6 @@ public class ColdGirl extends Mob {
 
                             }
                         });
-
 
                 firstFetch = false;
                 speak("Go Fetch");
@@ -355,7 +342,7 @@ public class ColdGirl extends Mob {
 
     private void trollMinion(Char minion)
     {
-        if(Level.adjacent(pos, minion.pos) == true)  // Knockback
+        if(Level.adjacent(pos, minion.pos) == true)
         {
             for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
                 int ofs = Level.NEIGHBOURS8[i];
@@ -366,7 +353,7 @@ public class ColdGirl extends Mob {
                         Actor.addDelayed( new Pushing( minion, minion.pos, newPos ), -1 );
 
                         enemy.pos = newPos;
-                        // FIXME
+
                         if (minion instanceof Mob) {
                             Dungeon.level.mobPress( (Mob)minion );
                         } else {
@@ -409,7 +396,7 @@ public class ColdGirl extends Mob {
                 }
             }
             Sample.INSTANCE.play(Assets.SND_BLAST);
-            if(Level.adjacent(pos, enemy.pos) == true)  // Knockback
+            if(Level.adjacent(pos, enemy.pos) == true)
             {
                 for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
                     int ofs = Level.NEIGHBOURS8[i];
@@ -420,7 +407,7 @@ public class ColdGirl extends Mob {
                             Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
 
                             enemy.pos = newPos;
-                            // FIXME
+
                             if (enemy instanceof Mob) {
                                 Dungeon.level.mobPress( (Mob)enemy );
                             } else {
@@ -447,7 +434,7 @@ public class ColdGirl extends Mob {
             HT = 10000;
             HP = 10000;
             defenseSkill = 1000;
-            if(Level.adjacent(pos, enemy.pos) == true)  // Knockback
+            if(Level.adjacent(pos, enemy.pos) == true)
             {
                 for (int i=0; i < Level.NEIGHBOURS8.length; i++) {
                     int ofs = Level.NEIGHBOURS8[i];
@@ -458,7 +445,7 @@ public class ColdGirl extends Mob {
                             Actor.addDelayed( new Pushing( enemy, enemy.pos, newPos ), -1 );
 
                             enemy.pos = newPos;
-                            // FIXME
+
                             if (enemy instanceof Mob) {
                                 Dungeon.level.mobPress( (Mob)enemy );
                             } else {
@@ -479,24 +466,21 @@ public class ColdGirl extends Mob {
             return;
         }
 
-
         HP = 10000;
         speak("In your dreams fool");
 
 	}
 
-
     public void discuss() {
-        //Discussion("Cold Girl", "You don't belong here... leave", "Who are you?", "I belong where I want to");
         DiscussionNext(0);
     }
-	
+
 	@Override
 	public void notice() {
 		super.notice();
         speak("You don't belong here");
 	}
-	
+
 	@Override
 	public String description() {
 		return
@@ -545,7 +529,11 @@ public class ColdGirl extends Mob {
         if (hit( this, enemy, false )) {
 
             if (visibleFight) {
-                GLog.i( TXT_HIT, name, enemy.name );
+                if (enemy == Dungeon.hero) {
+                    GLog.i(Char.class, "enemy_hit", Message.actor(this));
+                } else {
+                    GLog.i(Char.class, "hit", Message.actor(this), Message.actor(enemy));
+                }
             }
 
             int dmg = damageRoll();
@@ -553,10 +541,9 @@ public class ColdGirl extends Mob {
             if(enemy == Dungeon.hero)
             {
                 dmg *= Dungeon.currentDifficulty.damageModifier();
-                dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier(); //  <--- Warrior Toughness if present
-                dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg); // <--- Mage SpiritArmor if present
+                dmg *= Dungeon.hero.heroSkills.passiveA3.incomingDamageModifier();
+                dmg -= Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(dmg);
             }
-
 
             int effectiveDamage = Math.max( dmg, 0 );
 
@@ -564,8 +551,7 @@ public class ColdGirl extends Mob {
             effectiveDamage = enemy.defenseProc( this, effectiveDamage );
             if(effectiveDamage < 0)
                 return true;
-            enemy.damage( effectiveDamage, this );
-
+            enemy.damageFrom( effectiveDamage, this, this );
 
             if (visibleFight) {
                 Sample.INSTANCE.play( Assets.SND_HIT, 1, 1, Random.Float( 0.8f, 1.25f ) );
@@ -581,29 +567,20 @@ public class ColdGirl extends Mob {
             enemy.sprite.bloodBurstA( sprite.center(), effectiveDamage );
             enemy.sprite.flash();
 
-
-
-
-
             if (!enemy.isAlive() && visibleFight) {
                 if (enemy == Dungeon.hero) {
 
                     if (Dungeon.hero.killerGlyph != null) {
 
-                        // FIXME
-                        //	Dungeon.fail( Utils.format( ResultDescriptions.GLYPH, Dungeon.hero.killerGlyph.name(), Dungeon.depth ) );
-                        //	GLog.n( TXT_KILL, Dungeon.hero.killerGlyph.name() );
-
                     } else {
 
-                            Dungeon.fail( Utils.format( TXT_DEATH) );
+                            Dungeon.fail( Utils.format( TXT_DEATH), this );
 
-
-                        GLog.n( TXT_KILL, name );
+                        GLog.n("actors.char.kill", Message.actor(this));
                     }
 
                 } else {
-                    GLog.i( TXT_DEFEAT, name, enemy.name );
+                    GLog.i("custom.generated.entry_s_defeated_s_bddf53840b", Message.actor(this), Message.actor(enemy));
                 }
             }
 
@@ -614,8 +591,11 @@ public class ColdGirl extends Mob {
             if (visibleFight) {
                 String defense = enemy.defenseVerb();
                 enemy.sprite.showStatus( CharSprite.NEUTRAL, defense );
-                 GLog.i( TXT_SMB_MISSED, enemy.name, defense, name );
-
+                if (enemy == Dungeon.hero) {
+                    GLog.i(Char.class, "enemy_missed", Message.actor(this), enemy.defenseText());
+                } else {
+                    GLog.i(Char.class, "mob_missed", Message.actor(enemy), enemy.defenseText(), Message.actor(this));
+                }
 
                 Sample.INSTANCE.play(Assets.SND_MISS);
             }
@@ -629,7 +609,7 @@ public class ColdGirl extends Mob {
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( Frost.class );
@@ -640,13 +620,13 @@ public class ColdGirl extends Mob {
         IMMUNITIES.add( Affection.class );
         IMMUNITIES.add( Poison.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;
 	}
 
-    private void Discussion(String title, String message, String... options)
+    private void Discussion(Message title, Message message, Message... options)
     {
         GameScene.show(new PersistentWndOptions(title, message, options) {
             @Override
@@ -660,7 +640,10 @@ public class ColdGirl extends Mob {
     {
         switch (discussionProgress + index)
         {
-            case 0: Discussion("Cold Girl", "My existence does not concern you... leave", "How do I leave?", "Were you raised like this?");
+            case 0: Discussion(Message.key("custom.generated.entry_cold_girl_200cea811f"),
+                    Message.key("custom.generated.entry_my_existence_does_not_concern_you_leave_bb22e8e805"),
+                    Message.key("custom.generated.entry_how_do_i_leave_ffe46b682b"),
+                    Message.key("custom.generated.entry_were_you_raised_like_this_1b52068abd"));
                 discussionProgress += DISCUSSION_STEP;
                 break;
             case 1:
@@ -671,7 +654,9 @@ public class ColdGirl extends Mob {
             case DISCUSSION_STEP:
                 sendBack();
                 break;
-            case DISCUSSION_STEP + 1: Discussion("Cold Girl", "Talk about my mother like that again and I...\n You know what? Just die..", "Ok");
+            case DISCUSSION_STEP + 1: Discussion(Message.key("custom.generated.entry_cold_girl_200cea811f"),
+                    Message.key("custom.generated.entry_talk_about_my_mother_like_that_again_and_i_you_k_1cc504f5ce"),
+                    Message.key("custom.generated.entry_ok_b0a98216a3"));
                 discussionProgress += DISCUSSION_STEP;
                 break;
             case 2 * DISCUSSION_STEP:
@@ -680,24 +665,30 @@ public class ColdGirl extends Mob {
                 hostile = true;
                 break;
             case DISCUSSION_DEAD:
-                Discussion("Cold Girl", "What is wrong with you?!", "How are you this strong?");
+                Discussion(Message.key("custom.generated.entry_cold_girl_200cea811f"),
+                        Message.key("custom.generated.entry_what_is_wrong_with_you_0bdf4cf102"),
+                        Message.key("custom.generated.entry_how_are_you_this_strong_03dab51815"));
                 discussionProgress += DISCUSSION_STEP;
                 break;
             case DISCUSSION_DEAD + DISCUSSION_STEP:
-                Discussion("Cold Girl", "The rules cannot protect you from me fool!", "What rules?");
+                Discussion(Message.key("custom.generated.entry_cold_girl_200cea811f"),
+                        Message.key("custom.generated.entry_the_rules_cannot_protect_you_from_me_fool_0041fbf481"),
+                        Message.key("custom.generated.entry_what_rules_bbd45ef46a"));
                 discussionProgress += DISCUSSION_STEP;
                 break;
             case DISCUSSION_DEAD + 2 * DISCUSSION_STEP:
-                Discussion("Cold Girl", "LEAVE!", "Wai..");
+                Discussion(Message.key("custom.generated.entry_cold_girl_200cea811f"),
+                        Message.key("custom.generated.entry_leave_697269c611"),
+                        Message.key("custom.generated.entry_wai_a4a2c06838"));
                 discussionProgress += DISCUSSION_STEP;
                 break;
             case DISCUSSION_DEAD + 3 * DISCUSSION_STEP:
                 sendBack();
                 Dungeon.hero.heroSkills.unlockSkill();
-                GLog.p("Fighting that weird girl inspired you into learning " +   Dungeon.hero.heroSkills.unlockableSkillName());
+                GLog.p("custom.generated.entry_fighting_that_weird_girl_inspired_you_into_learn_543b088243", Dungeon.hero.heroSkills.unlockableSkillName());
                 break;
             default:
-                discuss(); // fallback to prevent getting stuck
+                discuss();
                 discussionProgress = 0;
         }
     }
@@ -781,11 +772,13 @@ public class ColdGirl extends Mob {
         @Override
         public boolean act()
         {
-            if(((ColdGirlAI)ColdGirl.this.state).aiStatus != SUPER_HUNTING)
-            {
-                die(null);
-                return true;
+            try {
+                if (((ColdGirlAI) ColdGirl.this.state).aiStatus != SUPER_HUNTING) {
+                    die(null);
+                    return true;
+                }
             }
+            catch (Exception e){}
             return super.act();
         }
 
@@ -852,9 +845,7 @@ public class ColdGirl extends Mob {
                     } else {
 
                         spend( TICK );
-                        //aiStatus = PASSIVE;
-                        //state = WANDERING;
-                        //target = Dungeon.level.randomDestination();
+
                         sprite.idle();
                         return true;
                     }
@@ -883,9 +874,7 @@ public class ColdGirl extends Mob {
                     } else {
 
                         spend( TICK );
-                        //aiStatus = PASSIVE;
-                        //state = WANDERING;
-                        //target = Dungeon.level.randomDestination();
+
                         sprite.idle();
                         return true;
                     }
@@ -913,15 +902,13 @@ public class ColdGirl extends Mob {
                     } else {
 
                         spend( TICK );
-                        //aiStatus = PASSIVE;
-                        //state = WANDERING;
-                        //target = Dungeon.level.randomDestination();
+
                         sprite.idle();
                         return true;
                     }
                 }
             }
-            spend( TICK ); // Avoid getting stuck
+            spend( TICK );
             return true;
         }
 

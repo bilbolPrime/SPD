@@ -29,6 +29,8 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.BlastParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.SmokeParticle;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -63,10 +65,9 @@ public class BombArrow extends Arrow {
 
 	@Override
 	public String desc() {
-		return 
-			"An arrow with an attached bomb. Keep your distance..";
+        String localized = message( "desc" );
+        return localized != null ? localized : Messages.maybeTranslate( "An arrow with an attached bomb. Keep your distance.." );
 	}
-	
 
 	@Override
 	public int price() {
@@ -76,17 +77,17 @@ public class BombArrow extends Arrow {
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = super.actions( hero );
-        if(Dungeon.hero.belongings.bow != null) {
-            if(actions.contains(AC_THROW) == false)
-            actions.add(AC_THROW);
-        }
-        else
+        if (Dungeon.hero.belongings.bow != null) {
+            if (!actions.contains( AC_THROW )) {
+                actions.add( AC_THROW );
+            }
+        } else {
             actions.remove( AC_THROW );
+        }
         actions.remove(AC_EQUIP);
 
         return actions;
     }
-
 
     @Override
     protected void onThrow( int cell ) {
@@ -99,6 +100,9 @@ public class BombArrow extends Arrow {
                 CellEmitter.center(cell).burst( BlastParticle.FACTORY, 30 );
             }
 
+            Hero archer = curUser;
+            WeaponEffect prefix = archer != null && archer.belongings.bow != null
+                    ? archer.belongings.bow.weaponEffect : null;
             boolean terrainAffected = false;
             for (int n : Level.NEIGHBOURS9) {
                 int c = cell + n;
@@ -117,7 +121,7 @@ public class BombArrow extends Arrow {
                     if (ch != null) {
                         int dmg = Random.Int( 1 + Dungeon.depth, 10 + Dungeon.depth * 2 ) - Random.Int( ch.dr() );
                         if (dmg > 0) {
-                            ch.damage( dmg, this );
+                            explosionDamage(ch, dmg, archer, c == cell ? prefix : null);
                             if (ch.isAlive()) {
                                 Buff.prolong(ch, Paralysis.class, 2);
                             }

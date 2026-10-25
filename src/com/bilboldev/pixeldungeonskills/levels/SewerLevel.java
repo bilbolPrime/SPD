@@ -22,8 +22,9 @@ import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.items.DewVial;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -37,62 +38,65 @@ public class SewerLevel extends RegularLevel {
 		color1 = 0x48763c;
 		color2 = 0x59994a;
 	}
-	
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_SEWERS;
+		if(!Difficulties.is3d)
+			return Assets.TILES_SEWERS;
+
+		return Assets.TILES_SEWERS_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_SEWERS;
 	}
-	
+
 	protected boolean[] water() {
 		return Patch.generate( feeling == Feeling.WATER ? 0.60f : 0.45f, 5 );
 	}
-	
+
 	protected boolean[] grass() {
 		return Patch.generate( feeling == Feeling.GRASS ? 0.60f : 0.40f, 4 );
 	}
-	
+
 	@Override
 	protected void decorate() {
-		
+
 		for (int i=0; i < WIDTH; i++) {
-			if (map[i] == Terrain.WALL &&  
+			if (map[i] == Terrain.WALL &&
 				map[i + WIDTH] == Terrain.WATER &&
 				Random.Int( 4 ) == 0) {
-				
+
 				map[i] = Terrain.WALL_DECO;
 			}
 		}
-		
+
 		for (int i=WIDTH; i < LENGTH - WIDTH; i++) {
-			if (map[i] == Terrain.WALL && 
-				map[i - WIDTH] == Terrain.WALL && 
+			if (map[i] == Terrain.WALL &&
+				map[i - WIDTH] == Terrain.WALL &&
 				map[i + WIDTH] == Terrain.WATER &&
 				Random.Int( 2 ) == 0) {
-				
+
 				map[i] = Terrain.WALL_DECO;
 			}
 		}
-		
+
 		for (int i=WIDTH + 1; i < LENGTH - WIDTH - 1; i++) {
-			if (map[i] == Terrain.EMPTY) { 
-				
-				int count = 
-					(map[i + 1] == Terrain.WALL ? 1 : 0) + 
-					(map[i - 1] == Terrain.WALL ? 1 : 0) + 
+			if (map[i] == Terrain.EMPTY) {
+
+				int count =
+					(map[i + 1] == Terrain.WALL ? 1 : 0) +
+					(map[i - 1] == Terrain.WALL ? 1 : 0) +
 					(map[i + WIDTH] == Terrain.WALL ? 1 : 0) +
 					(map[i - WIDTH] == Terrain.WALL ? 1 : 0);
-				
+
 				if (Random.Int( 16 ) < count * count) {
 					map[i] = Terrain.EMPTY_DECO;
 				}
 			}
 		}
-		
+
 		while (true) {
 			int pos = roomEntrance.random();
 			if (pos != entrance && pos != storage) {
@@ -101,30 +105,30 @@ public class SewerLevel extends RegularLevel {
 			}
 		}
 	}
-	
+
 	@Override
 	protected void createMobs() {
 		super.createMobs();
 
 		Ghost.Quest.spawn( this );
 	}
-	
+
 	@Override
 	protected void createItems() {
 		if (Dungeon.dewVial && Random.Int( 4 - Dungeon.depth ) == 0) {
 			addItemToSpawn( new DewVial() );
 			Dungeon.dewVial = false;
 		}
-		
+
 		super.createItems();
 	}
-	
+
 	@Override
 	public void addVisuals( Scene scene ) {
 		super.addVisuals( scene );
 		addVisuals( this, scene );
 	}
-	
+
 	public static void addVisuals( Level level, Scene scene ) {
 		for (int i=0; i < LENGTH; i++) {
 			if (level.map[i] == Terrain.WALL_DECO) {
@@ -132,7 +136,7 @@ public class SewerLevel extends RegularLevel {
 			}
 		}
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -142,7 +146,7 @@ public class SewerLevel extends RegularLevel {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc(int tile) {
 		switch (tile) {
@@ -154,38 +158,38 @@ public class SewerLevel extends RegularLevel {
 			return super.tileDesc( tile );
 		}
 	}
-	
+
 	private static class Sink extends Emitter {
-		
+
 		private int pos;
 		private float rippleDelay = 0;
-		
+
 		private static final Emitter.Factory factory = new Factory() {
-			
+
 			@Override
 			public void emit( Emitter emitter, int index, float x, float y ) {
 				WaterParticle p = (WaterParticle)emitter.recycle( WaterParticle.class );
 				p.reset( x, y );
 			}
 		};
-		
+
 		public Sink( int pos ) {
 			super();
-			
+
 			this.pos = pos;
-			
+
 			PointF p = DungeonTilemap.tileCenterToWorld( pos );
 			pos( p.x - 2, p.y + 1, 4, 0 );
-			
+
 			pour( factory, 0.05f );
 		}
-		
+
 		@Override
 		public void update() {
 			if (visible = Dungeon.visible[pos]) {
-				
+
 				super.update();
-				
+
 				if ((rippleDelay -= Game.elapsed) <= 0) {
 					GameScene.ripple( pos + WIDTH ).y -= DungeonTilemap.SIZE / 2;
 					rippleDelay = Random.Float( 0.2f, 0.3f );
@@ -195,25 +199,25 @@ public class SewerLevel extends RegularLevel {
 	}
 
 	public static final class WaterParticle extends PixelParticle {
-		
+
 		public WaterParticle() {
 			super();
-			
+
 			acc.y = 50;
 			am = 0.5f;
-			
+
 			color( ColorMath.random( 0xb6ccc2, 0x3b6653 ) );
 			size( 2 );
 		}
-		
+
 		public void reset( float x, float y ) {
 			revive();
-			
+
 			this.x = x;
 			this.y = y;
-			
+
 			speed.set( Random.Float( -2, +2 ), 0 );
-			
+
 			left = lifespan = 0.5f;
 		}
 	}

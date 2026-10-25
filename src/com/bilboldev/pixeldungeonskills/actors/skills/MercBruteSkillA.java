@@ -1,8 +1,5 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
-/**
- * Created by Moussa on 25-Jan-17.
- */
 public class MercBruteSkillA extends Toughness {
     {
         tag = "mercA";
@@ -14,6 +11,10 @@ public class MercBruteSkillA extends Toughness {
         return false;
     }
 
+    @Override
+    protected float reductionPerLevel() {
+        return 0.04f;
+    }
 
     @Override
     public String info()

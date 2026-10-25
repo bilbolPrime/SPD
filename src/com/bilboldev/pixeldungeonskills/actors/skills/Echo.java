@@ -1,33 +1,26 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
-
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
-import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
-import com.bilboldev.pixeldungeonskills.sprites.LegendSprite;
 import com.bilboldev.pixeldungeonskills.sprites.MirrorSprite;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.utils.Random;
-
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class Echo extends ActiveSkill3{
-
 
     {
         name = "Echo";
-        castText = "The past will haunt me forever";
+        castText = Message.key("custom.generated.entry_the_past_will_haunt_me_forever_de9efdc7ab");
         tier = 3;
         image = 121;
         mana = 3;
@@ -60,7 +53,7 @@ public class Echo extends ActiveSkill3{
                 int index = Random.index(respawnPoints);
 
                 SummonedPet minion = new SummonedPet(MirrorSprite.class);
-                minion.name = "Hatsune's Echo";
+                minion.nameText(Message.key("custom.generated.entry_hatsune_s_echo_b5fb93c3f9"));
                 minion.screams = false;
                 minion.HT = 50;
                 minion.HP = 50;
@@ -85,17 +78,10 @@ public class Echo extends ActiveSkill3{
     }
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.7 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;
     }
-
 
     @Override
     public String info()

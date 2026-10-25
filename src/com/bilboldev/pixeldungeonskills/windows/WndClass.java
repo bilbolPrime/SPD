@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Group;
@@ -28,58 +30,63 @@ import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class WndClass extends WndTabbed {
-	
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.ARCANE;
+    }
+
 	private static final String TXT_MASTERY	= "Mastery";
-	
+
 	private static final int WIDTH			= 110;
-	
+
 	private static final int TAB_WIDTH	= 50;
-	
+
 	private HeroClass cl;
-	
+
 	private PerksTab tabPerks;
 	private MasteryTab tabMastery;
-	
+
 	public WndClass( HeroClass cl ) {
-		
+
 		super();
-		
+
 		this.cl = cl;
-		
+
 		tabPerks = new PerksTab();
 		add( tabPerks );
-		
+
 		Tab tab = new RankingTab( Utils.capitalize( cl.title() ), tabPerks );
 		tab.setSize( TAB_WIDTH, tabHeight() );
 		add( tab );
-		
+
 		if (Badges.isUnlocked( cl.masteryBadge() )) {
 			tabMastery = new MasteryTab();
 			add( tabMastery );
-			
+
 			tab = new RankingTab( TXT_MASTERY, tabMastery );
 			tab.setSize( TAB_WIDTH, tabHeight() );
 			add( tab );
-			
-			resize( 
-				(int)Math.max( tabPerks.width, tabMastery.width ), 
+
+			resize(
+				(int)Math.max( tabPerks.width, tabMastery.width ),
 				(int)Math.max( tabPerks.height, tabMastery.height ) );
 		} else {
 			resize( (int)tabPerks.width, (int)tabPerks.height );
 		}
-		
+
 		select( 0 );
 	}
 
 	private class RankingTab extends LabeledTab {
-		
+
 		private Group page;
-		
+
 		public RankingTab( String label, Group page ) {
 			super( label );
 			this.page = page;
 		}
-		
+
 		@Override
 		protected void select( boolean value ) {
 			super.select( value );
@@ -88,31 +95,31 @@ public class WndClass extends WndTabbed {
 			}
 		}
 	}
-	
+
 	private class PerksTab extends Group {
-		
+
 		private static final int MARGIN	= 4;
 		private static final int GAP	= 4;
-		
+
 		private static final String DOT	= "\u007F";
-		
+
 		public float height;
 		public float width;
-		
+
 		public PerksTab() {
 			super();
-			
+
 			float dotWidth = 0;
-			
+
 			String[] items = cl.perks();
 			float pos = MARGIN;
-			
+
 			for (int i=0; i < items.length; i++) {
-				
+
 				if (i > 0) {
 					pos += GAP;
 				}
-				
+
 				BitmapText dot = PixelScene.createText( DOT, 6 );
 				dot.x = MARGIN;
 				dot.y = pos;
@@ -121,36 +128,36 @@ public class WndClass extends WndTabbed {
 					dotWidth = dot.width();
 				}
 				add( dot );
-				
+
 				BitmapTextMultiline item = PixelScene.createMultiline( items[i], 6 );
 				item.x = dot.x + dotWidth;
 				item.y = pos;
 				item.maxWidth = (int)(WIDTH - MARGIN * 2 - dotWidth);
 				item.measure();
 				add( item );
-				
+
 				pos += item.height();
 				float w = item.width();
 				if (w > width) {
 					width = w;
 				}
 			}
-			
+
 			width += MARGIN + dotWidth;
 			height = pos + MARGIN;
 		}
 	}
-	
+
 	private class MasteryTab extends Group {
-		
+
 		private static final int MARGIN	= 4;
 
 		public float height;
 		public float width;
-		
+
 		public MasteryTab() {
 			super();
-			
+
 			String message = null;
 			switch (cl) {
 			case WARRIOR:
@@ -159,11 +166,17 @@ public class WndClass extends WndTabbed {
 			case MAGE:
 				message = HeroSubClass.BATTLEMAGE.desc() + "\n\n" + HeroSubClass.WARLOCK.desc();
 				break;
+			case NECROMANCER:
+				message = HeroSubClass.SPIRIT_BINDER.desc() + "\n\n" + HeroSubClass.LICH.desc();
+				break;
 			case ROGUE:
 				message = HeroSubClass.FREERUNNER.desc() + "\n\n" + HeroSubClass.ASSASSIN.desc();
 				break;
 			case HUNTRESS:
 				message = HeroSubClass.SNIPER.desc() + "\n\n" + HeroSubClass.WARDEN.desc();
+				break;
+			case MERCENARY:
+				message = HeroSubClass.MARSHAL.desc() + "\n\n" + HeroSubClass.EXECUTIONER.desc();
 				break;
 			}
 
@@ -171,7 +184,7 @@ public class WndClass extends WndTabbed {
 			text.text( message, WIDTH - MARGIN * 2 );
 			text.setPos( MARGIN, MARGIN );
 			add( text );
-			
+
 			height = text.bottom() + MARGIN;
 			width = text.right() + MARGIN;
 		}

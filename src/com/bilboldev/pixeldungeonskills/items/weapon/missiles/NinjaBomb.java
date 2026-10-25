@@ -17,23 +17,20 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.graphics.Color;
 
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
-import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
-import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Splash;
-import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
-import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
@@ -56,20 +53,20 @@ public class NinjaBomb extends MissileWeapon {
 		super();
 		quantity = number;
 	}
-	
+
 	@Override
 	public int min() {
 		return 1;
 	}
-	
+
 	@Override
 	public int max() {
 		return 4;
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"A magical crystal capable of capturing soul essence. Throw this at a weak or weakened foe and capture his spirit.";
 	}
 
@@ -78,17 +75,15 @@ public class NinjaBomb extends MissileWeapon {
 
         StringBuilder info = new StringBuilder( desc() );
 
-
         return info.toString();
     }
-
 
     @Override
     protected void onThrow( int cell ) {
         if(Actor.findChar(cell) != null && Actor.findChar(cell) instanceof Mob && (!(Actor.findChar(cell) instanceof NPC) || Actor.findChar(cell) instanceof SummonedPet) && !Bestiary.isBoss(Actor.findChar(cell)) && (Random.Int(10 * strength, 20  * strength) > Actor.findChar(cell).HP || Actor.findChar(cell) instanceof SummonedPet))
         {
             Buff.affect(Actor.findChar(cell), Sleep.class);
-            GLog.p("Knocked out " + Actor.findChar(cell).name + "!");
+			GLog.p("custom.generated.entry_knocked_out_s_adb02ec971", Message.actor(Actor.findChar( cell )));
         }
 
         if (Dungeon.visible[cell]) {

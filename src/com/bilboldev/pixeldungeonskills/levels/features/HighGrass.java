@@ -31,16 +31,17 @@ import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfHerbalism.Herbalism;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
+import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletLevel2;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Random;
 
 public class HighGrass {
 
 	public static void trample( Level level, int pos, Char ch ) {
-		
+
 		Level.set( pos, Terrain.GRASS );
 		GameScene.updateMap( pos );
-		
+
 		if (!Dungeon.isChallenged( Challenges.NO_HERBALISM )) {
 			int herbalismLevel = 0;
 			if (ch != null) {
@@ -49,25 +50,33 @@ public class HighGrass {
 					herbalismLevel = herbalism.level;
 				}
 			}
-			// Seed
+
 			if (herbalismLevel >= 0 && Random.Int( 18 ) <= Random.Int( herbalismLevel + 1 )) {
-				level.drop( Generator.random( Generator.Category.SEED ), pos ).sprite.drop();
+				try
+				{
+					if(!(Dungeon.level instanceof GauntletLevel2)){
+						level.drop(Generator.random(Generator.Category.SEED), pos).sprite.drop();
+					} else{
+						level.drop( new Dewdrop(), pos ).sprite.drop();
+					}
+				}
+				catch (Exception e){
+
+				}
 			}
-			
-			// Dew
+
 			if (herbalismLevel >= 0 && Random.Int( 6 ) <= Random.Int( herbalismLevel + 1 )) {
 				level.drop( new Dewdrop(), pos ).sprite.drop();
 			}
 		}
-		
+
 		int leaves = 4;
-		
-		// Warlock's barkskin
+
 		if (ch instanceof Hero && ((Hero)ch).subClass == HeroSubClass.WARDEN) {
 			Buff.affect( ch, Barkskin.class ).level( ch.HT / 3 );
 			leaves = 8;
 		}
-		
+
 		CellEmitter.get( pos ).burst( LeafParticle.LEVEL_SPECIFIC, leaves );
 		Dungeon.observe();
 	}

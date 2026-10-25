@@ -24,76 +24,85 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Chrome;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 
 public class RedButton extends Button {
-	
+
 	protected NinePatch bg;
 	protected BitmapText text;
 	protected Image icon;
-			
+
 	public RedButton( String label ) {
 		super();
-		
-		text.text( label );
+
+		text.text( Messages.maybeTranslate( label ) );
 		text.measure();
 	}
-	
+
 	@Override
 	protected void createChildren() {
 		super.createChildren();
-		
+
 		bg = Chrome.get( Chrome.Type.BUTTON );
 		add( bg );
-		
+
 		text = PixelScene.createText( 9 );
+		if (bg instanceof RebornChrome) text.hardlight(0xECE2D4);
+		text.scale.set( text.scale.x * textScale(), text.scale.y * textScale() );
 		add( text );
 	}
-	
+
+	protected float textScale() {
+		return 1f;
+	}
+
 	@Override
 	protected void layout() {
-		
+
 		super.layout();
-		
+
 		bg.x = x;
 		bg.y = y;
 		bg.size( width, height );
-		
+
 		text.x = x + (int)(width - text.width()) / 2;
 		text.y = y + (int)(height - text.baseLine()) / 2;
-		
+
 		if (icon != null) {
 			icon.x = x + text.x - icon.width() - 2;
 			icon.y = y + (height - icon.height()) / 2;
 		}
 	};
-	
+
 	@Override
 	protected void onTouchDown() {
+		if (bg instanceof RebornChrome) ((RebornChrome)bg).highlight(true);
 		bg.brightness( 1.2f );
 		Sample.INSTANCE.play( Assets.SND_CLICK );
 	};
-	
+
 	@Override
 	protected void onTouchUp() {
+		if (bg instanceof RebornChrome) ((RebornChrome)bg).highlight(false);
 		bg.resetColor();
 	};
-	
+
 	public void enable( boolean value ) {
 		active = value;
 		text.alpha( value ? 1.0f : 0.3f );
 	}
-	
+
 	public void text( String value ) {
-		text.text( value );
+		text.text( Messages.maybeTranslate( value ) );
 		text.measure();
 		layout();
 	}
-	
+
 	public void textColor( int value ) {
 		text.hardlight( value );
 	}
-	
+
 	public void icon( Image icon ) {
 		if (this.icon != null) {
 			remove( this.icon );
@@ -104,11 +113,11 @@ public class RedButton extends Button {
 			layout();
 		}
 	}
-	
+
 	public float reqWidth() {
 		return text.width() + 4;
 	}
-	
+
 	public float reqHeight() {
 		return text.baseLine() + 4;
 	}

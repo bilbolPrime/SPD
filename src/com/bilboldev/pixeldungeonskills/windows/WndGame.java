@@ -21,36 +21,40 @@ import java.io.IOException;
 
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.actors.Online.OnlineHero;
+import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.RankingsScene;
 import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
+import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 
 public class WndGame extends Window {
-	
+
 	private static final String TXT_SETTINGS	= "Settings";
 	private static final String TXT_CHALLEGES	= "Challenges";
-	private static final String TXT_RANKINGS	= "Rankings";
 	private static final String TXT_START		= "Start New Game";
 	private static final String TXT_MENU		= "Main Menu";
 	private static final String TXT_EXIT		= "Exit Game";
 	private static final String TXT_RETURN		= "Return to Game";
-	
+
 	private static final int WIDTH		= 120;
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP		= 2;
-	
+
 	private int pos;
-	
+
 	public WndGame() {
-		
+
 		super();
-		
+
 		addButton( new RedButton( TXT_SETTINGS ) {
 			@Override
 			protected void onClick() {
@@ -58,7 +62,7 @@ public class WndGame extends Window {
 				GameScene.show( new WndSettings( true ) );
 			}
 		} );
-		
+
 		if (Dungeon.challenges > 0) {
 			addButton( new RedButton( TXT_CHALLEGES ) {
 				@Override
@@ -68,39 +72,37 @@ public class WndGame extends Window {
 				}
 			} );
 		}
-		
-		if (!Dungeon.hero.isAlive() && !(Dungeon.hero instanceof Legend)) {
-			
+
+		if (!Dungeon.hero.isAlive() && !(Dungeon.hero instanceof Legend) && !(Dungeon.hero instanceof OnlineHero) && !(Dungeon.hero instanceof GauntletHero)) {
+
 			RedButton btnStart;
 			addButton( btnStart = new RedButton( TXT_START ) {
 				@Override
 				protected void onClick() {
-					Dungeon.hero = null;
-					PixelDungeon.challenges( Dungeon.challenges );
-					InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-					InterlevelScene.noStory = true;
-					Game.switchScene( InterlevelScene.class );
+					Game.switchScene(StartScene.class);
 				}
 			} );
 			btnStart.icon( Icons.get( Dungeon.hero.heroClass ) );
-			
-			addButton( new RedButton( TXT_RANKINGS ) {
-				@Override
-				protected void onClick() {
-					InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-					Game.switchScene( RankingsScene.class );
-				}
-			} );
+
+			if (!LocalCoop.active()) {
+				addButton( new RedButton( Messages.get( WndGame.class, "rankings" ) ) {
+					@Override
+					protected void onClick() {
+						InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+						Game.switchScene( RankingsScene.class );
+					}
+				} );
+			}
 		}
-				
-		addButtons( 
+
+		addButtons(
 			new RedButton( TXT_MENU ) {
 				@Override
 				protected void onClick() {
 					try {
 						Dungeon.saveAll();
 					} catch (IOException e) {
-						// Do nothing
+
 					}
 					Game.switchScene( TitleScene.class );
 				}
@@ -109,25 +111,25 @@ public class WndGame extends Window {
 				protected void onClick() {
 					Game.instance.finish();
 				}
-			} 
+			}
 		);
-		
+
 		addButton( new RedButton( TXT_RETURN ) {
 			@Override
 			protected void onClick() {
 				hide();
 			}
 		} );
-		
+
 		resize( WIDTH, pos );
 	}
-	
+
 	private void addButton( RedButton btn ) {
 		add( btn );
 		btn.setRect( 0, pos > 0 ? pos += GAP : 0, WIDTH, BTN_HEIGHT );
 		pos += BTN_HEIGHT;
 	}
-	
+
 	private void addButtons( RedButton btn1, RedButton btn2 ) {
 		add( btn1 );
 		btn1.setRect( 0, pos > 0 ? pos += GAP : 0, (WIDTH - GAP) / 2, BTN_HEIGHT );

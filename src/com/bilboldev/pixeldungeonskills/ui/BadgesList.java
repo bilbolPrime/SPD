@@ -33,37 +33,37 @@ import com.bilboldev.pixeldungeonskills.windows.WndBadge;
 public class BadgesList extends ScrollPane {
 
 	private ArrayList<ListItem> items = new ArrayList<ListItem>();
-	
+
 	public BadgesList( boolean global ) {
 		super( new Component() );
-		
+
 		for (Badges.Badge badge : Badges.filtered( global )) {
-			
+
 			if (badge.image == -1) {
 				continue;
 			}
-			
+
 			ListItem item = new ListItem( badge );
 			content.add( item );
 			items.add( item );
 		}
 	}
-	
+
 	@Override
 	protected void layout() {
 		float pos = 0;
-		
+
 		int size = items.size();
 		for (int i=0; i < size; i++) {
 			items.get( i ).setRect( 0, pos, width, ListItem.HEIGHT );
 			pos += ListItem.HEIGHT;
 		}
-		
+
 		content.setSize( width, pos );
-		
+
 		super.layout();
 	}
-	
+
 	@Override
 	public void onClick( float x, float y ) {
 		int size = items.size();
@@ -75,40 +75,40 @@ public class BadgesList extends ScrollPane {
 	}
 
 	private class ListItem extends Component {
-		
+
 		private static final float HEIGHT	= 20;
-		
+
 		private Badges.Badge badge;
-		
+
 		private Image icon;
 		private BitmapText label;
-		
+
 		public ListItem( Badges.Badge badge ) {
 			super();
-			
+
 			this.badge = badge;
 			icon.copy( BadgeBanner.image( badge.image ));
-			label.text( badge.description );
+			label.text( badge.description() );
 		}
-		
+
 		@Override
 		protected void createChildren() {
 			icon = new Image();
 			add( icon );
-			
+
 			label = PixelScene.createText( 6 );
 			add( label );
 		}
-		
+
 		@Override
 		protected void layout() {
 			icon.x = x;
 			icon.y = PixelScene.align( y + (height - icon.height) / 2 );
-			
+
 			label.x = icon.x + icon.width + 2;
 			label.y = PixelScene.align( y + (height - label.baseLine()) / 2 );
 		}
-		
+
 		public boolean onClick( float x, float y ) {
 			if (inside( x, y )) {
 				Sample.INSTANCE.play( Assets.SND_CLICK, 0.7f, 0.7f, 1.2f );

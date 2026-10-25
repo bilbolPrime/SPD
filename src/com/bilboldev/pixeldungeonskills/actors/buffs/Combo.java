@@ -23,45 +23,45 @@ import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class Combo extends Buff {
-	
+
 	private static String TXT_COMBO = "%d hit combo!";
-	
+
 	public int count = 0;
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.COMBO;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Combo";
 	}
-	
+
 	public int hit( Char enemy, int damage ) {
-		
+
 		count++;
-		
+
 		if (count >= 3) {
-			
+
 			Badges.validateMasteryCombo( count );
-			
-			GLog.p( TXT_COMBO, count );
+
+			GLog.p(Combo.class, "combo", count);
 			postpone( 1.41f - count / 10f );
 			return (int)(damage * (count - 2) / 5f);
-			
+
 		} else {
-			
+
 			postpone( 1.1f );
 			return 0;
-			
+
 		}
 	}
-	
+
 	@Override
 	public boolean act() {
 		detach();
 		return true;
 	}
-	
+
 }

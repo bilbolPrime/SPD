@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.effects.Enchanting;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -29,52 +30,53 @@ import com.bilboldev.pixeldungeonskills.windows.WndBag;
 
 public class ScrollOfEnchantment extends InventoryScroll {
 
-	private static final String TXT_GLOWS	= "your %s glows in the dark";
-    private static final String TXT_BOW	= "your bow is now a %s";
+	private static final String TXT_GLOWS	= "custom.generated.entry_your_s_glows_in_the_dark_bceb772343";
+    private static final String TXT_BOW	= "custom.generated.entry_your_bow_is_now_a_s_ef672ce95e";
 	{
 		name = "Scroll of Enchantment";
-		inventoryTitle = "Select an enchantable item";
+		inventoryTitle = Message.key("custom.generated.entry_select_an_enchantable_item_7c1eeba32f");
 		mode = WndBag.Mode.ENCHANTABLE;
 	}
-	
+
 	@Override
 	protected void onItemSelected( Item item ) {
 
 		ScrollOfRemoveCurse.uncurse( Dungeon.hero, item );
 
-
         if (item instanceof Bow) {
 
             Bow newBow =  ((Bow)item).enchant();
+			newBow.upgrade(item.level);
             if(curUser.belongings.bow != null)
                 curUser.belongings.bow = newBow;
             else
             {
                 item.detach(Dungeon.hero.belongings.backpack);
+				newBow.upgrade(item.level);
                 newBow.collect();
             }
 
-            GLog.w(TXT_BOW, newBow.name());
+            GLog.w(TXT_BOW, Message.itemName(newBow));
         }
         else if (item instanceof Weapon) {
-			
+
 			((Weapon)item).enchant();
-			
+
 		} else {
 
 			((Armor)item).inscribe();
-		
+
 		}
-		
+
 		item.fix();
-		
+
 		curUser.sprite.emitter().start( Speck.factory( Speck.LIGHT ), 0.1f, 5 );
         if (!(item instanceof Bow)) {
             Enchanting.show(curUser, item);
-            GLog.w(TXT_GLOWS, item.name());
+            GLog.w(TXT_GLOWS, Message.itemName(item));
         }
 	}
-	
+
 	@Override
 	public String desc() {
 		return

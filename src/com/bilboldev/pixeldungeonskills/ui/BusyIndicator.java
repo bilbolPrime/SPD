@@ -19,21 +19,24 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 
 public class BusyIndicator extends Image {
-	
+
 	public BusyIndicator() {
 		super();
 		copy( Icons.BUSY.get() );
-		
+
 		origin.set( width / 2, height / 2 );
 		angularSpeed = 720;
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		visible = Dungeon.hero.isAlive() && !Dungeon.hero.ready && MissionScene.scenePause == false;
+		visible = Dungeon.hero.isAlive()
+				&& (LocalCoop.active() ? !LocalCoop.acceptsInput() : !Dungeon.hero.ready)
+				&& MissionScene.scenePause == false;
 	}
 }

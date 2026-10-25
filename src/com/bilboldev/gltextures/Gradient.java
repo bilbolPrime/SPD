@@ -20,19 +20,19 @@ package com.bilboldev.gltextures;
 import android.graphics.Bitmap;
 
 public class Gradient extends SmartTexture {
-	
+
 	public Gradient( int colors[] ) {
-		
+
 		super( Bitmap.createBitmap( colors.length, 1, Bitmap.Config.ARGB_8888 ) );
-		
+
 		for (int i=0; i < colors.length; i++) {
 			bitmap.setPixel( i, 0, colors[i] );
 		}
 		bitmap( bitmap );
-		
+
 		filter( LINEAR, LINEAR );
 		wrap( CLAMP, CLAMP );
-		
-		TextureCache.add( Gradient.class, this );
+
+		TextureCache.add( this, this );
 	}
 }

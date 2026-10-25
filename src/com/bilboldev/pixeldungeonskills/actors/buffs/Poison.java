@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -30,56 +31,79 @@ import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
 
 public class Poison extends Buff implements Hero.Doom {
-	
+
 	protected float left;
-	
+	private boolean championSource;
+	private transient Hero source;
+
 	private static final String LEFT	= "left";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( LEFT, left );
-		
+		bundle.put( "champion_source", championSource );
+
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		left = bundle.getFloat( LEFT );
+		championSource = bundle.getBoolean( "champion_source" );
 	}
-	
+
 	public void set( float duration ) {
 		this.left = duration;
+		source = LocalCoop.active() ? Dungeon.hero : null;
+		championSource = false;
 	};
-	
+
+	public void setChampionDuration(float duration) {
+		set(duration);
+		championSource = true;
+	}
+
+	public void extendItemDuration(float duration) {
+		if (left <= 0) championSource = true;
+		left = Math.max(left, duration);
+	}
+
 	@Override
 	public int icon() {
 		return BuffIndicator.POISON;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Poisoned";
 	}
-	
+
 	@Override
 	public boolean act() {
+		if (LocalCoop.active() && source != null && source != Dungeon.hero) {
+			return LocalCoop.withHero(source, () -> tick());
+		}
+		return tick();
+	}
+
+	private boolean tick() {
 		if (target.isAlive()) {
 
-            if(target instanceof Mob && Dungeon.hero.heroSkills.passiveB2.venomBonus() > 0)
-                target.damage( (int)(left / 3) + 1 + Dungeon.hero.heroSkills.passiveB2.venomBonus(), this );
+            if (target instanceof Mob && !championSource)
+                target.damage( ((int)(Dungeon.hero.skillTree.venomDamageModifier() * ((int)(left / 3) + 1 ))), this );
             else
 			    target.damage( (int)(left / 3) + 1, this );
 			spend( TICK );
-			
+
 			if ((left -= TICK) <= 0) {
 				detach();
 			}
-			
+
 		} else {
-			
+
 			detach();
-			
+
 		}
 
 		return true;
@@ -93,8 +117,8 @@ public class Poison extends Buff implements Hero.Doom {
 	@Override
 	public void onDeath() {
 		Badges.validateDeathFromPoison();
-		
-		Dungeon.fail( Utils.format( ResultDescriptions.POISON, Dungeon.depth ) );
-		GLog.n( "You died from poison..." );
+
+		Dungeon.fail( Utils.format( ResultDescriptions.POISON, Dungeon.depth ), Poison.class );
+		GLog.n(Poison.class, "ondeath");
 	}
 }

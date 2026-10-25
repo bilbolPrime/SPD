@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -39,37 +40,40 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class FrostLevel extends Level {
-	
+
 	{
 		color1 = 0x534f3e;
 		color2 = 0xb9d661;
-		
+
 		viewDistance = 6;
 	}
-	
+
 	private static final int ROOM_LEFT		= WIDTH / 2 - 2;
 	private static final int ROOM_RIGHT		= WIDTH / 2 + 2;
 	private static final int ROOM_TOP		= HEIGHT / 2 - 2;
 	private static final int ROOM_BOTTOM	= HEIGHT / 2 + 2;
-	
+
 	private int arenaDoor;
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
-	
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_SNOW;
+		if(!Difficulties.is3d)
+			return Assets.TILES_SNOW;
+
+		return Assets.TILES_SNOW_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_CAVES;
 	}
-	
+
 	private static final String DOOR	= "door";
 	private static final String ENTERED	= "entered";
 	private static final String DROPPED	= "droppped";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
@@ -77,7 +81,7 @@ public class FrostLevel extends Level {
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
@@ -85,12 +89,12 @@ public class FrostLevel extends Level {
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
 	}
-	
+
 	@Override
 	protected boolean build() {
-		
+
 		int topMost = Integer.MAX_VALUE;
-		
+
 		for (int i=0; i < 8; i++) {
 			int left, right, top, bottom;
 			if (Random.Int( 2 ) == 0) {
@@ -107,28 +111,17 @@ public class FrostLevel extends Level {
 				top = ROOM_LEFT - 3;
 				bottom = Random.Int( ROOM_TOP + 3, HEIGHT - 1 );
 			}
-			
+
 			Painter.fill( this, left, top, right - left + 1, bottom - top + 1, Terrain.EMPTY );
-			
+
 			if (top < topMost) {
 				topMost = top;
 				exit = Random.Int( left, right ) + (top - 1) * WIDTH;
 			}
 		}
-		
 
-		
-
-
-		Painter.fill( this, ROOM_LEFT, ROOM_TOP + 1, 
+		Painter.fill( this, ROOM_LEFT, ROOM_TOP + 1,
 			ROOM_RIGHT - ROOM_LEFT + 1, ROOM_BOTTOM - ROOM_TOP, Terrain.EMPTY );
-
-		
-
-
-
-
-
 
 		boolean[] patch = Patch.generate( 0.45f, 6 );
 		for (int i=0; i < LENGTH; i++) {
@@ -136,13 +129,13 @@ public class FrostLevel extends Level {
 				map[i] = Terrain.WATER;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	@Override
-	protected void decorate() {	
-		
+	protected void decorate() {
+
 		for (int i=WIDTH + 1; i < LENGTH - WIDTH; i++) {
 			if (map[i] == Terrain.EMPTY) {
 				int n = 0;
@@ -163,7 +156,7 @@ public class FrostLevel extends Level {
 				}
 			}
 		}
-		
+
 		for (int i=0; i < LENGTH; i++) {
 			if (map[i] == Terrain.WALL && Random.Int( 8 ) == 0) {
 				map[i] = Terrain.WALL_DECO;
@@ -171,15 +164,15 @@ public class FrostLevel extends Level {
 		}
 
 	}
-	
+
 	@Override
-	protected void createMobs() {	
+	protected void createMobs() {
 	}
-	
+
 	public Actor respawner() {
 		return null;
 	}
-	
+
 	@Override
 	protected void createItems() {
 		Item item = Bones.get();
@@ -191,7 +184,7 @@ public class FrostLevel extends Level {
 			drop( item, pos ).type = Heap.Type.SKELETON;
 		}
 	}
-	
+
 	@Override
 	public int randomRespawnCell() {
 		return (HEIGHT + 1) * WIDTH / 2;
@@ -205,7 +198,7 @@ public class FrostLevel extends Level {
 
 	@Override
 	public void press( int cell, Char hero ) {
-		
+
 		super.press( cell, hero );
 
         if(enteredArena == false)
@@ -221,30 +214,30 @@ public class FrostLevel extends Level {
             GameScene.add( boss );
         }
 	}
-	
+
 	@Override
 	public Heap drop( Item item, int cell ) {
-		
+
 		if (!keyDropped && item instanceof SkeletonKey) {
-			
+
 			keyDropped = true;
-			
+
 			CellEmitter.get( arenaDoor ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
-			
+
 			set( arenaDoor, Terrain.EMPTY_DECO );
 			GameScene.updateMap( arenaDoor );
 			Dungeon.observe();
 		}
-		
+
 		return super.drop( item, cell );
 	}
-	
+
 	private boolean outsideEntraceRoom( int cell ) {
 		int cx = cell % WIDTH;
 		int cy = cell / WIDTH;
 		return cx < ROOM_LEFT-1 || cx > ROOM_RIGHT+1 || cy < ROOM_TOP-1 || cy > ROOM_BOTTOM+1;
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -258,7 +251,7 @@ public class FrostLevel extends Level {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc( int tile ) {
 		switch (tile) {
@@ -275,7 +268,6 @@ public class FrostLevel extends Level {
 		}
 	}
 
-	
 	@Override
 	public void addVisuals( Scene scene ) {
 		CavesLevel.addVisuals( this, scene );

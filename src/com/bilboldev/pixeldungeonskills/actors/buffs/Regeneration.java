@@ -18,34 +18,36 @@
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
-import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfMending;
 
 public class Regeneration extends Buff {
-	
+
 	private static final float REGENERATION_DELAY = 10;
-	
+
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
 
-			if (target.HP < target.HT && !((Hero)target).isStarving()) {
+			Hero hero = (Hero)target;
+			if (target.HP < target.HT && !hero.isStarving()) {
 				target.HP += 1;
 			}
-			
+
 			int bonus = 0;
 			for (Buff buff : target.buffs( RingOfMending.Rejuvenation.class )) {
 				bonus += ((RingOfMending.Rejuvenation)buff).level;
 			}
 
-            bonus += ((Hero)target).heroSkills.passiveA2.healthRegenerationBonus(); // <-- Warrior regeneration if present
+			int skillBonus = hero.heroSkills.passiveA2.healthRegenerationBonus()
+					+ hero.skillTree.getRegenerationBonus();
+			float delay = REGENERATION_DELAY
+					* com.bilboldev.pixeldungeonskills.actors.skills.Regeneration.delayMultiplier(skillBonus);
+			spend( (float)(delay / Math.pow( 1.2, bonus )) );
 
-			spend( (float)(REGENERATION_DELAY / Math.pow( 1.2, bonus )) );
-			
 		} else {
-			
+
 			diactivate();
-			
+
 		}
 
 		return true;

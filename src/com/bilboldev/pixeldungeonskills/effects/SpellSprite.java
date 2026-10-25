@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.effects;
 
+import com.bilboldev.pixeldungeonskills.network.PartyEffects;
+
 import java.util.HashMap;
 
 import com.bilboldev.noosa.Game;
@@ -32,52 +34,78 @@ public class SpellSprite extends Image {
 	public static final int MAP			= 1;
 	public static final int CHARGE		= 2;
 	public static final int MASTERY		= 3;
-	
+
 	private static final int SIZE	= 16;
-	
+
 	private enum Phase {
 		FADE_IN, STATIC, FADE_OUT
 	};
-	
+
 	private static final float FADE_IN_TIME		= 0.2f;
 	private static final float STATIC_TIME		= 0.8f;
 	private static final float FADE_OUT_TIME	= 0.4f;
-	
+
 	private static TextureFilm film;
-	
+
 	private Char target;
-	
+	private int remoteActor = -1, remoteCell;
+
+	public Char target() {
+		if (remoteActor >= 0) {
+			com.bilboldev.pixeldungeonskills.actors.Actor actor =
+					com.bilboldev.pixeldungeonskills.actors.Actor.findById(remoteActor);
+			return actor instanceof Char ? (Char)actor : null;
+		}
+		return target;
+	}
+
+	public int cell() { return remoteCell; }
+
+	public static SpellSprite visual(int actor, int cell, int icon) {
+		SpellSprite sprite = new SpellSprite();
+		sprite.remoteActor = actor;
+		sprite.remoteCell = cell;
+		sprite.reset(icon);
+		return sprite;
+	}
+
 	private Phase phase;
 	private float duration;
 	private float passed;
-	
+
 	private static HashMap<Char,SpellSprite> all = new HashMap<Char, SpellSprite>();
-	
+
 	public SpellSprite() {
 		super( Assets.SPELL_ICONS );
-		
+
 		if (film == null) {
 			film = new TextureFilm( texture, SIZE );
 		}
 	}
-	
+
 	public void reset( int index ) {
 		frame( film.get( index ) );
 		origin.set( width / 2, height / 2 );
-		
+
 		phase = Phase.FADE_IN;
-		
+
 		duration = FADE_IN_TIME;
 		passed = 0;
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
-		x = target.sprite.center().x - SIZE / 2;
-		y = target.sprite.y - SIZE;
-		
+
+		Char owner = target();
+		if (owner != null && owner.sprite != null) {
+			x = owner.sprite.center().x - SIZE / 2;
+			y = owner.sprite.y - SIZE;
+		} else {
+			x = (remoteCell % com.bilboldev.pixeldungeonskills.levels.Level.WIDTH) * SIZE;
+			y = (remoteCell / com.bilboldev.pixeldungeonskills.levels.Level.WIDTH - 1) * SIZE;
+		}
+
 		switch (phase) {
 		case FADE_IN:
 			alpha( passed / duration );
@@ -89,7 +117,7 @@ public class SpellSprite extends Image {
 			alpha( 1 - passed / duration );
 			break;
 		}
-		
+
 		if ((passed += Game.elapsed) > duration) {
 			switch (phase) {
 			case FADE_IN:
@@ -104,28 +132,36 @@ public class SpellSprite extends Image {
 				kill();
 				break;
 			}
-			
+
 			passed = 0;
 		}
 	}
-	
+
 	@Override
 	public void kill() {
 		super.kill();
 		all.remove( target );
+		target = null;
 	}
-	
+
+	@Override
+	public void destroy() {
+		kill();
+		super.destroy();
+	}
+
 	public static void show( Char ch, int index ) {
-		
+
 		if (!ch.sprite.visible) {
 			return;
 		}
-		
+		PartyEffects.spell(ch.sprite, index);
+
 		SpellSprite old = all.get( ch );
 		if (old != null) {
 			old.kill();
 		}
-		
+
 		SpellSprite sprite = GameScene.spellSprite();
 		sprite.revive();
 		sprite.reset( index );

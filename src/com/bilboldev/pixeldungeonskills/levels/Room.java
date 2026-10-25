@@ -34,13 +34,13 @@ import com.bilboldev.utils.Random;
 import com.bilboldev.utils.Rect;
 
 public class Room extends Rect implements Graph.Node, Bundlable {
-	
+
 	public HashSet<Room> neigbours = new HashSet<Room>();
 	public HashMap<Room, Door> connected = new HashMap<Room, Door>();
-	
+
 	public int distance;
 	public int price = 1;
-	
+
 	public static enum Type {
 		NULL( null ),
 		STANDARD	( StandardPainter.class ),
@@ -66,10 +66,15 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 		RAT_KING	( RatKingPainter.class ),
 		WEAK_FLOOR	( WeakFloorPainter.class ),
 		PIT			( PitPainter.class ),
-		ALTAR		( AltarPainter.class );
-		
+		ALTAR		( AltarPainter.class ),
+        MERCENARY   ( MercenaryPainter.class ),
+        ECHO        ( RebornSideRoomPainter.class ),
+        BARBECUE    ( RebornSideRoomPainter.class ),
+        LAST_WATCH  ( RebornSideRoomPainter.class ),
+        OFFERING    ( RebornSideRoomPainter.class );
+
 		private Method paint;
-		
+
 		private Type( Class<? extends Painter> painter ) {
 			try {
 				paint = painter.getMethod( "paint", Level.class, Room.class );
@@ -77,7 +82,7 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 				paint = null;
 			}
 		}
-		
+
 		public void paint( Level level, Room room ) {
 			try {
 				paint.invoke( null, level, room );
@@ -86,59 +91,59 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 			}
 		}
 	};
-	
+
 	public static final ArrayList<Type> SPECIALS = new ArrayList<Type>( Arrays.asList(
 		Type.ARMORY, Type.WEAK_FLOOR, Type.MAGIC_WELL, Type.CRYPT, Type.POOL, Type.GARDEN, Type.LIBRARY,
 		Type.TREASURY, Type.TRAPS, Type.STORAGE, Type.STATUE, Type.LABORATORY, Type.VAULT, Type.ALTAR
 	) );
-	
+
 	public Type type = Type.NULL;
-	
+
+    public int[] rebornDoors = new int[0];
+
 	public int random() {
 		return random( 0 );
 	}
-	
+
 	public int random( int m ) {
 		int x = Random.Int( left + 1 + m, right - m );
 		int y = Random.Int( top + 1 + m, bottom - m );
 		return x + y * Level.WIDTH;
 	}
-	
+
 	public void addNeigbour( Room other ) {
-		
+
 		Rect i = intersect( other );
-		if ((i.width() == 0 && i.height() >= 3) || 
+		if ((i.width() == 0 && i.height() >= 3) ||
 			(i.height() == 0 && i.width() >= 3)) {
 			neigbours.add( other );
 			other.neigbours.add( this );
 		}
-		
+
 	}
-	
+
 	public void connect( Room room ) {
-		if (!connected.containsKey( room )) {	
+		if (!connected.containsKey( room )) {
 			connected.put( room, null );
-			room.connected.put( this, null );			
+			room.connected.put( this, null );
 		}
 	}
-	
+
 	public Door entrance() {
 		return connected.values().iterator().next();
 	}
-	
+
 	public boolean inside( int p ) {
 		int x = p % Level.WIDTH;
 		int y = p / Level.WIDTH;
 		return x > left && y > top && x < right && y < bottom;
 	}
-	
+
 	public Point center() {
-		return new Point( 
+		return new Point(
 			(left + right) / 2 + (((right - left) & 1) == 1 ? Random.Int( 2 ) : 0),
 			(top + bottom) / 2 + (((bottom - top) & 1) == 1 ? Random.Int( 2 ) : 0) );
 	}
-	
-	// **** Graph.Node interface ****
 
 	@Override
 	public int distance() {
@@ -149,7 +154,7 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 	public void distance( int value ) {
 		distance = value;
 	}
-	
+
 	@Override
 	public int price() {
 		return price;
@@ -163,28 +168,29 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 	@Override
 	public Collection<Room> edges() {
 		return neigbours;
-	} 
-	
-	// FIXME: use proper string constants
-	
+	}
+
 	@Override
-	public void storeInBundle( Bundle bundle ) {	
+	public void storeInBundle( Bundle bundle ) {
 		bundle.put( "left", left );
 		bundle.put( "top", top );
 		bundle.put( "right", right );
 		bundle.put( "bottom", bottom );
 		bundle.put( "type", type.toString() );
+        if (rebornDoors.length > 0) bundle.put("reborn_doors", rebornDoors);
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		left = bundle.getInt( "left" );
 		top = bundle.getInt( "top" );
 		right = bundle.getInt( "right" );
-		bottom = bundle.getInt( "bottom" );		
+		bottom = bundle.getInt( "bottom" );
 		type = Type.valueOf( bundle.getString( "type" ) );
+        rebornDoors = bundle.getIntArray("reborn_doors");
+        if (rebornDoors == null) rebornDoors = new int[0];
 	}
-	
+
 	public static void shuffleTypes() {
 		int size = SPECIALS.size();
 		for (int i=0; i < size - 1; i++) {
@@ -196,15 +202,15 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 			}
 		}
 	}
-	
+
 	public static void useType( Type type ) {
 		if (SPECIALS.remove( type )) {
 			SPECIALS.add( type );
 		}
 	}
-	
+
 	private static final String ROOMS	= "rooms";
-	
+
 	public static void restoreRoomsFromBundle( Bundle bundle ) {
 		if (bundle.contains( ROOMS )) {
 			SPECIALS.clear();
@@ -215,7 +221,7 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 			shuffleTypes();
 		}
 	}
-	
+
 	public static void storeRoomsInBundle( Bundle bundle ) {
 		String[] array = new String[SPECIALS.size()];
 		for (int i=0; i < array.length; i++) {
@@ -223,18 +229,18 @@ public class Room extends Rect implements Graph.Node, Bundlable {
 		}
 		bundle.put( ROOMS, array );
 	}
-	
+
 	public static class Door extends Point {
-		
+
 		public static enum Type {
 			EMPTY, TUNNEL, REGULAR, UNLOCKED, HIDDEN, BARRICADE, LOCKED
 		}
 		public Type type = Type.EMPTY;
-		
+
 		public Door( int x, int y ) {
 			super( x, y );
 		}
-		
+
 		public void set( Type type ) {
 			if (type.compareTo( this.type ) > 0) {
 				this.type = type;

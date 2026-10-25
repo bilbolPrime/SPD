@@ -32,8 +32,9 @@ public class Chrome {
 		TAB_SELECTED,
 		TAB_UNSELECTED
 	};
-	
+
 	public static NinePatch get( Type type ) {
+		if (Presentation.reborn()) return new com.bilboldev.pixeldungeonskills.ui.RebornChrome(type);
 		switch (type) {
 		case WINDOW:
 			return new NinePatch( Assets.CHROME, 0, 0, 22, 22, 7 );

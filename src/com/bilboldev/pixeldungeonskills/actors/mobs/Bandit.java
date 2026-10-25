@@ -23,13 +23,15 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Blindness;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.BanditSprite;
+import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Random;
 
 public class Bandit extends Thief {
-	
+
 	public Item item;
-	
+
 	{
 		name = "crazy bandit";
 		spriteClass = BanditSprite.class;
@@ -38,20 +40,30 @@ public class Bandit extends Thief {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	protected boolean steal( Hero hero ) {
 		if (super.steal( hero )) {
-			
+
 			Buff.prolong( hero, Blindness.class, Random.Int( 5, 12 ) );
 			Dungeon.observe();
-			
+
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
+	@Override
+	public String displayDescription() {
+		String desc = super.displayDescription();
+		if (super.item != null) {
+			desc += "\n\n" + Messages.get( Bandit.class, "carries",
+				Utils.capitalize( displayName() ), super.item.name() );
+		}
+		return desc;
+	}
+
 	@Override
 	public void die( Object cause ) {
 		super.die( cause );

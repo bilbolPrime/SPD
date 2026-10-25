@@ -17,8 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
-
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -32,16 +32,16 @@ public class Bat extends Mob {
 	{
 		name = "vampire bat";
 		spriteClass = BatSprite.class;
-		
+
 		HP = HT = 30;
 		defenseSkill = 15;
 		baseSpeed = 2f;
-		
+
 		EXP = 7;
 		maxLvl = 15;
-		
+
 		flying = true;
-		
+
 		loot = new PotionOfHealing();
 		lootChance = 0.125f;
 
@@ -49,54 +49,54 @@ public class Bat extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 6, 12 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 16;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 4;
 	}
-	
+
 	@Override
-	public String defenseVerb() {
-		return "evaded";
-	}
-	
+	public Message defenseText() {
+        return Message.key(Char.class, "def_verb_evaded");
+    }
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
-		
+
 		int reg = Math.min( damage, HT - HP );
-		
+
 		if (reg > 0) {
 			HP += reg;
 			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 		}
 
         champEffect(enemy, damage);
-		
+
 		return damage;
 	}
-	
+
 	@Override
 	public String description() {
 		return
 			"These brisk and tenacious inhabitants of cave domes may defeat much larger opponents by " +
 			"replenishing their health with each successful attack.";
 	}
-	
+
 	private static final HashSet<Class<?>> RESISTANCES = new HashSet<Class<?>>();
 	static {
 		RESISTANCES.add( Leech.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;

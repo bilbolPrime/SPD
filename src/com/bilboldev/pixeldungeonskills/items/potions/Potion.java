@@ -1,4 +1,3 @@
-
 /*
  * Pixel Dungeon
  * Copyright (C) 2012-2015 Oleg Dolya
@@ -17,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */package com.bilboldev.pixeldungeonskills.items.potions;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -30,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.ItemStatusHandler;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
@@ -38,29 +38,29 @@ import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Bundle;
 
 public class Potion extends Item {
-	
+
 	public static final String AC_DRINK	= "DRINK";
-	
+
 	private static final String TXT_HARMFUL		= "Harmful potion!";
 	private static final String TXT_BENEFICIAL	= "Beneficial potion";
 	private static final String TXT_YES			= "Yes, I know what I'm doing";
 	private static final String TXT_NO			= "No, I changed my mind";
-	private static final String TXT_R_U_SURE_DRINK = 
+	private static final String TXT_R_U_SURE_DRINK =
 		"Are you sure you want to drink it? In most cases you should throw such potions at your enemies.";
-	private static final String TXT_R_U_SURE_THROW = 
+	private static final String TXT_R_U_SURE_THROW =
 		"Are you sure you want to throw it? In most cases it makes sense to drink it.";
-	
+
 	private static final float TIME_TO_DRINK = 1f;
-	
+
 	private static final Class<?>[] potions = {
-		PotionOfHealing.class, 
-		PotionOfExperience.class, 
-		PotionOfToxicGas.class, 
+		PotionOfHealing.class,
+		PotionOfExperience.class,
+		PotionOfToxicGas.class,
 		PotionOfLiquidFlame.class,
 		PotionOfStrength.class,
 		PotionOfParalyticGas.class,
 		PotionOfLevitation.class,
-		PotionOfMindVision.class, 
+		PotionOfMindVision.class,
 		PotionOfPurity.class,
 		PotionOfInvisibility.class,
 		PotionOfMight.class,
@@ -68,70 +68,70 @@ public class Potion extends Item {
         PotionOfMana.class
 	};
 	private static final String[] colors = {
-		"turquoise", "crimson", "azure", "jade", "golden", "magenta", 
+		"turquoise", "crimson", "azure", "jade", "golden", "magenta",
 		"charcoal", "ivory", "amber", "bistre", "indigo", "silver", ""};
 	private static final Integer[] images = {
-		ItemSpriteSheet.POTION_TURQUOISE, 
-		ItemSpriteSheet.POTION_CRIMSON, 
-		ItemSpriteSheet.POTION_AZURE, 
-		ItemSpriteSheet.POTION_JADE, 
-		ItemSpriteSheet.POTION_GOLDEN, 
-		ItemSpriteSheet.POTION_MAGENTA, 
-		ItemSpriteSheet.POTION_CHARCOAL, 
-		ItemSpriteSheet.POTION_IVORY, 
-		ItemSpriteSheet.POTION_AMBER, 
-		ItemSpriteSheet.POTION_BISTRE, 
-		ItemSpriteSheet.POTION_INDIGO, 
+		ItemSpriteSheet.POTION_TURQUOISE,
+		ItemSpriteSheet.POTION_CRIMSON,
+		ItemSpriteSheet.POTION_AZURE,
+		ItemSpriteSheet.POTION_JADE,
+		ItemSpriteSheet.POTION_GOLDEN,
+		ItemSpriteSheet.POTION_MAGENTA,
+		ItemSpriteSheet.POTION_CHARCOAL,
+		ItemSpriteSheet.POTION_IVORY,
+		ItemSpriteSheet.POTION_AMBER,
+		ItemSpriteSheet.POTION_BISTRE,
+		ItemSpriteSheet.POTION_INDIGO,
 		ItemSpriteSheet.POTION_SILVER,
         ItemSpriteSheet.POTION_MANA};
-	
+
 	private static ItemStatusHandler<Potion> handler;
-	
+
 	private String color;
-	
-	{	
-		stackable = true;		
+
+	{
+		stackable = true;
 		defaultAction = AC_DRINK;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void initColors() {
 		handler = new ItemStatusHandler<Potion>( (Class<? extends Potion>[])potions, colors, images, 1 );
 	}
-	
+
 	public static void save( Bundle bundle ) {
 		handler.save( bundle );
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void restore( Bundle bundle ) {
 		handler = new ItemStatusHandler<Potion>( (Class<? extends Potion>[])potions, colors, images, bundle );
 	}
-	
+
 	public Potion() {
 		super();
 		image = handler.image( this );
 		color = handler.label( this );
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_DRINK );
 		return actions;
 	}
-	
+
 	@Override
 	public void execute( final Hero hero, String action ) {
 		if (action.equals( AC_DRINK )) {
-			
+
 			if (isKnown() && (
-					this instanceof PotionOfLiquidFlame || 
-					this instanceof PotionOfToxicGas || 
+					this instanceof PotionOfLiquidFlame ||
+					this instanceof PotionOfToxicGas ||
 					this instanceof PotionOfParalyticGas)) {
-				
-					GameScene.show( 
-						new WndOptions( TXT_HARMFUL, TXT_R_U_SURE_DRINK, TXT_YES, TXT_NO ) {
+
+					GameScene.show(
+						new WndOptions(Message.key(Potion.class, "harmful"), Message.key(Potion.class, "sure_drink"), Message.key(Potion.class, "yes"), Message.key(Potion.class, "no")) {
 							@Override
 							protected void onSelect(int index) {
 								if (index == 0) {
@@ -140,32 +140,32 @@ public class Potion extends Item {
 							};
 						}
 					);
-					
+
 				} else {
 					drink( hero );
 				}
-			
+
 		} else {
-			
+
 			super.execute( hero, action );
-			
+
 		}
 	}
-	
+
 	@Override
 	public void doThrow( final Hero hero ) {
 
 		if (isKnown() && (
-			this instanceof PotionOfExperience || 
-			this instanceof PotionOfHealing || 
+			this instanceof PotionOfExperience ||
+			this instanceof PotionOfHealing ||
 			this instanceof PotionOfLevitation ||
 			this instanceof PotionOfMindVision ||
 			this instanceof PotionOfStrength ||
-			this instanceof PotionOfInvisibility || 
+			this instanceof PotionOfInvisibility ||
 			this instanceof PotionOfMight)) {
-		
-			GameScene.show( 
-				new WndOptions( TXT_BENEFICIAL, TXT_R_U_SURE_THROW, TXT_YES, TXT_NO ) {
+
+			GameScene.show(
+				new WndOptions(Message.key(Potion.class, "beneficial"), Message.key(Potion.class, "sure_throw"), Message.key(Potion.class, "yes"), Message.key(Potion.class, "no")) {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0) {
@@ -174,116 +174,125 @@ public class Potion extends Item {
 					};
 				}
 			);
-			
+
 		} else {
 			super.doThrow( hero );
 		}
 	}
-	
+
 	protected void drink( Hero hero ) {
-		
+
 		detach( hero.belongings.backpack );
-		
+
 		hero.spend( TIME_TO_DRINK );
 		hero.busy();
 		onThrow( hero.pos );
-		
+
 		Sample.INSTANCE.play( Assets.SND_DRINK );
-		
+
 		hero.sprite.operate( hero.pos );
 	}
-	
+
 	@Override
 	protected void onThrow( int cell ) {
 		if (Dungeon.hero.pos == cell) {
-			
+
 			apply( Dungeon.hero );
-			
+
 		} else if (Dungeon.level.map[cell] == Terrain.WELL || Level.pit[cell]) {
-			
+
 			super.onThrow( cell );
-			
+
 		} else  {
-			
+
 			shatter( cell );
-			
+
 		}
 	}
-	
+
 	protected void apply( Hero hero ) {
 		shatter( hero.pos );
 	}
-	
+
 	public void shatter( int cell ) {
 		if (Dungeon.visible[cell]) {
-			GLog.i( "The flask shatters and " + color() + " liquid splashes harmlessly" );
+			GLog.i(Potion.class, "shatter");
 			Sample.INSTANCE.play( Assets.SND_SHATTER );
 			splash( cell );
 		}
 	}
-	
+
 	public boolean isKnown() {
 		return handler.isKnown( this );
 	}
-	
+
 	public void setKnown() {
 		if (!isKnown()) {
 			handler.know( this );
 		}
-		
+
 		Badges.validateAllPotionsIdentified();
 	}
-	
+
 	@Override
 	public Item identify() {
 		setKnown();
 		return this;
 	}
-	
+
 	protected String color() {
 		return color;
 	}
-	
+
 	@Override
 	public String name() {
-		return isKnown() ? name : color + " potion";
+		return isKnown() ? trueName() : translatedColorName();
 	}
-	
+
 	@Override
 	public String info() {
 		return isKnown() ?
 			desc() :
-			"This flask contains a swirling " + color + " liquid. " +
-			"Who knows what it will do when drunk or thrown?";
+			unknownDescription();
 	}
-	
+
+	private String translatedColorName() {
+		String translated = message( color );
+		return translated != null ? translated : color + " potion";
+	}
+
+	private String unknownDescription() {
+		return Messages.get( Potion.class, "unknown_desc",
+			Messages.get( Potion.class, "color_" + color ) );
+	}
+
 	@Override
 	public boolean isIdentified() {
 		return isKnown();
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	public static HashSet<Class<? extends Potion>> getKnown() {
 		return handler.known();
 	}
-	
+
 	public static HashSet<Class<? extends Potion>> getUnknown() {
 		return handler.unknown();
 	}
-	
+
 	public static boolean allKnown() {
 		return handler.known().size() == potions.length;
 	}
-	
-	protected void splash( int cell ) {		
+
+	protected void splash( int cell ) {
 		final int color = ItemSprite.pick( image, 8, 10 );
 		Splash.at( cell, color, 5 );
 	}
-	
+
 	@Override
 	public int price() {
 		return 20 * quantity;

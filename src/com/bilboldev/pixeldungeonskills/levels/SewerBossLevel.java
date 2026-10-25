@@ -23,9 +23,14 @@ import java.util.List;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.RivalEncounter;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
-import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
+import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -41,24 +46,29 @@ public class SewerBossLevel extends RegularLevel {
 		color1 = 0x48763c;
 		color2 = 0x59994a;
 	}
-	
+
 	private int stairs = 0;
-	
+    private int rebornGate;
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_SEWERS;
+		if(!Difficulties.is3d)
+			return Assets.TILES_SEWERS;
+
+		return Assets.TILES_SEWERS_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_SEWERS;
 	}
-	
+
 	@Override
 	protected boolean build() {
-		
+		if (Dungeon.rules().hasRebornBosses()) return buildReborn();
+
 		initRooms();
-	
+
 		int distance;
 		int retry = 0;
 		int minDistance = (int)Math.sqrt( rooms.size() );
@@ -70,7 +80,7 @@ public class SewerBossLevel extends RegularLevel {
 				}
 				roomEntrance = Random.element( rooms );
 			} while (roomEntrance.width() < 4 || roomEntrance.height() < 4);
-			
+
 			innerRetry = 0;
 			do {
 				if (innerRetry++ > 10) {
@@ -78,19 +88,19 @@ public class SewerBossLevel extends RegularLevel {
 				}
 				roomExit = Random.element( rooms );
 			} while (roomExit == roomEntrance || roomExit.width() < 6 || roomExit.height() < 6 || roomExit.top == 0);
-	
+
 			Graph.buildDistanceMap( rooms, roomExit );
 			distance = roomEntrance.distance();
-			
+
 			if (retry++ > 10) {
 				return false;
 			}
-			
+
 		} while (distance < minDistance);
-		
+
 		roomEntrance.type = Type.ENTRANCE;
 		roomExit.type = Type.BOSS_EXIT;
-		
+
 		Graph.buildDistanceMap( rooms, roomExit );
 		List<Room> path = Graph.buildPath( rooms, roomEntrance, roomExit );
 
@@ -104,18 +114,18 @@ public class SewerBossLevel extends RegularLevel {
 			room.connect( next );
 			room = next;
 		}
-		
+
 		room = (Room)roomExit.connected.keySet().toArray()[0];
 		if (roomExit.top == room.bottom) {
 			return false;
 		}
-		
+
 		for (Room r : rooms) {
 			if (r.type == Type.NULL && r.connected.size() > 0) {
-				r.type = Type.TUNNEL; 
+				r.type = Type.TUNNEL;
 			}
 		}
-		
+
 		ArrayList<Room> candidates = new ArrayList<Room>();
 		for (Room r : roomExit.neigbours) {
 			if (!roomExit.connected.containsKey( r ) &&
@@ -128,27 +138,57 @@ public class SewerBossLevel extends RegularLevel {
 			kingsRoom.connect( roomExit );
 			kingsRoom.type = Room.Type.RAT_KING;
 		}
-		
+
 		paint();
-		
+
 		paintWater();
 		paintGrass();
-		
+
 		placeTraps();
-		
+
 		return true;
 	}
-		
+
+    private boolean buildReborn() {
+        rooms = new java.util.HashSet<Room>();
+        roomEntrance = new Room();
+        roomEntrance.set(11, 21, 19, 27);
+        roomEntrance.type = Type.ENTRANCE;
+        roomExit = new Room();
+        roomExit.set(8, 3, 22, 17);
+        roomExit.type = Type.BOSS_EXIT;
+        rooms.add(roomEntrance);
+        rooms.add(roomExit);
+        com.bilboldev.pixeldungeonskills.levels.painters.Painter.fill(this, roomExit, 1, Terrain.EMPTY);
+        com.bilboldev.pixeldungeonskills.levels.painters.Painter.fill(this, roomEntrance, 1, Terrain.EMPTY);
+
+        for (int y = 4; y <= 16; y++) for (int x = 9; x <= 21; x++) {
+            int edge = Math.min(Math.min(x - 9, 21 - x), Math.min(y - 4, 16 - y));
+            if ((x < 11 || x > 19) && (y < 6 || y > 14)) map[x + y * WIDTH] = Terrain.WALL;
+            else if (edge == 0 || ((x == 11 || x == 19) && y >= 8 && y <= 12)) map[x + y * WIDTH] = Terrain.WATER;
+        }
+        for (int y = 15; y <= 23; y++) map[15 + y * WIDTH] = Terrain.EMPTY;
+        rebornGate = 15 + 17 * WIDTH;
+        map[rebornGate] = Terrain.DOOR;
+        entrance = 15 + 25 * WIDTH;
+        map[entrance] = Terrain.ENTRANCE;
+        storage = 17 + 25 * WIDTH;
+        map[storage] = Terrain.STORAGE;
+        exit = 15 + 3 * WIDTH;
+        map[exit] = Terrain.LOCKED_EXIT;
+        return true;
+    }
+
 	protected boolean[] water() {
 		return Patch.generate( 0.5f, 5 );
 	}
-	
+
 	protected boolean[] grass() {
 		return Patch.generate( 0.40f, 4 );
 	}
-	
+
 	@Override
-	protected void decorate() {	
+	protected void decorate() {
 		int start = roomExit.top * WIDTH + roomExit.left + 1;
 		int end = start + roomExit.width() - 1;
 		for (int i=start; i < end; i++) {
@@ -159,7 +199,7 @@ public class SewerBossLevel extends RegularLevel {
 				map[i + WIDTH] = Terrain.EMPTY;
 			}
 		}
-		
+
 		while (true) {
 			int pos = roomEntrance.random();
 			if (pos != entrance && pos != storage) {
@@ -168,24 +208,24 @@ public class SewerBossLevel extends RegularLevel {
 			}
 		}
 	}
-	
+
 	@Override
 	public void addVisuals( Scene scene ) {
 		SewerLevel.addVisuals( this, scene );
 	}
-	
-	
+
 	@Override
 	protected void createMobs() {
-		Mob mob = Bestiary.mob( Dungeon.depth );
+		Mob mob = RivalEncounter.boss( Dungeon.depth );
 		mob.pos = roomExit.random();
+        if (rebornGate != 0) mob.pos = 15 + 8 * WIDTH;
 		mobs.add( mob );
 	}
-	
+
 	public Actor respawner() {
 		return null;
 	}
-	
+
 	@Override
 	protected void createItems() {
 		Item item = Bones.get();
@@ -197,44 +237,83 @@ public class SewerBossLevel extends RegularLevel {
 			drop( item, pos ).type = Heap.Type.SKELETON;
 		}
 	}
-	
+
+    @Override
+    public void press(int cell, Char ch) {
+        super.press(cell, ch);
+        if (rebornGate != 0 && cell / WIDTH < rebornGate / WIDTH && ch instanceof Hero) {
+            for (Mob mob : mobs) {
+                if (mob instanceof RivalBoss) {
+                    seal();
+                    if (entrance == 0) ((RivalBoss)mob).enter();
+                    break;
+                }
+            }
+        }
+    }
+
 	public void seal() {
+        Hero entering = Dungeon.hero;
+        if (LocalCoop.active() && rebornGate != 0) {
+            for (Hero hero : LocalCoop.heroes()) {
+                if (hero.isAlive() && hero.pos / WIDTH < rebornGate / WIDTH) {
+                    entering = hero;
+                    break;
+                }
+            }
+        }
+        if (rebornGate != 0 && entering.pos / WIDTH >= rebornGate / WIDTH) return;
 		if (entrance != 0) {
-			
+            if (!gatherParty(entering, entering.pos, rebornGate != 0 ? rebornGate : entrance)) return;
+            if (rebornGate != 0) {
+                set(rebornGate, Terrain.LOCKED_DOOR);
+                GameScene.updateMap(rebornGate);
+            }
+
 			set( entrance, Terrain.WATER_TILES );
 			GameScene.updateMap( entrance );
 			GameScene.ripple( entrance );
-			
+
 			stairs = entrance;
 			entrance = 0;
 		}
 	}
-	
+
 	public void unseal() {
+        if (rebornGate != 0) {
+            set(rebornGate, Terrain.DOOR);
+            GameScene.updateMap(rebornGate);
+        }
 		if (stairs != 0) {
-			
+
 			entrance = stairs;
 			stairs = 0;
-			
+
 			set( entrance, Terrain.ENTRANCE );
 			GameScene.updateMap( entrance );
 		}
 	}
-	
+
 	private static final String STAIRS	= "stairs";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( STAIRS, stairs );
+        if (rebornGate != 0) bundle.put("reborn_gate", rebornGate);
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		stairs = bundle.getInt( STAIRS );
+        rebornGate = bundle.getInt("reborn_gate");
+        if (rebornGate != 0) for (Room room : rooms) {
+            if (room.type == Type.ENTRANCE) roomEntrance = room;
+            if (room.type == Type.BOSS_EXIT) roomExit = room;
+        }
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -244,7 +323,7 @@ public class SewerBossLevel extends RegularLevel {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc( int tile ) {
 		switch (tile) {

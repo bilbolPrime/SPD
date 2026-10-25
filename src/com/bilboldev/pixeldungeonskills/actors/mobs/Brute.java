@@ -17,8 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
-
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
@@ -31,18 +31,18 @@ import com.bilboldev.utils.Random;
 
 public class Brute extends Mob {
 
-	private static final String TXT_ENRAGED = "%s becomes enraged!";
-	
+	private static final String TXT_ENRAGED = "custom.generated.entry_s_becomes_enraged_b640366774";
+
 	{
 		name = "gnoll brute";
 		spriteClass = BruteSprite.class;
-		
+
 		HP = HT = 40;
 		defenseSkill = 15;
-		
+
 		EXP = 8;
 		maxLvl = 15;
-		
+
 		loot = Gold.class;
 		lootChance = 0.5f;
 
@@ -50,42 +50,42 @@ public class Brute extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	private boolean enraged = false;
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		enraged = HP < HT / 4;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return enraged ?
-			Random.NormalIntRange( 10, 40 ) :	
+			Random.NormalIntRange( 10, 40 ) :
 			Random.NormalIntRange( 8, 18 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 20;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 8;
 	}
-	
+
 	@Override
 	public void damage( int dmg, Object src ) {
 		super.damage( dmg, src );
-		
+
 		if (isAlive() && !enraged && HP < HT / 4) {
 			enraged = true;
 			spend( TICK );
 			if (Dungeon.visible[pos]) {
-				GLog.w( TXT_ENRAGED, name );
-				sprite.showStatus( CharSprite.NEGATIVE, "enraged" );
+				GLog.w(TXT_ENRAGED, Message.actor(this));
+				sprite.showStatus( CharSprite.NEGATIVE, Message.key("actors.mobs.brute.enraged") );
 			}
 		}
 	}
@@ -102,12 +102,12 @@ public class Brute extends Mob {
 			"Brutes are the largest, strongest and toughest of all gnolls. When severely wounded, " +
 			"they go berserk, inflicting even more damage to their enemies.";
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( Terror.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;

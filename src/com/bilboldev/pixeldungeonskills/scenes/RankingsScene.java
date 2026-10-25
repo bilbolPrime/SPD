@@ -17,148 +17,37 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
-import com.bilboldev.noosa.Camera;
+import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Image;
-import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.ui.Button;
-import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Rankings;
-import com.bilboldev.pixeldungeonskills.effects.Flare;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
-import com.bilboldev.pixeldungeonskills.ui.Archs;
-import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndError;
 import com.bilboldev.pixeldungeonskills.windows.WndRanking;
 
-public class RankingsScene extends PixelScene {
-	
-	private static final int DEFAULT_COLOR	= 0xCCCCCC;
-	
-	private static final String TXT_TITLE		= "Top Rankings";
-	private static final String TXT_TOTAL		= "Games played: ";
-	private static final String TXT_NO_GAMES	= "No games have been played yet.";
-	
-	private static final String TXT_NO_INFO	= "No additional information";
-	
-	private static final float ROW_HEIGHT_L	= 22;
-	private static final float ROW_HEIGHT_P	= 28;
-	
-	private static final float MAX_ROW_WIDTH	= 180;
-	
-	private static final float GAP	= 4;
-	
-	private Archs archs;
-	
-	@Override
-	public void create() {
-		
-		super.create();
-		
-		Music.INSTANCE.play( Assets.THEME, true );
-		Music.INSTANCE.volume( 1f );
-		
-		uiCamera.visible = false;
-		
-		int w = Camera.main.width;
-		int h = Camera.main.height;
-		
-		archs = new Archs();
-		archs.setSize( w, h );
-		add( archs );
-		
-		Rankings.INSTANCE.load();
-		
-		if (Rankings.INSTANCE.records.size() > 0) {
-			
-			float rowHeight = PixelDungeon.landscape() ? ROW_HEIGHT_L : ROW_HEIGHT_P;
-			
-			float left = (w - Math.min( MAX_ROW_WIDTH, w )) / 2 + GAP;
-			float top = align( (h - rowHeight  * Rankings.INSTANCE.records.size()) / 2 );
-			
-			BitmapText title = PixelScene.createText( TXT_TITLE, 9 );
-			title.hardlight( Window.TITLE_COLOR );
-			title.measure();
-			title.x = align( (w - title.width()) / 2 );
-			title.y = align( top - title.height() - GAP );
-			add( title );
-			
-			int pos = 0;
-			
-			for (Rankings.Record rec : Rankings.INSTANCE.records) {
-				Record row = new Record( pos, pos == Rankings.INSTANCE.lastRecord, rec );
-				row.setRect( left, top + pos * rowHeight, w - left * 2, rowHeight );
-				add( row );
-				
-				pos++;
-			}
-			
-			if (Rankings.INSTANCE.totalNumber >= Rankings.TABLE_SIZE) {
-				BitmapText label = PixelScene.createText( TXT_TOTAL, 8 );
-				label.hardlight( DEFAULT_COLOR );
-				label.measure();
-				add( label );
-				
-				BitmapText won = PixelScene.createText( Integer.toString( Rankings.INSTANCE.wonNumber ), 8 );
-				won.hardlight( Window.TITLE_COLOR );
-				won.measure();
-				add( won );
-				
-				BitmapText total = PixelScene.createText( "/" + Rankings.INSTANCE.totalNumber, 8 );
-				total.hardlight( DEFAULT_COLOR );
-				total.measure();
-				total.x = align( (w - total.width()) / 2 );
-				total.y = align( top + pos * rowHeight + GAP );
-				add( total );
-				
-				float tw = label.width() + won.width() + total.width();
-				label.x = align( (w - tw) / 2 );
-				won.x = label.x + label.width();
-				total.x = won.x + won.width();
-				label.y = won.y = total.y = align( top + pos * rowHeight + GAP );
-			}
-			
-		} else {
-			
-			BitmapText title = PixelScene.createText( TXT_NO_GAMES, 8 );
-			title.hardlight( DEFAULT_COLOR );
-			title.measure();
-			title.x = align( (w - title.width()) / 2 );
-			title.y = align( (h - title.height()) / 2 );
-			add( title );
-			
-		}
-		
-		ExitButton btnExit = new ExitButton();
-		btnExit.setPos( Camera.main.width - btnExit.width(), 0 );
-		add( btnExit );
-		
-		fadeIn();
-	}
-	
-	@Override
-	protected void onBackPressed() {
-		PixelDungeon.switchNoFade( TitleScene.class );
-	}
-	
+public class RankingsScene extends TitleScene {
+    @Override
+    protected Page initialPage() {
+        return Page.RANKINGS;
+    }
+
 	public static class Record extends Button {
 		
 		private static final float GAP	= 4;
 		
 		private static final int TEXT_WIN	= 0xFFFF88;
 		private static final int TEXT_LOSE	= 0xCCCCCC;
-		private static final int FLARE_WIN	= 0x888866;
-		private static final int FLARE_LOSE	= 0x666666;
 		
 		private Rankings.Record rec;
 		
 		private ItemSprite shield;
-		private Flare flare;
+		private ColorBlock latestMark;
 		private BitmapText position;
 		private BitmapTextMultiline desc;
 		private Image classIcon;
@@ -169,16 +58,14 @@ public class RankingsScene extends PixelScene {
 			this.rec = rec;
 			
 			if (latest) {
-				flare = new Flare( 6, 24 );
-				flare.angularSpeed = 90;
-				flare.color( rec.win ? FLARE_WIN : FLARE_LOSE );
-				addToBack( flare );
+				latestMark = new ColorBlock(2, 1, rec.win ? 0xFFE1CB8E : 0xFF9D87B9);
+				addToBack(latestMark);
 			}
 			
 			position.text( Integer.toString( pos+1 ) );
 			position.measure();
 			
-			desc.text( rec.info );
+			desc.text(rec.rules.mode.title() + ": " + rec.desc(), false);
 			desc.measure();
 			
 			if (rec.win) {
@@ -222,8 +109,10 @@ public class RankingsScene extends PixelScene {
 			position.x = align( shield.x + (shield.width - position.width()) / 2 );
 			position.y = align( shield.y + (shield.height - position.height()) / 2 + 1 );
 			
-			if (flare != null) {
-				flare.point( shield.center() );
+			if (latestMark != null) {
+				latestMark.x = x - 3;
+                latestMark.y = y + 5;
+                latestMark.size(2, height - 10);
 			}
 			
 			classIcon.x = align( x + width - classIcon.width );
@@ -237,10 +126,18 @@ public class RankingsScene extends PixelScene {
 		
 		@Override
 		protected void onClick() {
+			openDetails();
+		}
+
+		void useScrollPaneInput() {
+			Touchscreen.event.remove(hotArea);
+		}
+
+		void openDetails() {
 			if (rec.gameFile.length() > 0) {
-				parent.add( new WndRanking( rec.gameFile ) );
+				com.bilboldev.noosa.Game.scene().add( new WndRanking( rec.gameFile ) );
 			} else {
-				parent.add( new WndError( TXT_NO_INFO ) );
+				com.bilboldev.noosa.Game.scene().add( new WndError( Messages.get( RankingsScene.class, "no_info" ) ) );
 			}
 		}
 	}

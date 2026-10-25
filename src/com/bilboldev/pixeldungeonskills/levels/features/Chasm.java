@@ -17,12 +17,14 @@
  */
 package com.bilboldev.pixeldungeonskills.levels.features;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Cripple;
@@ -39,18 +41,21 @@ import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Random;
 
 public class Chasm {
-	
+
 	private static final String TXT_CHASM	= "Chasm";
 	private static final String TXT_YES		= "Yes, I know what I'm doing";
 	private static final String TXT_NO		= "No, I changed my mind";
-	private static final String TXT_JUMP 	= 
+	private static final String TXT_JUMP 	=
 		"Do you really want to jump into the chasm? You can probably die.";
-	
+
 	public static boolean jumpConfirmed = false;
-	
+
 	public static void heroJump( final Hero hero ) {
-		GameScene.show( 
-			new WndOptions( TXT_CHASM, TXT_JUMP, TXT_YES, TXT_NO ) {
+		GameScene.show(
+			new WndOptions(Message.key("levels.features.chasm.chasm"),
+			        Message.key("custom.generated.entry_do_you_really_want_to_jump_into_the_chasm_you_ca_fa8bb67218"),
+			        Message.key("items.artifacts.chaliceofblood.yes"),
+			        Message.key("items.artifacts.chaliceofblood.no")) {
 				@Override
 				protected void onSelect( int index ) {
 					if (index == 0) {
@@ -61,14 +66,15 @@ public class Chasm {
 			}
 		);
 	}
-	
+
 	public static void heroFall( int pos ) {
-		
+
 		jumpConfirmed = false;
-				
+
 		Sample.INSTANCE.play( Assets.SND_FALLING );
-		
+
 		if (Dungeon.hero.isAlive()) {
+			if (LocalCoop.active()) InterlevelScene.fallingHero = Dungeon.hero;
 			Dungeon.hero.interrupt();
 			InterlevelScene.mode = InterlevelScene.Mode.FALL;
 			if (Dungeon.level instanceof RegularLevel) {
@@ -82,22 +88,22 @@ public class Chasm {
 			Dungeon.hero.sprite.visible = false;
 		}
 	}
-	
+
 	public static void heroLand() {
-		
+
 		Hero hero = Dungeon.hero;
-		
+
 		hero.sprite.burst( hero.sprite.blood(), 10 );
 		Camera.main.shake( 4, 0.2f );
-		
+
 		Buff.prolong( hero, Cripple.class, Cripple.DURATION );
 		hero.damage( Random.IntRange( hero.HT / 3, hero.HT / 2 ), new Hero.Doom() {
 			@Override
 			public void onDeath() {
 				Badges.validateDeathFromFalling();
-				
-				Dungeon.fail( Utils.format( ResultDescriptions.FALL, Dungeon.depth ) );
-				GLog.n( "You fell to death..." );
+
+				Dungeon.fail( Utils.format( ResultDescriptions.FALL, Dungeon.depth ), Chasm.class );
+				GLog.n(Chasm.class, "ondeath");
 			}
 		} );
 	}

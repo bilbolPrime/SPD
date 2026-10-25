@@ -1,0 +1,168 @@
+plugins {
+    id 'application'
+}
+
+def androidJar = new File(project(':app').android.sdkDirectory,
+        "platforms/${project(':app').android.compileSdkVersion}/android.jar")
+def releaseJar = layout.buildDirectory.file('obfuscation/skillful-pixel-dungeon.jar')
+def releaseMapping = layout.buildDirectory.file('obfuscation/mapping.txt')
+def obfuscationConfig = layout.buildDirectory.file('obfuscation/config.pro')
+def obfuscationJavaHome = new File(System.getProperty('java.home'))
+def javaModules = fileTree(new File(obfuscationJavaHome, 'jmods')) { include '*.jmod' }
+
+configurations {
+    proguard
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+sourceSets {
+    main {
+        resources.srcDirs = ['src/main/resources', rootProject.file('assets')]
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('compileJava', JavaCompile).configure {
+    source = files(sourceSets.main.java, fileTree(rootProject.file('src')) {
+        exclude 'com/bilboldev/noosa/Game.java'
+        exclude 'com/bilboldev/noosa/audio/Music.java'
+        exclude 'com/bilboldev/noosa/audio/MusicOutput.java'
+        exclude 'com/bilboldev/noosa/audio/Sample.java'
+        exclude 'com/bilboldev/pixeldungeonskills/network/AndroidNetworkAccess.java'
+        exclude 'com/bilboldev/pixeldungeonskills/PixelDungeon.java'
+        exclude 'com/bilboldev/pixeldungeonskills/Preferences.java'
+        exclude 'com/bilboldev/pixeldungeonskills/online/SignalRService.java'
+    })
+}
+
+tasks.named('processResources').configure {
+    exclude '**/*.dat'
+    inputs.property('appVersionName', rootProject.ext.appVersionName)
+    inputs.property('appVersionCode', rootProject.ext.appVersionCode)
+    filesMatching('game-version.properties') {
+        expand(versionName: rootProject.ext.appVersionName, versionCode: rootProject.ext.appVersionCode)
+    }
+    from(rootProject.file('res/drawable-hdpi')) {
+        include 'ic_launcher.png'
+    }
+}
+
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:${rootProject.ext.gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:${rootProject.ext.gdxVersion}"
+    implementation 'com.badlogicgames.gdx-controllers:gdx-controllers-desktop:2.2.4'
+    implementation 'org.json:json:20240303'
+    implementation 'org.jcraft:jorbis:0.0.17'
+    proguard 'com.guardsquare:proguard-base:7.6.1'
+    runtimeOnly "com.badlogicgames.gdx:gdx-platform:${rootProject.ext.gdxVersion}:natives-desktop"
+    compileOnly files(androidJar)
+}
+
+application {
+    mainClass = 'com.bilboldev.pixeldungeonskills.desktop.DesktopLauncher'
+    applicationName = 'SkillfulPixelDungeon'
+}
+
+tasks.named('run', JavaExec).configure {
+    workingDir = layout.buildDirectory.dir('game-data').get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+}
+
+tasks.register('writeDesktopObfuscationConfig') {
+    dependsOn tasks.named('jar')
+    inputs.file(tasks.named('jar').flatMap { it.archiveFile })
+    inputs.files(configurations.runtimeClasspath)
+    inputs.file(androidJar)
+    inputs.files(javaModules)
+    inputs.property('javaHome', obfuscationJavaHome.absolutePath)
+    outputs.file(obfuscationConfig)
+    doLast {
+        def modules = new File(obfuscationJavaHome, 'jmods')
+        if (!modules.isDirectory()) {
+            throw new GradleException('Desktop obfuscation requires Gradle to run with a full JDK.')
+        }
+        def quote = { File file -> '"' + file.absolutePath.replace('\\', '/') + '"' }
+        def lines = [
+                '-injars ' + quote(tasks.named('jar').get().archiveFile.get().asFile),
+                '-outjars ' + quote(releaseJar.get().asFile),
+                '-printmapping ' + quote(releaseMapping.get().asFile)
+        ]
+        configurations.runtimeClasspath.files.sort { it.name }.each { dependency ->
+            lines << '-libraryjars ' + quote(dependency)
+        }
+        def androidTypes = [
+                'android/annotation/SuppressLint.class',
+                'android/content/Intent.class',
+                'android/net/Uri.class',
+                'android/os/Handler.class',
+                'android/os/Message.class',
+                'android/os/Parcelable.class',
+                'android/view/InputEvent.class',
+                'android/view/KeyEvent.class',
+                'android/view/MotionEvent.class'
+        ]
+        lines << '-libraryjars ' + quote(androidJar) + '(' + androidTypes.join(',') + ')'
+        javaModules.files.sort { it.name }.each { module ->
+            lines << '-libraryjars ' + quote(module) + '(!**.jar;!module-info.class)'
+        }
+        def config = obfuscationConfig.get().asFile
+        config.parentFile.mkdirs()
+        config.text = lines.join('\n') + '\n'
+    }
+}
+
+def obfuscateDesktop = tasks.register('obfuscateDesktopJar', JavaExec) {
+    group = 'build'
+    description = 'Obfuscate the desktop game and write the name mapping.'
+    dependsOn tasks.named('writeDesktopObfuscationConfig')
+    classpath = configurations.proguard
+    mainClass.set('proguard.ProGuard')
+    workingDir = projectDir
+    inputs.file(tasks.named('jar').flatMap { it.archiveFile })
+    inputs.files(configurations.runtimeClasspath)
+    inputs.file(androidJar)
+    inputs.files(javaModules)
+    inputs.file(obfuscationConfig)
+    inputs.file('proguard-rules.pro')
+    inputs.file(rootProject.file('proguard-game.pro'))
+    inputs.property('javaHome', obfuscationJavaHome.absolutePath)
+    outputs.file(releaseJar)
+    outputs.file(releaseMapping)
+    args '@' + project.relativePath(obfuscationConfig.get().asFile), '@proguard-rules.pro'
+}
+
+def releaseScripts = tasks.register('releaseStartScripts', org.gradle.jvm.application.tasks.CreateStartScripts) {
+    dependsOn obfuscateDesktop
+    mainClass.set(application.mainClass)
+    applicationName = application.applicationName
+    defaultJvmOpts = application.applicationDefaultJvmArgs
+    classpath = files(releaseJar) + configurations.runtimeClasspath
+    outputDir = layout.buildDirectory.dir('release-scripts').get().asFile
+}
+
+distributions {
+    release {
+        distributionBaseName = application.applicationName + '-release'
+        contents {
+            from(rootProject.file('LICENSE.txt'))
+            from(releaseScripts) {
+                into 'bin'
+                filePermissions { unix('rwxr-xr-x') }
+            }
+            into('lib') {
+                from(files(releaseJar).builtBy(obfuscateDesktop))
+                from(configurations.runtimeClasspath)
+            }
+        }
+    }
+}

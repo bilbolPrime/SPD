@@ -1,0 +1,500 @@
+!!!	actors.mobs.goo.!!!	%21%21%21
+#$%^	actors.mobs.mob.rage	%23%24%25%5E
+%arg% burns up!	actors.buffs.burning.burnsup	%25s%20burns%20up%21
+%arg% hit combo!	actors.buffs.combo.combo	%25d%20hit%20combo%21
+%arg% killed you...	actors.char.kill	%25s%20killed%20you...
+%arg% of affection	items.armor.glyphs.affection.name	%25s%20of%20affection
+%arg% of anti-entropy	items.armor.curses.antientropy.name	%25s%20of%20anti-entropy
+%arg% of displacement	items.armor.curses.displacement.name	%25s%20of%20displacement
+%arg% of entanglement	items.armor.glyphs.entanglement.name	%25s%20of%20entanglement
+%arg% of metabolism	items.armor.curses.metabolism.name	%25s%20of%20metabolism
+%arg% of multiplicity	items.armor.curses.multiplicity.name	%25s%20of%20multiplicity
+%arg% of potential	items.armor.glyphs.potential.name	%25s%20of%20potential
+%arg% of stench	items.armor.curses.stench.name	%25s%20of%20stench
+%arg% of viscosity	items.armor.glyphs.viscosity.name	%25s%20of%20viscosity
+...	actors.hero.hero.wait	...
+???	levels.level.default_name	%3F%3F%3F
+a ramp leads down to the lower depth.	levels.citylevel.exit_desc	A%20ramp%20leads%20down%20to%20the%20lower%20depth.
+a sorrowmoss is a flower (not a moss) with razor-sharp petals, coated with a deadly venom.	plants.sorrowmoss.desc	A%20Sorrowmoss%20is%20a%20flower%20%28not%20a%20moss%29%20with%20razor-sharp%20petals%2C%20coated%20with%20a%20deadly%20venom.
+a vein of some ore is visible on the wall. gold?	levels.caveslevel.wall_deco_desc	A%20vein%20of%20some%20ore%20is%20visible%20on%20the%20wall.%20Gold%3F
+about	scenes.titlescene.about	About
+acidic scorpio	actors.mobs.acidic.name	acidic%20scorpio
+activate	items.artifacts.timekeepershourglass.ac_activate	Activate
+alarm trap	levels.traps.alarmtrap.name	Alarm%20trap
+albino rat	actors.mobs.albino.name	albino%20rat
+ambitious imp	actors.mobs.npcs.imp.name	Ambitious%20imp
+ambitious imp	actors.mobs.npcs.imp.name	ambitious%20imp
+amok	actors.buffs.amok.name	amok
+amulet of yendor	items.amulet.name	Amulet%20of%20Yendor
+animated statue	actors.mobs.statue.name	Animated%20statue
+animated statue	actors.mobs.statue.name	animated%20statue
+ankh	items.ankh.name	Ankh
+apply	items.arcaneresin.ac_apply	APPLY
+are you kiddin' me? where is my pickaxe?!	actors.mobs.npcs.blacksmith.lost_pick	Are%20you%20kiddin%27%20me%3F%20Where%20is%20my%20pickaxe%3F%21
+are you sure you want to drink it? in most cases you should throw such potions at your enemies.	items.potions.potion.sure_drink	Are%20you%20sure%20you%20want%20to%20drink%20it%3F%20In%20most%20cases%20you%20should%20throw%20such%20potions%20at%20your%20enemies.
+are you sure you want to throw it? in most cases it makes sense to drink it.	items.potions.potion.sure_throw	Are%20you%20sure%20you%20want%20to%20throw%20it%3F%20In%20most%20cases%20it%20makes%20sense%20to%20drink%20it.
+armor	journal.catalog.armor.title	armor
+as you take a sip, you feel your wounds heal completely.	actors.blobs.waterofhealth.procced	As%20you%20take%20a%20sip%2C%20you%20feel%20your%20wounds%20heal%20completely.
+assassin	actors.hero.herosubclass.assassin	Assassin
+assassin	actors.hero.herosubclass.assassin	assassin
+attack	scenes.gamescene.attack	attack
+baa!	actors.mobs.npcs.sheep.baa!	Baa%21
+baa.	actors.mobs.npcs.sheep.baa.	Baa.
+baa...	actors.mobs.npcs.sheep.baa...	Baa...
+baa?	actors.mobs.npcs.sheep.baa?	Baa%3F
+back	windows.wndkeybindings.back	Back
+backpack	items.bags.bag.name	backpack
+badges	windows.wndjournal$badgestab.title	Badges
+badges	windows.wndjournal$badgestab.title	badges
+barren land	challenges.no_herbalism	Barren%20land
+barricade	levels.level.barricade_name	Barricade
+battle axe	items.weapon.melee.battleaxe.name	battle%20axe
+battlemage	actors.hero.herosubclass.battlemage	battlemage
+beneficial potion	items.potions.potion.beneficial	Beneficial%20potion
+berserker	actors.hero.herosubclass.berserker	Berserker
+berserker	actors.hero.herosubclass.berserker	berserker
+blazing %arg%	items.weapon.enchantments.blazing.name	blazing%20%25s
+bleeding	actors.buffs.bleeding.name	bleeding
+bomb	items.bombs.bomb.name	bomb
+books in ancient languages smoulder in the bookshelf.	levels.hallslevel.bookshelf_desc	Books%20in%20ancient%20languages%20smoulder%20in%20the%20bookshelf.
+bookshelf	levels.level.bookshelf_name	Bookshelf
+boomerang	items.weapon.missiles.boomerang.name	boomerang
+brightness	windows.wndsettings$displaytab.brightness	Brightness
+burning fist	actors.mobs.yogfist$burningfist.name	burning%20fist
+buy for %arg%g	windows.wndtradeitem.buy	Buy%20for%20%25dg
+cast	items.artifacts.etherealchains.ac_cast	Cast
+cave spinner	actors.mobs.spinner.name	cave%20spinner
+chargrilled meat	items.food.chargrilledmeat.name	chargrilled%20meat
+chasm	levels.features.chasm.chasm	Chasm
+chest	items.heap.chest	Chest
+chilling %arg%	items.weapon.enchantments.chilling.name	chilling%20%25s
+cleanse	actors.hero.spells.cleanse.name	Cleanse
+closed door	levels.level.closed_door_name	Closed%20door
+cloth armor	items.armor.clotharmor.name	cloth%20armor
+corpse dust	items.quest.corpsedust.name	corpse%20dust
+crazy bandit	actors.mobs.bandit.name	crazy%20bandit
+crazy thief	actors.mobs.thief.name	crazy%20thief
+crippled	actors.buffs.cripple.name	crippled
+crystal chest	items.heap.crystal_chest	Crystal%20chest
+dagger	items.weapon.melee.dagger.name	Dagger
+dagger	items.weapon.melee.dagger.name	dagger
+damage	items.stones.stoneofaugmentation$wndaugment.damage	Damage
+damage	items.stones.stoneofaugmentation$wndaugment.damage	damage
+dark gold ore	items.quest.darkgold.name	dark%20gold%20ore
+dart	items.weapon.missiles.darts.dart.name	dart
+deferred %arg%	items.armor.glyphs.viscosity.deferred	deferred%20%25d
+dense vegetation blocks the view.	levels.level.high_grass_desc	Dense%20vegetation%20blocks%20the%20view.
+depth entrance	levels.level.entrace_name	Depth%20entrance
+depth exit	levels.level.exit_name	Depth%20exit
+dewdrop	items.dewdrop.name	dewdrop
+dm-300	actors.mobs.dm300.name	DM-300
+dodged	actors.char.def_verb	dodged
+dried rose	items.artifacts.driedrose.name	dried%20rose
+drink	items.potions.potion.ac_drink	DRINK
+drop	items.item.ac_drop	DROP
+durability	windows.wndupgrade.durability	durability
+dwarf monk	actors.mobs.monk.name	dwarf%20monk
+dwarf token	items.quest.dwarftoken.name	dwarf%20token
+dwarf warlock	actors.mobs.warlock.name	dwarf%20warlock
+earthroot	plants.earthroot.name	Earthroot
+eat	items.artifacts.hornofplenty.ac_eat	EAT
+emberfungi	levels.hallslevel.high_grass_name	Emberfungi
+embermoss	levels.hallslevel.grass_name	Embermoss
+embers	levels.level.embers_name	Embers
+embers cover the floor.	levels.level.embers_desc	Embers%20cover%20the%20floor.
+empty well	levels.level.empty_well_name	Empty%20well
+enchantment	items.weapon.weapon$enchantment.enchant	enchantment
+end the game	items.amulet.ac_end	END%20THE%20GAME
+endurance	actors.hero.abilities.warrior.endure$enduretracker.name	Endurance
+enraged	actors.mobs.brute.enraged	enraged
+enter the dungeon	scenes.titlescene.enter	Enter%20The%20Dungeon
+equip	items.equipableitem.ac_equip	EQUIP
+error	windows.wnderror.title	ERROR
+error	windows.wnderror.title	error
+evasion	items.stones.stoneofaugmentation$wndaugment.evasion	Evasion
+evil eye	actors.mobs.eye.name	evil%20eye
+exit game	windows.wndgame.exit	Exit%20Game
+experience	windows.wndgameinprogress.exp	Experience
+fadeleaf	plants.fadeleaf.name	Fadeleaf
+faith is my armor	challenges.no_armor	Faith%20is%20my%20armor
+farewell, adventurer!	windows.wndsadghost.farewell	Farewell%2C%20adventurer%21
+fetid rat	actors.mobs.fetidrat.name	fetid%20rat
+fire elemental	actors.mobs.elemental$fireelemental.name	Fire%20Elemental
+fire elemental	actors.mobs.elemental$fireelemental.name	fire%20elemental
+firebloom	plants.firebloom.name	Firebloom
+floor	levels.level.floor_name	Floor
+fluorescent mushrooms	levels.caveslevel.high_grass_name	Fluorescent%20mushrooms
+food eaten	windows.wndranking$statstab.food	Food%20Eaten
+forbidden runes	challenges.no_scrolls	Forbidden%20runes
+free at last...	actors.mobs.tengu.defeated	Free%20at%20last...
+freerunner	actors.hero.herosubclass.freerunner	freerunner
+frozen carpaccio	items.food.frozencarpaccio.name	frozen%20carpaccio
+furious	actors.buffs.fury.name	furious
+fury	actors.buffs.combo$combomove.fury.name	Fury
+game duration	windows.wndranking$statstab.duration	Game%20Duration
+game over	scenes.surfacescene.exit	Game%20Over
+game over	scenes.surfacescene.exit	Game%20over
+games played:	scenes.rankingsscene.total	Games%20played%3A%20
+garden	journal.notes$landmark.garden	Garden
+giant piranha	actors.mobs.piranha.name	giant%20piranha
+giant rat skull	items.quest.ratskull.name	giant%20rat%20skull
+gladiator	actors.hero.herosubclass.gladiator	Gladiator
+gladiator	actors.hero.herosubclass.gladiator	gladiator
+glaive	items.weapon.melee.glaive.name	glaive
+glurp-glurp!	actors.mobs.goo.notice	GLURP-GLURP%21
+glurp... glurp...	actors.mobs.goo.defeated	glurp...%20glurp...
+glyph	items.armor.armor$glyph.glyph	glyph
+gnoll brute	actors.mobs.brute.name	gnoll%20brute
+gnoll scout	actors.mobs.gnoll.name	gnoll%20scout
+gnoll shaman	actors.mobs.shaman.name	gnoll%20shaman
+god's larva	actors.mobs.yogdzewa$larva.name	god%27s%20larva
+gold	items.gold.name	%20Gold
+gold	items.gold.name	%20gold
+gold	items.gold.name	gold
+gold collected	windows.wndgameinprogress.gold	Gold%20Collected
+golden bee	actors.mobs.bee.name	golden%20bee
+golden key	items.keys.goldenkey.name	golden%20key
+golem	actors.mobs.golem.name	golem
+goo	actors.mobs.goo.name	Goo
+goo is pumping itself up!	actors.mobs.goo.pumpup	Goo%20is%20pumping%20itself%20up%21
+good luck in your quest, %arg%!	windows.wndwandmaker.farewell	Good%20luck%20in%20your%20quest%2C%20%25s%21
+gotcha!	badges$badge.boss_challenge_2.title	Gotcha%21
+grass	levels.level.grass_name	Grass
+grim %arg%	items.weapon.enchantments.grim.name	grim%20%25s
+gripping trap	levels.traps.grippingtrap.name	Gripping%20trap
+harmful potion!	items.potions.potion.harmful	Harmful%20potion%21
+health	windows.wndgameinprogress.health	Health
+health	windows.wndgameinprogress.health	health
+heavy bars block the stairs leading down.	levels.level.locked_exit_desc	Heavy%20bars%20block%20the%20stairs%20leading%20down.
+heroic leap	actors.hero.abilities.warrior.heroicleap.name	HEROIC%20LEAP
+high blooming flowers	levels.citylevel.high_grass_name	High%20blooming%20flowers
+high grass	levels.level.high_grass_name	High%20grass
+honeypot	items.honeypot.name	honeypot
+hot!	items.weapon.curses.explosive.hot	Hot%21
+huge mushrooms block the view.	levels.caveslevel.high_grass_desc	Huge%20mushrooms%20block%20the%20view.
+huntress	actors.hero.heroclass.huntress	Huntress
+huntress	actors.hero.heroclass.huntress	huntress
+i'll decide later	windows.wndchooseability.cancel	I%27ll%20decide%20later
+i'm busy. get lost!	actors.mobs.npcs.blacksmith.get_lost	I%27m%20busy.%20Get%20lost%21
+i'm not done yet	scenes.amuletscene.stay	I%27m%20not%20done%20yet
+i'm not sleeping!	actors.mobs.npcs.ratking.not_sleeping	I%27m%20not%20sleeping%21
+icecap	plants.icecap.name	Icecap
+imbue	items.spells.summonelemental.ac_imbue	imbue
+in a blink of an eye you were teleported to another location of the level.	items.scrolls.scrollofteleportation.tele	In%20a%20blink%20of%20an%20eye%20you%20were%20teleported%20to%20another%20location%20of%20the%20level.
+in case of burning step into the water to extinguish the fire.	levels.level.water_desc	In%20case%20of%20burning%20step%20into%20the%20water%20to%20extinguish%20the%20fire.
+incendiary dart	items.weapon.missiles.darts.incendiarydart.name	incendiary%20dart
+interaction of different types of magic has erased the glyph on this armor!	items.armor.armor.incompatible	Interaction%20of%20different%20types%20of%20magic%20has%20erased%20the%20glyph%20on%20this%20armor%21
+interaction of different types of magic has negated the enchantment on this weapon!	items.weapon.weapon.incompatible	Interaction%20of%20different%20types%20of%20magic%20has%20negated%20the%20enchantment%20on%20this%20weapon%21
+into darkness	challenges.darkness	Into%20darkness
+inventory	windows.wndkeybindings.inventory	inventory
+invisible	actors.buffs.invisibility.name	invisible
+iron key	items.keys.ironkey.name	iron%20key
+items	windows.wndranking.items	Items
+items	windows.wndranking.items	items
+javelin	items.weapon.missiles.javelin.name	javelin
+king of dwarves	actors.mobs.dwarfking.name	King%20of%20Dwarves
+knockback	items.wands.wandofblastwave.upgrade_stat_name_2	KnockBack
+leather armor	items.armor.leatherarmor.name	Leather%20Armor
+leather armor	items.armor.leatherarmor.name	leather%20armor
+let's call it a day	scenes.amuletscene.exit	Let%27s%20call%20it%20a%20day
+level %arg% %arg%	windows.wndgameinprogress.title	Level%20%25d%20%25s
+level up!	actors.hero.hero.level_up	level%20up%21
+light	items.torch.ac_light	LIGHT
+lloyd's beacon	items.artifacts.lloydsbeacon.name	lloyd%27s%20beacon
+locked chest	items.heap.locked_chest	Locked%20chest
+locked depth exit	levels.level.locked_exit_name	Locked%20depth%20exit
+locked door	levels.level.locked_door_name	Locked%20door
+longsword	items.weapon.melee.longsword.name	longsword
+lucky %arg%	items.weapon.enchantments.lucky.name	lucky%20%25s
+mace	items.weapon.melee.mace.name	Mace
+mace	items.weapon.melee.mace.name	mace
+mage	actors.hero.heroclass.mage	Mage
+mage	actors.hero.heroclass.mage	mage
+mail armor	items.armor.mailarmor.name	mail%20armor
+main menu	windows.wndgame.menu	Main%20Menu
+marsupial rat	actors.mobs.rat.name	marsupial%20rat
+mastery	windows.wndclass.mastery	Mastery
+maximum depth	windows.wndgameinprogress.depth	Maximum%20Depth
+meat	items.food.mysterymeat$placeholder.name	Meat
+mimic	actors.mobs.mimic.name	mimic
+mirror image	actors.mobs.npcs.mirrorimage.name	mirror%20image
+mobs killed	windows.wndranking$statstab.enemies	Mobs%20Killed
+mystery meat	items.food.mysterymeat.name	mystery%20meat
+necromancer	actors.mobs.necromancer.name	Necromancer
+never mind	items.stones.stoneofaugmentation$wndaugment.cancel	Never%20mind
+new game	scenes.startscene.new	New%20Game
+no	scenes.heroselectscene.daily_no	No
+no additional information	scenes.rankingsscene.no_info	No%20additional%20information
+no enemies in sight	items.armor.huntressarmor.no_enemies	No%20enemies%20in%20sight
+no weapons allowed in the presence of his majesty!	levels.sign.tip_20
+not all doors in the dungeon are visible at first sight. if you are stuck, search for hidden doors.	levels.sign.tip_02
+pixel-mart - all you need for successful adventure!	levels.sign.tip_06
+pixel-mart. a safer life in dungeon.	levels.sign.tip_16
+pixel-mart. special prices for demon hunters!	levels.sign.tip_21
+pixel-mart. spend money. live longer.	levels.sign.tip_11
+remember, that raising your strength is not the only way to access better equipment. you can go the other way, lowering its strength requirement with scrolls of upgrade.	levels.sign.tip_03
+surprise attack has a better chance to hit. for example, you can ambush your enemy behind a closed door when you know it is approaching.	levels.sign.tip_09
+the only way to obtain a scroll of wipe out is to receive it as a gift from the dungeon spirits.	levels.sign.tip_19
+there is no sense in possessing more than one ankh at the same time, because you will lose them upon resurrecting.	levels.sign.tip_14
+what are you doing here?!	levels.sign.dead_end
+when you upgrade an enchanted weapon, there is a chance to destroy that enchantment.	levels.sign.tip_17
+when you're attacked by several monsters at the same time, try to retreat behind a door.	levels.sign.tip_12
+you can spend your gold in shops on deeper levels of the dungeon. the first one is on the 6th level.	levels.sign.tip_04
+beware of goo!	levels.sign.tip_05
+identify your potions and scrolls as soon as possible. don't put it off to the moment when you actually need them.	levels.sign.tip_07
+being hungry doesn't hurt, but starving does hurt.	levels.sign.tip_08
+don't overestimate your strength, use weapons and armor you can handle.	levels.sign.tip_01
+don't let the tengu out!	levels.sign.tip_10
+if you are burning, you can't put out the fire in the water while levitating.	levels.sign.tip_13
+danger! heavy machinery can cause injury, loss of limbs or death!	levels.sign.tip_15
+weapons and armors deteriorate faster than wands and rings, but there are more ways to fix them.	levels.sign.tip_18
+as you try to read the sign it bursts into greenish flames.	levels.sign.burn
+no games have been played yet.	scenes.rankingsscene.no_games	No%20games%20have%20been%20played%20yet.
+obtained the amulet of yendor	rankings$record.won	Obtained%20the%20Amulet%20of%20Yendor
+oh it's hot!	items.food.mysterymeat.hot	Oh%20it%27s%20hot%21
+oh yes! you are my hero! regarding your reward, i don't have cash with me right now, but i have something better for you. this is my family heirloom ring: my granddad took it off a dead paladin's finger.	windows.wndimp.message	Oh%20yes%21%20You%20are%20my%20hero%21%0ARegarding%20your%20reward%2C%20I%20don%27t%20have%20cash%20with%20me%20right%20now%2C%20but%20I%20have%20something%20better%20for%20you.%20This%20is%20my%20family%20heirloom%20ring%3A%20my%20granddad%20took%20it%20off%20a%20dead%20paladin%27s%20finger.
+old wandmaker	actors.mobs.npcs.wandmaker.name	Old%20wandmaker
+old wandmaker	actors.mobs.npcs.wandmaker.name	old%20wandmaker
+on diet	challenges.no_food	On%20diet
+open door	levels.level.open_door_name	Open%20door
+paralysed	actors.buffs.paralysis.name	paralysed
+pasty	items.food.pasty.name	pasty
+pedestal	levels.level.pedestal_name	Pedestal
+pedestal	levels.level.pedestal_name	pedestal
+pharmacophobia	challenges.no_healing	Pharmacophobia
+pickaxe	items.quest.pickaxe.name	pickaxe
+pillar	levels.hallslevel.statue_name	Pillar
+plant	plants.plant$seed.ac_plant	PLANT
+plants	journal.bestiary.plant.title	Plants
+plants	journal.bestiary.plant.title	plants
+plate armor	items.armor.platearmor.name	plate%20armor
+play	scenes.titlescene.play	Play
+poison dart trap	levels.traps.poisondarttrap.name	Poison%20dart%20trap
+poisoned	actors.buffs.poison.name	poisoned
+potion of experience	items.potions.potionofexperience.name	Potion%20of%20Experience
+potion of frost	items.potions.potionoffrost.name	Potion%20of%20Frost
+potion of healing	items.potions.potionofhealing.name	Potion%20of%20Healing
+potion of invisibility	items.potions.potionofinvisibility.name	Potion%20of%20Invisibility
+potion of levitation	items.potions.potionoflevitation.name	Potion%20of%20Levitation
+potion of liquid flame	items.potions.potionofliquidflame.name	Potion%20of%20Liquid%20Flame
+potion of mind vision	items.potions.potionofmindvision.name	Potion%20of%20Mind%20Vision
+potion of paralytic gas	items.potions.potionofparalyticgas.name	Potion%20of%20Paralytic%20Gas
+potion of strength	items.potions.potionofstrength.name	Potion%20of%20Strength
+potion of toxic gas	items.potions.potionoftoxicgas.name	Potion%20of%20Toxic%20Gas
+potions	journal.catalog.potions.title	Potions
+probably this armor is too heavy for you.	items.armor.armor.probably_too_heavy	Probably%20this%20armor%20is%20too%20heavy%20for%20you.%20
+probably this weapon is too heavy for you.	items.weapon.melee.meleeweapon.probably_too_heavy	Probably%20this%20weapon%20is%20too%20heavy%20for%20you.%20
+psst, %arg%!	actors.mobs.npcs.imp.hey	Psst%2C%20%25s%21
+psychic aura of neighbouring creatures doesn't allow you to use the lloyd's beacon at this moment.	items.artifacts.lloydsbeacon.creatures	Psychic%20aura%20of%20neighbouring%20creatures%20doesn%27t%20allow%20you%20to%20use%20the%20lloyd%27s%20beacon%20at%20this%20moment.
+quantity	windows.wndupgrade.quantity	quantity
+quarterstaff	items.weapon.melee.quarterstaff.name	quarterstaff
+quests	windows.wndscorebreakdown.quests_title	quests
+rat king	actors.mobs.npcs.ratking.name	rat%20king
+ration of food	items.food.food.name	ration%20of%20food
+read	items.artifacts.unstablespellbook.ac_read	READ
+reforge them	windows.wndblacksmith$wndreforge.reforge	Reforge%20them
+refreshing!	items.food.frozencarpaccio.refresh	Refreshing%21
+return	items.artifacts.lloydsbeacon.ac_return	RETURN
+return to game	windows.wndgame.return	Return%20to%20Game
+ring of accuracy	items.rings.ringofaccuracy.name	Ring%20of%20Accuracy
+ring of elements	items.rings.ringofelements.name	Ring%20of%20Elements
+ring of evasion	items.rings.ringofevasion.name	Ring%20of%20Evasion
+ring of haste	items.rings.ringofhaste.name	Ring%20of%20Haste
+rogue	actors.hero.heroclass.rogue	Rogue
+rogue	actors.hero.heroclass.rogue	rogue
+rooted	actors.buffs.roots.name	rooted
+rotberry	plants.rotberry.name	Rotberry
+rotting fist	actors.mobs.yogfist$rottingfist.name	rotting%20fist
+sad ghost	actors.mobs.npcs.ghost.name	Sad%20ghost
+sad ghost	actors.mobs.npcs.ghost.name	sad%20ghost
+scale armor	items.armor.scalearmor.name	scale%20armor
+score	windows.wnddailies.score	score
+scorpio	actors.mobs.scorpio.name	scorpio
+scroll holder	items.bags.scrollholder.name	scroll%20holder
+scroll of challenge	items.scrolls.exotic.scrollofchallenge.name	Scroll%20of%20Challenge
+scroll of enchantment	items.scrolls.exotic.scrollofenchantment.name	Scroll%20of%20Enchantment
+scroll of identify	items.scrolls.scrollofidentify.name	Scroll%20of%20Identify
+scroll of lullaby	items.scrolls.scrolloflullaby.name	Scroll%20of%20Lullaby
+scroll of magic mapping	items.scrolls.scrollofmagicmapping.name	Scroll%20of%20Magic%20Mapping
+scroll of mirror image	items.scrolls.scrollofmirrorimage.name	Scroll%20of%20Mirror%20Image
+scroll of psionic blast	items.scrolls.exotic.scrollofpsionicblast.name	Scroll%20of%20Psionic%20Blast
+scroll of recharging	items.scrolls.scrollofrecharging.name	Scroll%20of%20Recharging
+scroll of remove curse	items.scrolls.scrollofremovecurse.name	Scroll%20of%20Remove%20Curse
+scroll of teleportation	items.scrolls.scrollofteleportation.name	Scroll%20of%20Teleportation
+scroll of terror	items.scrolls.scrollofterror.name	Scroll%20of%20Terror
+scroll of upgrade	items.scrolls.scrollofupgrade.name	Scroll%20of%20Upgrade
+scrolls	journal.catalog.scrolls.title	Scrolls
+search	actors.hero.hero.search	search
+see you, %arg%!	actors.mobs.npcs.imp.cya	See%20you%2C%20%25s%21
+select an item	items.stones.stoneofintuition.inv_title	Select%20an%20item
+sell 1 for %arg%g	windows.wndtradeitem.sell_1	Sell%201%20for%20%25dg
+sell all for %arg%g	windows.wndtradeitem.sell_all	Sell%20all%20for%20%25dg
+sell for %arg%g	windows.wndtradeitem.sell	Sell%20for%20%25dg
+senior monk	actors.mobs.senior.name	senior%20monk
+set	items.artifacts.lloydsbeacon.ac_set	SET
+settings	windows.wndgame.settings	Settings
+several tiles are missing here.	levels.citylevel.deco_desc	Several%20tiles%20are%20missing%20here.
+sewer crab	actors.mobs.crab.name	sewer%20crab
+shadow clone	actors.hero.abilities.rogue.shadowclone.name	Shadow%20Clone
+shadow clone	actors.hero.abilities.rogue.shadowclone.name	Shadow%20clone
+shatter	items.honeypot.ac_shatter	SHATTER
+sheep	actors.mobs.npcs.sheep.name	sheep
+shocking %arg%	items.weapon.enchantments.shocking.name	shocking%20%25s
+shopkeeper	actors.mobs.npcs.shopkeeper.name	shopkeeper
+shuriken	items.weapon.missiles.shuriken.name	shuriken
+skeletal remains	items.heap.skeleton	Skeletal%20remains
+skeleton	actors.mobs.skeleton.name	Skeleton
+skeleton	actors.mobs.skeleton.name	skeleton
+skeleton key	items.artifacts.skeletonkey.name	skeleton%20key
+slowed	actors.buffs.slow.name	slowed
+smite	actors.hero.spells.smite.name	Smite
+sniper	actors.hero.herosubclass.sniper	Sniper
+sniper	actors.hero.herosubclass.sniper	sniper
+someone wanted to adorn this place, but failed, obviously.	levels.level.statue_desc	Someone%20wanted%20to%20adorn%20this%20place%2C%20but%20failed%2C%20obviously.
+sorrowmoss	plants.sorrowmoss.name	Sorrowmoss
+spear	items.weapon.melee.spear.name	spear
+spectral blades	actors.hero.abilities.huntress.spectralblades.name	SPECTRAL%20BLADES
+stairs lead down to the lower depth.	levels.level.exit_desc	Stairs%20lead%20down%20to%20the%20lower%20depth.
+stairs lead up to the upper depth.	levels.level.entrance_desc	Stairs%20lead%20up%20to%20the%20upper%20depth.
+start	scenes.heroselectscene.start	Start
+start	scenes.heroselectscene.start	start
+start new game	windows.wndgame.start	Start%20New%20Game
+starving	actors.buffs.hunger.starving	Starving
+stats	windows.wndhero.stats	%20Stats
+stats	windows.wndhero.stats	Stats
+statue	levels.level.statue_name	Statue
+stealth	items.artifacts.cloakofshadows.ac_stealth	Stealth
+store	items.artifacts.hornofplenty.ac_store	STORE
+strength	windows.wndgameinprogress.str	Strength
+strong magic aura of this place prevents you from using the lloyd's beacon!	items.artifacts.lloydsbeacon.preventing	Strong%20magic%20aura%20of%20this%20place%20prevents%20you%20from%20using%20the%20lloyd%27s%20beacon%21
+succubus	actors.mobs.succubus.name	succubus
+summon	items.artifacts.driedrose.ac_summon	Summon
+summoning trap	levels.traps.summoningtrap.name	Summoning%20trap
+sungrass	plants.sungrass.name	Sungrass
+support the game	scenes.supporterscene.title	Support%20The%20Game
+swarm intelligence	challenges.swarm_intelligence	Swarm%20intelligence
+swarm of flies	actors.mobs.swarm.name	swarm%20of%20flies
+sword	items.weapon.melee.sword.name	sword
+take the ring	windows.wndimp.reward	Take%20the%20ring
+tengu	actors.mobs.tengu.name	Tengu
+that food tasted delicious!	items.food.food.eat_msg	That%20food%20tasted%20delicious%21
+that food tasted ok.	items.food.pasty$fishleftover.eat_msg	That%20food%20tasted%20ok.
+that food tasted... strange.	items.food.mysterymeat.eat_msg	That%20food%20tasted...%20strange.
+the atmosphere hints that this floor hides many secrets.	levels.level$feeling.secrets_desc	The%20atmosphere%20hints%20that%20this%20floor%20hides%20many%20secrets.
+the bookshelf is packed with cheap useless books. might it burn?	levels.sewerlevel.bookshelf_desc	The%20bookshelf%20is%20packed%20with%20cheap%20useless%20books.%20Might%20it%20burn%3F
+the ladder leads down to the lower depth.	levels.caveslevel.exit_desc	The%20ladder%20leads%20down%20to%20the%20lower%20depth.
+the lloyd's beacon is successfully set at your current location, now you can return here anytime.	items.artifacts.lloydsbeacon.return	The%20lloyd%27s%20beacon%20is%20successfully%20set%20at%20your%20current%20location%2C%20now%20you%20can%20return%20here%20anytime.
+the pillar is made of real humanoid skulls. awesome.	levels.hallslevel.statue_desc	The%20pillar%20is%20made%20of%20real%20humanoid%20skulls.%20Awesome.
+the rows of books on different disciplines fill the bookshelf.	levels.citylevel.bookshelf_desc	The%20rows%20of%20books%20on%20different%20disciplines%20fill%20the%20bookshelf.
+the scroll emits a brilliant flash of red light and the %arg% flees!	items.scrolls.scrollofterror.one	The%20scroll%20emits%20a%20brilliant%20flash%20of%20red%20light%20and%20the%20%25s%20flees%21
+the scroll emits a brilliant flash of red light and the monsters flee!	items.scrolls.scrollofterror.many	The%20scroll%20emits%20a%20brilliant%20flash%20of%20red%20light%20and%20the%20monsters%20flee%21
+the smell of vegetation is thick in the air.	levels.level$feeling.grass_desc	The%20smell%20of%20vegetation%20is%20thick%20in%20the%20air.
+the statue depicts some dwarf standing in a heroic stance.	levels.citylevel.statue_desc	The%20statue%20depicts%20some%20dwarf%20standing%20in%20a%20heroic%20stance.
+the trap emits a piercing sound that echoes throughout the dungeon!	levels.traps.alarmtrap.alarm	The%20trap%20emits%20a%20piercing%20sound%20that%20echoes%20throughout%20the%20dungeon%21
+the trap has been triggered before and it's not dangerous anymore.	levels.level.inactive_trap_desc	The%20trap%20has%20been%20triggered%20before%20and%20it%27s%20not%20dangerous%20anymore.
+the well has run dry.	levels.level.empty_well_desc	The%20well%20has%20run%20dry.
+the wooden barricade is firmly set but has dried over the years. might it burn?	levels.level.barricade_desc	The%20wooden%20barricade%20is%20firmly%20set%20but%20has%20dried%20over%20the%20years.%20Might%20it%20burn%3F
+thick carpet covers the floor.	levels.citylevel.sp_desc	Thick%20carpet%20covers%20the%20floor.
+this ancient tomb may contain something useful, but its owner will most certainly object to checking.	items.heap.tomb_desc	This%20ancient%20tomb%20may%20contain%20something%20useful%2C%20but%20its%20owner%20will%20most%20certainly%20object%20to%20checking.
+this beacon was set somewhere on the level %arg% of pixel dungeon.	items.artifacts.lloydsbeacon.desc_set	%0A%0AThis%20beacon%20was%20set%20somewhere%20on%20the%20level%20%25d%20of%20Pixel%20Dungeon.
+this door is locked, you need a matching key to unlock it.	levels.level.locked_door_desc	This%20door%20is%20locked%2C%20you%20need%20a%20matching%20key%20to%20unlock%20it.
+this is a %arg%	items.rings.ring.known	This%20is%20a%20%25s
+this is all that's left from one of your predecessors. maybe it's worth checking for any valuables.	items.heap.remains_desc	This%20is%20all%20that%27s%20left%20from%20one%20of%20your%20predecessors.%20Maybe%20it%27s%20worth%20checking%20for%20any%20valuables.
+this is probably a vestige of a prison library. might it burn?	levels.prisonlevel.bookshelf_desc	This%20is%20probably%20a%20vestige%20of%20a%20prison%20library.%20Might%20it%20burn%3F
+throw	items.item.ac_throw	THROW
+tomahawk	items.weapon.missiles.tomahawk.name	tomahawk
+tomb	items.heap.tomb	Tomb
+torch	items.torch.name	torch
+touching a fadeleaf will teleport any creature to a random place on the current level.	plants.fadeleaf.desc	Touching%20a%20Fadeleaf%20will%20teleport%20any%20creature%20to%20a%20random%20place%20on%20the%20current%20level.
+toxic gas trap	levels.traps.toxictrap.name	Toxic%20gas%20trap
+triggered trap	levels.level.inactive_trap_name	Triggered%20trap
+troll blacksmith	actors.mobs.npcs.blacksmith.name	Troll%20blacksmith
+troll blacksmith	actors.mobs.npcs.blacksmith.name	troll%20blacksmith
+unable to load additional information	windows.wndranking.error	Unable%20to%20load%20additional%20information
+unequip	items.equipableitem.ac_unequip	UNEQUIP
+unlocked depth exit	levels.level.unlocked_exit_name	Unlocked%20depth%20exit
+unstable %arg%	items.weapon.enchantments.unstable.name	unstable%20%25s
+vampire bat	actors.mobs.bat.name	vampire%20bat
+vampiric %arg%	items.weapon.enchantments.vampiric.name	vampiric%20%25s
+victory!	badges$badge.victory.title	Victory%21
+wall	levels.level.wall_name	Wall
+wand of disintegration	items.wands.wandofdisintegration.name	Wand%20of%20Disintegration
+wand of lightning	items.wands.wandoflightning.name	Wand%20of%20Lightning
+wand of magic missile	items.wands.wandofmagicmissile.name	Wand%20of%20Magic%20Missile
+wand of regrowth	items.wands.wandofregrowth.name	Wand%20of%20Regrowth
+war hammer	items.weapon.melee.warhammer.name	war%20hammer
+warden	actors.hero.herosubclass.warden	Warden
+warden	actors.hero.herosubclass.warden	warden
+warlock	actors.hero.herosubclass.warlock	Warlock
+warlock	actors.hero.herosubclass.warlock	warlock
+warrior	actors.hero.heroclass.warrior	Warrior
+warrior	actors.hero.heroclass.warrior	warrior
+water	levels.level.water_name	Water
+well	levels.level.well_name	Well
+well of awareness	journal.notes$landmark.well_of_awareness	Well%20of%20Awareness
+well of health	journal.notes$landmark.well_of_health	Well%20of%20Health
+what is it? i have no time for this nonsense. my kingdom won't rule itself!	actors.mobs.npcs.ratking.what_is_it	What%20is%20it%3F%20I%20have%20no%20time%20for%20this%20nonsense.%20My%20kingdom%20won%27t%20rule%20itself%21
+when something touches a firebloom, it bursts into flames.	plants.firebloom.desc	When%20something%20touches%20a%20Firebloom%2C%20it%20bursts%20into%20flames.
+who would need a bookshelf in a cave?	levels.caveslevel.bookshelf_desc	Who%20would%20need%20a%20bookshelf%20in%20a%20cave%3F
+wraith	actors.mobs.wraith.name	wraith
+yes	scenes.heroselectscene.daily_yes	Yes
+yes, i'm positive	items.potions.exotic.exoticpotion.yes	Yes%2C%20I%27m%20positive
+yog-dzewa	actors.mobs.yogdzewa.name	Yog-Dzewa
+you	actors.hero.hero.name	you
+you are bleeding!	actors.buffs.bleeding.heromsg	You%20are%20bleeding%21
+you are blinded!	actors.buffs.blindness.heromsg	You%20are%20blinded%21
+you are charmed!	actors.buffs.charm.heromsg	You%20are%20charmed%21
+you are crippled!	actors.buffs.cripple.heromsg	You%20are%20crippled%21
+you are hungry.	actors.buffs.hunger.onhungry	You%20are%20hungry.
+you are not feeling well.	items.food.mysterymeat.not_well	You%20are%20not%20feeling%20well.
+you are now aware of the level layout.	items.scrolls.scrollofmagicmapping.layout	You%20are%20now%20aware%20of%20the%20level%20layout.
+you are paralysed!	actors.buffs.paralysis.heromsg	You%20are%20paralysed%21
+you are poisoned!	actors.buffs.poison.heromsg	You%20are%20poisoned%21
+you are starving!	actors.buffs.hunger.onstarving	You%20are%20starving%21
+you are stuffed.	items.food.mysterymeat.stuffed	You%20are%20stuffed.
+you become furious!	actors.buffs.fury.heromsg	You%20become%20furious%21
+you bled to death...	actors.buffs.bleeding.ondeath	You%20bled%20to%20death...
+you burned to death...	actors.buffs.burning.ondeath	You%20burned%20to%20death...
+you can somehow feel the presence of other creatures' minds!	items.potions.potionofmindvision.see_mobs	You%20can%20somehow%20feel%20the%20presence%20of%20other%20creatures%27%20minds%21
+you can somehow tell that you are alone on this level at the moment.	items.potions.potionofmindvision.see_none	You%20can%20somehow%20tell%20that%20you%20are%20alone%20on%20this%20level%20at%20the%20moment.
+you can't feel your legs!	items.food.mysterymeat.legs	You%20can%27t%20feel%20your%20legs%21
+you can't move!	actors.buffs.roots.heromsg	You%20can%27t%20move%21
+you can't see the bottom.	levels.level.chasm_desc	You%20can%27t%20see%20the%20bottom.
+you catch fire!	actors.buffs.burning.heromsg	You%20catch%20fire%21
+you died from poison...	actors.buffs.poison.ondeath	You%20died%20from%20poison...
+you don't know what is there.	scenes.gamescene.dont_know	You%20don%27t%20know%20what%20is%20there.
+you feel better!	items.food.frozencarpaccio.better	You%20feel%20better%21
+you feel uncommon freshness in the air.	items.potions.potionofpurity.freshness	You%20feel%20uncommon%20freshness%20in%20the%20air.
+you feel weakened!	actors.buffs.weakness.heromsg	You%20feel%20weakened%21
+you fell to death...	levels.features.chasm.ondeath	You%20fell%20to%20death...
+you float into the air!	items.potions.potionoflevitation.float	You%20float%20into%20the%20air%21
+you killed yourself with your own wand of lightning...	items.wands.wandoflightning.ondeath	You%20killed%20yourself%20with%20your%20own%20Wand%20of%20Lightning...
+you need to be wearing this armor to use its special power!	items.armor.classarmor.not_equipped	You%20need%20to%20be%20wearing%20this%20armor%20to%20use%20its%20special%20power%21
+you see your hands turn invisible!	items.food.frozencarpaccio.invis	You%20see%20your%20hands%20turn%20invisible%21
+you starved to death...	actors.buffs.hunger.ondeath	You%20starved%20to%20death...
+you were killed by the explosion of bones...	actors.mobs.skeleton.explo_kill	You%20were%20killed%20by%20the%20explosion%20of%20bones...
+you won't know what's inside until you open it!	items.heap.chest_desc	You%20won%27t%20know%20what%27s%20inside%20until%20you%20open%20it%21
+you won't know what's inside until you open it! but to open it you need a golden key.	items.heap.locked_chest_desc	You%20won%27t%20know%20what%27s%20inside%20until%20you%20open%20it%21%20But%20to%20open%20it%20you%20need%20a%20golden%20key.
+your badges	windows.wndjournal$badgestab.title_main_menu	Your%20Badges
+your steps echo across the dungeon.	levels.level$feeling.chasm_desc	Your%20steps%20echo%20across%20the%20dungeon.
+zap	items.artifacts.lloydsbeacon.ac_zap	ZAP
+
+a flash of red light will overwhelm all creatures in your field of view with terror, and they will turn and flee. attacking a fleeing enemy will dispel the effect.	custom.generated.entry_a_flash_of_red_light_will_overwhelm_all_creature_eb24a236a9
+a scroll that boosts strength at a certain cost.	custom.generated.entry_a_scroll_that_boosts_strength_at_a_certain_cost_29cdfc6730
+a soothing melody will put all creatures in your field of view into a deep sleep, giving you a chance to flee or make a surprise attack on them.	custom.generated.entry_a_soothing_melody_will_put_all_creatures_in_your_b85e1025e0
+inspiring words that boost moral and remove fatigue!	custom.generated.entry_inspiring_words_that_boost_moral_and_remove_fati_114cb7f9b0
+opens a magical portal that takes you back to the entrance of this dungeon level.	custom.generated.entry_opens_a_magical_portal_that_takes_you_back_to_th_7ade511c99
+permanently reveals all of the secrets of a single item.	custom.generated.entry_permanently_reveals_all_of_the_secrets_of_a_sing_37263236ea
+read this scroll to unleash the wrath of the dungeon spirits, killing everything on the current level. well, almost everything. some of the more powerful creatures may be not affected.	custom.generated.entry_read_this_scroll_to_unleash_the_wrath_of_the_dun_db502abf39
+the incantation on this scroll will create illusionary twins of the reader, which will chase his enemies.	custom.generated.entry_the_incantation_on_this_scroll_will_create_illus_03adca31a3
+the incantation on this scroll will instantly strip from the reader's weapon, armor, rings and carried items any evil enchantments that might prevent the wearer from removing them.	custom.generated.entry_the_incantation_on_this_scroll_will_instantly_st_aab7f4028d
+the raw magical power bound up in this parchment will, when released, recharge all of the reader's wands to full power.	custom.generated.entry_the_raw_magical_power_bound_up_in_this_parchment_3f69966d11
+the scroll holds the secret of a forbidden ritual. in exchange for the reader's well being, the scroll damages everyone nearby and fully heals him.	custom.generated.entry_the_scroll_holds_the_secret_of_a_forbidden_ritua_e5cba4d63f
+the scroll seems colder than the surroundings. as if it were a portal to a colder dimension.	custom.generated.entry_the_scroll_seems_colder_than_the_surroundings_as_501b2fc4de
+the spell on this parchment instantly transports the reader to a random location on the dungeon level. it can be used to escape a dangerous situation, but the unlucky reader might find himself in an even more dangerous place.	custom.generated.entry_the_spell_on_this_parchment_instantly_transports_58e333e1a3
+this scroll contains destructive energy, that can be psionically channeled to inflict a massive damage to all creatures within a field of view. an accompanying flash of light will temporarily blind everybody in the area of effect including the reader of the scroll.	custom.generated.entry_this_scroll_contains_destructive_energy_that_can_041c64b608
+this scroll is able to imbue a weapon or an armor with a random enchantment, granting it a special power.	custom.generated.entry_this_scroll_is_able_to_imbue_a_weapon_or_an_armo_5fe337f7bb
+this scroll will upgrade a single item, improving its quality. a wand will increase in power and in number of charges; a weapon will inflict more damage or find its mark more frequently; a suit of armor will deflect additional blows; the effect of a ring on its wearer will intensify. weapons and armor will also require less strength to use, and any curses on the item will be lifted.	custom.generated.entry_this_scroll_will_upgrade_a_single_item_improving_726b60e198
+when read aloud, this scroll will unleash a challenging roar that will awaken all monsters and alert them to the reader's location.	custom.generated.entry_when_read_aloud_this_scroll_will_unleash_a_chall_c2ecf67fcd
+when read, words of inspiration will make your ready for combat.	custom.generated.entry_when_read_words_of_inspiration_will_make_your_re_742e301c64
+when read, words of wisdom will increase your skill.	custom.generated.entry_when_read_words_of_wisdom_will_increase_your_ski_7456c5ece5

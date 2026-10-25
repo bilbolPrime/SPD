@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -14,15 +15,11 @@ import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class SummonCrab extends ActiveSkill2{
-
 
     {
         name = "Summon Crab";
-        castText = "Fight for me!";
+        castText = Message.key("custom.generated.entry_fight_for_me_e24e9631f1");
         tier = 2;
         image = 42;
         mana = 3;
@@ -82,17 +79,10 @@ public class SummonCrab extends ActiveSkill2{
     }
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;
     }
-
 
     @Override
     public String info()

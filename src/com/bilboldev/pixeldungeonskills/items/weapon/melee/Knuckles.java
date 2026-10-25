@@ -22,16 +22,17 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 public class Knuckles extends MeleeWeapon {
 
 	{
-		name = "knuckleduster";
+		name = "Knuckles";
 		image = ItemSpriteSheet.KNUCKLEDUSTER;
 	}
-	
+
 	public Knuckles() {
 		super( 1, 1f, 0.5f );
 	}
-	
+
 	@Override
 	public String desc() {
-		return "A piece of iron shaped to fit around the knuckles.";
+		String localized = message( "desc" );
+		return localized != null ? localized : "A piece of iron shaped to fit around the knuckles.";
 	}
 }

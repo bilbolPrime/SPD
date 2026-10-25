@@ -17,8 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
-
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
@@ -30,14 +30,14 @@ import com.bilboldev.pixeldungeonskills.sprites.GolemSprite;
 import com.bilboldev.utils.Random;
 
 public class Golem extends Mob {
-	
+
 	{
 		name = "golem";
 		spriteClass = GolemSprite.class;
-		
+
 		HP = HT = 85;
 		defenseSkill = 18;
-		
+
 		EXP = 12;
 		maxLvl = 22;
 
@@ -45,36 +45,36 @@ public class Golem extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 20, 40 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 28;
 	}
-	
+
 	@Override
 	protected float attackDelay() {
 		return 1.5f;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 12;
 	}
-	
+
 	@Override
-	public String defenseVerb() {
-		return "blocked";
-	}
-	
+	public Message defenseText() {
+        return Message.key(Char.class, "def_verb_blocked");
+    }
+
 	@Override
 	public void die( Object cause ) {
 		Imp.Quest.process( this );
-		
+
 		super.die( cause );
 	}
 
@@ -91,24 +91,24 @@ public class Golem extends Mob {
 			"They used spirits of earth as the \"soul\" for the mechanical bodies of golems, which were believed to be " +
 			"most controllable of all. Despite this, the tiniest mistake in the ritual could cause an outbreak.";
 	}
-	
+
 	private static final HashSet<Class<?>> RESISTANCES = new HashSet<Class<?>>();
 	static {
 		RESISTANCES.add( ScrollOfPsionicBlast.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> resistances() {
 		return RESISTANCES;
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( Amok.class );
 		IMMUNITIES.add( Terror.class );
 		IMMUNITIES.add( Sleep.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;

@@ -24,52 +24,46 @@ import com.bilboldev.utils.Bundle;
 
 public class GamesInProgress {
 
-	private static HashMap<HeroClass, Info> state = new HashMap<HeroClass, Info>();
-	
-	public static Info check( HeroClass cl ) {
-		
-		if (state.containsKey( cl )) {
-			
-			return state.get( cl );
-			
-		} else {
-			
-			Info info;
-			try {
-				
-				Bundle bundle = Dungeon.gameBundle( Dungeon.gameFile( cl ) );
-				info = new Info();
-				Dungeon.preview( info, bundle );
+	private static final HashMap<String, Info> state = new HashMap<String, Info>();
 
+	public static Info check(HeroClass cl, int slot) {
+		String filename = SaveSlots.gameFile(cl, slot);
+		if (state.containsKey(filename)) return state.get(filename);
+		Info info = null;
+		if (SaveSlots.exists(cl, slot)) {
+			info = new Info();
+			try {
+				Bundle bundle = Dungeon.gameBundle(filename);
+				Dungeon.preview(info, bundle);
+				if (HeroClass.restoreInBundle(bundle.getBundle("hero")) != cl)
+					info.unavailable = true;
 			} catch (Exception e) {
-				info = null;
+
+				info.unavailable = true;
 			}
-			
-			state.put( cl, info );
-			return info;
-			
 		}
+		state.put(filename, info);
+		return info;
 	}
-	
-	public static void set( HeroClass cl, int depth, int level, boolean challenges ) {
-		Info info = new Info();
-		info.depth = depth;
-		info.level = level;
-		info.challenges = challenges;
-		state.put( cl, info );
+
+	public static int count(HeroClass cl) {
+		int count = 0;
+		for (int slot = SaveSlots.FIRST; slot <= SaveSlots.COUNT; slot++)
+			if (check(cl, slot) != null) count++;
+		return count;
 	}
-	
-	public static void setUnknown( HeroClass cl ) {
-		state.remove( cl );
+
+	public static void setUnknown(HeroClass cl, int slot) {
+		state.remove(SaveSlots.gameFile(cl, slot));
 	}
-	
-	public static void delete( HeroClass cl ) {
-		state.put( cl, null );
-	}
-	
+
 	public static class Info {
 		public int depth;
 		public int level;
+		public int armorTier;
 		public boolean challenges;
+		public int difficulty;
+		public RunRules rules = RunRules.CLASSIC;
+		public boolean unavailable;
 	}
 }

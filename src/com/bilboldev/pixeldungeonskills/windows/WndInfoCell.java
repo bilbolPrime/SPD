@@ -19,15 +19,19 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.ui.Component;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 
-public class WndInfoCell extends Window {
+public class WndInfoCell extends WndScrollable {
 	
 	private static final float GAP	= 2;
 	
@@ -38,6 +42,7 @@ public class WndInfoCell extends Window {
 	public WndInfoCell( int cell ) {
 		
 		super();
+		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 		
 		int tile = Dungeon.level.map[cell];
 		if (Level.water[cell]) {
@@ -46,16 +51,15 @@ public class WndInfoCell extends Window {
 			tile = Terrain.CHASM;
 		}
 		
-		IconTitle titlebar = new IconTitle();
+		Image image;
 		if (tile == Terrain.WATER) {
-			Image water = new Image( Dungeon.level.waterTex() );
-			water.frame( 0, 0, DungeonTilemap.SIZE, DungeonTilemap.SIZE );
-			titlebar.icon( water );
+			image = new Image( Dungeon.level.waterTex() );
+			image.frame( 0, 0, DungeonTilemap.SIZE, DungeonTilemap.SIZE );
 		} else {
-			titlebar.icon( DungeonTilemap.tile( tile ) );
+			image = Difficulties.is3d ? DungeonTerrainTilemap.tile( cell, tile ) : DungeonTilemapOld.tile( tile );
 		}
-		titlebar.label( Dungeon.level.tileName( tile ) );
-		titlebar.setRect( 0, 0, WIDTH, 0 );
+		Component titlebar = InspectionTitle.create(image, Dungeon.level.tileName(tile));
+		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
 		
 		BitmapTextMultiline info = PixelScene.createMultiline( 6 );
@@ -65,20 +69,18 @@ public class WndInfoCell extends Window {
 		
 		final char newLine = '\n';
 		for (Blob blob:Dungeon.level.blobs.values()) {
-			if (blob.cur[cell] > 0 && blob.tileDesc() != null) {
+			String blobDesc = blob.displayTileDesc();
+			if (blob.cur[cell] > 0 && blobDesc != null) {
 				if (desc.length() > 0) {
 					desc.append( newLine );
 				}
-				desc.append( blob.tileDesc() );
+				desc.append( blobDesc );
 			}
 		}
 		
-		info.text( desc.length() > 0 ? desc.toString() : TXT_NOTHING );
-		info.maxWidth = WIDTH;
+		info.text( desc.length() > 0 ? desc.toString() : Messages.get( WndInfoCell.class, "nothing" ) );
+		info.maxWidth = textWidth(windowWidth);
 		info.measure();
-		info.x = titlebar.left();
-		info.y = titlebar.bottom() + GAP;
-		
-		resize( WIDTH, (int)(info.y + info.height()) );
+		layoutContent(windowWidth, titlebar, textContent(info), GAP);
 	}
 }

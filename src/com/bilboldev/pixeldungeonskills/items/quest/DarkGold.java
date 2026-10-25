@@ -21,32 +21,30 @@ import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class DarkGold extends Item {
-	
+
 	{
 		name = "dark gold ore";
 		image = ItemSpriteSheet.ORE;
-		
+
 		stackable = true;
 		unique = true;
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public String info() {
-		return
-			"This metal is called dark not because of its color (it doesn't differ from the normal gold), " +
-			"but because it melts under the daylight, making it useless on the surface.";
+		return desc();
 	}
-	
+
 	@Override
 	public int price() {
 		return quantity;

@@ -17,39 +17,50 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Component;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 
-public class WndTitledMessage extends Window {
+public class WndTitledMessage extends WndScrollable {
 
 	private static final int WIDTH_P	= 120;
 	private static final int WIDTH_L	= 144;
-	
+
 	private static final int GAP	= 2;
-	
-	public WndTitledMessage( Image icon, String title, String message ) {
-		
+	private static final int DEFAULT_TEXT_SIZE = 6;
+
+	public WndTitledMessage(Image icon, Message title, Message message) {
+        this(icon, title.toString(), message.toString());
+        menuModel = new MenuModel(title, message);
+    }
+
+    public WndTitledMessage( Image icon, String title, String message ) {
+
 		this( new IconTitle( icon, title ), message );
 
 	}
-	
+
 	public WndTitledMessage( Component titlebar, String message ) {
-		
+		this(titlebar, message, 0);
+	}
+
+	protected WndTitledMessage( Component titlebar, String message, int preferredWidth ) {
+
 		super();
-		
-		int width = PixelDungeon.landscape() ? WIDTH_L : WIDTH_P;
-		
+
+		if (preferredWidth <= 0) {
+			preferredWidth = landscapeLayout() ? WIDTH_L : WIDTH_P;
+		}
+		int width = boundedWidth(preferredWidth);
+
 		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
-		
-		HighlightedText text = new HighlightedText( 6 );
-		text.text( message, width );
-		text.setPos( titlebar.left(), titlebar.bottom() + GAP );
-		add( text );
-		
-		resize( width, (int)text.bottom() );
+
+		HighlightedText text = new HighlightedText(DEFAULT_TEXT_SIZE);
+		text.text(message, textWidth(width));
+		layoutContent(width, titlebar, text, GAP);
 	}
 }

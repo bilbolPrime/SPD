@@ -17,8 +17,11 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
@@ -26,7 +29,12 @@ import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 
 public class WndBadge extends Window {
-	
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.ARCANE;
+    }
+
 	private static final int WIDTH = 120;
 	private static final int MARGIN = 4;
 	
@@ -38,8 +46,10 @@ public class WndBadge extends Window {
 		icon.scale.set( 2 );
 		add( icon );
 		
-		BitmapTextMultiline info = PixelScene.createMultiline( badge.description, 8 );
-		info.maxWidth = WIDTH - MARGIN * 2;
+		BitmapTextMultiline info = PixelScene.createMultiline( badge.description(), 8 );
+		int availableWidth = (int)(Game.width / camera.zoom)
+				- chrome.marginHor() - MARGIN * 2;
+		info.maxWidth = Math.max(32, Math.min(WIDTH, availableWidth)) - MARGIN * 2;
 		info.measure();
 		
 		float w = Math.max( icon.width(), info.width() ) + MARGIN * 2;
@@ -48,14 +58,10 @@ public class WndBadge extends Window {
 		icon.y = MARGIN;
 		
 		float pos = icon.y + icon.height() + MARGIN;
-		for (BitmapText line : info.new LineSplitter().split()) {
-			line.measure();
-			line.x = PixelScene.align( (w - line.width()) / 2 );
-			line.y = PixelScene.align( pos );
-			add( line );
-			
-			pos += line.height(); 
-		}
+		info.x = PixelScene.align( (w - info.width()) / 2 );
+		info.y = PixelScene.align( pos );
+		add( info );
+		pos += info.height();
 
 		resize( (int)w, (int)(pos + MARGIN) );
 		

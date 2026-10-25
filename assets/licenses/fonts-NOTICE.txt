@@ -1,0 +1,17 @@
+Font attribution copied from the embedded TrueType name tables.
+
+droid_sans.ttf
+Digitized data copyright Google Corporation © 2006
+Licensed under the Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+
+pixel_font.ttf
+Character sizing based on Roboto by Google
+
+Original bitmaps by Oleg Dolya(Watabou)
+
+TTF Conversion by Evan Debenham(Shattered Pixel)
+
+This font uses Characters from Roboto for in certain cases, all Roboto font data copyright Google 2014
+Licensed under the Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0

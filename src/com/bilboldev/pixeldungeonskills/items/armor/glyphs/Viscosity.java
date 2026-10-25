@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.armor.glyphs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
@@ -36,36 +38,36 @@ import com.bilboldev.utils.Random;
 public class Viscosity extends Glyph {
 
 	private static final String TXT_VISCOSITY	= "%s of viscosity";
-	
+
 	private static ItemSprite.Glowing PURPLE = new ItemSprite.Glowing( 0x8844CC );
-	
+
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage ) {
 
 		if (damage == 0) {
 			return 0;
 		}
-		
+
 		int level = Math.max( 0, armor.effectiveLevel() );
-		
+
 		if (Random.Int( level + 7 ) >= 6) {
-			
+
 			DeferedDamage debuff = defender.buff( DeferedDamage.class );
 			if (debuff == null) {
 				debuff = new DeferedDamage();
 				debuff.attachTo( defender );
 			}
 			debuff.prolong( damage );
-			
-			defender.sprite.showStatus( CharSprite.WARNING, "deferred %d", damage );
-			
+
+			defender.sprite.showStatus( CharSprite.WARNING, Message.key(Viscosity.class, "deferred", damage) );
+
 			return 0;
-			
+
 		} else {
 			return damage;
 		}
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
 		return String.format( TXT_VISCOSITY, weaponName );
@@ -75,26 +77,26 @@ public class Viscosity extends Glyph {
 	public Glowing glowing() {
 		return PURPLE;
 	}
-	
+
 	public static class DeferedDamage extends Buff {
-		
+
 		protected int damage = 0;
-		
+
 		private static final String DAMAGE	= "damage";
-		
+
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( DAMAGE, damage );
-			
+
 		}
-		
+
 		@Override
 		public void restoreFromBundle( Bundle bundle ) {
 			super.restoreFromBundle( bundle );
 			damage = bundle.getInt( DAMAGE );
 		}
-		
+
 		@Override
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
@@ -104,43 +106,43 @@ public class Viscosity extends Glyph {
 				return false;
 			}
 		}
-		
+
 		public void prolong( int damage ) {
 			this.damage += damage;
 		};
-		
+
 		@Override
 		public int icon() {
 			return BuffIndicator.DEFERRED;
 		}
-		
+
 		@Override
 		public String toString() {
 			return Utils.format( "Defered damage (%d)", damage );
 		}
-		
+
 		@Override
 		public boolean act() {
 			if (target.isAlive()) {
-				
+
 				target.damage( 1, this );
 				if (target == Dungeon.hero && !target.isAlive()) {
-					// FIXME
-					Dungeon.fail( Utils.format( ResultDescriptions.GLYPH, "enchantment of viscosity", Dungeon.depth ) );
-					GLog.n( "The enchantment of viscosity killed you..." );
-					
+
+					Dungeon.fail( Utils.format( ResultDescriptions.GLYPH, "enchantment of viscosity", Dungeon.depth ), Viscosity.class );
+					GLog.n("custom.generated.entry_the_enchantment_of_viscosity_killed_you_29c9491017");
+
 					Badges.validateDeathFromGlyph();
 				}
 				spend( TICK );
-				
+
 				if (--damage <= 0) {
 					detach();
 				}
-				
+
 			} else {
-				
+
 				detach();
-				
+
 			}
 			return true;
 		}

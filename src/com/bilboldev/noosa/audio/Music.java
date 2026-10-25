@@ -26,19 +26,25 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 
 public enum Music implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-	
+
 	INSTANCE;
 	
 	private MediaPlayer player;
+	private LayeredMusic layered;
 	
 	private String lastPlayed;
 	private boolean lastLooping;
 	
 	private boolean enabled = true;
+	private boolean prepared;
+	private boolean paused;
+	private float volume = 1f;
+	private float masterVolume = 1f;
+	private float fadeVolume = 1f;
 	
-	public void play( String assetName, boolean looping ) {
+	public synchronized void play( String assetName, boolean looping ) {
 		
-		if (isPlaying() && lastPlayed.equals( assetName )) {
+		if (player != null && assetName != null && assetName.equals(lastPlayed)) {
 			return;
 		}
 		
@@ -51,9 +57,7 @@ public enum Music implements MediaPlayer.OnPreparedListener, MediaPlayer.OnError
 			return;
 		}
 		
-		try {
-			
-			AssetFileDescriptor afd = Game.instance.getAssets().openFd( assetName );
+		try (AssetFileDescriptor afd = Game.instance.getAssets().openFd(assetName)) {
 			
 			player = new MediaPlayer();
 			player.setAudioStreamType( AudioManager.STREAM_MUSIC );
@@ -61,76 +65,123 @@ public enum Music implements MediaPlayer.OnPreparedListener, MediaPlayer.OnError
 			player.setOnPreparedListener( this );
 			player.setOnErrorListener( this );
 			player.setLooping( looping );
+			player.setVolume(volume * masterVolume * fadeVolume, volume * masterVolume * fadeVolume);
 			player.prepareAsync();
 			
-		} catch (IOException e) {
-			
-			player.release();
-			player = null;
-			
+		} catch (IOException | RuntimeException e) {
+			stop();
 		}
 	}
 	
-	public void mute() {
+	public synchronized void mute() {
 		lastPlayed = null;
 		stop();
 	}
 
+    public synchronized void playLayered(LayeredMusic.Track track, boolean boss) {
+        if (layered == null || layered.failure() != null) {
+            stop();
+            layered = new LayeredMusic(MusicOutput::asset, MusicOutput::create);
+        }
+        lastPlayed = track.id;
+        lastLooping = true;
+        layered.volume(volume * masterVolume * fadeVolume);
+        layered.paused(paused || !enabled);
+        layered.play(track, boss);
+    }
+
+    public synchronized void boss(boolean active) {
+        if (layered != null) layered.boss(active);
+    }
+
 	@Override
-	public void onPrepared( MediaPlayer player ) {
-		player.start();
+	public synchronized void onPrepared( MediaPlayer ready ) {
+		if (ready != player) return;
+		prepared = true;
+		ready.setVolume(volume * masterVolume * fadeVolume, volume * masterVolume * fadeVolume);
+		if (enabled && !paused) ready.start();
 	}
 	
 	@Override
-	public boolean onError( MediaPlayer mp, int what, int extra ) {
-		if (player != null) {
-			player.release();
-			player = null;
-		}
+	public synchronized boolean onError( MediaPlayer mp, int what, int extra ) {
+		if (mp == player) stop();
 		return true;
 	}
 	
-	public void pause() {
-		if (player != null) {
+	public synchronized void pause() {
+		paused = true;
+		if (layered != null) layered.paused(true);
+		if (player != null && prepared) {
 			player.pause();
 		}
 	}
 	
-	public void resume() {
-		if (player != null) {
+	public synchronized void resume() {
+		paused = false;
+		if (layered != null) layered.paused(!enabled);
+		if (player != null && prepared && enabled) {
 			player.start();
 		}
 	}
 	
-	public void stop() {
+	public synchronized void stop() {
+		prepared = false;
+		if (layered != null) {
+			layered.close();
+			layered = null;
+		}
 		if (player != null) {
-			player.stop();
 			player.release();
 			player = null;
 		}
 	}
 	
-	public void volume( float value ) {
-		if (player != null) {
-			player.setVolume( value, value );
+	public synchronized void volume( float value ) {
+		volume = Math.max(0, Math.min(1, value));
+		if (layered != null) layered.volume(volume * masterVolume * fadeVolume);
+		if (player != null && prepared) {
+			player.setVolume(volume * masterVolume * fadeVolume, volume * masterVolume * fadeVolume);
 		}
 	}
-	
-	public boolean isPlaying() {
-		return player != null && player.isPlaying();
+
+	public synchronized void masterVolume(float value) {
+		masterVolume = Math.max(0, Math.min(1, value));
+		volume(volume);
+	}
+
+	public synchronized void fadeVolume(float value) {
+		fadeVolume = Math.max(0, Math.min(1, value));
+		volume(volume);
 	}
 	
-	public void enable( boolean value ) {
+	public synchronized boolean isPlaying() {
+		return layered != null ? layered.isPlaying() : player != null && prepared && player.isPlaying();
+	}
+
+	public synchronized boolean isPlaying(String assetName) {
+		return isCurrent(assetName) && isPlaying();
+	}
+
+    public synchronized boolean isCurrent(String assetName) {
+        return (player != null || layered != null) && assetName != null && assetName.equals(lastPlayed);
+    }
+	
+	public synchronized void enable( boolean value ) {
 		enabled = value;
-		if (isPlaying() && !value) {
-			stop();
-		} else
-		if (!isPlaying() && value) {
+		if (layered != null) {
+			layered.paused(paused || !enabled);
+			return;
+		}
+		if (!value) {
+			if (player != null && prepared) player.pause();
+		} else if (player != null) {
+            if (prepared && !paused) player.start();
+		} else {
 			play( lastPlayed, lastLooping );
 		}
 	}
 	
-	public boolean isEnabled() {
+	public synchronized boolean isEnabled() {
 		return enabled;
 	}
 }

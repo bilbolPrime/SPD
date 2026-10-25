@@ -19,7 +19,6 @@ package com.bilboldev.pixeldungeonskills.items.wands;
 
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
-import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -33,26 +32,26 @@ public class WandOfPoison extends Wand {
 	{
 		name = "Wand of Poison";
 	}
-	
+
 	@Override
 	protected void onZap( int cell ) {
 		Char ch = Actor.findChar( cell );
 		if (ch != null) {
 
-			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5 + power() *  Dungeon.hero.heroSkills.passiveB2.wandDamageBonus() ) );
-			
+			Buff.affect( ch, Poison.class ).set( Poison.durationFactor( ch ) * (5*  wandBonusDamageModifier() + power() *  wandBonusDamageModifier() ) );
+
 		} else {
-			
-			GLog.i( "nothing happened" );
-			
+
+			GLog.i("custom.generated.entry_nothing_happened_7fbc05693e");
+
 		}
 	}
-	
+
 	protected void fx( int cell, Callback callback ) {
 		MagicMissile.poison( curUser.sprite.parent, curUser.pos, cell, callback );
 		Sample.INSTANCE.play( Assets.SND_ZAP );
 	}
-	
+
 	@Override
 	public String desc() {
 		return

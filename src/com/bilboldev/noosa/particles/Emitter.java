@@ -30,72 +30,99 @@ import com.bilboldev.utils.Random;
 public class Emitter extends Group {
 
 	protected boolean lightMode = false;
-	
+
 	public float x;
-	public float y;	
+	public float y;
 	public float width;
 	public float height;
-	
+
 	protected Visual target;
-	
+	private Visual renderAnchor;
+
+	public void renderAnchor( Visual anchor ) {
+		renderAnchor = anchor;
+	}
+
+	public Visual renderAnchor() {
+		return renderAnchor != null ? renderAnchor : target;
+	}
+
+	public boolean lightMode() {
+		return lightMode;
+	}
+
 	protected float interval;
 	protected int quantity;
-	
+
 	public boolean on = false;
-	
+
 	public boolean autoKill = true;
-	
+
 	protected int count;
 	protected float time;
-	
+
 	protected Factory factory;
-	
+
 	public void pos( float x, float y ) {
 		pos( x, y, 0, 0 );
 	}
-	
+
 	public void pos( PointF p ) {
 		pos( p.x, p.y, 0, 0 );
 	}
-	
+
 	public void pos( float x, float y, float width, float height ) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		
+
 		target = null;
+		renderAnchor = null;
 	}
-	
+
 	public void pos( Visual target ) {
-		this.target = target; 
+		this.target = target;
+		renderAnchor = null;
 	}
-	
+
+	@Override
+	public void kill() {
+		renderAnchor = null;
+		super.kill();
+	}
+
+	@Override
+	public void destroy() {
+		renderAnchor = target = null;
+		super.destroy();
+	}
+
 	public void burst( Factory factory, int quantity ) {
 		start( factory, 0, quantity );
 	}
-	
+
 	public void pour( Factory factory, float interval ) {
 		start( factory, interval, 0 );
 	}
 
 	public void start( Factory factory, float interval, int quantity ) {
-		
+
 		this.factory = factory;
 		this.lightMode = factory.lightMode();
-		
+
 		this.interval = interval;
 		this.quantity = quantity;
-		
+
 		count = 0;
 		time = Random.Float( interval );
-		
+
 		on = true;
 	}
-	
+
 	@Override
 	public void update() {
-		
+
 		if (on) {
 			time += Game.elapsed;
 			while (time > interval) {
@@ -109,26 +136,26 @@ public class Emitter extends Group {
 		} else if (autoKill && countLiving() == 0) {
 			kill();
 		}
-		
+
 		super.update();
 	}
-	
+
 	protected void emit( int index ) {
 		if (target == null) {
-			factory.emit( 
+			factory.emit(
 				this,
 				index,
 				x + Random.Float( width ),
 				y + Random.Float( height ) );
 		} else {
-			factory.emit( 
+			factory.emit(
 				this,
 				index,
 				target.x + Random.Float( target.width ),
 				target.y + Random.Float( target.height ) );
 		}
 	}
-	
+
 	@Override
 	public void draw() {
 		if (lightMode) {
@@ -139,11 +166,11 @@ public class Emitter extends Group {
 			super.draw();
 		}
 	}
-	
+
 	abstract public static class Factory {
-		
+
 		abstract public void emit( Emitter emitter, int index, float x, float y );
-		
+
 		public boolean lightMode() {
 			return false;
 		}

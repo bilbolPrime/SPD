@@ -17,7 +17,11 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
+import java.util.ArrayList;
+import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
@@ -26,203 +30,209 @@ import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfHaggler;
-import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndTradeItem extends Window {
-	
+public class WndTradeItem extends WndScrollable {
+
+    @Override
+    protected com.bilboldev.pixeldungeonskills.ui.RebornChrome.Material rebornMaterial() {
+        return com.bilboldev.pixeldungeonskills.ui.RebornChrome.Material.PARCHMENT;
+    }
+
 	private static final float GAP		= 2;
 	private static final int WIDTH		= 120;
 	private static final int BTN_HEIGHT	= 16;
-	
+
 	private static final String TXT_SALE		= "FOR SALE: %s - %dg";
 	private static final String TXT_BUY			= "Buy for %dg";
 	private static final String TXT_SELL		= "Sell for %dg";
 	private static final String TXT_SELL_1		= "Sell 1 for %dg";
 	private static final String TXT_SELL_ALL	= "Sell all for %dg";
 	private static final String TXT_CANCEL		= "Never mind";
-	
+
 	private static final String TXT_SOLD	= "You've sold your %s for %dg";
 	private static final String TXT_BOUGHT	= "You've bought %s for %dg";
-	
+
 	private WndBag owner;
-	
+	private int windowWidth;
+	private Component titlebar;
+	private HighlightedText info;
+
 	public WndTradeItem( final Item item, WndBag owner ) {
-		
+
 		super();
-		
-		this.owner = owner; 
-		
-		float pos = createDescription( item, false );
-		
+
+		this.owner = owner;
+
+		createDescription(item, false);
+		ArrayList<RedButton> buttons = new ArrayList<>();
+
 		if (item.quantity() == 1) {
-			
-			RedButton btnSell = new RedButton( Utils.format( TXT_SELL, item.price() ) ) {
+
+			RedButton btnSell = new ActionButton( text( "sell", TXT_SELL, item.price() ) ) {
 				@Override
 				protected void onClick() {
 					sell( item );
 					hide();
 				}
 			};
-			btnSell.setRect( 0, pos + GAP, WIDTH, BTN_HEIGHT );
-			add( btnSell );
-			
-			pos = btnSell.bottom();
-			
+			btnSell.setSize(windowWidth, BTN_HEIGHT);
+			buttons.add(btnSell);
+            menuModel.add(btnSell, Message.key(WndTradeItem.class, "sell", item.price()));
+
 		} else {
-			
+
 			int priceAll= item.price();
-			RedButton btnSell1 = new RedButton( Utils.format( TXT_SELL_1, priceAll / item.quantity() ) ) {
+			RedButton btnSell1 = new ActionButton( text( "sell_1", TXT_SELL_1, priceAll / item.quantity() ) ) {
 				@Override
 				protected void onClick() {
 					sellOne( item );
 					hide();
 				}
 			};
-			btnSell1.setRect( 0, pos + GAP, WIDTH, BTN_HEIGHT );
-			add( btnSell1 );
-			RedButton btnSellAll = new RedButton( Utils.format( TXT_SELL_ALL, priceAll ) ) {
+			btnSell1.setSize(windowWidth, BTN_HEIGHT);
+			buttons.add(btnSell1);
+            menuModel.add(btnSell1, Message.key(WndTradeItem.class, "sell_1", priceAll / item.quantity()));
+			RedButton btnSellAll = new ActionButton( text( "sell_all", TXT_SELL_ALL, priceAll ) ) {
 				@Override
 				protected void onClick() {
 					sell( item );
 					hide();
 				}
 			};
-			btnSellAll.setRect( 0, btnSell1.bottom() + GAP, WIDTH, BTN_HEIGHT );
-			add( btnSellAll );
-			
-			pos = btnSellAll.bottom();
-			
+			btnSellAll.setSize(windowWidth, BTN_HEIGHT);
+			buttons.add(btnSellAll);
+            menuModel.add(btnSellAll, Message.key(WndTradeItem.class, "sell_all", priceAll));
+
 		}
-		
-		RedButton btnCancel = new RedButton( TXT_CANCEL ) {
+
+		RedButton btnCancel = new ActionButton( text( "cancel", TXT_CANCEL ) ) {
 			@Override
 			protected void onClick() {
 				hide();
 			}
 		};
-		btnCancel.setRect( 0, pos + GAP, WIDTH, BTN_HEIGHT );
-		add( btnCancel );
-		
-		resize( WIDTH, (int)btnCancel.bottom() );
+		btnCancel.setSize(windowWidth, BTN_HEIGHT);
+		buttons.add(btnCancel);
+            menuModel.add(btnCancel, Message.key(WndTradeItem.class, "cancel"));
+		layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
 	}
-	
+
 	public WndTradeItem( final Heap heap, boolean canBuy ) {
-		
+
 		super();
-		
+
+		if(heap.type == Heap.Type.FOR_SALE){
+			Dungeon.showGold = true;
+		}
+
 		Item item = heap.peek();
-		
-		float pos = createDescription( item, true );
-		
+
+		createDescription(item, true);
+		ArrayList<RedButton> buttons = new ArrayList<>();
+
 		int price = price( item );
-		
+
 		if (canBuy) {
-			
-			RedButton btnBuy = new RedButton( Utils.format( TXT_BUY, price ) ) {
+
+			RedButton btnBuy = new ActionButton( text( "buy", TXT_BUY, price ) ) {
 				@Override
 				protected void onClick() {
 					hide();
 					buy( heap );
 				}
 			};
-			btnBuy.setRect( 0, pos + GAP, WIDTH, BTN_HEIGHT );
+			btnBuy.setSize(windowWidth, BTN_HEIGHT);
 			btnBuy.enable( price <= Dungeon.gold );
-			add( btnBuy );
-			
-			RedButton btnCancel = new RedButton( TXT_CANCEL ) {
+			buttons.add(btnBuy);
+            menuModel.add(btnBuy, Message.key(WndTradeItem.class, "buy", price));
+
+			RedButton btnCancel = new ActionButton( text( "cancel", TXT_CANCEL ) ) {
 				@Override
 				protected void onClick() {
 					hide();
 				}
 			};
-			btnCancel.setRect( 0, btnBuy.bottom() + GAP, WIDTH, BTN_HEIGHT );
-			add( btnCancel );
-			
-			resize( WIDTH, (int)btnCancel.bottom() );
-			
-		} else {
-			
-			resize( WIDTH, (int)pos );
-			
+			btnCancel.setSize(windowWidth, BTN_HEIGHT);
+			buttons.add(btnCancel);
+            menuModel.add(btnCancel, Message.key(WndTradeItem.class, "cancel"));
 		}
+		layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
 	}
-	
+
 	@Override
 	public void hide() {
-		
+
 		super.hide();
-		
+
+		Dungeon.showGold = false;
+
 		if (owner != null) {
 			owner.hide();
 			Shopkeeper.sell();
 		}
 	}
-	
-	private float createDescription( Item item, boolean forSale ) {
-		
-		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new ItemSprite( item.image(), item.glowing() ) );
-		titlebar.label( forSale ? 
-			Utils.format( TXT_SALE, item.toString(), price( item ) ) : 
-			Utils.capitalize( item.toString() ) );
-		titlebar.setRect( 0, 0, WIDTH, 0 );
-		add( titlebar );
-		
+
+	private void createDescription( Item item, boolean forSale ) {
+        menuModel = new MenuModel(Message.capitalize(Message.item(item)), Message.description(item));
+
+		windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
+		String title = forSale ?
+			Utils.capitalize( item.toString() ) + " - " + price( item ) + "g" :
+			Utils.capitalize( item.toString() );
+
+		int color = titleColor();
 		if (item.levelKnown) {
 			if (item.level() < 0) {
-				titlebar.color( ItemSlot.DEGRADED );				
+				color = ItemSlot.DEGRADED;
 			} else if (item.level() > 0) {
-				titlebar.color( item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED );				
+				color = item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED;
 			}
 		}
-		
-		BitmapTextMultiline info = PixelScene.createMultiline( item.info(), 6 );
-		info.maxWidth = WIDTH;
-		info.measure();
-		info.x = titlebar.left();
-		info.y = titlebar.bottom() + GAP;
-		add( info );
-		
-		return info.y + info.height();
+		titlebar = InspectionTitle.create(new ItemSprite(item.image(), item.glowing()), title, color, Float.NaN);
+		titlebar.setRect(0, 0, windowWidth, 0);
+
+		info = new HighlightedText(6);
+		info.text(item.displayInfo(), textWidth(windowWidth));
 	}
-	
+
 	private void sell( Item item ) {
-		
+
 		Hero hero = Dungeon.hero;
-		
+
 		if (item.isEquipped( hero ) && !((EquipableItem)item).doUnequip( hero, false )) {
 			return;
 		}
 		item.detachAll( hero.belongings.backpack );
-		
+
 		int price = item.price();
-		
+
 		new Gold( price ).doPickUp( hero );
-		GLog.i( TXT_SOLD, item.name(), price );
+		GLog.i(WndTradeItem.class, "sold", Message.itemName(item), price);
 	}
-	
+
 	private void sellOne( Item item ) {
-		
+
 		if (item.quantity() <= 1) {
 			sell( item );
 		} else {
-			
+
 			Hero hero = Dungeon.hero;
-			
+
 			item = item.detach( hero.belongings.backpack );
 			int price = item.price();
-			
+
 			new Gold( price ).doPickUp( hero );
-			GLog.i( TXT_SOLD, item.name(), price );
+			GLog.i(WndTradeItem.class, "sold", Message.itemName(item), price);
 		}
 	}
-	
+
 	private int price( Item item ) {
 
 		int price = item.price() * 5 * (Dungeon.depth / 5 + 1);
@@ -231,19 +241,28 @@ public class WndTradeItem extends Window {
 		}
 		return price;
 	}
-	
+
 	private void buy( Heap heap ) {
-		
+
 		Hero hero = Dungeon.hero;
 		Item item = heap.pickUp();
-		
+
 		int price = price( item );
 		Dungeon.gold -= price;
-		
-		GLog.i( TXT_BOUGHT, item.name(), price );
-		
+
+		GLog.i(WndTradeItem.class, "bought", Message.itemName(item), price);
+
 		if (!item.doPickUp( hero )) {
 			Dungeon.level.drop( item, heap.pos ).sprite.drop();
 		}
+	}
+
+	private static String text( String key, String fallback, Object... args ) {
+		String translated = Messages.get( WndTradeItem.class, key, args );
+		if (!Messages.NO_TEXT_FOUND.equals( translated )) {
+			return translated;
+		}
+
+		return Messages.maybeTranslate( fallback, args );
 	}
 }

@@ -20,8 +20,9 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
 import com.bilboldev.pixeldungeonskills.effects.Halo;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlameParticle;
@@ -35,49 +36,52 @@ public class PrisonLevel extends RegularLevel {
 		color1 = 0x6a723d;
 		color2 = 0x88924c;
 	}
-	
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_PRISON;
+		if(!Difficulties.is3d)
+			return Assets.TILES_PRISON;
+
+		return Assets.TILES_PRISON_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_PRISON;
 	}
-	
+
 	protected boolean[] water() {
 		return Patch.generate( feeling == Feeling.WATER ? 0.65f : 0.45f, 4 );
 	}
-	
+
 	protected boolean[] grass() {
 		return Patch.generate( feeling == Feeling.GRASS ? 0.60f : 0.40f, 3 );
 	}
-	
+
 	@Override
 	protected void assignRoomType() {
 		super.assignRoomType();
-		
+
 		for (Room r : rooms) {
 			if (r.type == Type.TUNNEL) {
 				r.type = Type.PASSAGE;
 			}
 		}
 	}
-	
+
 	@Override
 	protected void createMobs() {
 		super.createMobs();
-		
+
 		Wandmaker.Quest.spawn( this, roomEntrance );
 	}
-	
+
 	@Override
 	protected void decorate() {
-		
+
 		for (int i=WIDTH + 1; i < LENGTH - WIDTH - 1; i++) {
-			if (map[i] == Terrain.EMPTY) { 
-				
+			if (map[i] == Terrain.EMPTY) {
+
 				float c = 0.05f;
 				if (map[i + 1] == Terrain.WALL && map[i + WIDTH] == Terrain.WALL) {
 					c += 0.2f;
@@ -91,32 +95,32 @@ public class PrisonLevel extends RegularLevel {
 				if (map[i - 1] == Terrain.WALL && map[i - WIDTH] == Terrain.WALL) {
 					c += 0.2f;
 				}
-				
+
 				if (Random.Float() < c) {
 					map[i] = Terrain.EMPTY_DECO;
 				}
 			}
 		}
-		
+
 		for (int i=0; i < WIDTH; i++) {
-			if (map[i] == Terrain.WALL &&  
+			if (map[i] == Terrain.WALL &&
 				(map[i + WIDTH] == Terrain.EMPTY || map[i + WIDTH] == Terrain.EMPTY_SP) &&
 				Random.Int( 6 ) == 0) {
-				
+
 				map[i] = Terrain.WALL_DECO;
 			}
 		}
-		
+
 		for (int i=WIDTH; i < LENGTH - WIDTH; i++) {
-			if (map[i] == Terrain.WALL && 
-				map[i - WIDTH] == Terrain.WALL && 
+			if (map[i] == Terrain.WALL &&
+				map[i - WIDTH] == Terrain.WALL &&
 				(map[i + WIDTH] == Terrain.EMPTY || map[i + WIDTH] == Terrain.EMPTY_SP) &&
 				Random.Int( 3 ) == 0) {
-				
+
 				map[i] = Terrain.WALL_DECO;
 			}
 		}
-		
+
 		while (true) {
 			int pos = roomEntrance.random();
 			if (pos != entrance && pos != storage) {
@@ -125,7 +129,7 @@ public class PrisonLevel extends RegularLevel {
 			}
 		}
 	}
-	
+
 	@Override
 	public String tileName( int tile ) {
 		switch (tile) {
@@ -135,7 +139,7 @@ public class PrisonLevel extends RegularLevel {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc(int tile) {
 		switch (tile) {
@@ -147,13 +151,13 @@ public class PrisonLevel extends RegularLevel {
 			return super.tileDesc( tile );
 		}
 	}
-	
+
 	@Override
 	public void addVisuals( Scene scene ) {
 		super.addVisuals( scene );
 		addVisuals( this, scene );
 	}
-	
+
 	public static void addVisuals( Level level, Scene scene ) {
 		for (int i=0; i < LENGTH; i++) {
 			if (level.map[i] == Terrain.WALL_DECO) {
@@ -161,24 +165,24 @@ public class PrisonLevel extends RegularLevel {
 			}
 		}
 	}
-	
+
 	private static class Torch extends Emitter {
-		
+
 		private int pos;
-		
+
 		public Torch( int pos ) {
 			super();
-			
+
 			this.pos = pos;
-			
+
 			PointF p = DungeonTilemap.tileCenterToWorld( pos );
 			pos( p.x - 1, p.y + 3, 2, 0 );
-			
+
 			pour( FlameParticle.FACTORY, 0.15f );
-			
+
 			add( new Halo( 16, 0xFFFFCC, 0.2f ).point( p.x, p.y ) );
 		}
-		
+
 		@Override
 		public void update() {
 			if (visible = Dungeon.visible[pos]) {

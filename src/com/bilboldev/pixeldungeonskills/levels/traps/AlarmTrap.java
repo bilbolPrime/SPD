@@ -28,21 +28,19 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class AlarmTrap {
 
-	// 0xDD3333
-	
 	public static void trigger( int pos, Char ch ) {
-		
+
 		for (Mob mob : Dungeon.level.mobs) {
 			if (mob != ch) {
 				mob.beckon( pos );
 			}
 		}
-		
+
 		if (Dungeon.visible[pos]) {
-			GLog.w( "The trap emits a piercing sound that echoes throughout the dungeon!" );
+			GLog.w(AlarmTrap.class, "alarm");
 			CellEmitter.center( pos ).start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
 		}
-		
+
 		Sample.INSTANCE.play( Assets.SND_ALERT );
 	}
 }

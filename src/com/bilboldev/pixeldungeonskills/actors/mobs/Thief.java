@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
@@ -35,73 +36,73 @@ public class Thief extends Mob {
 
 	protected static final String TXT_STOLE	= "%s stole %s from you!";
 	protected static final String TXT_CARRIES	= "\n\n%s is carrying a _%s_. Stolen obviously.";
-	
+
 	public Item item;
-	
+
 	{
 		name = "crazy thief";
 		spriteClass = ThiefSprite.class;
-		
+
 		HP = HT = 20;
 		defenseSkill = 12;
-		
+
 		EXP = 5;
 		maxLvl = 10;
-		
+
 		loot = RingOfHaggler.class;
 		lootChance = 0.01f;
-		
+
 		FLEEING = new Fleeing();
 
         name = Dungeon.currentDifficulty.mobPrefix() + name;
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	private static final String ITEM = "item";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( ITEM, item );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		item = (Item)bundle.get( ITEM );
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 1, 7 );
 	}
-	
+
 	@Override
 	protected float attackDelay() {
 		return 0.5f;
 	}
-	
+
 	@Override
 	public void die( Object cause ) {
 
 		super.die( cause );
-		
+
 		if (item != null) {
 			Dungeon.level.drop( item, pos ).sprite.drop();
 		}
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 12;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 3;
 	}
-	
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
 		if (item == null && enemy instanceof Hero && steal( (Hero)enemy )) {
@@ -112,32 +113,31 @@ public class Thief extends Mob {
 
 		return damage;
 	}
-	
+
 	@Override
 	public int defenseProc(Char enemy, int damage) {
 		if (state == FLEEING) {
 			Dungeon.level.drop( new Gold(), pos ).sprite.drop();
 		}
-		
+
 		return damage;
 	}
-	
+
 	protected boolean steal( Hero hero ) {
-		
+
 		Item item = hero.belongings.randomUnequipped();
 		if (item != null) {
-			
-			GLog.w( TXT_STOLE, this.name, item.name() );
-			
+
+			GLog.w("custom.generated.entry_s_stole_s_from_you_3acf3aa995", Message.actor(this), Message.itemName(item));
+
 			item.detachAll( hero.belongings.backpack );
 			this.item = item;
-			
+
 			return true;
 		} else {
 			return false;
 		}
 	}
-
 
 	@Override
 	public String description() {
@@ -145,19 +145,19 @@ public class Thief extends Mob {
 			"Deeper levels of the dungeon have always been a hiding place for all kinds of criminals. " +
 			"Not all of them could keep a clear mind during their extended periods so far from daylight. Long ago, " +
 			"these crazy thieves and bandits have forgotten who they are and why they steal.";
-		
+
 		if (item != null) {
 			desc += String.format( TXT_CARRIES, Utils.capitalize( this.name ), item.name() );
 		}
-		
+
 		return desc;
 	}
-	
+
 	private class Fleeing extends Mob.Fleeing {
 		@Override
 		protected void nowhereToRun() {
 			if (buff( Terror.class ) == null) {
-				sprite.showStatus( CharSprite.NEGATIVE, TXT_RAGE );
+				sprite.showStatus( CharSprite.NEGATIVE, Message.key("actors.mobs.mob.rage") );
 				state = HUNTING;
 			} else {
 				super.nowhereToRun();

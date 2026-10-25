@@ -18,6 +18,7 @@
 package com.bilboldev.gltextures;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -27,15 +28,12 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader.TileMode;
 
-import com.bilboldev.glwrap.Texture;
-
 public class TextureCache {
 
 	public static Context context;
-	
-	private static HashMap<Object,SmartTexture> all = new HashMap<Object, SmartTexture>();
-	
-	// No dithering, no scaling, 32 bits per pixel
+
+	private static final HashMap<Object, SmartTexture> all = new HashMap<Object, SmartTexture>();
+
 	private static BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
 	static {
 		bitmapOptions.inScaled = false;
@@ -43,118 +41,123 @@ public class TextureCache {
 		bitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 	}
 
-	public static SmartTexture createSolid( int color ) {
+	public static synchronized SmartTexture createSolid( int color ) {
 		final String key = "1x1:" + color;
-		
+
 		if (all.containsKey( key )) {
-			
+
 			return all.get( key );
-			
+
 		} else {
-		
+
 			Bitmap bmp = Bitmap.createBitmap( 1, 1, Bitmap.Config.ARGB_8888 );
 			bmp.eraseColor( color );
-			
+
 			SmartTexture tx = new SmartTexture( bmp );
 			all.put( key, tx );
-			
+
 			return tx;
 		}
 	}
-	
-	public static SmartTexture createGradient( int width, int height, int... colors ) {
-		
+
+	public static synchronized SmartTexture createGradient( int width, int height, int... colors ) {
+
 		final String key = "" + width + "x" + height + ":" + colors;
-		
+
 		if (all.containsKey( key )) {
-			
+
 			return all.get( key );
-			
+
 		} else {
-		
+
 			Bitmap bmp = Bitmap.createBitmap( width, height, Bitmap.Config.ARGB_8888 );
 			Canvas canvas = new Canvas( bmp );
 			Paint paint = new Paint();
 			paint.setShader( new LinearGradient( 0, 0, 0, height, colors, null, TileMode.CLAMP ) );
 			canvas.drawPaint( paint );
-			
+
 			SmartTexture tx = new SmartTexture( bmp );
 			all.put( key, tx );
 			return tx;
 		}
-		
+
 	}
-	
-	public static void add( Object key, SmartTexture tx ) {
+
+	public static synchronized void add( Object key, SmartTexture tx ) {
 		all.put( key, tx );
 	}
 
-	public static SmartTexture get( Object src ) {
-		
+	public static synchronized SmartTexture get( Object src ) {
+
 		if (all.containsKey( src )) {
-			
+
 			return all.get( src );
-			
+
 		} else if (src instanceof SmartTexture) {
-			
+
 			return (SmartTexture)src;
-			
+
 		} else {
 
 			SmartTexture tx = new SmartTexture( getBitmap( src ) );
 			all.put( src, tx );
 			return tx;
 		}
-		
+
 	}
-	
-	public static void clear() {
-		
-		for (Texture txt:all.values()) {
-			txt.delete();
-		}
+
+	public static synchronized void clear() {
+
+		HashSet<SmartTexture> textures = new HashSet<>(all.values());
 		all.clear();
-		
+		for (SmartTexture texture : textures) texture.delete();
 	}
-	
-	public static void reload() {
-		for (SmartTexture tx:all.values()) {
-			tx.reload();
-		}		
+
+	public static synchronized void reload() {
+
+		for (SmartTexture texture : new HashSet<>(all.values())) {
+			if (all.containsValue(texture)) texture.reload();
+		}
 	}
-	
+
 	public static Bitmap getBitmap( Object src ) {
-		
+
 		try {
 			if (src instanceof Integer){
-				
-				return BitmapFactory.decodeResource( 
-					context.getResources(), (Integer)src, bitmapOptions );
-				
+
+				return BitmapFactory.decodeResource(
+						context.getResources(), (Integer)src, bitmapOptions );
+
 			} else if (src instanceof String) {
-				
-				return BitmapFactory.decodeStream( 
-					context.getAssets().open( (String)src ), null, bitmapOptions );
-				
+
+				return BitmapFactory.decodeStream(
+						context.getAssets().open( (String)src ), null, bitmapOptions );
+
 			} else if (src instanceof Bitmap) {
-				
+
 				return (Bitmap)src;
-				
+
 			} else {
-				
+
 				return null;
-				
+
 			}
 		} catch (Exception e) {
-			
+
 			e.printStackTrace();
 			return null;
-			
+
 		}
 	}
-	
-	public static boolean contains( Object key ) {
+
+	public static synchronized boolean contains( Object key ) {
 		return all.containsKey( key );
 	}
-	
+
+	public static synchronized void remove( Object key ){
+		SmartTexture tx = all.remove( key );
+		if (tx != null && !all.containsValue(tx)){
+			tx.delete();
+		}
+	}
 }

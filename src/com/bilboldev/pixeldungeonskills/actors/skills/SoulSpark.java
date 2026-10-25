@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -8,20 +9,15 @@ import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class SoulSpark extends ActiveSkill3{
-
 
     {
         name = "Soul Spark";
-        castText = "I exist for others";
+        castText = Message.key("custom.generated.entry_i_exist_for_others_a6176556a8");
         tier = 3;
         image = 122;
         mana = 3;
     }
-
 
     @Override
     public float getAlpha()
@@ -41,17 +37,10 @@ public class SoulSpark extends ActiveSkill3{
     public void execute( Hero hero, String action ) {
         if(action == Skill.AC_CAST && hero.MP >= getManaCost())
         {
-            //hero.MP -= getManaCost();
-            //castTextYell();
+
             Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.SOUL_SPARK);
             Dungeon.hero.heroSkills.lastUsed = this;
         }
-    }
-
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.25 * level));
     }
 
     @Override
@@ -59,7 +48,6 @@ public class SoulSpark extends ActiveSkill3{
     {
         return true;
     }
-
 
     @Override
     public String info()

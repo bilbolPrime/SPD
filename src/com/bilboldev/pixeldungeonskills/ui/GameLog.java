@@ -31,14 +31,14 @@ import com.bilboldev.utils.Signal;
 public class GameLog extends Component implements Signal.Listener<String> {
 
 	private static final int MAX_LINES = 3;
-	
+
 	private static final Pattern PUNCTUATION = Pattern.compile( ".*[.,;?! ]$" );
-	
+
 	private BitmapTextMultiline lastEntry;
 	private int lastColor;
 
 	private static ArrayList<Entry> entries = new ArrayList<Entry>();
-	
+
 	public GameLog() {
 		super();
 		GLog.update.add( this );
@@ -48,12 +48,13 @@ public class GameLog extends Component implements Signal.Listener<String> {
 
 	private void recreateLines() {
 		for (Entry entry : entries) {
-			lastEntry = PixelScene.createMultiline( entry.text, 6 );
+			lastEntry = PixelScene.createMultiline( 6 );
+			lastEntry.text( entry.text, false );
 			lastEntry.hardlight( lastColor = entry.color );
 			add( lastEntry );
 		}
 	}
-	
+
 	public void newLine() {
 		lastEntry = null;
 	}
@@ -61,15 +62,17 @@ public class GameLog extends Component implements Signal.Listener<String> {
 	@Override
 	public void onSignal( String text ) {
 
+		try {
+
 		int color = CharSprite.DEFAULT;
 		if (text.startsWith( GLog.POSITIVE )) {
 			text = text.substring( GLog.POSITIVE.length() );
 			color = CharSprite.POSITIVE;
-		} else 
+		} else
 		if (text.startsWith( GLog.NEGATIVE )) {
 			text = text.substring( GLog.NEGATIVE.length() );
 			color = CharSprite.NEGATIVE;
-		} else 
+		} else
 		if (text.startsWith( GLog.WARNING )) {
 			text = text.substring( GLog.WARNING.length() );
 			color = CharSprite.WARNING;
@@ -78,27 +81,34 @@ public class GameLog extends Component implements Signal.Listener<String> {
 			text = text.substring( GLog.HIGHLIGHT.length() );
 			color = CharSprite.NEUTRAL;
 		}
-		
-		text = Utils.capitalize( text ) + 
+
+		text = Utils.capitalize( text ) +
 			(PUNCTUATION.matcher( text ).matches() ? "" : ".");
-		
+
 		if (lastEntry != null && color == lastColor && lastEntry.nLines < MAX_LINES) {
-			
+
 			String lastMessage = lastEntry.text();
-			lastEntry.text( lastMessage.length() == 0 ? text : lastMessage + " " + text );
+			String separator = " ";
+			if (lastMessage.indexOf( '\n' ) >= 0 || text.indexOf( '\n' ) >= 0) {
+				separator = "\n";
+			}
+			lastEntry.text( lastMessage.length() == 0 ? text : lastMessage + separator + text, false );
 			lastEntry.measure();
 
-			entries.get( entries.size() - 1 ).text = lastEntry.text();
-			
+			if(entries.size() > 0){
+				entries.get( entries.size() - 1 ).text = lastEntry.text();
+			}
+
 		} else {
-			
-			lastEntry = PixelScene.createMultiline( text, 6 );
+
+			lastEntry = PixelScene.createMultiline( 6 );
+			lastEntry.text( text, false );
 			lastEntry.hardlight( color );
 			lastColor = color;
 			add( lastEntry );
 
 			entries.add( new Entry( text, color ) );
-			
+
 		}
 
 		if (length > 0) {
@@ -119,10 +129,11 @@ public class GameLog extends Component implements Signal.Listener<String> {
 				lastEntry = null;
 			}
 		}
-		
+		}
+		catch (Exception e){}
 		layout();
 	}
-	
+
 	@Override
 	protected void layout() {
 		float pos = y;
@@ -135,7 +146,7 @@ public class GameLog extends Component implements Signal.Listener<String> {
 			pos -= entry.height();
 		}
 	}
-	
+
 	@Override
 	public void destroy() {
 		GLog.update.remove( this );

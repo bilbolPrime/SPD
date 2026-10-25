@@ -23,6 +23,9 @@ import java.util.HashSet;
 import android.util.SparseArray;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -32,54 +35,55 @@ import com.bilboldev.utils.Bundlable;
 import com.bilboldev.utils.Bundle;
 
 public abstract class Actor implements Bundlable {
-	
+
 	public static final float TICK	= 1f;
 
-	private float time;
-	
+	public float time;
+
 	private int id = 0;
-	
+
 	protected abstract boolean act();
-	
+
 	protected void spend( float time ) {
 		this.time += time;
 	}
-	
+
 	protected void postpone( float time ) {
 		if (this.time < now + time) {
 			this.time = now + time;
 		}
 	}
-	
+
 	protected float cooldown() {
 		return time - now;
 	}
-	
+
 	protected void diactivate() {
 		time = Float.MAX_VALUE;
 	}
-	
+
 	protected void onAdd() {}
-	
+
 	protected void onRemove() {}
-	
+
 	private static final String TIME	= "time";
 	private static final String ID		= "id";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put( TIME, time );
 		bundle.put( ID, id );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		time = bundle.getFloat( TIME );
 		id = bundle.getInt( ID );
 	}
-	
+
 	public int id() {
 		if (id > 0) {
+			PartySession.observeActorId(id);
 			return id;
 		} else {
 			int max = 0;
@@ -88,38 +92,36 @@ public abstract class Actor implements Bundlable {
 					max = a.id;
 				}
 			}
-			return (id = max + 1);
+			return (id = PartySession.nextActorId(max));
 		}
 	}
-	
-	// **********************
-	// *** Static members ***
-	
+
 	private static HashSet<Actor> all = new HashSet<Actor>();
 	private static Actor current;
-	
+
 	private static SparseArray<Actor> ids = new SparseArray<Actor>();
-	
+
 	private static float now = 0;
-	
+
 	private static Char[] chars = new Char[Level.LENGTH];
-	
+
 	public static void clear() {
-		
+		if (LocalCoop.active()) current = null;
+
 		now = 0;
-		
+
 		Arrays.fill( chars, null );
 		all.clear();
-		
+
 		ids.clear();
 	}
-	
+
 	public static void fixTime() {
-		
+
 		if (Dungeon.hero != null && all.contains( Dungeon.hero )) {
 			Statistics.duration += now;
 		}
-		
+
 		float min = Float.MAX_VALUE;
 		for (Actor a : all) {
 			if (a.time < min) {
@@ -131,56 +133,76 @@ public abstract class Actor implements Bundlable {
 		}
 		now = 0;
 	}
-	
+
 	public static void init() {
-		
-		addDelayed( Dungeon.hero, -Float.MIN_VALUE );
-		
+
+		if (LocalCoop.active()) {
+			for (Hero hero : LocalCoop.heroes()) {
+				if (hero.isAlive()) add(hero);
+			}
+		} else {
+			add( Dungeon.hero );
+		}
+
 		for (Mob mob : Dungeon.level.mobs) {
 			add( mob );
 		}
-		
+
 		for (Blob blob : Dungeon.level.blobs.values()) {
 			add( blob );
 		}
-		
+
 		current = null;
 	}
-	
+
 	public static void occupyCell( Char ch ) {
 		chars[ch.pos] = ch;
 	}
-	
+
 	public static void freeCell( int pos ) {
 		chars[pos] = null;
 	}
-	
-	/*protected*/public void next() {
+
+	public static Actor current() {
+		return current;
+	}
+
+	public static float partyTime() {
+		return now;
+	}
+
+	public static void partyTime(float value) {
+		now = value;
+	}
+
+	 public void next() {
 		if (current == this) {
 			current = null;
 		}
 	}
-	
+
 	public static void process() {
-		
+		if (PartySession.client() || LocalCoop.active() && !LocalCoop.alive()) return;
+
 		if (current != null) {
 			return;
 		}
-	
+
 		boolean doNext;
 
 		do {
 			now = Float.MAX_VALUE;
 			current = null;
-			
+
 			Arrays.fill( chars, null );
-			
+
 			for (Actor actor : all) {
-				if (actor.time < now) {
+				if (actor.time < now || LocalCoop.active() && actor.time == now
+						&& (current == null || actor.id() < current.id())) {
 					now = actor.time;
 					current = actor;
 				}
-				
+
 				if (actor instanceof Char) {
 					Char ch = (Char)actor;
 					chars[ch.pos] = ch;
@@ -188,48 +210,50 @@ public abstract class Actor implements Bundlable {
 			}
 
 			if (current != null) {
-				
+
 				if (current instanceof Char && ((Char)current).sprite != null && ((Char)current).sprite.isMoving) {
-					// If it's character's turn to act, but its sprite 
-					// is moving, wait till the movement is over
+
 					current = null;
 					break;
 				}
-				
+
+				if (LocalCoop.active()) LocalCoop.beforeActor(current);
 				doNext = current.act();
-				if (doNext && !Dungeon.hero.isAlive()) {
+				if (doNext && (LocalCoop.active() ? !LocalCoop.alive() : !Dungeon.hero.isAlive())) {
 					doNext = false;
 					current = null;
 				}
 			} else {
 				doNext = false;
 			}
-			
+
 		} while (doNext);
+		if (LocalCoop.active()) LocalCoop.afterProcess();
 	}
-	
+
 	public static void add( Actor actor ) {
 		add( actor, now );
 	}
-	
+
 	public static void addDelayed( Actor actor, float delay ) {
 		add( actor, now + delay );
 	}
-	
+
 	private static void add( Actor actor, float time ) {
-		
+
 		if (all.contains( actor )) {
 			return;
 		}
-		
+
 		if (actor.id > 0) {
 			ids.put( actor.id,  actor );
 		}
-		
+
 		all.add( actor );
+		if (LocalCoop.active()) ids.put(actor.id(), actor);
 		actor.time += time;
 		actor.onAdd();
-		
+
 		if (actor instanceof Char) {
 			Char ch = (Char)actor;
 			chars[ch.pos] = ch;
@@ -239,27 +263,27 @@ public abstract class Actor implements Bundlable {
 			}
 		}
 	}
-	
+
 	public static void remove( Actor actor ) {
-		
+
 		if (actor != null) {
 			all.remove( actor );
 			actor.onRemove();
-			
+
 			if (actor.id > 0) {
 				ids.remove( actor.id );
 			}
 		}
 	}
-	
+
 	public static Char findChar( int pos ) {
 		return chars[pos];
 	}
-	
+
 	public static Actor findById( int id ) {
 		return ids.get( id );
 	}
-	
+
 	public static HashSet<Actor> all() {
 		return all;
 	}

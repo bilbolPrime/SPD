@@ -17,74 +17,90 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.quest.DwarfToken;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndImp extends Window {
-	
-	private static final String TXT_MESSAGE	= 
+public class WndImp extends WndScrollable {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.PARCHMENT;
+    }
+
+	private static final String TXT_MESSAGE	=
 		"Oh yes! You are my hero!\n" +
 		"Regarding your reward, I don't have cash with me right now, but I have something better for you. " +
 		"This is my family heirloom ring: my granddad took it off a dead paladin's finger.";
 	private static final String TXT_REWARD		= "Take the ring";
-	
+
 	private static final int WIDTH		= 120;
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP		= 2;
-	
+
 	public WndImp( final Imp imp, final DwarfToken tokens ) {
-		
+
 		super();
-		
-		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new ItemSprite( tokens.image(), null ) );
-		titlebar.label( Utils.capitalize( tokens.name() ) );
-		titlebar.setRect( 0, 0, WIDTH, 0 );
+        menuModel = new MenuModel(Message.actor(imp), Message.key("windows.wndimp.message"));
+		int windowWidth = Presentation.reborn() ? boundedWidth(InspectionTitle.windowWidth(WIDTH)) : WIDTH;
+
+		Component titlebar = Presentation.reborn()
+				? InspectionTitle.create(imp.sprite(), Utils.capitalize(imp.name))
+				: new IconTitle(new ItemSprite(tokens.image(), null), Utils.capitalize(tokens.name()));
+		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
-		
+
 		BitmapTextMultiline message = PixelScene.createMultiline( TXT_MESSAGE, 6 );
-		message.maxWidth = WIDTH;
+		message.maxWidth = Presentation.reborn() ? textWidth(windowWidth) : windowWidth;
 		message.measure();
 		message.y = titlebar.bottom() + GAP;
 		add( message );
-		
+
 		RedButton btnReward = new RedButton( TXT_REWARD ) {
 			@Override
 			protected void onClick() {
 				takeReward( imp, tokens, Imp.Quest.reward );
 			}
 		};
-		btnReward.setRect( 0, message.y + message.height() + GAP, WIDTH, BTN_HEIGHT );
+		btnReward.setRect( 0, message.y + message.height() + GAP, windowWidth, BTN_HEIGHT );
 		add( btnReward );
-		
-		resize( WIDTH, (int)btnReward.bottom() );
+        menuModel.add(btnReward, Message.key("windows.wndimp.reward"));
+
+		if (Presentation.reborn()) {
+			layoutContent(windowWidth, titlebar, textContent(message), GAP, btnReward);
+		} else {
+			resize(WIDTH, (int)btnReward.bottom());
+		}
 	}
-	
+
 	private void takeReward( Imp imp, DwarfToken tokens, Item reward ) {
-		
+
 		hide();
-		
+
 		tokens.detachAll( Dungeon.hero.belongings.backpack );
 
 		reward.identify();
 		if (reward.doPickUp( Dungeon.hero )) {
-			GLog.i( Hero.TXT_YOU_NOW_HAVE, reward.name() );
+			GLog.i("custom.generated.entry_you_now_have_s_f58f5ff690", Message.itemName(reward));
 		} else {
 			Dungeon.level.drop( reward, imp.pos ).sprite.drop();
 		}
-		
+
 		imp.flee();
-		
+
 		Imp.Quest.complete();
 	}
 }

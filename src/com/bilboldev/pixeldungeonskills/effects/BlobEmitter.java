@@ -19,7 +19,7 @@ package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.utils.Random;
 
@@ -27,27 +27,36 @@ public class BlobEmitter extends Emitter {
 
 	private static final int WIDTH	= Blob.WIDTH;
 	private static final int LENGTH	= Blob.LENGTH;
-	
+
 	private Blob blob;
-	
+
+	public Blob blob() {
+		return blob;
+	}
+
+	public void rebind(Blob blob) {
+		this.blob = blob;
+		blob.emitter = this;
+	}
+
 	public BlobEmitter( Blob blob ) {
-		
+
 		super();
-		
+
 		this.blob = blob;
 		blob.use( this );
 	}
-	
+
 	@Override
 	protected void emit( int index ) {
-		
+
 		if (blob.volume <= 0) {
 			return;
 		}
-		
+
 		int[] map = blob.cur;
 		float size = DungeonTilemap.SIZE;
-		
+
 		for (int i=0; i < LENGTH; i++) {
 			if (map[i] > 0 && Dungeon.visible[i]) {
 				float x = ((i % WIDTH) + Random.Float()) * size;

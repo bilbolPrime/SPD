@@ -71,7 +71,7 @@ public class WandOfAvalanche extends Wand {
 
                     if(ch.sprite != null)
 					    ch.sprite.flash();
-					ch.damage( Random.Int( 2, 6 + (int)((size - d) * 2 * Dungeon.hero.heroSkills.passiveB2.wandDamageBonus())  ), this );
+					damage( ch, (int)(wandBonusDamageModifier() * Random.Int( 2, 6 + (size - d) * 2 )) );
 
 					if (ch.isAlive() && Random.Int( 2 + d ) == 0) {
 						Buff.prolong( ch, Paralysis.class, Random.IntRange( 2, 6 ) );
@@ -103,8 +103,8 @@ public class WandOfAvalanche extends Wand {
 		}
 
 		if (!curUser.isAlive()) {
-			Dungeon.fail( Utils.format( ResultDescriptions.WAND, name, Dungeon.depth ) );
-			GLog.n( "You killed yourself with your own Wand of Avalanche..." );
+			Dungeon.fail( Utils.format( ResultDescriptions.WAND, name, Dungeon.depth ), WandOfAvalanche.class );
+			GLog.n("custom.generated.entry_you_killed_yourself_with_your_own_wand_of_avalan_a104975063");
 		}
 	}
 

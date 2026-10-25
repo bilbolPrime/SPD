@@ -17,30 +17,35 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.noosa.BitmapTextMultiline;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
-import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 
-public class WndMessage extends Window {
-	
+import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
+
+public class WndMessage extends WndScrollable {
+
 	private static final int WIDTH_P = 120;
 	private static final int WIDTH_L = 144;
-	
-	private static final int MARGIN = 4;
-	
-	public WndMessage( String text ) {
-		
-		super();
-		
-		BitmapTextMultiline info = PixelScene.createMultiline( text, 6 );
-		info.maxWidth = (PixelDungeon.landscape() ? WIDTH_L : WIDTH_P) - MARGIN * 2;
-		info.measure();
-		info.x = info.y = MARGIN;
-		add( info );
 
-		resize( 
-			(int)info.width() + MARGIN * 2, 
-			(int)info.height() + MARGIN * 2 );
+	private static final int MARGIN = 4;
+	private static final int DEFAULT_TEXT_SIZE = 6;
+
+	public WndMessage(Message text) {
+        this(text.toString());
+        menuModel = new MenuModel(Message.empty(), text);
+    }
+
+    public WndMessage( String text ) {
+
+		super();
+		String localizedText = Messages.maybeTranslate( text );
+		int width = boundedWidth(landscapeLayout() ? WIDTH_L : WIDTH_P);
+		BitmapTextMultiline info = PixelScene.createMultiline(localizedText, DEFAULT_TEXT_SIZE);
+		info.maxWidth = textWidth(width);
+		info.measure();
+		layoutContent(Math.min(width, (int)Math.ceil(info.width()) + SCROLL_GUTTER),
+				null, textContent(info), MARGIN);
 	}
 }

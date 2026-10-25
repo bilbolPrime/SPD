@@ -17,8 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Image;
@@ -33,15 +35,19 @@ import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
 import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
 import com.bilboldev.pixeldungeonskills.items.bags.SeedPouch;
 import com.bilboldev.pixeldungeonskills.items.bags.WandHolster;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
+import com.bilboldev.utils.RectF;
 
 public class WndSkills extends WndTabbed {
 
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.ARCANE;
+    }
 
 	protected static final int COLS_P	= 4;
 	protected static final int COLS_L	= 6;
@@ -54,7 +60,7 @@ public class WndSkills extends WndTabbed {
 	protected static final int TITLE_HEIGHT	= 12;
 
 	private Listener listener;
-	private String title;
+	private Message title;
 
 	private int nCols;
 	private int nRows;
@@ -63,40 +69,50 @@ public class WndSkills extends WndTabbed {
 	protected int col;
 	protected int row;
 
-
     public boolean noDegrade = PixelDungeon.itemDeg();
 
-	public WndSkills(Listener listener, String title) {
-		
+	public WndSkills(Listener listener, Message title) {
+
 		super();
-		
+
 		this.listener = listener;
 		this.title = title;
-		
+        menuModel = new MenuModel(title != null ? title : Message.key("windows.wndskills.points_title", Skill.availableSkill), Message.empty());
 
 		nCols = 4;
 		nRows = 3;
-		
+
 		int slotsWidth = SLOT_SIZE * nCols + SLOT_MARGIN * (nCols - 1);
 		int slotsHeight = SLOT_SIZE * nRows + SLOT_MARGIN * (nRows - 1);
-		
-		BitmapText txtTitle = PixelScene.createText( title != null ? title : Utils.capitalize( "Skills" + (Skill.availableSkill > 0 ? " (" + Skill.availableSkill + " points)" :"" )), 9 );
-		txtTitle.hardlight( TITLE_COLOR );
+
+		BitmapText txtTitle = PixelScene.createText( buildTitleText(), 9 );
+		txtTitle.hardlight( titleColor() );
 		txtTitle.measure();
 		txtTitle.x = (int)(slotsWidth - txtTitle.width()) / 2;
 		txtTitle.y = (int)(TITLE_HEIGHT - txtTitle.height()) / 2;
 		add( txtTitle );
-		
+
 		placeSkills();
 
-		
 		resize( slotsWidth, slotsHeight + TITLE_HEIGHT );
 	}
-	
 
+	private String buildTitleText() {
+		if (title != null) {
+			return title.toString();
+		}
+
+		StringBuilder builder = new StringBuilder( Messages.capitalize( Messages.maybeTranslate( "Skills" ) ) );
+		if (Skill.availableSkill > 0) {
+			builder.append( " (" )
+				.append( Skill.availableSkill )
+				.append( ' ' )
+				.append( Messages.maybeTranslate( "points)" ) );
+		}
+		return builder.toString();
+	}
 
 	protected void placeSkills(  ) {
-
 
         placeSkill( Dungeon.hero.heroSkills.branchPA, true);
         placeSkill( Dungeon.hero.heroSkills.passiveA1, false);
@@ -114,29 +130,31 @@ public class WndSkills extends WndTabbed {
         placeSkill( Dungeon.hero.heroSkills.active3, true);
 
     }
-	
+
 	protected void placeSkill( final Skill skill, boolean showBackground ) {
-		
+
 		int x = col * (SLOT_SIZE + SLOT_MARGIN);
 		int y = TITLE_HEIGHT + row * (SLOT_SIZE + SLOT_MARGIN);
 
-		add( new SkillButton( skill ).setPos( x, y ) );
-		
+		SkillButton button = new SkillButton(skill);
+        add(button.setPos(x, y));
+        if (skill != null && !(skill instanceof Placeholder)) menuModel.add(button, Message.skillName(skill));
+
 		if (++col >= nCols) {
 			col = 0;
 			row++;
 		}
-		
+
 		count++;
 	}
-	
+
 	@Override
 	public void onMenuPressed() {
 		if (listener == null) {
 			hide();
 		}
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		if (listener != null) {
@@ -144,43 +162,43 @@ public class WndSkills extends WndTabbed {
 		}
 		super.onBackPressed();
 	}
-	
+
 	@Override
 	protected void onClick( Tab tab ) {
 		hide();
 		GameScene.show( new WndSkills( listener, title ) );
 	}
-	
+
 	@Override
 	protected int tabHeight() {
 		return 20;
 	}
-	
+
 	private class BagTab extends Tab {
-		
+
 		private Image icon;
 
 		private Bag bag;
-		
+
 		public BagTab( Bag bag ) {
 			super();
-			
+
 			this.bag = bag;
-			
+
 			icon = icon();
 			add( icon );
 		}
-		
+
 		@Override
 		protected void select( boolean value ) {
 			super.select( value );
 			icon.am = selected ? 1.0f : 0.6f;
 		}
-		
+
 		@Override
 		protected void layout() {
 			super.layout();
-			
+
 			icon.copy( icon() );
 			icon.x = x + (width - icon.width) / 2;
 			icon.y = y + (height - icon.height) / 2 - 2 - (selected ? 0 : 1);
@@ -191,7 +209,7 @@ public class WndSkills extends WndTabbed {
 				icon.y = y + CUT;
 			}
 		}
-		
+
 		private Image icon() {
 			if (bag instanceof SeedPouch) {
 				return Icons.get( Icons.SEED_POUCH );
@@ -206,45 +224,43 @@ public class WndSkills extends WndTabbed {
 			}
 		}
 	}
-	
+
 	private static class Placeholder extends Skill {
 		{
 			name = null;
 		}
-		
+
 		public Placeholder( int image ) {
 			this.image = image;
 		}
 	}
-	
+
 	private class SkillButton extends SkillSlot {
-		
+
 		private static final int NORMAL		= 0xFF4A4D44;
 		private static final int EQUIPPED	= 0xFF63665B;
 
-		
 		private Skill skill;
 		private ColorBlock bg;
-		
+
 		private ColorBlock durability[];
-		
+
 		public SkillButton(Skill skill) {
-			
+
 			super( skill );
 
 			this.skill = skill;
 
-
 			width = height = SLOT_SIZE;
 
-            durability = new ColorBlock[Skill.MAX_LEVEL];
+            durability = new ColorBlock[Skill.MERC_MAX_LEVEL];
 
-            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MERC_MAX_LEVEL) {
                 for (int i = 0; i < skill.level; i++) {
                     durability[i] = new ColorBlock(2, 2, 0xFF00EE00);
                     add(durability[i]);
                 }
-                for (int i = skill.level; i < Skill.MAX_LEVEL; i++) {
+                for (int i = skill.level; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i] = new ColorBlock(2, 2, 0x4000EE00);
                     add(durability[i]);
                 }
@@ -253,40 +269,37 @@ public class WndSkills extends WndTabbed {
             if(skill instanceof BranchSkill)
                 bg.visible = false;
 		}
-		
+
 		@Override
-		protected void createChildren() {	
-			bg = new ColorBlock( SLOT_SIZE, SLOT_SIZE, NORMAL );
+		protected void createChildren() {
+			bg = com.bilboldev.pixeldungeonskills.ui.RebornSlot.create(SLOT_SIZE, SLOT_SIZE, NORMAL);
 			add( bg );
-			
+
 			super.createChildren();
 		}
-		
+
 		@Override
 		protected void layout() {
 			bg.x = x;
 			bg.y = y;
 
-
-            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MAX_LEVEL) {
-                for (int i = 0; i < Skill.MAX_LEVEL; i++) {
+            if(skill != null && skill.name != null && skill.level > 0  && skill.level <= Skill.MERC_MAX_LEVEL) {
+                for (int i = 0; i < Skill.MERC_MAX_LEVEL; i++) {
                     durability[i].x = x + width - 9 + i * 3;
                     durability[i].y = y + 3;
 
                 }
             }
-			
+
 			super.layout();
 		}
-		
 
-		
 		@Override
 		protected void onTouchDown() {
 			bg.brightness( 1.5f );
 			Sample.INSTANCE.play( Assets.SND_CLICK, 0.7f, 0.7f, 1.2f );
 		};
-		
+
 		protected void onTouchUp() {
 			bg.brightness( 1.0f );
 		};
@@ -300,11 +313,11 @@ public class WndSkills extends WndTabbed {
 
             } else {
 
-                WndSkills.this.add( new WndSkill( WndSkills.this, skill ) );
+				GameScene.show( new WndSkillNew( WndSkills.this, skill ) );
 
             }
 		}
-		
+
 		@Override
 		protected boolean onLongClick() {
 				return true;

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -12,22 +13,15 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
-
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
-public class Negotiations extends BranchSkill{ // Not actually a skill but best way to do it
-
-
+public class Negotiations extends BranchSkill{
 
     public static final String TXT_HIRE_BRUTE = "Brute";
     public static final String TXT_HIRE_THIEF = "Thief";
     public static final String TXT_HIRE_WIZARD = "Wizard";
     public static final String TXT_HIRE_ARCHER = "Archer";
     public static final String TXT_HIRE_ARCHER_MAIDEN = "Archer-Maiden";
-
 
     {
         name = "Hire A Mercenary";
@@ -37,13 +31,13 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = new ArrayList<String>();
-        if(hero.hiredMerc == null)
+        if (Dungeon.rules().allowsOnDemandHiring() && hero.hiredMerc == null)
         {
-            if(hero.heroClass != HeroClass.WARRIOR)
+            if (hero.heroClass != HeroClass.WARRIOR && hero.heroClass != HeroClass.MERCENARY)
                 actions.add(TXT_HIRE_BRUTE);
             if(hero.heroClass != HeroClass.ROGUE)
                 actions.add(TXT_HIRE_THIEF);
-            if(hero.heroClass != HeroClass.MAGE)
+            if (hero.heroClass != HeroClass.MAGE && hero.heroClass != HeroClass.NECROMANCER)
                 actions.add(TXT_HIRE_WIZARD);
             if(hero.heroClass != HeroClass.HUNTRESS)
                 actions.add(TXT_HIRE_ARCHER);
@@ -54,14 +48,14 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
         return actions;
     }
 
-
     @Override
     public void execute( Hero hero, String action ) {
+        if (!Dungeon.rules().allowsOnDemandHiring()) return;
         if(action == TXT_HIRE_BRUTE || action == TXT_HIRE_THIEF || action == TXT_HIRE_WIZARD || action == TXT_HIRE_ARCHER  || action == TXT_HIRE_ARCHER_MAIDEN)
         {
             if(Dungeon.gold < getGoldCost())
             {
-                GLog.n("You cannot afford a merc.");
+                GLog.n("custom.generated.entry_you_cannot_afford_a_merc_f3fd4a7a04");
                 return;
             }
 
@@ -99,9 +93,18 @@ public class Negotiations extends BranchSkill{ // Not actually a skill but best 
 
             if(spawned == true) {
                 Dungeon.gold -= getGoldCost();
-                GLog.p(" " + action + " hired for " + getGoldCost() + " gold! ");
+                GLog.p("custom.generated.entry_s_hired_for_s_gold_f3f49e6cd1", hireName(action), getGoldCost());
             }
         }
+    }
+
+    public static Message hireName(String action) {
+        if (TXT_HIRE_BRUTE.equals(action)) return Message.key("custom.generated.entry_brute_fd383641d0");
+        if (TXT_HIRE_THIEF.equals(action)) return Message.key("custom.generated.entry_thief_8ac2de7b44");
+        if (TXT_HIRE_WIZARD.equals(action)) return Message.key("custom.generated.entry_wizard_127a661b8e");
+        if (TXT_HIRE_ARCHER.equals(action)) return Message.key("custom.generated.entry_archer_f75aedc160");
+        if (TXT_HIRE_ARCHER_MAIDEN.equals(action)) return Message.key("custom.generated.entry_archer_maiden_50c2d68f1e");
+        throw new IllegalArgumentException("Unknown mercenary choice");
     }
 
     public void restoreMerc(Hero hero)

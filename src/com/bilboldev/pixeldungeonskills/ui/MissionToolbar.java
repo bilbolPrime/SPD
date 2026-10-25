@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.ui;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.input.GameAction;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Gizmo;
 import com.bilboldev.noosa.Image;
@@ -24,17 +26,17 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
@@ -45,11 +47,8 @@ import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoPlant;
-import com.bilboldev.pixeldungeonskills.windows.WndMerc;
-import com.bilboldev.pixeldungeonskills.windows.WndMercs;
+import com.bilboldev.pixeldungeonskills.windows.WndMercsMission;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
-import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
-import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkills;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
@@ -59,8 +58,7 @@ public class MissionToolbar extends Component {
     private Tool btnSkill;
     private Tool btnMerc;
     private Tool btnLastUsed;
-	//private Tool btnSearch;
-   // private Tool btnKing;
+
 	private Tool btnInfoSearch;
 	private Tool btnInventory;
 	private Tool btnQuick1;
@@ -74,18 +72,17 @@ public class MissionToolbar extends Component {
 
 	private static MissionToolbar instance;
 
-
 	public MissionToolbar() {
 		super();
-		
+
 		instance = this;
-		
+
 		height = btnInventory.height();
 	}
-	
+
 	@Override
 	protected void createChildren() {
-		
+
 		add( btnWait = new Tool( 0, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
@@ -108,10 +105,6 @@ public class MissionToolbar extends Component {
             };
         });
 
-
-
-
-
             add(btnLastUsed = new Tool(40, 7, 20, 25) {
                 @Override
                 protected void onClick() {
@@ -131,25 +124,32 @@ public class MissionToolbar extends Component {
         add(btnMerc = new Tool(252, 7, 20, 25) {
             @Override
             protected void onClick() {
-               Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+                if(InterlevelScene.missionChosen == 0){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				}
+				if(InterlevelScene.missionChosen == 1) {
+					GameScene.show(new WndMercsMission(WndMercsMission.Mode.ALL));
+				}
+
+				if(InterlevelScene.missionChosen == 2){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Never again");
+				}
 
             };
             protected boolean onLongClick() {
-                Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				if(InterlevelScene.missionChosen == 0){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "I don't trust mercs");
+				}
+				if(InterlevelScene.missionChosen == 1) {
+					GameScene.show(new WndMercsMission(WndMercsMission.Mode.ALL));
+				}
+
+				if(InterlevelScene.missionChosen == 2){
+					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, "Never again");
+				}
                 return true;
             };});
 
-
-
-		/*
-		add( btnSearch = new Tool( 20, 7, 20, 25 ) {
-			@Override
-			protected void onClick() {
-				Dungeon.hero.search( true );
-			}
-		} );
-
-        */
 		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
@@ -167,7 +167,7 @@ public class MissionToolbar extends Component {
                 Dungeon.hero.search(true); return true;
             }
 		} );
-		
+
 		add( btnInventory = new Tool( 60, 7, 23, 25 ) {
 			private GoldIndicator gold;
 			@Override
@@ -190,18 +190,26 @@ public class MissionToolbar extends Component {
 				gold.fill( this );
 			};
 		} );
-		
+
 		add( btnQuick1 = new QuickslotTool( 83, 7, 22, 25, true ) );
 		add( btnQuick2 = new QuickslotTool( 83, 7, 22, 25, false ) );
-		btnQuick2.visible = (QuickSlot.secondaryValue != null);
-		
+		btnQuick2.visible = (QuickSlot.values[1] != null);
+
 		add( pickedUp = new PickedUpItem() );
+
+		btnWait.bindAction(GameAction.WAIT);
+		btnWait.bindAlternateAction(GameAction.REST);
+		btnSkill.bindAction(GameAction.SKILLS);
+		btnLastUsed.bindAction(GameAction.LAST_SKILL);
+		btnMerc.bindAction(GameAction.MERCENARIES);
+		btnInfoSearch.bindAction(GameAction.EXAMINE);
+		btnInventory.bindAction(GameAction.INVENTORY);
 	}
-	
+
 	@Override
 	protected void layout() {
 		btnWait.setPos( x, y );
-		//btnSearch.setPos( btnWait.right(), y );
+
 		btnInfoSearch.setPos( 0, 70 );
         btnMerc.setPos( 0, 40 );
         btnSkill.setPos(btnWait.right(), y);
@@ -215,7 +223,7 @@ public class MissionToolbar extends Component {
 			btnInventory.setPos( btnQuick1.left() - btnInventory.width(), y );
 		}
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
@@ -231,7 +239,7 @@ public class MissionToolbar extends Component {
 
         if (lastEnabled != Dungeon.hero.ready) {
 			lastEnabled = Dungeon.hero.ready;
-			
+
 			for (Gizmo tool : members) {
 				if (tool instanceof Tool) {
                     ((Tool)tool).enable( lastEnabled );
@@ -244,24 +252,24 @@ public class MissionToolbar extends Component {
 			}
 		}
 	}
-	
+
 	public void pickup( Item item ) {
-		pickedUp.reset( item, 
-			btnInventory.centerX(), 
+		pickedUp.reset( item,
+			btnInventory.centerX(),
 			btnInventory.centerY() );
 	}
-	
+
 	public static boolean secondQuickslot() {
 		return instance.btnQuick2.visible;
 	}
-	
+
 	public static void secondQuickslot( boolean value ) {
-		instance.btnQuick2.visible = 
-		instance.btnQuick2.active = 
+		instance.btnQuick2.visible =
+		instance.btnQuick2.active =
 			value;
 		instance.layout();
 	}
-	
+
 	private static CellSelector.Listener informer = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
@@ -271,28 +279,28 @@ public class MissionToolbar extends Component {
 			if (cell == null) {
 				return;
 			}
-			
+
 			if (cell < 0 || cell > Level.LENGTH || (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell])) {
-				GameScene.show( new WndMessage( "You don't know what is there." ) ) ;
+				GameScene.show( new WndMessage(Message.key("scenes.gamescene.dont_know")) ) ;
 				return;
 			}
-			
+
 			if (!Dungeon.visible[cell]) {
 				GameScene.show( new WndInfoCell( cell ) );
 				return;
 			}
-			
+
 			if (cell == Dungeon.hero.pos) {
 				GameScene.show( new WndHero() );
 				return;
 			}
-			
+
 			Mob mob = (Mob)Actor.findChar( cell );
 			if (mob != null) {
 				GameScene.show( new WndInfoMob( mob ) );
 				return;
 			}
-			
+
 			Heap heap = Dungeon.level.heaps.get( cell );
 			if (heap != null && heap.type != Heap.Type.HIDDEN) {
 				if (heap.type == Heap.Type.FOR_SALE && heap.size() == 1 && heap.peek().price() > 0) {
@@ -302,57 +310,57 @@ public class MissionToolbar extends Component {
 				}
 				return;
 			}
-			
+
 			Plant plant = Dungeon.level.plants.get( cell );
 			if (plant != null) {
 				GameScene.show( new WndInfoPlant( plant ) );
 				return;
 			}
-			
+
 			GameScene.show( new WndInfoCell( cell ) );
-		}	
+		}
 		@Override
-		public String prompt() {
-			return "Select a cell to examine.\nTap again to search.";
+		public Message prompt() {
+			return Message.key("custom.toolbar.examine_prompt");
 		}
 	};
-	
+
 	private static class Tool extends Button {
-		
+
 		private static final int BGCOLOR = 0x7B8073;
-		
+
 		protected Image base;
-		
+
 		public Tool( int x, int y, int width, int height ) {
 			super();
-			
+
 			base.frame( x, y, width, height );
-			
+
 			this.width = width;
 			this.height = height;
 		}
-		
+
 		@Override
 		protected void createChildren() {
 			super.createChildren();
-			
+
 			base = new Image( Assets.TOOLBAR );
 			add( base );
 		}
-		
+
 		@Override
 		protected void layout() {
 			super.layout();
-			
+
 			base.x = x;
 			base.y = y;
 		}
-		
+
 		@Override
 		protected void onTouchDown() {
 			base.brightness( 1.4f );
 		}
-		
+
 		@Override
 		protected void onTouchUp() {
 			if (active) {
@@ -361,7 +369,7 @@ public class MissionToolbar extends Component {
 				base.tint( BGCOLOR, 0.7f );
 			}
 		}
-		
+
 		public void enable( boolean value ) {
 			if (value != active) {
 				if (value) {
@@ -373,11 +381,11 @@ public class MissionToolbar extends Component {
 			}
 		}
 	}
-	
+
 	private static class QuickslotTool extends Tool {
-		
+
 		private QuickSlot slot;
-		
+
 		public QuickslotTool( int x, int y, int width, int height, boolean primary ) {
 			super( x, y, width, height );
 			if (primary) {
@@ -386,75 +394,75 @@ public class MissionToolbar extends Component {
 				slot.secondary();
 			}
 		}
-		
+
 		@Override
 		protected void createChildren() {
 			super.createChildren();
-			
+
 			slot = new QuickSlot();
 			add( slot );
 		}
-		
+
 		@Override
 		protected void layout() {
 			super.layout();
 			slot.setRect( x + 1, y + 2, width - 2, height - 2 );
 		}
-		
+
 		@Override
 		public void enable( boolean value ) {
 			slot.enable( value );
 			super.enable( value );
 		}
 	}
-	
+
 	private static class PickedUpItem extends ItemSprite {
-		
+
 		private static final float DISTANCE = DungeonTilemap.SIZE;
 		private static final float DURATION = 0.2f;
-		
+
 		private float dstX;
 		private float dstY;
 		private float left;
-		
+
 		public PickedUpItem() {
 			super();
-			
+
 			originToCenter();
-			
-			active = 
-			visible = 
+
+			active =
+			visible =
 				false;
 		}
-		
+
 		public void reset( Item item, float dstX, float dstY ) {
 			view( item.image(), item.glowing() );
-			
-			active = 
-			visible = 
+
+			active =
+			visible =
 				true;
-			
+
 			this.dstX = dstX - ItemSprite.SIZE / 2;
 			this.dstY = dstY - ItemSprite.SIZE / 2;
 			left = DURATION;
-			
+
 			x = this.dstX - DISTANCE;
 			y = this.dstY - DISTANCE;
 			alpha( 1 );
 		}
-		
+
 		@Override
 		public void update() {
 			super.update();
-			
+
 			if ((left -= Game.elapsed) <= 0) {
-				
-				visible = 
-				active = 
+
+				visible =
+				active =
 					false;
-				
+
 			} else {
-				float p = left / DURATION; 
+				float p = left / DURATION;
 				scale.set( (float)Math.sqrt( p ) );
 				float offset = DISTANCE * p;
 				x = dstX - offset;

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.rings;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -29,9 +30,9 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.EquipableItem;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.ItemStatusHandler;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
@@ -39,22 +40,22 @@ import com.bilboldev.utils.Random;
 public class Ring extends EquipableItem {
 
 	private static final int TICKS_TO_KNOW	= 200;
-	
+
 	private static final float TIME_TO_EQUIP = 1f;
-	
-	private static final String TXT_IDENTIFY = 
+
+	private static final String TXT_IDENTIFY =
 		"you are now familiar enough with your %s to identify it. It is %s.";
-	
+
 	private static final String TXT_UNEQUIP_TITLE = "Unequip one ring";
-	private static final String TXT_UNEQUIP_MESSAGE = 
+	private static final String TXT_UNEQUIP_MESSAGE =
 		"You can only wear two rings at a time. " +
 		"Unequip one of your equipped rings.";
-	
+
 	protected Buff buff;
-	
-	private static final Class<?>[] rings = { 
-		RingOfMending.class, 
-		RingOfDetection.class, 
+
+	private static final Class<?>[] rings = {
+		RingOfMending.class,
+		RingOfDetection.class,
 		RingOfShadows.class,
 		RingOfPower.class,
 		RingOfHerbalism.class,
@@ -66,77 +67,78 @@ public class Ring extends EquipableItem {
 		RingOfElements.class,
 		RingOfThorns.class
 	};
-	private static final String[] gems = 
+	private static final String[] gems =
 		{"diamond", "opal", "garnet", "ruby", "amethyst", "topaz", "onyx", "tourmaline", "emerald", "sapphire", "quartz", "agate"};
 	private static final Integer[] images = {
-		ItemSpriteSheet.RING_DIAMOND, 
-		ItemSpriteSheet.RING_OPAL, 
-		ItemSpriteSheet.RING_GARNET, 
-		ItemSpriteSheet.RING_RUBY, 
-		ItemSpriteSheet.RING_AMETHYST, 
-		ItemSpriteSheet.RING_TOPAZ, 
-		ItemSpriteSheet.RING_ONYX, 
-		ItemSpriteSheet.RING_TOURMALINE, 
-		ItemSpriteSheet.RING_EMERALD, 
-		ItemSpriteSheet.RING_SAPPHIRE, 
-		ItemSpriteSheet.RING_QUARTZ, 
+		ItemSpriteSheet.RING_DIAMOND,
+		ItemSpriteSheet.RING_OPAL,
+		ItemSpriteSheet.RING_GARNET,
+		ItemSpriteSheet.RING_RUBY,
+		ItemSpriteSheet.RING_AMETHYST,
+		ItemSpriteSheet.RING_TOPAZ,
+		ItemSpriteSheet.RING_ONYX,
+		ItemSpriteSheet.RING_TOURMALINE,
+		ItemSpriteSheet.RING_EMERALD,
+		ItemSpriteSheet.RING_SAPPHIRE,
+		ItemSpriteSheet.RING_QUARTZ,
 		ItemSpriteSheet.RING_AGATE};
-	
+
 	private static ItemStatusHandler<Ring> handler;
-	
+
 	private String gem;
-	
+
 	private int ticksToKnow = TICKS_TO_KNOW;
-	
+
 	@SuppressWarnings("unchecked")
 	public static void initGems() {
 		handler = new ItemStatusHandler<Ring>( (Class<? extends Ring>[])rings, gems, images );
 	}
-	
+
 	public static void save( Bundle bundle ) {
 		handler.save( bundle );
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void restore( Bundle bundle ) {
 		handler = new ItemStatusHandler<Ring>( (Class<? extends Ring>[])rings, gems, images, bundle );
 	}
-	
+
 	public Ring() {
 		super();
 		syncGem();
 	}
-	
+
 	public void syncGem() {
 		image	= handler.image( this );
 		gem		= handler.label( this );
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( isEquipped( hero ) ? AC_UNEQUIP : AC_EQUIP );
 		return actions;
 	}
-	
+
 	@Override
 	public boolean doEquip( final Hero hero ) {
-		
+
 		if (hero.belongings.ring1 != null && hero.belongings.ring2 != null) {
-			
+
 			final Ring r1 = hero.belongings.ring1;
 			final Ring r2 = hero.belongings.ring2;
-			
-			PixelDungeon.scene().add( 
-				new WndOptions( TXT_UNEQUIP_TITLE, TXT_UNEQUIP_MESSAGE, 
-					Utils.capitalize( r1.toString() ), 
-					Utils.capitalize( r2.toString() ) ) {
-					
+
+			PixelDungeon.scene().add(
+				new WndOptions(Message.key("custom.generated.entry_unequip_one_ring_a481cb6eb2"),
+				        Message.key("custom.generated.entry_you_can_only_wear_two_rings_at_a_time_unequip_on_53bbc9ea4c"),
+				        Message.capitalize(Message.item(r1)),
+				        Message.capitalize(Message.item(r2))) {
+
 					@Override
 					protected void onSelect( int index ) {
-						
+
 						detach( hero.belongings.backpack );
-						
+
 						Ring equipped = (index == 0 ? r1 : r2);
 						if (equipped.doUnequip( hero, true, false )) {
 							doEquip( hero );
@@ -145,34 +147,34 @@ public class Ring extends EquipableItem {
 						}
 					}
 				} );
-			
+
 			return false;
-			
+
 		} else {
-			
+
 			if (hero.belongings.ring1 == null) {
 				hero.belongings.ring1 = this;
 			} else {
 				hero.belongings.ring2 = this;
 			}
-			
+
 			detach( hero.belongings.backpack );
-			
+
 			activate( hero );
-			
+
 			cursedKnown = true;
 			if (cursed) {
 				equipCursed( hero );
-				GLog.n( "your " + this + " tightens around your finger painfully" );
+				GLog.n(Ring.class, "equip_cursed");
 			}
-			
+
 			hero.spendAndNext( TIME_TO_EQUIP );
 			return true;
-			
+
 		}
 
 	}
-	
+
 	public void activate( Char ch ) {
 		buff = buff();
 		buff.attachTo( ch );
@@ -181,35 +183,35 @@ public class Ring extends EquipableItem {
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
-			
+
 			if (hero.belongings.ring1 == this) {
 				hero.belongings.ring1 = null;
 			} else {
 				hero.belongings.ring2 = null;
 			}
-			
+
 			hero.remove( buff );
 			buff = null;
-			
+
 			return true;
-			
+
 		} else {
-			
+
 			return false;
-			
+
 		}
 	}
-	
+
 	@Override
 	public boolean isEquipped( Hero hero ) {
 		return hero.belongings.ring1 == this || hero.belongings.ring2 == this;
 	}
-	
+
 	@Override
 	public int effectiveLevel() {
 		return isBroken() ? 1 : level();
 	}
-	
+
 	private void renewBuff() {
 		if (buff != null) {
 			Char owner = buff.target;
@@ -219,19 +221,19 @@ public class Ring extends EquipableItem {
 			}
 		}
 	}
-	
+
 	@Override
 	public void getBroken() {
 		renewBuff();
 		super.getBroken();
 	}
-	
+
 	@Override
 	public void fix() {
 		super.fix();
 		renewBuff();
 	}
-	
+
 	@Override
 	public int maxDurability( int lvl ) {
 		if (lvl <= 1) {
@@ -240,68 +242,76 @@ public class Ring extends EquipableItem {
 			return 100 * (lvl < 16 ? 16 - lvl : 1);
 		}
 	}
-	
+
 	public boolean isKnown() {
 		return handler.isKnown( this );
 	}
-	
+
 	protected void setKnown() {
 		if (!isKnown()) {
 			handler.know( this );
 		}
-		
+
 		Badges.validateAllRingsIdentified();
 	}
-	
+
 	@Override
 	public String toString() {
-		return 
-			levelKnown && isBroken() ? 
-				"broken " + super.toString() : 
+		return
+			levelKnown && isBroken() ?
+				"broken " + super.toString() :
 				super.toString();
 	}
-	
+
 	@Override
 	public String name() {
-		return isKnown() ? name : gem + " ring";
+		String translatedGem = message( gem );
+		return isKnown() ? trueName() : translatedGem != null ? translatedGem : gem + " ring";
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
-			"This metal band is adorned with a large " + gem + " gem " +
-			"that glitters in the darkness. Who knows what effect it has when worn?";
+		return Messages.get( Ring.class, "unknown_desc",
+			Messages.get( Ring.class, "gem_" + gem ) );
 	}
-	
+
 	@Override
 	public String info() {
-		if (isEquipped( Dungeon.hero )) {
-			
-			return desc() + "\n\n" + "The " + name() + " is on your finger" + 
-				(cursed ? ", and because it is cursed, you are powerless to remove it." : "." );
-			
-		} else if (cursed && cursedKnown) {
-			
-			return desc() + "\n\nYou can feel a malevolent magic lurking within the " + name() + ".";
-			
-		} else {
-			
+		if (!isKnown()) {
 			return desc();
-			
+		}
+
+		if (isEquipped( Dungeon.hero )) {
+			if (cursed) {
+				return desc() + "\n\n" + Messages.get( Ring.class, "cursed_worn" );
+			}
+
+			return desc();
+		} else if (cursed && cursedKnown) {
+			return desc() + "\n\n" + Messages.get( Ring.class, "curse_known" );
+		} else {
+
+			return desc();
+
 		}
 	}
-	
+
+	@Override
+	public String displayInfo() {
+		return isKnown() ? super.displayInfo() : info();
+	}
+
 	@Override
 	public boolean isIdentified() {
 		return super.isIdentified() && isKnown();
 	}
-	
+
 	@Override
 	public Item identify() {
 		setKnown();
 		return super.identify();
 	}
-	
+
 	@Override
 	public Item random() {
 		int lvl = Random.Int( 1, 3 );
@@ -313,28 +323,28 @@ public class Ring extends EquipableItem {
 		}
 		return this;
 	}
-	
+
 	public static boolean allKnown() {
 		return handler.known().size() == rings.length - 2;
 	}
-	
+
 	@Override
 	public int price() {
 		return considerState( 80 );
 	}
-	
+
 	protected RingBuff buff() {
 		return null;
 	}
-	
+
 	private static final String UNFAMILIRIARITY	= "unfamiliarity";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( UNFAMILIRIARITY, ticksToKnow );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
@@ -342,42 +352,42 @@ public class Ring extends EquipableItem {
 			ticksToKnow = TICKS_TO_KNOW;
 		}
 	}
-	
+
 	public class RingBuff extends Buff {
-		
-		private static final String TXT_KNOWN = "This is a %s"; 
-		
+
+		private static final String TXT_KNOWN = "This is a %s";
+
 		public int level;
 		public RingBuff() {
 			level = Ring.this.effectiveLevel();
 		}
-		
+
 		@Override
 		public boolean attachTo( Char target ) {
 
 			if (target instanceof Hero && ((Hero)target).heroClass == HeroClass.ROGUE && !isKnown()) {
 				setKnown();
-				GLog.i( TXT_KNOWN, name() );
+				GLog.i(Ring.class, "known", Message.itemName(Ring.this));
 				Badges.validateItemLevelAquired( Ring.this );
 			}
-			
+
 			return super.attachTo(target);
 		}
-		
+
 		@Override
 		public boolean act() {
-			
+
 			if (!isIdentified() && --ticksToKnow <= 0) {
 				String gemName = name();
 				identify();
-				GLog.w( TXT_IDENTIFY, gemName, Ring.this.toString() );
+				GLog.w(Ring.class, "identify");
 				Badges.validateItemLevelAquired( Ring.this );
 			}
-			
+
 			use();
-			
+
 			spend( TICK );
-			
+
 			return true;
 		}
 	}

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -8,18 +9,15 @@ import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class NinjaBomb extends ActiveSkill2{
-
 
     {
         name = "Ninja Bomb";
-        castText = "Go to sleep";
+        castText = Message.key("custom.generated.entry_go_to_sleep_35eda7eae5");
         tier = 2;
         image = 65;
         mana = 8;
+        useDelay = 10f;
     }
 
     @Override
@@ -34,17 +32,10 @@ public class NinjaBomb extends ActiveSkill2{
     public void execute( Hero hero, String action ) {
         if(action == Skill.AC_CAST && hero.MP >= getManaCost())
         {
-            //hero.MP -= getManaCost();
-            //castTextYell();
+
             Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.NINJA_BOMB);
             Dungeon.hero.heroSkills.lastUsed = this;
         }
-    }
-
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.5 * level));
     }
 
     @Override
@@ -52,7 +43,6 @@ public class NinjaBomb extends ActiveSkill2{
     {
         return true;
     }
-
 
     @Override
     public String info()

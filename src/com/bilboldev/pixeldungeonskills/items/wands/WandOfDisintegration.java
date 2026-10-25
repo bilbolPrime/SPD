@@ -19,8 +19,9 @@ package com.bilboldev.pixeldungeonskills.items.wands;
 
 import java.util.ArrayList;
 
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
@@ -30,6 +31,7 @@ import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
 
@@ -39,73 +41,74 @@ public class WandOfDisintegration extends Wand {
 		name = "Wand of Disintegration";
 		hitChars = false;
 	}
-	
+
 	@Override
 	protected void onZap( int cell ) {
-		
+
 		boolean terrainAffected = false;
-		
+
 		int level = power();
-		
+
 		int maxDistance = distance();
 		Ballistica.distance = Math.min( Ballistica.distance, maxDistance );
-		
+
 		ArrayList<Char> chars = new ArrayList<Char>();
-		
+
 		for (int i=1; i < Ballistica.distance; i++) {
-			
+
 			int c = Ballistica.trace[i];
-			
+
 			Char ch;
 			if ((ch = Actor.findChar( c )) != null) {
 				chars.add( ch );
 			}
-			
+
 			int terr = Dungeon.level.map[c];
 			if (terr == Terrain.DOOR || terr == Terrain.SIGN) {
-				
+
 				Dungeon.level.destroy( c );
 				GameScene.updateMap( c );
 				terrainAffected = true;
-				
+
 			} else if (terr == Terrain.HIGH_GRASS) {
-				
+
 				Level.set( c, Terrain.GRASS );
 				GameScene.updateMap( c );
 				terrainAffected = true;
-				
+
 			}
-			
+
 			CellEmitter.center( c ).burst( PurpleParticle.BURST, Random.IntRange( 1, 2 ) );
 		}
-		
+
 		if (terrainAffected) {
 			Dungeon.observe();
 		}
-		
+
 		int lvl = level + chars.size();
 		int dmgMin = lvl;
 		int dmgMax = 8 + lvl * lvl / 3;
-        dmgMax *= Dungeon.hero.heroSkills.passiveB2.wandDamageBonus();
+		dmgMin *= wandBonusDamageModifier();
+        dmgMax *= wandBonusDamageModifier();
         for (Char ch : chars) {
-			ch.damage( Random.NormalIntRange( dmgMin, dmgMax ), this );
+			damage( ch, Random.NormalIntRange( dmgMin, dmgMax ) );
 			ch.sprite.centerEmitter().burst( PurpleParticle.BURST, Random.IntRange( 1, 2 ) );
 			ch.sprite.flash();
 		}
 	}
-	
+
 	private int distance() {
 		return level() + 4;
 	}
-	
+
 	@Override
 	protected void fx( int cell, Callback callback ) {
-		
+
 		cell = Ballistica.trace[Math.min( Ballistica.distance, distance() ) - 1];
-		curUser.sprite.parent.add( new DeathRay( curUser.sprite.center(), DungeonTilemap.tileCenterToWorld( cell ) ) );		
+		curUser.sprite.parent.add( new DeathRay( curUser.sprite.center(), Difficulties.is3d ? DungeonTilemap.raisedTileCenterToWorld( cell ) : DungeonTilemapOld.tileCenterToWorld( cell )  ) );
 		callback.call();
 	}
-	
+
 	@Override
 	public String desc() {
 		return

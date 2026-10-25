@@ -17,64 +17,60 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
+import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndQuest extends Window {
+public class WndQuest extends WndScrollable {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.PARCHMENT;
+    }
 
 	private static final int WIDTH_P	= 120;
 	private static final int WIDTH_L	= 144;
-	
+
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP		= 2;
-	
-	public WndQuest( NPC questgiver, String text, String... options ) {
-		
+	private static final int DEFAULT_TEXT_SIZE = 6;
+
+	public WndQuest( NPC questgiver, Message text, Message... options ) {
+
 		super();
-		
-		int width = PixelDungeon.landscape() ? WIDTH_L : WIDTH_P;
-		
-		IconTitle titlebar = new IconTitle( questgiver.sprite(), Utils.capitalize( questgiver.name ) );
+        menuModel = new MenuModel(Message.capitalize(Message.actor(questgiver)), text);
+
+		int width = boundedWidth(InspectionTitle.windowWidth(landscapeLayout() ? WIDTH_L : WIDTH_P));
+
+		Component titlebar = InspectionTitle.create(questgiver.sprite(), Utils.capitalize(questgiver.name));
 		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
-		
-		HighlightedText hl = new HighlightedText( 6 );
-		hl.text( text, width );
-		hl.setPos( titlebar.left(), titlebar.bottom() + GAP );
-		add( hl );
-		
-		if (options.length > 0) {
-			float pos = hl.bottom();
-			
-			for (int i=0; i < options.length; i++) {
-				
-				pos += GAP;
-				
-				final int index = i;
-				RedButton btn = new RedButton( options[i] ) {
-					@Override
-					protected void onClick() {
-						hide();
-						onSelect( index );
-					}
-				};
-				btn.setRect( 0, pos, width, BTN_HEIGHT );
-				add( btn );
-				
-				pos += BTN_HEIGHT;
-			}
-			
-			resize( width, (int)pos );
-			
-		} else {
-		
-			resize( width, (int)hl.bottom() );
+
+		HighlightedText info = new HighlightedText(DEFAULT_TEXT_SIZE);
+		info.text(text.toString(), textWidth(width));
+		ArrayList<RedButton> buttons = new ArrayList<>();
+		for (int i = 0; i < options.length; i++) {
+			final int index = i;
+			RedButton button = new ActionButton(options[i].toString()) {
+				@Override
+				protected void onClick() {
+					hide();
+					onSelect(index);
+				}
+			};
+			button.setSize(width, BTN_HEIGHT);
+			buttons.add(button);
+            menuModel.add(button, options[i]);
 		}
+		layoutContent(width, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
 	}
-	
+
 	protected void onSelect( int index ) {};
 }

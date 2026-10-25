@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.effects;
 
+import com.bilboldev.pixeldungeonskills.network.PartyEffects;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -30,6 +32,7 @@ import android.util.FloatMath;
 
 import com.bilboldev.gltextures.Gradient;
 import com.bilboldev.gltextures.SmartTexture;
+import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.NoosaScript;
@@ -37,121 +40,156 @@ import com.bilboldev.noosa.Visual;
 import com.bilboldev.utils.PointF;
 
 public class Flare extends Visual {
-	
+
 	private float duration = 0;
 	private float lifespan;
-	
+
 	private boolean lightMode = true;
-	
+
 	private SmartTexture texture;
-	
+
 	private FloatBuffer vertices;
 	private ShortBuffer indices;
-	
+
 	private int nRays;
-	
+	private Visual anchor;
+
+	public int rays() {
+		return nRays;
+	}
+
+	public float radius() {
+		return vertices.get(4);
+	}
+
+	public boolean lightMode() {
+		return lightMode;
+	}
+
+	public Visual anchor() {
+		return anchor;
+	}
+
+	@Override
+	public void kill() {
+		anchor = null;
+		super.kill();
+	}
+
+	@Override
+	public void destroy() {
+		anchor = null;
+		TextureCache.remove(texture);
+		super.destroy();
+	}
+
 	@SuppressLint("FloatMath")
 	public Flare( int nRays, float radius ) {
-		
+
 		super( 0, 0, 0, 0 );
-		
+
 		int gradient[] = {0xFFFFFFFF, 0x00FFFFFF};
 		texture = new Gradient( gradient );
-		
+
 		this.nRays = nRays;
-		
+
 		angle = 45;
 		angularSpeed = 180;
-		
+
 		vertices = ByteBuffer.
 			allocateDirect( (nRays * 2 + 1) * 4 * (Float.SIZE / 8) ).
 			order( ByteOrder.nativeOrder() ).
 			asFloatBuffer();
-		
+
 		indices = ByteBuffer.
 			allocateDirect( nRays * 3 * Short.SIZE / 8 ).
 			order( ByteOrder.nativeOrder() ).
 			asShortBuffer();
-		
+
 		float v[] = new float[4];
-		
+
 		v[0] = 0;
 		v[1] = 0;
 		v[2] = 0.25f;
 		v[3] = 0;
 		vertices.put( v );
-		
+
 		v[2] = 0.75f;
 		v[3] = 0;
-		
+
 		for (int i=0; i < nRays; i++) {
-			
+
 			float a = i * 3.1415926f * 2 / nRays;
-			v[0] = FloatMath.cos( a ) * radius;
-			v[1] = FloatMath.sin( a ) * radius;
+			v[0] = (float)Math.cos( a ) * radius;
+			v[1] = (float)Math.sin( a ) * radius;
 			vertices.put( v );
-			
+
 			a += 3.1415926f * 2 / nRays / 2;
-			v[0] = FloatMath.cos( a ) * radius;
-			v[1] = FloatMath.sin( a ) * radius;
+			v[0] = (float)Math.cos( a ) * radius;
+			v[1] = (float)Math.sin( a ) * radius;
 			vertices.put( v );
-			
+
 			indices.put( (short)0 );
 			indices.put( (short)(1 + i * 2) );
 			indices.put( (short)(2 + i * 2) );
 		}
-		
+
 		indices.position( 0 );
 	}
-	
+
 	public Flare color( int color, boolean lightMode ) {
 		this.lightMode = lightMode;
 		hardlight( color );
-		
+
 		return this;
 	}
-	
+
 	public Flare show( Visual visual, float duration ) {
+		anchor = visual;
 		point( visual.center() );
 		visual.parent.addToBack( this );
-		
+
 		lifespan = this.duration = duration;
-		
+		PartyEffects.flare(this, duration);
+
 		return this;
 	}
-	
+
 	public Flare show( Group parent, PointF pos, float duration ) {
+		anchor = null;
 		point( pos );
 		parent.add( this );
-		
+
 		lifespan = this.duration = duration;
-		
+		PartyEffects.flare(this, duration);
+
 		return this;
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
+
 		if (duration > 0) {
 			if ((lifespan -= Game.elapsed) > 0) {
-				
-				float p = 1 - lifespan / duration;	// 0 -> 1
+
+				float p = 1 - lifespan / duration;
 				p =  p < 0.25f ? p * 4 : (1 - p) * 1.333f;
 				scale.set( p );
 				alpha( p );
-				
+
 			} else {
 				killAndErase();
+				destroy();
 			}
 		}
 	}
-	
+
 	@Override
 	public void draw() {
-		
+
 		super.draw();
-		
+
 		if (lightMode) {
 			GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE );
 			drawRays();
@@ -160,18 +198,18 @@ public class Flare extends Visual {
 			drawRays();
 		}
 	}
-	
+
 	private void drawRays() {
-		
+
 		NoosaScript script = NoosaScript.get();
-		
+
 		texture.bind();
-		
+
 		script.uModel.valueM4( matrix );
-		script.lighting( 
-			rm, gm, bm, am, 
+		script.lighting(
+			rm, gm, bm, am,
 			ra, ga, ba, aa );
-		
+
 		script.camera( camera );
 		script.drawElements( vertices, indices, nRays * 3 );
 	}

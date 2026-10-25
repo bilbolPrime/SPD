@@ -24,28 +24,22 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Paralysis;
-import com.bilboldev.pixeldungeonskills.actors.buffs.SnipersMark;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.BlastParticle;
-import com.bilboldev.pixeldungeonskills.effects.particles.PurpleParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.SmokeParticle;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
-import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
-import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
-
 import java.util.ArrayList;
 
 public class Arrow extends MissileWeapon {
-
 
 	{
 		name = "arrow";
@@ -77,10 +71,10 @@ public class Arrow extends MissileWeapon {
     @Override
     protected void onThrow( int cell ) {
 
+        if(Dungeon.hero.heroSkills.passiveB3.multiTargetActive == false || Dungeon.hero.heroSkills.active3.active == true) {
 
-        if(Dungeon.hero.heroSkills.passiveB3.multiTargetActive == false || Dungeon.hero.heroSkills.active3.active == true) { //  bombvoyage
-            // Turn to bomb
-            if(Dungeon.hero.heroSkills.active3.arrowToBomb() == true) {
+            boolean bombArrow = Dungeon.hero.skillTree.arrowToBomb();
+            if(bombArrow) {
             if (Level.pit[cell]) {
                 super.onThrow(cell);
             } else {
@@ -90,6 +84,9 @@ public class Arrow extends MissileWeapon {
                     CellEmitter.center(cell).burst(BlastParticle.FACTORY, 30);
                 }
 
+                Hero archer = curUser;
+                WeaponEffect prefix = archer != null && archer.belongings.bow != null
+                        ? archer.belongings.bow.weaponEffect : null;
                 boolean terrainAffected = false;
                 for (int n : Level.NEIGHBOURS9) {
                     int c = cell + n;
@@ -106,11 +103,11 @@ public class Arrow extends MissileWeapon {
 
                         Char ch = Actor.findChar(c);
                         if (ch != null) {
-                            int dmg = Random.Int(1 + Dungeon.depth, 10 + Dungeon.depth * 2) - Random.Int(ch.dr());
+                            int dmg = Dungeon.hero.skillTree.arrowToBombDamage() - Random.Int(ch.dr());
                             if (dmg > 0) {
-                                ch.damage(dmg, this);
+                                explosionDamage(ch, dmg, archer, c == cell ? prefix : null);
                                 if (ch.isAlive()) {
-                                    Buff.prolong(ch, Paralysis.class, 2);
+                                    Buff.prolong(ch, Paralysis.class, Dungeon.hero.skillTree.arrowToBombParalysis());
                                 }
                             }
                         }
@@ -122,7 +119,7 @@ public class Arrow extends MissileWeapon {
                 }
             }
         }
-            // End turn to bomb
+
          else   super.onThrow(cell);
             return;
         }
@@ -141,7 +138,7 @@ public class Arrow extends MissileWeapon {
             }
         }
 
-        GLog.i(chars.size() + " targets");
+        GLog.i("custom.generated.manual.s_targets", chars.size());
         boolean hitOne = false;
         for (Char ch : chars) {
             if (!curUser.shootThrough(ch, this)) {
@@ -157,6 +154,16 @@ public class Arrow extends MissileWeapon {
         Dungeon.hero.rangedWeapon = null;
     }
 
+    protected void explosionDamage(Char target, int damage, Hero archer, WeaponEffect prefix) {
+        if (prefix != null && !prefix.roll(archer, target)) prefix = null;
+        if (prefix != null) damage *= prefix.damageMultiplier();
+        int health = target.HP;
+        target.damage(damage, this);
+        if (prefix != null) {
+            prefix.onHit(archer, target, Math.max(0, health - Math.max(0, target.HP)));
+        }
+    }
+
     public void arrowEffect(Char attacker, Char defender)
     {
 
@@ -164,16 +171,16 @@ public class Arrow extends MissileWeapon {
 
 	@Override
 	public String desc() {
-		return 
+		return
 			"Arrows are more powerful and accurate than darts, but they require an equipped bow.";
 	}
-	
+
 	@Override
 	public Item random() {
         quantity = Random.Int(5, 20);
 		return this;
 	}
-	
+
 	@Override
 	public int price() {
 		return quantity * 5;
@@ -182,12 +189,13 @@ public class Arrow extends MissileWeapon {
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = super.actions( hero );
-        if(Dungeon.hero.belongings.bow != null) {
-            if(actions.contains(AC_THROW) == false)
-            actions.add(AC_THROW);
-        }
-        else
+        if (Dungeon.hero.belongings.bow != null) {
+            if (!actions.contains( AC_THROW )) {
+                actions.add( AC_THROW );
+            }
+        } else {
             actions.remove( AC_THROW );
+        }
         actions.remove(AC_EQUIP);
 
         return actions;
@@ -196,7 +204,6 @@ public class Arrow extends MissileWeapon {
     @Override
     public int min(){return 3;}
 
-
     @Override
     public int max(){return 5;}
 
@@ -204,7 +211,6 @@ public class Arrow extends MissileWeapon {
     public String info() {
 
         StringBuilder info = new StringBuilder( desc() );
-
 
         return info.toString();
     }

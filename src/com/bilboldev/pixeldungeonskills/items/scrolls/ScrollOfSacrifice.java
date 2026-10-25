@@ -25,7 +25,7 @@ public class ScrollOfSacrifice extends Scroll {
 	{
 		name = "Scroll of Sacrifice";
 	}
-	
+
 	@Override
 	protected void doRead() {
 
@@ -42,17 +42,17 @@ public class ScrollOfSacrifice extends Scroll {
         if(Dungeon.hero.HP > Dungeon.hero.HT)
             Dungeon.hero.HP = Dungeon.hero.HT;
 
-        GLog.w( "The scroll boosts your strength, but at a cost!" );
-        GLog.p( "+1 strength!" );
-        GLog.n( "-3 max HP!" );
+        GLog.w("custom.generated.entry_the_scroll_boosts_your_strength_but_at_a_cost_1162a17fd6");
+        GLog.p("custom.generated.entry_1_strength_d542813ae0");
+        GLog.n("custom.generated.entry_3_max_hp_bfc464b543");
 		setKnown();
 
 		curUser.spendAndNext( TIME_TO_READ );
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"A scroll that boosts strength at a certain cost.";
 	}
 }

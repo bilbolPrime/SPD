@@ -33,41 +33,39 @@ import com.bilboldev.utils.Random;
 public class LightningTrap {
 
 	private static final String name	= "lightning trap";
-	
-	// 00x66CCEE
-	
+
 	public static void trigger( int pos, Char ch ) {
-		
+
 		if (ch != null) {
 			ch.damage( Math.max( 1, Random.Int( ch.HP / 3, 2 * ch.HP / 3 ) ), LIGHTNING );
 			if (ch == Dungeon.hero) {
-				
+
 				Camera.main.shake( 2, 0.3f );
-				
+
 				if (!ch.isAlive()) {
-					Dungeon.fail( Utils.format( ResultDescriptions.TRAP, name, Dungeon.depth ) );
-					GLog.n( "You were killed by a discharge of a lightning trap..." );
+					Dungeon.fail( Utils.format( ResultDescriptions.TRAP, name, Dungeon.depth ), LightningTrap.class );
+					GLog.n("custom.generated.entry_you_were_killed_by_a_discharge_of_a_lightning_tr_f3bfcf60c2");
 				} else {
 					((Hero)ch).belongings.charge( false );
 				}
 			}
-			
+
 			int[] points = new int[2];
-			
+
 			points[0] = pos - Level.WIDTH;
 			points[1] = pos + Level.WIDTH;
 			ch.sprite.parent.add( new Lightning( points, 2, null ) );
-			
+
 			points[0] = pos - 1;
 			points[1] = pos + 1;
 			ch.sprite.parent.add( new Lightning( points, 2, null ) );
 		}
-		
+
 		CellEmitter.center( pos ).burst( SparkParticle.FACTORY, Random.IntRange( 3, 4 ) );
-		
+
 	}
-	
+
 	public static final Electricity LIGHTNING = new Electricity();
-	public static class Electricity {	
+	public static class Electricity {
 	}
 }

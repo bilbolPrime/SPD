@@ -76,10 +76,9 @@ public class CupidArrow extends Arrow {
 
 	@Override
 	public String desc() {
-		return 
+		return
 			"An arrow believed to belong to cupid. Careful who you aim at.";
 	}
-	
 
 	@Override
 	public int price() {
@@ -89,12 +88,13 @@ public class CupidArrow extends Arrow {
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = super.actions( hero );
-        if(Dungeon.hero.belongings.bow != null) {
-            if(actions.contains(AC_THROW) == false)
-            actions.add(AC_THROW);
-        }
-        else
+        if (Dungeon.hero.belongings.bow != null) {
+            if (!actions.contains( AC_THROW )) {
+                actions.add( AC_THROW );
+            }
+        } else {
             actions.remove( AC_THROW );
+        }
         actions.remove(AC_EQUIP);
 
         return actions;

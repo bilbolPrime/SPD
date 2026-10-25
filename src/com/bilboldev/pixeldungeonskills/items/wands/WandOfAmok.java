@@ -39,7 +39,7 @@ public class WandOfAmok extends Wand {
 	protected void onZap( int cell ) {
 		Char ch = Actor.findChar( cell );
 		if (ch != null) {
-			
+
 			if (ch == Dungeon.hero) {
 				Buff.affect( ch, Vertigo.class, Vertigo.duration( ch ) );
 			} else {
@@ -47,17 +47,17 @@ public class WandOfAmok extends Wand {
 			}
 
 		} else {
-			
-			GLog.i( "nothing happened" );
-			
+
+			GLog.i("custom.generated.entry_nothing_happened_7fbc05693e");
+
 		}
 	}
-	
+
 	protected void fx( int cell, Callback callback ) {
 		MagicMissile.purpleLight( curUser.sprite.parent, curUser.pos, cell, callback );
 		Sample.INSTANCE.play( Assets.SND_ZAP );
 	}
-	
+
 	@Override
 	public String desc() {
 		return

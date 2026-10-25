@@ -20,16 +20,14 @@ package com.bilboldev.pixeldungeonskills.items.keys;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class SkeletonKey extends Key {
-	
+
 	{
 		name = "skeleton key";
 		image = ItemSpriteSheet.SKELETON_KEY;
 	}
-	
+
 	@Override
 	public String info() {
-		return 
-			"This key looks serious: its head is shaped like a skull. " +
-			"Probably it can open some serious door.";
+		return desc();
 	}
 }

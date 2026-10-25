@@ -4,9 +4,6 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.utils.Random;
 
-/**
- * Created by Moussa on 25-Jan-17.
- */
 public class MercThiefSkillA extends Venom {
     {
         tag = "mercA";
@@ -31,10 +28,9 @@ public class MercThiefSkillA extends Venom {
     @Override
     public void castTextYell()
     {
-        if(castText != "")
+        if(castText != null)
             Dungeon.hero.hiredMerc.sprite.showStatus(CharSprite.NEUTRAL, castText);
     }
-
 
     @Override
     public String info()

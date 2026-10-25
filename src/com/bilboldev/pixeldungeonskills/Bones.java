@@ -32,15 +32,29 @@ import com.bilboldev.utils.Random;
 public class Bones {
 
 	private static final String BONES_FILE	= "bones.dat";
-	
+
 	private static final String LEVEL	= "level";
 	private static final String ITEM	= "item";
-	
+
 	private static int depth = -1;
 	private static Item item;
-	
+	private static String cachedFile = BONES_FILE;
+
+	private static String bonesFile() {
+		String file = Dungeon.rules().mode == GameplayMode.CLASSIC ? BONES_FILE
+				: "reborn_bones_v" + Dungeon.rules().version + ".dat";
+		if (!file.equals(cachedFile)) {
+			cachedFile = file;
+			depth = -1;
+			item = null;
+		}
+		return file;
+	}
+
 	public static void leave() {
-		
+		if (GauntletRun.active() || LocalCoop.active()) return;
+		String file = bonesFile();
+
 		item = null;
 		switch (Random.Int( 4 )) {
 		case 0:
@@ -63,48 +77,50 @@ public class Bones {
 				item = new Gold( 1 );
 			}
 		}
-		
+
 		depth = Dungeon.depth;
-		
+
 		Bundle bundle = new Bundle();
 		bundle.put( LEVEL, depth );
 		bundle.put( ITEM, item );
-		
+
 		try {
-			OutputStream output = Game.instance.openFileOutput( BONES_FILE, Game.MODE_PRIVATE );
+			OutputStream output = Game.instance.openFileOutput(file, Game.MODE_PRIVATE);
 			Bundle.write( bundle, output );
 			output.close();
 		} catch (IOException e) {
 
 		}
 	}
-	
+
 	public static Item get() {
+		if (GauntletRun.active() || LocalCoop.active()) return null;
+		String file = bonesFile();
 
         if(depth == ColdGirl.FROST_DEPTH || depth == 0)
             return null;
 
 		if (depth == -1) {
-			
+
 			try {
-				InputStream input = Game.instance.openFileInput( BONES_FILE ) ;
+				InputStream input = Game.instance.openFileInput(file);
 				Bundle bundle = Bundle.read( input );
 				input.close();
-				
+
 				depth = bundle.getInt( LEVEL );
 				item = (Item)bundle.get( ITEM );
-				
+
 				return get();
-				
+
 			} catch (IOException e) {
 				return null;
 			}
-			
+
 		} else {
 			if (depth == Dungeon.depth) {
-				Game.instance.deleteFile( BONES_FILE );
+				Game.instance.deleteFile(file);
 				depth = 0;
-				
+
 				if (!item.stackable) {
 					item.cursed = true;
 					item.cursedKnown = true;
@@ -116,11 +132,11 @@ public class Bones {
 						item.levelKnown = false;
 					}
 				}
-				
+
 				if (item instanceof Ring) {
 					((Ring)item).syncGem();
 				}
-				
+
 				return item;
 			} else {
 				return null;

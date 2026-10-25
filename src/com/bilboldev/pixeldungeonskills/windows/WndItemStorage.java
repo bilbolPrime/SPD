@@ -17,17 +17,26 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+import com.bilboldev.noosa.ui.Component;
+import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.items.Item;
-import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndItemStorage extends Window {
+public class WndItemStorage extends WndScrollable {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.IRON;
+    }
 
 	private static final float BUTTON_WIDTH		= 36;
 	private static final float BUTTON_HEIGHT	= 16;
@@ -39,36 +48,29 @@ public class WndItemStorage extends Window {
     public WndItemStorage(final WndStorage owner, final Item item) {
 
         super();
+        menuModel = new MenuModel(Message.item(item), Message.description(item));
+        int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 
-        IconTitle titlebar = new IconTitle();
-        titlebar.icon( new ItemSprite( item.image(), item.glowing() ) );
-        titlebar.label( Utils.capitalize( item.toString() ) );
-        if (item.isUpgradable() && item.levelKnown) {
-            titlebar.health( (float)item.durability() / item.maxDurability() );
-        }
-        titlebar.setRect( 0, 0, WIDTH, 0 );
-        add( titlebar );
-
+        int color = titleColor();
         if (item.levelKnown && item.level() > 0) {
-            titlebar.color( ItemSlot.UPGRADED );
+            color = ItemSlot.UPGRADED;
         } else if (item.levelKnown && item.level < 0) {
-            titlebar.color( ItemSlot.DEGRADED );
+            color = ItemSlot.DEGRADED;
         }
+        float durability = item.isUpgradable() && item.levelKnown
+                ? (float)item.durability() / item.maxDurability() : Float.NaN;
+        Component titlebar = InspectionTitle.create(new ItemSprite(item.image(), item.glowing()),
+                Utils.capitalize(item.toString()), color, durability);
+        titlebar.setRect(0, 0, windowWidth, 0);
+        add(titlebar);
 
-        BitmapTextMultiline info = PixelScene.createMultiline( item.info(), 6 );
-        info.maxWidth = WIDTH;
-        info.measure();
-        info.x = titlebar.left();
-        info.y = titlebar.bottom() + GAP;
-        add( info );
-
-        float y = info.y + info.height() + GAP;
-        float x = 0;
+        HighlightedText info = new HighlightedText(  6 );
+        info.text(item.displayInfo(), textWidth(windowWidth));
+        ArrayList<RedButton> buttons = new ArrayList<>();
 
         if (Dungeon.hero.isAlive() && owner != null) {
 
-
-                RedButton btn = new RedButton( "Take from storage" ) {
+                RedButton btn = new ActionButton( "Take from storage" ) {
                     @Override
                     protected void onClick() {
                         item.execute( Dungeon.hero, Item.AC_STORE_TAKE );
@@ -77,21 +79,11 @@ public class WndItemStorage extends Window {
                     };
                 };
                 btn.setSize( Math.max( BUTTON_WIDTH, btn.reqWidth() ), BUTTON_HEIGHT );
-                if (x + btn.width() > WIDTH) {
-                    x = 0;
-                    y += BUTTON_HEIGHT + GAP;
-                }
-                btn.setPos( x, y );
-                add( btn );
-
-                //if (action == item.defaultAction) {
-                //    btn.textColor( TITLE_COLOR );
-               // }
-
-                x += btn.width() + GAP;
+                buttons.add(btn);
+                menuModel.add(btn, Message.key("custom.generated.entry_take_from_storage_4befd0ba83"));
 
         }
 
-        resize( WIDTH, (int)(y + (x > 0 ? BUTTON_HEIGHT : 0)) );
+        layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
     }
 }

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -27,14 +28,14 @@ import com.bilboldev.pixeldungeonskills.windows.WndBag;
 
 public class ScrollOfUpgrade extends InventoryScroll {
 
-	private static final String TXT_LOOKS_BETTER	= "your %s certainly looks better now";
-	
+	private static final String TXT_LOOKS_BETTER	= "custom.generated.entry_your_s_certainly_looks_better_now_820141699f";
+
 	{
 		name = "Scroll of Upgrade";
-		inventoryTitle = "Select an item to upgrade";
+		inventoryTitle = Message.key("custom.generated.entry_select_an_item_to_upgrade_596bc4e896");
 		mode = WndBag.Mode.UPGRADEABLE;
 	}
-	
+
 	@Override
 	protected void onItemSelected( Item item ) {
 
@@ -44,17 +45,17 @@ public class ScrollOfUpgrade extends InventoryScroll {
 		} else {
 			item.upgrade();
 		}
-		
+
 		upgrade( curUser );
-		GLog.p( TXT_LOOKS_BETTER, item.name() );
-		
+		GLog.p(TXT_LOOKS_BETTER, Message.itemName(item));
+
 		Badges.validateItemLevelAquired( item );
 	}
-	
+
 	public static void upgrade( Hero hero ) {
 		hero.sprite.emitter().start( Speck.factory( Speck.UP ), 0.2f, 3 );
 	}
-	
+
 	@Override
 	public String desc() {
 		return

@@ -37,70 +37,125 @@ import org.json.JSONTokener;
 public class Bundle {
 
 	private static final String CLASS_NAME = "__className";
-	
+
 	private static HashMap<String,String> aliases = new HashMap<String, String>();
-	
+
 	private JSONObject data;
-	
+	private ObjectFactory objectFactory;
+
+	public interface ObjectFactory {
+		Bundlable create(String name);
+	}
+
+	public static Bundle fromNetwork(JSONObject data, ObjectFactory factory) {
+		if (data == null || factory == null) throw new IllegalArgumentException("Missing network data or factory");
+		Bundle bundle = new Bundle(data);
+		bundle.objectFactory = factory;
+		return bundle;
+	}
+
 	public Bundle() {
 		this( new JSONObject() );
 	}
-	
+
 	public String toString() {
 		return data.toString();
 	}
-	
+
 	private Bundle( JSONObject data ) {
 		this.data = data;
 	}
-	
+
 	public boolean isNull() {
 		return data == null;
 	}
-	
+
 	public ArrayList<String> fields() {
 		ArrayList<String> result = new ArrayList<String>();
-		
+
 		@SuppressWarnings("unchecked")
 		Iterator<String> iterator = data.keys();
 		while (iterator.hasNext()) {
 			result.add( iterator.next() );
 		}
-		
+
 		return result;
 	}
-	
+
+    private static String SPD1_SPD2_Compatibility(String className)
+    {
+        if(className.contains("watabou.pixeldungeon") == true)
+            return className.replace("watabou.pixeldungeon", "bilboldev.pixeldungeonskills");
+        else
+            return className;
+    }
+
+	private void requireType(String key, Class<?> type) {
+		if (objectFactory != null && data != null && data.has(key) && !type.isInstance(data.opt(key)))
+			throw new IllegalArgumentException("Wrong network field type: " + key);
+	}
+
+	private void requireArray(String key, Class<?> type) {
+		if (objectFactory == null || data == null || !data.has(key)) return;
+		requireType(key, JSONArray.class);
+		JSONArray array = data.optJSONArray(key);
+		for (int i = 0; i < array.length(); i++) {
+			if (!type.isInstance(array.opt(i))) throw new IllegalArgumentException("Wrong network array type: " + key);
+			if (type == Number.class) requireInteger(array.opt(i));
+		}
+	}
+
+	private static void requireInteger(Object value) {
+		double number = ((Number)value).doubleValue();
+		if (number < Integer.MIN_VALUE || number > Integer.MAX_VALUE || number != Math.rint(number))
+			throw new IllegalArgumentException("Invalid network integer");
+	}
+
 	public boolean contains( String key ) {
 		return !data.isNull( key );
 	}
-	
+
 	public boolean getBoolean( String key ) {
+		requireType(key, Boolean.class);
 		return data.optBoolean( key );
 	}
-	
+
 	public int getInt( String key ) {
+		requireType(key, Number.class);
+		if (objectFactory != null && data != null && data.has(key)) requireInteger(data.opt(key));
 		return data.optInt( key );
 	}
-	
+
 	public float getFloat( String key ) {
+		requireType(key, Number.class);
 		return (float)data.optDouble( key );
 	}
-	
+
 	public String getString( String key ) {
+		requireType(key, String.class);
 		return data.optString( key );
 	}
-	
+
 	public Bundle getBundle( String key ) {
-		return new Bundle( data.optJSONObject( key ) );
+		requireType(key, JSONObject.class);
+		Bundle bundle = new Bundle( data.optJSONObject( key ) );
+		bundle.objectFactory = objectFactory;
+		return bundle;
 	}
-	
+
 	private Bundlable get() {
+		if (objectFactory != null) {
+			if (data == null) return null;
+			Bundlable object = objectFactory.create(getString(CLASS_NAME));
+			if (object != null) object.restoreFromBundle(this);
+			return object;
+		}
 		try {
 			String clName = getString( CLASS_NAME );
 			if (aliases.containsKey( clName )) {
 				clName = aliases.get( clName );
 			}
-			
+
 			Class<?> cl = Class.forName( clName );
 			if (cl != null) {
 				Bundlable object = (Bundlable)cl.newInstance();
@@ -112,22 +167,24 @@ public class Bundle {
 		} catch (Exception e) {
 			e = null;
 			return null;
-		}	
+		}
 	}
-	
+
 	public Bundlable get( String key ) {
-		return getBundle( key ).get();	
+		return getBundle( key ).get();
 	}
-	
+
 	public <E extends Enum<E>> E getEnum( String key, Class<E> enumClass ) {
+		requireType(key, String.class);
 		try {
 			return Enum.valueOf( enumClass, data.getString( key ) );
 		} catch (JSONException e) {
 			return enumClass.getEnumConstants()[0];
 		}
 	}
-	
+
 	public int[] getIntArray( String key ) {
+		requireArray(key, Number.class);
 		try {
 			JSONArray array = data.getJSONArray( key );
 			int length = array.length();
@@ -140,8 +197,9 @@ public class Bundle {
 			return null;
 		}
 	}
-	
+
 	public boolean[] getBooleanArray( String key ) {
+		requireArray(key, Boolean.class);
 		try {
 			JSONArray array = data.getJSONArray( key );
 			int length = array.length();
@@ -154,8 +212,9 @@ public class Bundle {
 			return null;
 		}
 	}
-	
+
 	public String[] getStringArray( String key ) {
+		requireArray(key, String.class);
 		try {
 			JSONArray array = data.getJSONArray( key );
 			int length = array.length();
@@ -168,23 +227,26 @@ public class Bundle {
 			return null;
 		}
 	}
-	
+
 	public Collection<Bundlable> getCollection( String key ) {
-		
+		requireArray(key, JSONObject.class);
+
 		ArrayList<Bundlable> list = new ArrayList<Bundlable>();
-		
+
 		try {
 			JSONArray array = data.getJSONArray( key );
 			for (int i=0; i < array.length(); i++) {
-				list.add( new Bundle( array.getJSONObject( i ) ).get() );
+				Bundle bundle = new Bundle( array.getJSONObject( i ) );
+				bundle.objectFactory = objectFactory;
+				list.add( bundle.get() );
 			}
 		} catch (JSONException e) {
-			
+
 		}
-		
+
 		return list;
 	}
-	
+
 	public void put( String key, boolean value ) {
 		try {
 			data.put( key, value );
@@ -192,7 +254,7 @@ public class Bundle {
 
 		}
 	}
-	
+
 	public void put( String key, int value ) {
 		try {
 			data.put( key, value );
@@ -200,7 +262,7 @@ public class Bundle {
 
 		}
 	}
-	
+
 	public void put( String key, float value ) {
 		try {
 			data.put( key, value );
@@ -208,7 +270,7 @@ public class Bundle {
 
 		}
 	}
-	
+
 	public void put( String key, String value ) {
 		try {
 			data.put( key, value );
@@ -216,7 +278,7 @@ public class Bundle {
 
 		}
 	}
-	
+
 	public void put( String key, Bundle bundle ) {
 		try {
 			data.put( key, bundle.data );
@@ -224,7 +286,7 @@ public class Bundle {
 
 		}
 	}
-	
+
 	public void put( String key, Bundlable object ) {
 		if (object != null) {
 			try {
@@ -236,7 +298,7 @@ public class Bundle {
 			}
 		}
 	}
-	
+
 	public void put( String key, Enum<?> value ) {
 		if (value != null) {
 			try {
@@ -245,7 +307,7 @@ public class Bundle {
 			}
 		}
 	}
-	
+
 	public void put( String key, int[] array ) {
 		try {
 			JSONArray jsonArray = new JSONArray();
@@ -254,10 +316,10 @@ public class Bundle {
 			}
 			data.put( key, jsonArray );
 		} catch (JSONException e) {
-			
+
 		}
 	}
-	
+
 	public void put( String key, boolean[] array ) {
 		try {
 			JSONArray jsonArray = new JSONArray();
@@ -266,10 +328,10 @@ public class Bundle {
 			}
 			data.put( key, jsonArray );
 		} catch (JSONException e) {
-			
+
 		}
 	}
-	
+
 	public void put( String key, String[] array ) {
 		try {
 			JSONArray jsonArray = new JSONArray();
@@ -278,10 +340,10 @@ public class Bundle {
 			}
 			data.put( key, jsonArray );
 		} catch (JSONException e) {
-			
+
 		}
 	}
-	
+
 	public void put( String key, Collection<? extends Bundlable> collection ) {
 		JSONArray array = new JSONArray();
 		for (Bundlable object : collection) {
@@ -293,54 +355,55 @@ public class Bundle {
 		try {
 			data.put( key, array );
 		} catch (JSONException e) {
-			
+
 		}
 	}
-	
+
 	public static Bundle read( InputStream stream ) {
-		
+
 		try {
 			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
-			
+
 			StringBuilder all = new StringBuilder();
 			String line = reader.readLine();
 			while (line != null) {
+                line = SPD1_SPD2_Compatibility(line);
 				all.append( line );
 				line = reader.readLine();
 			}
-			
+
 			JSONObject json = (JSONObject)new JSONTokener( all.toString() ).nextValue();
 			reader.close();
-			
+
 			return new Bundle( json );
 		} catch (Exception e) {
 			return null;
 		}
 	}
-	
+
 	public static Bundle read( byte[] bytes ) {
 		try {
-			
+
 			JSONObject json = (JSONObject)new JSONTokener( new String( bytes ) ).nextValue();
 			return new Bundle( json );
-			
+
 		} catch (JSONException e) {
 			return null;
 		}
 	}
-	
+
 	public static boolean write( Bundle bundle, OutputStream stream ) {
 		try {
-			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( stream ) );	
+			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( stream ) );
 			writer.write( bundle.data.toString() );
 			writer.close();
-			
+
 			return true;
 		} catch (IOException e) {
 			return false;
 		}
 	}
-	
+
 	public static void addAlias( Class<?> cl, String alias ) {
 		aliases.put( alias, cl.getName() );
 	}

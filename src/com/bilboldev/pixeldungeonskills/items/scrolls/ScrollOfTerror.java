@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -33,47 +34,47 @@ public class ScrollOfTerror extends Scroll {
 	{
 		name = "Scroll of Terror";
 	}
-	
+
 	@Override
 	protected void doRead() {
-		
+
 		new Flare( 5, 32 ).color( 0xFF0000, true ).show( curUser.sprite, 2f );
 		Sample.INSTANCE.play( Assets.SND_READ );
 		Invisibility.dispel();
-		
+
 		int count = 0;
 		Mob affected = null;
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 			if (Level.fieldOfView[mob.pos]) {
 				Buff.affect( mob, Terror.class, Terror.DURATION ).object = curUser.id();
-				
+
 				count++;
 				affected = mob;
 			}
 		}
-		
+
 		switch (count) {
 		case 0:
-			GLog.i( "The scroll emits a brilliant flash of red light" );
+			GLog.i("custom.generated.entry_the_scroll_emits_a_brilliant_flash_of_red_light_d56ba2ff72");
 			break;
 		case 1:
-			GLog.i( "The scroll emits a brilliant flash of red light and the " + affected.name + " flees!" );
+			GLog.i(ScrollOfTerror.class, "one", Message.actor(affected));
 			break;
 		default:
-			GLog.i( "The scroll emits a brilliant flash of red light and the monsters flee!" );
+			GLog.i(ScrollOfTerror.class, "many");
 		}
 		setKnown();
-		
+
 		readAnimation();
 	}
-	
+
 	@Override
 	public String desc() {
 		return
 			"A flash of red light will overwhelm all creatures in your field of view with terror, " +
 			"and they will turn and flee. Attacking a fleeing enemy will dispel the effect.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 50 * quantity : super.price();

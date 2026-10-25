@@ -17,45 +17,45 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class WndSadGhost extends WndQuest {
-	
+
 	private static final String TXT_WEAPON	= "Ghost's weapon";
 	private static final String TXT_ARMOR	= "Ghost's armor";
-	
+
 	private Ghost ghost;
 	private Item questItem;
-	
-	public WndSadGhost( final Ghost ghost, final Item item, String text ) {
-		
-		super( ghost, text, TXT_WEAPON, TXT_ARMOR );
-		
+
+	public WndSadGhost( final Ghost ghost, final Item item, Message text ) {
+
+		super(ghost, text, Message.key("custom.generated.entry_ghost_s_weapon_2c5ae5f6d3"), Message.key("custom.generated.entry_ghost_s_armor_5e20a9d2c0"));
+
 		this.ghost = ghost;
 		questItem = item;
 	}
-	
+
 	@Override
 	protected void onSelect( int index ) {
 
 		if (questItem != null) {
 			questItem.detach( Dungeon.hero.belongings.backpack );
 		}
-		
+
 		Item reward = index == 0 ? Ghost.Quest.weapon : Ghost.Quest.armor;
 		if (reward.doPickUp( Dungeon.hero )) {
-			GLog.i( Hero.TXT_YOU_NOW_HAVE, reward.name() );
+			GLog.i("custom.generated.entry_you_now_have_s_f58f5ff690", Message.itemName(reward));
 		} else {
 			Dungeon.level.drop( reward, ghost.pos ).sprite.drop();
 		}
-		
-		ghost.yell( "Farewell, adventurer!" );
+
+		ghost.yell(Message.key("windows.wndsadghost.farewell"));
 		ghost.die( null );
-		
+
 		Ghost.Quest.complete();
 	}
 }

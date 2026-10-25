@@ -20,39 +20,50 @@ package com.bilboldev.pixeldungeonskills.ui;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.utils.PointF;
 
 public class Compass extends Image {
 
 	private static final float RAD_2_G	= 180f / 3.1415926f;
 	private static final float RADIUS	= 12;
-	
+
 	private int cell;
 	private PointF cellCenter;
-	
+
 	private PointF lastScroll = new PointF();
-	
+
 	public Compass( int cell ) {
-		
+
 		super();
 		copy( Icons.COMPASS.get() );
 		origin.set( width / 2, RADIUS );
-		
+
 		this.cell = cell;
 		cellCenter = DungeonTilemap.tileCenterToWorld( cell );
 		visible = false;
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
-		if (!visible) {
-			visible = Dungeon.level.visited[cell] || Dungeon.level.mapped[cell]; 
+		if (cell != Dungeon.level.exit) {
+			cell = Dungeon.level.exit;
+			cellCenter = DungeonTilemap.tileCenterToWorld(cell);
+			lastScroll.set(Float.NaN, Float.NaN);
+			visible = false;
 		}
-		
-		if (visible) {			
+
+		if (cell < 0 || cell >= Dungeon.level.length()) {
+			visible = false;
+			return;
+		}
+
+		if (!visible) {
+			visible = Dungeon.level.visited[cell] || Dungeon.level.mapped[cell];
+		}
+
+		if (visible) {
 			PointF scroll = Camera.main.scroll;
 			if (!scroll.equals( lastScroll )) {
 				lastScroll.set( scroll );

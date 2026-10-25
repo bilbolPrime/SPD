@@ -31,9 +31,14 @@ public class DualSwords extends MeleeWeapon {
 	public DualSwords() {
 		super( 1, 0.6f, 1f );
 	}
-	
+
 	@Override
 	public String desc() {
 		return "Two razor sharp blades for more damage.";
+	}
+
+	@Override
+	protected int max0() {
+		return ((int)(ACU * super.max0()));
 	}
 }

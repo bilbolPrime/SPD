@@ -17,44 +17,103 @@
  */
 package com.bilboldev.pixeldungeonskills.utils;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.utils.Signal;
-
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import android.util.Log;
+
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 
 public class GLog {
 
 	public static final String TAG = "GAME";
-	
+
 	public static final String POSITIVE		= "++ ";
 	public static final String NEGATIVE		= "-- ";
 	public static final String WARNING		= "** ";
 	public static final String HIGHLIGHT	= "@@ ";
-	
+
 	public static Signal<String> update = new Signal<String>();
-	
-	public static void i( String text, Object... args ) {
-		
-		if (args.length > 0) {
-			text = Utils.format( text, args );
-		}
-		
-		Log.i( TAG, text );
-		update.dispatch( text );
+
+	public static void localI( String text, Object... args ) {
+		dispatch( "", text, args );
 	}
-	
-	public static void p( String text, Object... args ) {
-		i( POSITIVE + text, args );
+
+	public static void localP( String text, Object... args ) {
+		dispatch( POSITIVE, text, args );
 	}
-	
-	public static void n( String text, Object... args ) {
-		i( NEGATIVE + text, args );
+
+	public static void localN( String text, Object... args ) {
+		dispatch( NEGATIVE, text, args );
 	}
-	
-	public static void w( String text, Object... args ) {
-		i( WARNING + text, args );
+
+	public static void localW( String text, Object... args ) {
+		dispatch( WARNING, text, args );
 	}
-	
-	public static void h( String text, Object... args ) {
-		i( HIGHLIGHT + text, args );
+
+	public static void localH( String text, Object... args ) {
+		dispatch( HIGHLIGHT, text, args );
+	}
+
+	private static void dispatch( String prefix, String text, Object... args ) {
+		String localized = args.length > 0 ? Messages.maybeTranslate( text, args ) : Messages.maybeTranslate( text );
+		String output = prefix + localized;
+		Log.i( TAG, output );
+		update.dispatch( output );
+	}
+
+	public static void i(Message text) {
+		dispatch("", text);
+	}
+	public static void p(Message text) {
+		dispatch(POSITIVE, text);
+	}
+	public static void n(Message text) {
+		dispatch(NEGATIVE, text);
+	}
+	public static void w(Message text) {
+		dispatch(WARNING, text);
+	}
+	public static void h(Message text) {
+		dispatch(HIGHLIGHT, text);
+	}
+
+	public static void i(String key, Object... args) {
+		i(Message.key(key, args));
+	}
+	public static void p(String key, Object... args) {
+		p(Message.key(key, args));
+	}
+	public static void n(String key, Object... args) {
+		n(Message.key(key, args));
+	}
+	public static void w(String key, Object... args) {
+		w(Message.key(key, args));
+	}
+	public static void h(String key, Object... args) {
+		h(Message.key(key, args));
+	}
+
+	public static void i(Class<?> type, String field, Object... args) {
+		i(Message.key(type, field, args));
+	}
+	public static void p(Class<?> type, String field, Object... args) {
+		p(Message.key(type, field, args));
+	}
+	public static void n(Class<?> type, String field, Object... args) {
+		n(Message.key(type, field, args));
+	}
+	public static void w(Class<?> type, String field, Object... args) {
+		w(Message.key(type, field, args));
+	}
+	public static void h(Class<?> type, String field, Object... args) {
+		h(Message.key(type, field, args));
+	}
+
+	private static void dispatch(String prefix, Message text) {
+		PartySession.log(prefix, text);
+		String output = prefix + text.toString();
+		Log.i(TAG, output);
+		update.dispatch(output);
 	}
 }

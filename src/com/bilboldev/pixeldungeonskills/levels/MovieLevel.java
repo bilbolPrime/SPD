@@ -24,6 +24,7 @@ import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -58,11 +59,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MovieLevel extends Level {
-	
+
 	{
 		color1 = 0x534f3e;
 		color2 = 0xb9d661;
-		
+
 		viewDistance = 8;
 
         Arrays.fill(fieldOfView, true);
@@ -70,73 +71,62 @@ public class MovieLevel extends Level {
 
     public Maestro maestro;
 
-
 	private static final int ROOM_LEFT		= WIDTH / 2 - 2;
 	private static final int ROOM_RIGHT		= WIDTH / 2 + 2;
 	private static final int ROOM_TOP		= HEIGHT / 2 - 2;
 	private static final int ROOM_BOTTOM	= HEIGHT / 2 + 2;
-	
+
 	private int arenaDoor;
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
-	
+
 	@Override
 	public String tilesTex() {
-		return Assets.TILES_CITY;
+        if(!Difficulties.is3d)
+            return Assets.TILES_CITY;
+
+        return Assets.TILES_CITY_3D;
 	}
-	
+
 	@Override
 	public String waterTex() {
 		return Assets.WATER_CAVES;
 	}
-	
+
 	private static final String DOOR	= "door";
 	private static final String ENTERED	= "entered";
 	private static final String DROPPED	= "droppped";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 
 	}
-	
+
 	@Override
 	protected boolean build() {
-		
+
 		int topMost = Integer.MAX_VALUE;
-		
 
 			int left, right, top, bottom;
 
 				left = 5;
 				right = WIDTH - 5;
 
-
 				top = 5;
 				bottom = HEIGHT - 5;
 
-			
 			Painter.fill( this, left, top, right - left + 1, bottom - top + 1, Terrain.EMPTY );
 
         exit = 0;
 
-
-		Painter.fill( this, ROOM_LEFT, ROOM_TOP + 1, 
+		Painter.fill( this, ROOM_LEFT, ROOM_TOP + 1,
 			ROOM_RIGHT - ROOM_LEFT + 1, ROOM_BOTTOM - ROOM_TOP, Terrain.EMPTY );
 
-		
-
-
-
-
-
-
-
-		
 		return true;
 	}
 
@@ -146,8 +136,8 @@ public class MovieLevel extends Level {
     }
 
 	@Override
-	protected void decorate() {	
-		
+	protected void decorate() {
+
 		for (int i=WIDTH + 1; i < LENGTH - WIDTH; i++) {
 			if (map[i] == Terrain.EMPTY) {
 				int n = 0;
@@ -168,7 +158,7 @@ public class MovieLevel extends Level {
 				}
 			}
 		}
-		
+
 		for (int i=0; i < LENGTH; i++) {
 			if (map[i] == Terrain.WALL && Random.Int( 8 ) == 0) {
 				map[i] = Terrain.WALL_DECO;
@@ -176,7 +166,7 @@ public class MovieLevel extends Level {
 		}
 
 	}
-	
+
 	@Override
 	protected void createMobs() {
 
@@ -184,18 +174,17 @@ public class MovieLevel extends Level {
         maestro.pos = 0;
         mobs.add(maestro);
 
-
 	}
-	
+
 	public Actor respawner() {
 		return null;
 	}
-	
+
 	@Override
 	protected void createItems() {
 
 	}
-	
+
 	@Override
 	public int randomRespawnCell() {
 		return (HEIGHT + 1) * WIDTH / 2;
@@ -211,15 +200,12 @@ public class MovieLevel extends Level {
 	public void press( int cell, Char hero ) {
 
 	}
-	
+
 	@Override
 	public Heap drop( Item item, int cell ) {
-		
 
-		
 		return super.drop( item, cell );
 	}
-	
 
 	@Override
 	public String tileName( int tile ) {
@@ -234,7 +220,7 @@ public class MovieLevel extends Level {
 			return super.tileName( tile );
 		}
 	}
-	
+
 	@Override
 	public String tileDesc( int tile ) {
 		switch (tile) {
@@ -251,7 +237,6 @@ public class MovieLevel extends Level {
 		}
 	}
 
-	
 	@Override
 	public void addVisuals( Scene scene ) {
 		CavesLevel.addVisuals( this, scene );
@@ -259,7 +244,6 @@ public class MovieLevel extends Level {
 
     public class MovieGirl extends Mob
     {
-
 
         {
             spriteClass = ColdGirlSisterSprite.class;
@@ -278,7 +262,6 @@ public class MovieLevel extends Level {
 
             spend(1f);
 
-
             next();
             return true;
         }
@@ -286,7 +269,6 @@ public class MovieLevel extends Level {
 
     public class MovieMaiden extends Mob
     {
-
 
         {
             spriteClass = RedGirlSprite.class;
@@ -314,7 +296,6 @@ public class MovieLevel extends Level {
         {
             spend(1f);
 
-
             next();
             return true;
         }
@@ -323,13 +304,11 @@ public class MovieLevel extends Level {
     public class VanguardWarrior extends Mob
     {
 
-
         {
             spriteClass = VanguardWarriorSprite.class;
             state = HUNTING;
             hostile = false;
         }
-
 
         @Override
         public boolean attack( Char enemy ) {
@@ -340,7 +319,6 @@ public class MovieLevel extends Level {
         public boolean act()
         {
             spend(1f);
-
 
             next();
             return true;
@@ -350,13 +328,11 @@ public class MovieLevel extends Level {
     public class SoldierWarrior extends Mob
     {
 
-
         {
             spriteClass = SoldierWarriorSprite.class;
             state = HUNTING;
             hostile = false;
         }
-
 
         @Override
         public boolean attack( Char enemy ) {
@@ -367,7 +343,6 @@ public class MovieLevel extends Level {
         public boolean act()
         {
             spend(1f);
-
 
             next();
             return true;
@@ -377,13 +352,11 @@ public class MovieLevel extends Level {
     public class SkelEnemy extends Mob
     {
 
-
         {
             spriteClass = SkeletonSprite.class;
             state = HUNTING;
             hostile = false;
         }
-
 
         @Override
         public boolean attack( Char enemy ) {
@@ -394,7 +367,6 @@ public class MovieLevel extends Level {
         public boolean act()
         {
             spend(1f);
-
 
             next();
             return true;
@@ -404,13 +376,11 @@ public class MovieLevel extends Level {
     public class WraithEnemy extends Mob
     {
 
-
         {
             spriteClass = CursePersonificationSprite.class;
             state = HUNTING;
             hostile = false;
         }
-
 
         @Override
         public boolean attack( Char enemy ) {
@@ -421,7 +391,6 @@ public class MovieLevel extends Level {
         public boolean act()
         {
             spend(1f);
-
 
             next();
             return true;
@@ -437,7 +406,6 @@ public class MovieLevel extends Level {
             hostile = false;
         }
 
-
         MovieGirl actress;
         MovieMaiden actress2;
         VanguardWarrior vanguard;
@@ -452,17 +420,10 @@ public class MovieLevel extends Level {
         {
             if(counter == 0)
             {
-                /*
-                actress = new MovieGirl();
-                actress.pos = (HEIGHT + 1) * WIDTH / 2;
-                GameScene.add(actress);
 
-                */
                 actress2 = new MovieMaiden();
                 actress2.pos = (HEIGHT + 1) * WIDTH / 2 - WIDTH * 3;
                 MissionScene.add(actress2);
-                //actress2.turnToSis();
-
 
                 vanguard = new VanguardWarrior();
                 vanguard.pos  = (HEIGHT + 1) * WIDTH / 2 - WIDTH  - WIDTH;
@@ -524,8 +485,6 @@ public class MovieLevel extends Level {
                 Camera.main.focusOn( vanguard.sprite );
             }
 
-
-
                 if (counter == 100) {
                     soldier1.sprite.showStatus(CharSprite.NEUTRAL, "Too many!");
                     soldier5.sprite.showStatus(CharSprite.NEUTRAL, "Mommy...");
@@ -549,7 +508,7 @@ public class MovieLevel extends Level {
                 }
                 if (counter == 125)
                 {
-                    //skeleton4.sprite.die();
+
                 }
                 if (counter == 130)
                 {
@@ -608,7 +567,7 @@ public class MovieLevel extends Level {
 
                 if(counter == 182)
                 {
-                    //skeleton7.sprite.die();
+
                     skeleton3.pos = skeleton3.pos - 3 * WIDTH;
                     vanguard.sprite.attack(skeleton3.pos);
                     Sample.INSTANCE.play( Assets.SND_HIT, 1, 1, Random.Float( 0.8f, 1.25f ) );
@@ -627,8 +586,6 @@ public class MovieLevel extends Level {
                     listWraiths.add(tmp);
                 }
 
-                //if (counter == 200)
-                   // actress.sprite.showStatus(CharSprite.NEUTRAL, "I have better hair");
                 if (counter == 300)
                 {
                     for(int i = -1; i < 4; i++)
@@ -655,8 +612,7 @@ public class MovieLevel extends Level {
                         listWraiths.add(tmp);
                     }
                     soldier3.sprite.showStatus(CharSprite.NEUTRAL, "Too many!");
-                    //actress.sprite.attack(pos - 1);
-                   // Sample.INSTANCE.play( Assets.SND_HIT, 1, 1, Random.Float( 0.8f, 1.25f ) );
+
                 }
 
                 if(counter == 350)
@@ -665,7 +621,7 @@ public class MovieLevel extends Level {
                 }
                 if(counter == 400)
                 {
-                  //  GameScene.flash( 0x0042ff );
+
                     actress = new MovieGirl();
                     actress.pos = (HEIGHT + 1) * WIDTH / 2;
                     MissionScene.add(actress);
@@ -683,7 +639,7 @@ public class MovieLevel extends Level {
                 if(counter == 490)
                 {
                     Camera.main.shake( 5, 0.07f * (30) );
-                 //   GameScene.flash( 0x0042ff );
+
                     ((ColdGirlSisterSprite)actress.sprite).haloUp();
                     for(int i = 0; i < listWraiths.size(); i++)
                         listWraiths.get(i).sprite.die();
@@ -704,18 +660,12 @@ public class MovieLevel extends Level {
                     soldier2.sprite.move(soldier2.pos, soldier2.pos - WIDTH);
                 }
 
-
-            // if (counter == 600)
-                  //  actress.sprite.showStatus(CharSprite.NEUTRAL, "This is a private conversation.. go away");
-
-
-
             if(counter == END_MOVIE)
             {
-                Music.INSTANCE.enable(PixelDungeon.music());
+                com.bilboldev.pixeldungeonskills.Presentation.applyAudio();
                 InterlevelScene.mode = InterlevelScene.Mode.MOVIE_OUT;
                 Game.switchScene(InterlevelScene.class);
-                //Dungeon.observe();
+
             }
 
             counter++;

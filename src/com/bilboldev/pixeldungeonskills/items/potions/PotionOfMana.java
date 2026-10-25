@@ -26,24 +26,22 @@ public class PotionOfMana extends Potion {
 	{
 		name = "Potion of Mana";
 	}
-	
+
 	@Override
 	protected void apply( Hero hero ) {
 		setKnown();
 
-        GLog.p( "You feel your spiritual energy being replenished." );
+        GLog.p("custom.generated.entry_you_feel_your_spiritual_energy_being_replenished_297caad714");
         hero.MP = hero.MMP;
         StatusPane.manaDropping = 0;
 	}
-	
 
-	
 	@Override
 	public String desc() {
 		return
 			"An elixir that will instantly replenish your spiritual energy.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 30 * quantity : super.price();

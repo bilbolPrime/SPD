@@ -18,39 +18,39 @@
 package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.particles.Emitter;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.PointF;
 
 public class CellEmitter {
 
 	public static Emitter get( int cell ) {
-		
+
 		PointF p = DungeonTilemap.tileToWorld( cell );
-		
+
 		Emitter emitter = GameScene.emitter();
 		emitter.pos( p.x, p.y, DungeonTilemap.SIZE, DungeonTilemap.SIZE );
-		
+
 		return emitter;
 	}
-	
+
 	public static Emitter center( int cell ) {
-		
+
 		PointF p = DungeonTilemap.tileToWorld( cell );
-		
+
 		Emitter emitter = GameScene.emitter();
 		emitter.pos( p.x + DungeonTilemap.SIZE / 2, p.y + DungeonTilemap.SIZE / 2 );
-		
+
 		return emitter;
 	}
-	
+
 	public static Emitter bottom( int cell ) {
-		
+
 		PointF p = DungeonTilemap.tileToWorld( cell );
-		
+
 		Emitter emitter = GameScene.emitter();
 		emitter.pos( p.x, p.y + DungeonTilemap.SIZE, DungeonTilemap.SIZE, 0 );
-		
+
 		return emitter;
 	}
 }

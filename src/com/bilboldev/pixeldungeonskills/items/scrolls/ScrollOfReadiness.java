@@ -17,7 +17,6 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
-import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfReadiness extends Scroll {
@@ -25,22 +24,20 @@ public class ScrollOfReadiness extends Scroll {
 	{
 		name = "Scroll of Readiness";
 	}
-	
+
 	@Override
 	protected void doRead() {
 
-
-
-        GLog.w( "Inspiring words that boost moral and remove fatigue!" );
-        GLog.p("Your active skills are ready!");
+        GLog.w("custom.generated.entry_inspiring_words_that_boost_moral_and_remove_fati_114cb7f9b0");
+        GLog.p("custom.generated.entry_your_active_skills_are_ready_6c0b4530f6");
 		setKnown();
 
 		curUser.spendAndNext( TIME_TO_READ );
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"When read, words of inspiration will make your ready for combat.";
 	}
 }

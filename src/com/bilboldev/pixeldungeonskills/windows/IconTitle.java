@@ -19,8 +19,11 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.ColorBlock;
+import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.HealthBar;
@@ -30,87 +33,100 @@ import com.bilboldev.pixeldungeonskills.utils.Utils;
 public class IconTitle extends Component {
 
 	private static final float FONT_SIZE = 9;
-	
+
 	private static final float GAP = 2;
-	
+
 	protected Image imIcon;
 	protected BitmapTextMultiline tfLabel;
 	protected HealthBar health;
-	
+	private ColorBlock rule, ruleShadow;
+
 	private float healthLvl = Float.NaN;
-	
+
 	public IconTitle() {
 		super();
 	}
-	
+
 	public IconTitle( Item item ) {
-		this( 
-			new ItemSprite( item.image(), item.glowing() ), 
+		this(
+			new ItemSprite( item.image(), item.glowing() ),
 			Utils.capitalize( item.toString() ) );
 	}
-	
+
 	public IconTitle( Image icon, String label ) {
 		super();
-		
+
 		icon( icon );
 		label( label );
 	}
-	
+
 	@Override
 	protected void createChildren() {
+		if (Presentation.reborn()) {
+			add(rule = new ColorBlock(1, 1, 0xFF655442));
+			add(ruleShadow = new ColorBlock(1, 1, 0xFF090910));
+		}
 		imIcon = new Image();
 		add( imIcon );
-		
+
 		tfLabel = PixelScene.createMultiline( FONT_SIZE );
-		tfLabel.hardlight( Window.TITLE_COLOR );
+		tfLabel.hardlight( Window.titleColor() );
 		add( tfLabel );
-		
+
 		health = new HealthBar();
 		add( health );
 	}
-	
+
 	@Override
 	protected void layout() {
-		
+
 		health.visible = !Float.isNaN( healthLvl );
-		
+
 		imIcon.x = x;
 		imIcon.y = y;
-		
+
 		tfLabel.x = PixelScene.align( PixelScene.uiCamera, imIcon.x + imIcon.width() + GAP );
-		tfLabel.maxWidth = (int)(width - tfLabel.x);
+		tfLabel.maxWidth = Math.max( 1, (int)(right() - tfLabel.x) );
 		tfLabel.measure();
 		tfLabel.y =  PixelScene.align( PixelScene.uiCamera,
 			imIcon.height > tfLabel.height() ?
 				imIcon.y + (imIcon.height() - tfLabel.baseLine()) / 2 :
 				imIcon.y );
-		
+
 		if (health.visible) {
 			health.setRect( tfLabel.x, Math.max( tfLabel.y + tfLabel.height(), imIcon.y + imIcon.height() - health.height() ), tfLabel.maxWidth, 0 );
-			height = health.bottom();
+			height = health.bottom() - y;
 		} else {
-			height = Math.max( imIcon.y + imIcon.height(), tfLabel.y + tfLabel.height() );
+			height = Math.max( imIcon.y + imIcon.height(), tfLabel.y + tfLabel.height() ) - y;
+		}
+		if (rule != null) {
+			rule.x = ruleShadow.x = x;
+			rule.y = y + height + 2;
+			ruleShadow.y = rule.y + 1;
+			rule.size(width, 1);
+			ruleShadow.size(width, 1);
+			height += 5;
 		}
 	}
-	
+
 	public void icon( Image icon ) {
 		remove( imIcon );
 		add( imIcon = icon );
 	}
-	
+
 	public void label( String label ) {
-		tfLabel.text( label );
+		tfLabel.text( Messages.maybeTranslate( label ) );
 	}
-	
+
 	public void label( String label, int color ) {
-		tfLabel.text( label );
+		tfLabel.text( Messages.maybeTranslate( label ) );
 		tfLabel.hardlight( color );
 	}
-	
+
 	public void color( int color ) {
 		tfLabel.hardlight( color );
 	}
-	
+
 	public void health( float value ) {
 		health.level( healthLvl = value );
 		layout();

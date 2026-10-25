@@ -21,29 +21,21 @@ import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.SkinnedBlock;
-import com.bilboldev.noosa.Visual;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
-import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
-import com.bilboldev.pixeldungeonskills.FogOfWar;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
+import com.bilboldev.pixeldungeonskills.thetiles.FogOfWar;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
-import com.bilboldev.pixeldungeonskills.effects.BlobEmitter;
-import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
-import com.bilboldev.pixeldungeonskills.effects.FloatingText;
-import com.bilboldev.pixeldungeonskills.effects.Ripple;
-import com.bilboldev.pixeldungeonskills.effects.SpellSprite;
-import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
@@ -52,54 +44,30 @@ import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.levels.RegularLevel;
 import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
-import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
-import com.bilboldev.pixeldungeonskills.sprites.DiscardedItemSprite;
-import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
-import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.LegendSprite;
-import com.bilboldev.pixeldungeonskills.sprites.PlantSprite;
 import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
-import com.bilboldev.pixeldungeonskills.ui.Banner;
 import com.bilboldev.pixeldungeonskills.ui.BusyIndicator;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
 import com.bilboldev.pixeldungeonskills.ui.HealthIndicator;
 import com.bilboldev.pixeldungeonskills.ui.MissionStatusPane;
 import com.bilboldev.pixeldungeonskills.ui.MissionToolbar;
-import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
-import com.bilboldev.pixeldungeonskills.ui.StatusPane;
-import com.bilboldev.pixeldungeonskills.ui.Toast;
-import com.bilboldev.pixeldungeonskills.ui.Toolbar;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndBag.Mode;
 import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.utils.Random;
-
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class MissionScene extends GameScene {
 
-
-
-    public LegendSprite hero;
-    public static boolean scenePause = false;
-    protected MissionToolbar toolbar;
-
+	public LegendSprite hero;
+	public static boolean scenePause = false;
+	protected MissionToolbar toolbar;
 
 	@Override
 	public void create() {
-        if(Dungeon.depth != 0 && Dungeon.depth != ColdGirl.FROST_DEPTH) {
-            Music.INSTANCE.play(Assets.TUNE, true);
-            Music.INSTANCE.volume(1f);
-        }
-        else
-        {
-            Music.INSTANCE.play(Assets.TUNE_SPECIAL, true);
-            Music.INSTANCE.volume(1f);
-        }
+		Music.INSTANCE.play(Assets.TUNE, true);
+		Music.INSTANCE.volume(1f);
 
 		PixelDungeon.lastClass( Dungeon.hero.heroClass.ordinal() );
 
@@ -112,15 +80,15 @@ public class MissionScene extends GameScene {
 		add( terrain );
 
 		water = new SkinnedBlock(
-			Level.WIDTH * DungeonTilemap.SIZE,
-			Level.HEIGHT * DungeonTilemap.SIZE,
-			Dungeon.level.waterTex() );
+				Level.WIDTH * DungeonTilemap.SIZE,
+				Level.HEIGHT * DungeonTilemap.SIZE,
+				Dungeon.level.waterTex() );
 		terrain.add( water );
 
 		ripples = new Group();
 		terrain.add( ripples );
 
-		tiles = new DungeonTilemap();
+		tiles = new DungeonTilemapOld();
 		terrain.add( tiles );
 
 		Dungeon.level.addVisuals( this );
@@ -172,12 +140,10 @@ public class MissionScene extends GameScene {
 
 		brightness( PixelDungeon.brightness() );
 
-
 		spells = new Group();
 		add( spells );
 
 		statuses = new Group();
-		add( statuses );
 
 		add( emoicons );
 
@@ -187,10 +153,11 @@ public class MissionScene extends GameScene {
 		mobs.add( hero );
 
 		add( new HealthIndicator() );
+		add( statuses );
 
 		add( cellSelector = new CellSelector( tiles ) );
 
-        MissionStatusPane sb = new MissionStatusPane();
+		MissionStatusPane sb = new MissionStatusPane();
 		sb.camera = uiCamera;
 		sb.setSize( uiCamera.width, 0 );
 		add( sb );
@@ -198,13 +165,13 @@ public class MissionScene extends GameScene {
 		toolbar = new MissionToolbar();
 		toolbar.camera = uiCamera;
 		toolbar.setRect( 0,uiCamera.height - toolbar.height(), uiCamera.width, toolbar.height() );
-	    add( toolbar );
+		add( toolbar );
 
 		AttackIndicator attack = new AttackIndicator();
 		attack.camera = uiCamera;
 		attack.setPos(
-			uiCamera.width - attack.width(),
-			toolbar.top() - attack.height() );
+				uiCamera.width - attack.width(),
+				toolbar.top() - attack.height() );
 		add( attack );
 
 		log = new GameLog();
@@ -219,41 +186,41 @@ public class MissionScene extends GameScene {
 		add( busy );
 
 		switch (InterlevelScene.mode) {
-		case RESURRECT:
-			WandOfBlink.appear( Dungeon.hero, Dungeon.level.entrance );
-			new Flare( 8, 32 ).color( 0xFFFF66, true ).show( hero, 2f ) ;
-			break;
-		case RETURN:
-			WandOfBlink.appear(  Dungeon.hero, Dungeon.hero.pos );
-			break;
-		case FALL:
-			Chasm.heroLand();
-			break;
-		case DESCEND:
-			switch (Dungeon.depth) {
-			case 1:
-				WndStory.showChapter( WndStory.ID_SEWERS );
-                if(PixelDungeon.itemDeg() == false)
-                    WndStory.showStory( TXT_WARN_DEGRADATION );
+			case RESURRECT:
+				WandOfBlink.appear( Dungeon.hero, Dungeon.level.entrance );
+				new Flare( 8, 32 ).color( 0xFFFF66, true ).show( hero, 2f ) ;
 				break;
-			case 6:
-				WndStory.showChapter( WndStory.ID_PRISON );
+			case RETURN:
+				WandOfBlink.appear(  Dungeon.hero, Dungeon.hero.pos );
 				break;
-			case 11:
-				WndStory.showChapter( WndStory.ID_CAVES );
+			case FALL:
+				Chasm.heroLand();
 				break;
-			case 16:
-				WndStory.showChapter( WndStory.ID_METROPOLIS );
+			case DESCEND:
+				switch (Dungeon.depth) {
+					case 1:
+						WndStory.showChapter( WndStory.ID_SEWERS );
+						if(PixelDungeon.itemDeg() == false)
+							WndStory.showStory( TXT_WARN_DEGRADATION );
+						break;
+					case 6:
+						WndStory.showChapter( WndStory.ID_PRISON );
+						break;
+					case 11:
+						WndStory.showChapter( WndStory.ID_CAVES );
+						break;
+					case 16:
+						WndStory.showChapter( WndStory.ID_METROPOLIS );
+						break;
+					case 22:
+						WndStory.showChapter( WndStory.ID_HALLS );
+						break;
+				}
+				if (Dungeon.hero.isAlive() && Dungeon.depth != 22) {
+					Badges.validateNoKilling();
+				}
 				break;
-			case 22:
-				WndStory.showChapter( WndStory.ID_HALLS );
-				break;
-			}
-			if (Dungeon.hero.isAlive() && Dungeon.depth != 22) {
-				Badges.validateNoKilling();
-			}
-			break;
-		default:
+			default:
 		}
 
 		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.depth );
@@ -275,60 +242,56 @@ public class MissionScene extends GameScene {
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE && Dungeon.depth != 0) {
 			if (Dungeon.depth < Statistics.deepestFloor) {
-				GLog.h( TXT_WELCOME_BACK, Dungeon.depth );
+				GLog.h("custom.generated.entry_welcome_back_to_the_level_d_of_pixel_dungeon_a78f87d434", Dungeon.depth);
 			} else {
-                if(Dungeon.depth != ColdGirl.FROST_DEPTH) {
-                    GLog.h(TXT_WELCOME, Dungeon.depth);
-                    Sample.INSTANCE.play(Assets.SND_DESCEND);
-                }
-                else
-                {
-                    GLog.h(TXT_FROST);
-                    Sample.INSTANCE.play(Assets.SND_TELEPORT);
-                }
+				if(Dungeon.depth != ColdGirl.FROST_DEPTH) {
+					GLog.h("custom.generated.entry_welcome_to_the_level_d_of_pixel_dungeon_26b17d410c", Dungeon.depth);
+					Sample.INSTANCE.play(Assets.SND_DESCEND);
+				}
+				else
+				{
+					GLog.h("custom.generated.entry_the_portal_spits_you_out_in_a_cold_domain_91766f5139");
+					Sample.INSTANCE.play(Assets.SND_TELEPORT);
+				}
 			}
 			switch (Dungeon.level.feeling) {
 				case CHASM:
-					GLog.w( TXT_CHASM );
+					GLog.w("levels.level$feeling.chasm_desc");
 					break;
 				case WATER:
-					GLog.w( TXT_WATER );
+					GLog.w("custom.generated.entry_you_hear_the_water_splashing_around_you_34048c37ef");
 					break;
 				case GRASS:
-					GLog.w( TXT_GRASS );
+					GLog.w("levels.level$feeling.grass_desc");
 					break;
 				default:
 			}
 			if (Dungeon.level instanceof RegularLevel &&
 					((RegularLevel) Dungeon.level).secretDoors > Random.IntRange( 3, 4 )) {
-				GLog.w( TXT_SECRETS );
+				GLog.w("levels.level$feeling.secrets_desc");
 			}
 			if (Dungeon.nightMode && !Dungeon.bossLevel()) {
-				GLog.w( TXT_NIGHT_MODE );
+				GLog.w("custom.generated.entry_be_cautious_since_the_dungeon_is_even_more_dange_f9c1d7bfac");
 			}
 
 			InterlevelScene.mode = InterlevelScene.Mode.NONE;
 
 			fadeIn();
 		}
+
+		restoreGameplayInput();
 	}
 
 	public void destroy() {
 
 		scene = null;
-	//	Badges.saveGlobal();
 
 		super.destroy();
 	}
 
 	@Override
 	public synchronized void pause() {
-		//try {
-		//	Dungeon.saveAll();
-		//	Badges.saveGlobal();
-		//} catch (IOException e) {
-			//
-		//}
+
 	}
 
 	@Override
@@ -352,12 +315,12 @@ public class MissionScene extends GameScene {
 
 	@Override
 	protected void onBackPressed() {
-        if(Dungeon.depth == 0 && Dungeon.level instanceof MovieLevel)
-        {
-            Music.INSTANCE.enable(PixelDungeon.music());
-            Game.switchScene(TitleScene.class);
-            Dungeon.observe();
-        }
+		if(Dungeon.depth == 0 && Dungeon.level instanceof MovieLevel)
+		{
+			Music.INSTANCE.enable(PixelDungeon.music());
+			Game.switchScene(TitleScene.class);
+			Dungeon.observe();
+		}
 		else if (!cancel()) {
 			add( new WndGame() );
 		}

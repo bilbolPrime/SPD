@@ -19,6 +19,9 @@ package com.bilboldev.pixeldungeonskills.effects;
 
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
@@ -28,70 +31,155 @@ public class EmoIcon extends Image {
 
 	protected float maxSize = 2;
 	protected float timeScale = 1;
-	
+
 	protected boolean growing	= true;
-	
+
 	protected CharSprite owner;
-	
+	public float heightOffset;
+
+	public CharSprite owner() {
+		return owner;
+	}
+
 	public EmoIcon( CharSprite owner ) {
 		super();
-		
+
 		this.owner = owner;
 		GameScene.add( this );
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
+
 		if (visible) {
-			if (growing) {
-				scale.set( scale.x + Game.elapsed * timeScale );
-				if (scale.x > maxSize) {
-					growing = false;
-				}
-			} else {
-				scale.set( scale.x - Game.elapsed * timeScale );
-				if (scale.x < 1) {
-					growing = true;
-				}
-			}
-			
-			x = owner.x + owner.width - width / 2;
-			y = owner.y - height;
+            if(!(this instanceof RatFlag)) {
+                if (growing) {
+                    scale.set(scale.x + Game.elapsed * timeScale);
+                    if (scale.x > maxSize) {
+                        growing = false;
+                    }
+                } else {
+                    scale.set(scale.x - Game.elapsed * timeScale);
+                    if (scale.x < 1) {
+                        growing = true;
+                    }
+                }
+            }
+            else
+            {
+                scale.set(0.8f);
+            }
+
+            if(!(this instanceof OnlineTurn)) {
+                x = owner.x + owner.width - width / 2;
+                y = owner.y - height - heightOffset;
+            }
+            else
+            {
+                x = owner.x + width / 2 - 1;
+                y = owner.y - height - 2;
+            }
 		}
 	}
-	
+
 	public static class Sleep extends EmoIcon {
-		
+
 		public Sleep( CharSprite owner ) {
-			
+
 			super( owner );
-			
+
 			copy( Icons.get( Icons.SLEEP ) );
-			
+
 			maxSize = 1.2f;
 			timeScale = 0.5f;
-			
+
 			origin.set( width / 2, height / 2 );
 			scale.set( Random.Float( 1, maxSize ) );
 		}
 	}
-	
+
 	public static class Alert extends EmoIcon {
-		
+
 		public Alert( CharSprite owner ) {
-			
+
 			super( owner );
-			
+
 			copy( Icons.get( Icons.ALERT ) );
-			
+
 			maxSize = 1.3f;
 			timeScale = 2;
-			
+
 			origin.set( 2.5f, height - 2.5f );
 			scale.set( Random.Float( 1, maxSize ) );
 		}
 	}
+
+    public static class RatFlag extends EmoIcon {
+
+        public RatFlag( CharSprite owner ) {
+
+            super( owner );
+
+            copy( Icons.get( Icons.RAT_KING_FLAG ) );
+
+            maxSize = 0.5f;
+            timeScale = 1f;
+
+            origin.set( width / 2, height / 2 );
+            scale.set( 0.5f );
+        }
+    }
+
+    public static class PartyTurn extends EmoIcon {
+
+        private static float bobTime;
+
+        public PartyTurn() {
+            super(null);
+            copy(Icons.get(Icons.ARROW_DOWN));
+            scale.set(0.75f);
+            visible = false;
+
+            active = false;
+        }
+
+        @Override
+        public void update() {
+            bobTime = (bobTime + Game.elapsed) % 2f;
+            owner = null;
+            Hero hero = PartySession.turnHero();
+            if (hero != null && hero.isAlive()) {
+                Hero partner = LocalCoop.partner(hero);
+                if (partner != null && partner.isAlive()) owner = hero.sprite;
+            }
+
+            visible = owner != null && owner.exists && owner.visible;
+            if (visible) {
+                x = owner.x + (owner.width() - width()) / 2;
+                y = owner.y - height() - 2 - bobOffset();
+            }
+        }
+
+        public float bobOffset() {
+            return (float)Math.sin(bobTime * Math.PI);
+        }
+    }
+
+    public static class OnlineTurn extends EmoIcon {
+
+        public OnlineTurn( CharSprite owner ) {
+
+            super( owner );
+
+            copy( Icons.get( Icons.ARROW_DOWN ) );
+
+            maxSize = 1.3f;
+            timeScale = 1f;
+
+            origin.set( width / 2, height / 2 );
+            scale.set( Random.Float( 1, maxSize ) );
+        }
+    }
 
 }

@@ -35,17 +35,17 @@ public class ScrollOfChallenge extends Scroll {
 	{
 		name = "Scroll of Challenge";
 	}
-	
+
 	@Override
 	protected void doRead() {
-		
+
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 			mob.beckon( curUser.pos );
 			if (Dungeon.visible[mob.pos]) {
 				Buff.affect( mob, Rage.class, Level.distance( curUser.pos, mob.pos ) );
 			}
 		}
-		
+
 		for (Heap heap : Dungeon.level.heaps.values()) {
 			if (heap.type == Heap.Type.MIMIC) {
 				Mimic m = Mimic.spawnAt( heap.pos, heap.items );
@@ -55,20 +55,20 @@ public class ScrollOfChallenge extends Scroll {
 				}
 			}
 		}
-		
-		GLog.w( "The scroll emits a challenging roar that echoes throughout the dungeon!" );
+
+		GLog.w("custom.generated.entry_the_scroll_emits_a_challenging_roar_that_echoes_0bec4ff5c5");
 		setKnown();
-		
-		curUser.sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );		
+
+		curUser.sprite.centerEmitter().start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
 		Sample.INSTANCE.play( Assets.SND_CHALLENGE );
 		Invisibility.dispel();
-		
+
 		readAnimation();
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"When read aloud, this scroll will unleash a challenging roar " +
 			"that will awaken all monsters and alert them to the reader's location.";
 	}

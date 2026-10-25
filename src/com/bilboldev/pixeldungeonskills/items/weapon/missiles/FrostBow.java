@@ -17,18 +17,16 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
-import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
-import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
-
-import java.util.ArrayList;
 
 public class FrostBow extends Bow {
 
@@ -36,11 +34,8 @@ public class FrostBow extends Bow {
 		name = "frost bow";
 		image = ItemSpriteSheet.ForstBow;
 
-
         stackable = false;
 	}
-
-
 
 	public FrostBow() {
 		this( 1 );
@@ -51,25 +46,23 @@ public class FrostBow extends Bow {
 		quantity = number;
 	}
 
-
 	@Override
 	public String desc() {
-		return 
+		return
 			"A magically imbued bow that has a chance to freeze targets.";
 	}
-	
+
 	@Override
 	public Item random() {
+		randomPrefix();
 		quantity = 1;
 		return this;
 	}
-	
+
 	@Override
 	public int price() {
 		return quantity * 55;
 	}
-
-
 
     @Override
     public void bowSpecial(Char target)
@@ -77,9 +70,9 @@ public class FrostBow extends Bow {
         try {
             if (Random.Int(5) == 1) {
                 Buff.prolong(target, Frost.class, Frost.duration(target) * Random.Float(1f, 2f));
-                GLog.p("Target frozen!");
+                GLog.p("custom.generated.entry_target_frozen_102bb35d50");
 
-                target.sprite.showStatus(CharSprite.NEUTRAL, "Brrrr...");
+                target.sprite.showStatus(CharSprite.NEUTRAL, Message.key("custom.generated.entry_brrrr_6154b07d86"));
             } else
                 Buff.affect(target, Frost.class);
         }

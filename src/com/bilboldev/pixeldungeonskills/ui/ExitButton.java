@@ -24,48 +24,49 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
+import com.bilboldev.pixeldungeonskills.scenes.ClassicTitleScene;
 
 public class ExitButton extends Button {
-	
+
 	private Image image;
-	
+
 	public ExitButton() {
 		super();
-		
+
 		width = image.width;
 		height = image.height;
 	}
-	
+
 	@Override
 	protected void createChildren() {
 		super.createChildren();
-		
+
 		image = Icons.EXIT.get();
 		add( image );
 	}
-	
+
 	@Override
 	protected void layout() {
 		super.layout();
-		
+
 		image.x = x;
 		image.y = y;
 	}
-	
+
 	@Override
 	protected void onTouchDown() {
 		image.brightness( 1.5f );
 		Sample.INSTANCE.play( Assets.SND_CLICK );
 	}
-	
+
 	@Override
 	protected void onTouchUp() {
 		image.resetColor();
 	}
-	
+
 	@Override
 	protected void onClick() {
-		if (Game.scene() instanceof TitleScene) {
+		if (Game.scene() instanceof TitleScene || Game.scene() instanceof ClassicTitleScene) {
 			Game.instance.finish();
 		} else {
 			PixelDungeon.switchNoFade( TitleScene.class );

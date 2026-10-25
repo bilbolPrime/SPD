@@ -25,12 +25,10 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfHome extends Scroll {
 
-
-	
 	{
 		name = "Scroll of Refuge";
 	}
-	
+
 	@Override
 	protected void doRead() {
 
@@ -39,26 +37,25 @@ public class ScrollOfHome extends Scroll {
         if(Dungeon.bossLevel() == false)
         {
             WandOfBlink.appear( curUser, Dungeon.level.entrance );
-            GLog.i("The scroll takes you back to the level entrance");
+            GLog.i("custom.generated.entry_the_scroll_takes_you_back_to_the_level_entrance_f4b4d6ed65");
         }
         else
-            GLog.w("Strong magic aura of this place prevents you from teleporting!");
+            GLog.w("custom.generated.entry_strong_magic_aura_of_this_place_prevents_you_fro_266e1f0419");
 
         Dungeon.observe();
 
 		setKnown();
-		
+
 		curUser.spendAndNext( TIME_TO_READ );
 
 	}
 
-	
 	@Override
 	public String desc() {
 		return
 			"Opens a magical portal that takes you back to the entrance of this dungeon level.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 40 * quantity : super.price();

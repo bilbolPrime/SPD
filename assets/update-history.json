@@ -1,0 +1,854 @@
+[
+  {
+    "title": "The Dark Ages",
+    "art": "ghosts",
+    "caption": "Before the surviving records."
+  },
+  {
+    "version": "0.1.9",
+    "build": 14,
+    "date": "2016-05-29",
+    "notes": [
+      "Added _storage_ for up to five items, accessible near the entrance on every floor.",
+      "Stored items survive death if you resurrect. Starting a new game resets storage.",
+      "Fixed storage inspection details and storage not appearing on every floor.",
+      "The _Rogue_ is immune to a Mimic's gold theft."
+    ]
+  },
+  {
+    "version": "0.1.9b",
+    "build": 15,
+    "date": "2017-01-09",
+    "notes": [
+      "Added the _FlameBow_, which sets targets on fire when its arrows hit."
+    ]
+  },
+  {
+    "version": "0.1.9c",
+    "build": 16,
+    "date": "2017-01-14",
+    "notes": [
+      "The Mage's _Spirituality_ skill allows one additional summon for every three points invested.",
+      "Added skill descriptions to the class selection screen for quick reference."
+    ]
+  },
+  {
+    "version": "0.1.9d",
+    "build": 17,
+    "date": "2017-01-15",
+    "notes": [
+      "Added the _Potion of Mana_, which fully restores mana.",
+      "Greatly reduced active skill cooldowns."
+    ]
+  },
+  {
+    "version": "0.1.9e",
+    "build": 18,
+    "date": "2017-01-18",
+    "notes": [
+      "Active skills can be used while _starving_.",
+      "Published the source code on _SourceForge_."
+    ]
+  },
+  {
+    "version": "0.2.0",
+    "build": 21,
+    "date": "2017-01-23",
+    "notes": [
+      "Updated to vanilla _Pixel Dungeon 1.9.2a_.",
+      "Completely overhauled _skills_.",
+      "Published the code on _GitHub_ and updated the wiki."
+    ]
+  },
+  {
+    "version": "0.2.1a",
+    "build": 24,
+    "builds": [
+      23,
+      24
+    ],
+    "date": "2017-01-23",
+    "notes": [
+      "The _quick skill button_ appears after casting or summoning.",
+      "Fixed a crash when champions hit summoned units."
+    ]
+  },
+  {
+    "version": "0.2.2b",
+    "build": 25,
+    "date": "2017-01-24",
+    "notes": [
+      "Fixed an exploit that granted unlimited skill points.",
+      "Fixed _Spirituality_ not saving its level correctly.",
+      "Mage summons are weaker but last longer, with a limit of _3 plus Summoner level_.",
+      "The _Summoner_ skill no longer increases the number of units created by each cast.",
+      "Casting and summoning skills now take time."
+    ]
+  },
+  {
+    "version": "0.2.2b",
+    "build": 26,
+    "date": "2017-01-24",
+    "notes": [
+      "Fixed a crash when _Knock Back_ pushed a unit out of bounds."
+    ]
+  },
+  {
+    "version": "0.2.2b",
+    "build": 27,
+    "date": "2017-01-26",
+    "notes": [
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "build": 31,
+    "date": "2017-01-27",
+    "notes": [
+      "Added _mercenaries_.",
+      "Added _Just Kill Me_ difficulty.",
+      "Bug fixes."
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "build": 32,
+    "date": "2017-01-27",
+    "notes": [
+      "Fixed restoring previous donations."
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "build": 33,
+    "date": "2017-01-27",
+    "notes": [
+      "Fixed the mercenary death animation."
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "build": 34,
+    "date": "2017-01-28",
+    "notes": [
+      "Fixed a crash caused by healing potions."
+    ]
+  },
+  {
+    "version": "0.3.1",
+    "build": 35,
+    "date": "2017-01-28",
+    "notes": [
+      "Fixed the Warrior's _Knock Back_ skill.",
+      "Bows can be _enchanted_.",
+      "Arrows spawn on every non-boss floor.",
+      "Added _Cupid arrows_ and _soul crystals_.",
+      "Summoned units are saved with their floor and restored when loading."
+    ]
+  },
+  {
+    "version": "0.3.3",
+    "build": 37,
+    "date": "2017-01-30",
+    "notes": [
+      "Fixed mercenary respawning, summoning and death animation bugs.",
+      "Mob stats and champion settings can be changed in-game, without making them easier than the current difficulty.",
+      "Reworked the UI to make _skills_ easier to manage.",
+      "Added animations when _HP and MP_ bars decrease."
+    ]
+  },
+  {
+    "version": "0.3.5",
+    "build": 49,
+    "builds": [
+      46,
+      47,
+      49
+    ],
+    "date": "2017-02-02",
+    "notes": [
+      "Added a _new level_ and the _Cold Girl_ story.",
+      "Added the first _cutscene_.",
+      "The _Rat King_ can adjust mob defense.",
+      "UI tweaks."
+    ]
+  },
+  {
+    "version": "0.3.5",
+    "build": 50,
+    "date": "2017-02-02",
+    "notes": [
+      "Fixed a hunger bug caused by the cutscene."
+    ]
+  },
+  {
+    "version": "0.3.5",
+    "build": 54,
+    "builds": [
+      53,
+      54
+    ],
+    "date": "2017-02-03",
+    "notes": [
+      "Reworked the _Ice Girl_ fight to end earlier and avoid confusion."
+    ]
+  },
+  {
+    "version": "0.3.6",
+    "build": 55,
+    "date": "2017-02-05",
+    "notes": [
+      "The trailer cutscene can be opened from the title screen.",
+      "Fixed the HP bar animation when healing.",
+      "Fixed minor graphical issues in skill images.",
+      "The _skills window_ stays open after investing a point."
+    ]
+  },
+  {
+    "version": "0.3.7",
+    "build": 58,
+    "date": "2017-02-12",
+    "notes": [
+      "Added the first _scenario_.",
+      "Fixed the HP bar animation when using vampiric weapons.",
+      "Added a stabbing animation for melee attacks."
+    ]
+  },
+  {
+    "version": "0.3.8",
+    "build": 59,
+    "date": "2017-02-13",
+    "notes": [
+      "Remastered the first _scenario_.",
+      "Fixed the _Scroll of Skill_ not dropping.",
+      "Fixed _VAMP champions_ almost never spawning.",
+      "Increased drop chances for Skillful Pixel Dungeon items."
+    ]
+  },
+  {
+    "version": "0.3.8",
+    "build": 60,
+    "date": "2017-02-14",
+    "notes": [
+      "Fixed the Huntress's _Iron Tip_ blocking double and triple arrows.",
+      "Improved storage placement."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 61,
+    "date": "2017-02-25",
+    "notes": [
+      "Replaced the Mage's _Summon Crab_ skill with _Spark_ in new games.",
+      "Fixed _Iron Tip_ blocking Bombvoyage and corrected Bombvoyage's mana cost.",
+      "The _Scroll Holder_ can hold Scrolls of Wipe and now has 18 slots.",
+      "Added a _shop on floor 1_. Shops sell soul crystals.",
+      "The _Rogue_ starts with a Dual Blade."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 62,
+    "date": "2017-02-26",
+    "notes": [
+      "Fixed _Bombvoyage_ being unusable.",
+      "Replaced the Rogue's _Dead Eye_ skill with _Double Strike_.",
+      "The Mage's _Spark_ replaces Summon Crab in new games."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 63,
+    "date": "2017-03-05",
+    "notes": [
+      "Fixed getting stuck while descending into shop levels.",
+      "Fixed the Huntress defaulting to arrow damage.",
+      "Fixed captured units losing their skill after loading.",
+      "The _Necroblade's_ charge bonus damage is no longer fixed.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 64,
+    "date": "2017-03-09",
+    "notes": [
+      "Fixed the game sometimes freezing when interacting with _mercenaries_.",
+      "Mercenaries can no longer equip class-specific epic armor."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 65,
+    "date": "2017-03-18",
+    "notes": [
+      "Fixed skills such as _Spark_ and _KO Arrow_ losing levels when loading a game."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 66,
+    "date": "2017-03-18",
+    "notes": [
+      "Fixed a _Mind Vision_ potion crash when a mercenary was not visible.",
+      "Added a safeguard to mercenary AI to prevent the game freezing."
+    ]
+  },
+  {
+    "version": "0.3.9",
+    "build": 67,
+    "date": "2017-06-18",
+    "notes": [
+      "The _Rat King_ can control Day and Night modes."
+    ]
+  },
+  {
+    "version": "0.4.3",
+    "build": 79,
+    "date": "2018-01-28",
+    "notes": [
+      "Fixed the campaign and _Cold Girl_ quest corrupting Rogue saves.",
+      "Buffed _Spark_: more damage and a chance to blind.",
+      "Nerfed the Mage's _Sorcerer_ skill."
+    ]
+  },
+  {
+    "version": "0.4.4",
+    "build": 82,
+    "date": "2018-03-03",
+    "notes": [
+      "Added _weapon skills_.",
+      "_Barbaric weapons_ have a 20% chance to cast level 1 Smite.",
+      "Dropped weapons have a 50% chance to be barbaric."
+    ]
+  },
+  {
+    "version": "0.4.4",
+    "build": 84,
+    "date": "2019-06-23",
+    "notes": [
+      "Fixed a crash caused by hunger.",
+      "Updated the game icon."
+    ]
+  },
+  {
+    "version": "0.4.4",
+    "build": 85,
+    "date": "2019-06-30",
+    "notes": [
+      "Fixed crashes related to missions and checking unit visibility.",
+      "Removed unused imports to reduce APK size."
+    ]
+  },
+  {
+    "version": "0.4.4",
+    "build": 86,
+    "date": "2019-07-07",
+    "notes": [
+      "Fixed crashes in the game log, swap effect and wound animation.",
+      "Fixed a crash in _Cold Girl_ AI."
+    ]
+  },
+  {
+    "version": "0.4.4",
+    "build": 87,
+    "date": "2019-07-14",
+    "notes": [
+      "Reduced the Rogue's _Shadow Clone_ lifespan by 33%.",
+      "Doubled Shadow Clone's mana cost and reduced clone damage.",
+      "More crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 88,
+    "date": "2019-07-14",
+    "notes": [
+      "Fixed a conflict between _Rogue and Huntress saves_.",
+      "Some existing saves could be lost; future saves avoid this conflict."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 89,
+    "date": "2019-07-20",
+    "notes": [
+      "Added _Super Easy_ difficulty.",
+      "New _Shadow Clones_ can be attacked, and their strength depends on skill level.",
+      "Increased _Awareness_ dodge chance to 25% per level.",
+      "Removed some starting items.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 90,
+    "date": "2019-07-21",
+    "notes": [
+      "Disabled the _Cold Girl_ quest pending a rework.",
+      "Added the _Call Merc_ button."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 91,
+    "date": "2019-07-27",
+    "notes": [
+      "Fixed difficulty damage modifiers not applying to shamans and evil eyes.",
+      "Removed marsupial rats' ranged attack.",
+      "_Super Easy_ starts with three soul crystals; _Easy_ starts with two.",
+      "Increased damage taken from mobs on Super Easy.",
+      "Reduced _Shadow Clone_ health and slightly reduced its mana cost.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 92,
+    "date": "2019-08-03",
+    "notes": [
+      "Fixed warlock difficulty damage modifiers.",
+      "Harder difficulties start with more skill points.",
+      "Bows can be _upgraded_ to deal more damage.",
+      "The _Huntress_ starts with an upgraded bow and 15 extra arrows.",
+      "Replaced _Soul Arrow_ with _Aimed Shot_, which never misses and deals more damage.",
+      "Huntress changes apply to new games.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 93,
+    "date": "2019-08-10",
+    "notes": [
+      "Difficulty options are _Easy, Normal and Hell_.",
+      "Hidden doors and traps are easier to discover on Easy.",
+      "The _Rat King_ sells food, with prices based on the deepest floor reached.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 94,
+    "date": "2019-08-17",
+    "notes": [
+      "Replaced the Rogue's _Smoke Bomb_ with _Ninja Bomb_, a tier 2 active skill.",
+      "Ninja Bomb can put targets to sleep, but does not work on bosses.",
+      "_Double Stab_ is now tier 1.",
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 95,
+    "date": "2019-09-28",
+    "notes": [
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 96,
+    "date": "2019-11-13",
+    "notes": [
+      "Fixed a crash caused by mob emote icons."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 97,
+    "date": "2020-01-29",
+    "notes": [
+      "Fixed a null pointer crash when saving the game."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 98,
+    "date": "2020-02-01",
+    "notes": [
+      "_Betrayal_ scenario added",
+      "Fixed _Hatsune's echoes_ being invisible"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 99,
+    "date": "2020-02-08",
+    "notes": [
+      "_Necroblade_ replaces _Consume_ with _Dark Bolt_ after level 5",
+      "_Dark Bolt_ kills non-boss monsters and summons a slave",
+      "Number of available skills show in overlay",
+      "Skill _cool down_ added",
+      "Skills remain active but do not trigger when on cool down",
+      "Skills cannot be cast when on cool down"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 100,
+    "date": "2020-02-09",
+    "notes": [
+      "_Quick skill button_ shows cool down of last skill"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 101,
+    "date": "2020-02-29",
+    "notes": [
+      "_Potion Holder_ added (Thanks to Shattered PD)",
+      "_Potion Holder_ will group all your potions",
+      "All heroes start with the potion holder",
+      "Only applies to _new games_"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 102,
+    "date": "2020-03-07",
+    "notes": [
+      "_Warrior's passive skills_ nerfed",
+      "Increased mob difficulty on _Hard_",
+      "Wanted to do more but busy with something X_X, Soul blade delayed"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 103,
+    "date": "2020-04-20",
+    "notes": [
+      "_Soul Blade_ added",
+      "_Necro Blade_ now _tier 3_"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 104,
+    "date": "2020-05-31",
+    "notes": [
+      "Mages can now summon _Fire Elementals_ using the _Wand of Firebolt_!",
+      "_Nightmare_ difficulty returns",
+      "Crash fixes"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 105,
+    "date": "2020-06-07",
+    "notes": [
+      "Mages can now summon a random seed using the _Wand of Regrowth_!",
+      "_Soul Blade's Heal_ mana cost increased to _20_"
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 106,
+    "date": "2020-06-13",
+    "notes": [
+      "Mages can now summon after images using the _Wand of Blink_!",
+      "Fixed bug allowing gold duplication using _Brute's hold item perk_."
+    ]
+  },
+  {
+    "version": "0.4.5",
+    "build": 107,
+    "date": "2020-12-20",
+    "notes": [
+      "_Soul Fury_ scenario added"
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 111,
+    "date": "2021-03-07",
+    "notes": [
+      "Added _2.5D walls_!",
+      "Player can toggle between _2.5D_ and _classic_ modes in hero selection screen.",
+      "Bug fixes.",
+      "Pray for me 8')"
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 112,
+    "date": "2021-03-08",
+    "notes": [
+      "Fixed an ugly bug where _classic mode_ freezes on inspect."
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 113,
+    "date": "2021-03-08",
+    "notes": [
+      "Crash fixes."
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 114,
+    "date": "2021-03-13",
+    "notes": [
+      "_Rodent Scouts_ added to the _Rat King_ window.",
+      "_Rodent Scouts_ roam the dungeon for you exploring.",
+      "Rodent Scouts are fragile and wake enemies up.",
+      "_Summoned Rats_ have a slightly different color now.",
+      "Fixed cropping issue in _2.5D_ mode."
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 116,
+    "date": "2021-03-24",
+    "notes": [
+      "_Five brightness options_ added instead of two.",
+      "New _fog of war_ added for _2.5D_ mode.",
+      "_Second Quickslot_ remains on / off between games."
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 117,
+    "date": "2021-03-25",
+    "notes": [
+      "_Merc Stand Ground_ option added.",
+      "When attacked or recalled, mercs will start following you again.",
+      "New games now start with a _Captured Baby Eye_ instead of rat.",
+      "Captured units have slightly different color.",
+      "Fixed _Scroll of Magic Mapping_ not properly displaying map in _2.5D_ mode."
+    ]
+  },
+  {
+    "version": "0.5.0b",
+    "build": 118,
+    "date": "2021-04-25",
+    "notes": [
+      "_Skills 3.0_ released.",
+      "Each class now has a _skill tree_.",
+      "Skills can now be leveled up to _10 times_.",
+      "Some skills require _subclasses_.",
+      "All difficulties start at _1 skill point_.",
+      "Hero gains _1 skill point per level_.",
+      "Old saves skill points reset based on level.",
+      "_Tome of Mastery_ only obtained by defeating _Tenju_.",
+      "_Classic 2D mode_ is now the default game mode.",
+      "Fixed issue with black text on activity resume."
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "build": 119,
+    "date": "2021-04-30",
+    "notes": [
+      "_Endurance_ bonus reduced.",
+      "_Spark_ damage increased.",
+      "_Warlock_ does 5 more damage with _Spark_.",
+      "Skill window supports _two fonts_.",
+      "Skills bonus stack reworked.",
+      "_Champions_ are more likely to drop consumables.",
+      "Minor enhancements with item descriptions.",
+      "Fixed _Fletching_ giving an arrow every tick.",
+      "Fixed mana cost on some skills.",
+      "Fixed some subclass skills giving bonus from start.",
+      "_Necroblade_ now _tier 4_ and reworked skills.",
+      "_DualSwords_ max damage decreased."
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "build": 120,
+    "date": "2021-05-01",
+    "notes": [
+      "_Just Kill Me_ difficulty returns",
+      "_Aimed shot_ attack skill bonus increased.",
+      "_Awareness_ and _Kneeshot_ skills % reduced.",
+      "_Soul blade_ skills require weapon level.",
+      "Weapon drop chances reworked.",
+      "Champs loot chance now depends on difficulty.",
+      "Gold shows when buying items.",
+      "Fixed _spark_ not having cool down."
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "build": 121,
+    "date": "2021-05-03",
+    "notes": [
+      "_Shadow Clone_ skill can summon _1 strong or 3 weak clones_.",
+      "_Shadow Clone_ skill cool down reduced.",
+      "New clones replace previous ones.",
+      "_Toughness_ now gives _4%_ reduction per level.",
+      "_Aggression_ bonus depends on lost health.",
+      "When cap exceeded, first summon dies.",
+      "_First floor shop_ reworked.",
+      "The _rat king_ has a friend now...",
+      "Fixed bug in _Dual Sword_ max damage."
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "build": 122,
+    "date": "2021-05-09",
+    "notes": [
+      "_Gauntlet Mode_ added; Survive for as long as you can.",
+      "Fixed _Toughness_ and _Spirit armor_ reducing hunger damage."
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "build": 123,
+    "date": "2021-05-16",
+    "notes": [
+      "_Gauntlet_ has chance of more rooms to be fair.",
+      "Some polishing for Gauntlet mode.",
+      "Fixed bug with _Rat King_ dying in _Gauntlet_ mode locking player in level."
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "build": 124,
+    "date": "2021-05-19",
+    "notes": [
+      "_Multiplicity_ armor glyph removed from gauntlet.",
+      "Fixed regenerating while _starving_ in gauntlet."
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "build": 125,
+    "date": "2021-05-29",
+    "notes": [
+      "_Gauntlet_ now has rat only mobs.",
+      "Added _Ranged Rat_ and _Rat Brute_ for gauntlet.",
+      "Fixed issue with _Shadow Clones_ breaking at high level.",
+      "Mobs will now properly target allies when hero out of reach."
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "build": 126,
+    "date": "2021-06-02",
+    "notes": [
+      "Hero starts with _scroll of skill_ if _Tengu_ beaten before for that class.",
+      "Fixed _Gauntlet_ giving weaker tier armor and weapon."
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "build": 128,
+    "date": "2021-06-05",
+    "notes": [
+      "Increased champ drop rate by _20%_ for all difficulties.",
+      "Grass in _Gauntlet_ mode drops _dew drops_ instead of seeds.",
+      "Fixed _Gauntlet_ not spawning _brute rats_ at higher levels."
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "build": 133,
+    "date": "2026-05-18",
+    "notes": [
+      "Added _windowed mode_ on desktop, available in settings.",
+      "Escape opens the in-game menu.",
+      "Fixed problems when switching away from the game with Alt-Tab."
+    ]
+  },
+  {
+    "version": "1.0.3",
+    "build": 134,
+    "date": "2026-05-30",
+    "notes": [
+      "Added _more languages_ and translated missing text.",
+      "Improved desktop window controls and mouse-wheel scrolling."
+    ]
+  },
+  {
+    "version": "1.0.5",
+    "build": 136,
+    "date": "2026-06-06",
+    "notes": [
+      "Added the _Necromancer_ and _Mercenary_ classes, with their own skills and subclasses.",
+      "Added guns and ammunition for the Mercenary.",
+      "Added corpses for necromancy and new summons.",
+      "Fixed a memory leak."
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "build": 137,
+    "date": "2026-09-09",
+    "notes": [
+      "Translated the new _Necromancer_ and _Mercenary_ skills.",
+      "Fixed Meditation's prerequisite. Raise Skeleton Archer now requires _Lich_.",
+      "Updated Android support."
+    ]
+  },
+  {
+    "version": "1.1.1",
+    "build": 139,
+    "date": "2026-09-26",
+    "notes": [
+      "Long descriptions, quests and menus now _scroll_ instead of running off-screen.",
+      "Fixed window sizing, clipped text and touch handling.",
+      "Improved mouse-wheel scrolling on desktop."
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "build": 140,
+    "date": "2026-10-03",
+    "notes": [
+      "Added _keyboard and controller bindings_ in settings.",
+      "Added desktop shortcuts for movement, skills, inventory and quick slots.",
+      "Added controller navigation for menus and the dungeon."
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "build": 141,
+    "date": "2026-10-17",
+    "notes": [
+      "Added optional _first-person_ and _third-person_ dungeon views.",
+      "Added desktop camera controls and a radar for the perspective views.",
+      "Switch back to the overhead view at any time."
+    ]
+  },
+  {
+    "version": "2.0.0",
+    "build": 142,
+    "date": "2026-10-19",
+    "notes": [
+      "Added _Reborn_: new dungeon layouts, encounters and boss fights.",
+      "Added special rooms and mercenaries recruited inside the dungeon.",
+      "Rebuilt _Gauntlet_ as a ten-wave arena with changing terrain and rewards.",
+      "Added _six save slots per hero_. Classic games remain available.",
+      "Boss health bars now show their phases, with shield outlines for Yog and his fists."
+    ]
+  },
+  {
+    "version": "2.1.0",
+    "build": 143,
+    "date": "2026-10-23",
+    "notes": [
+      "Added _party mode_.",
+      "Nerfed the Warrior's _Toughness_ and _Regeneration_ passives.",
+      "Buffed _champion and boss HP_ in Reborn.",
+      "Some bosses in Reborn games could already be taken out by heroes who don't want to share any glory.",
+      "Gave the title screen, HUD, menus and inspection windows the _Reborn look_. You can still use Classic visuals.",
+      "Added a new _soundtrack_ for the title screen and dungeon. Boss music blends into the current track.",
+      "Choose _Classic or Reborn music_ in settings, regardless of the visuals.",
+      "Added _HUD zoom_ and volume sliders for music and sound effects on Android and desktop.",
+      "Added a _quick-slot slider_ in Classic and Reborn: 1 to 10 slots, depending on screen space. The default is 2.",
+      "Added _Repelling_, _Serpentine_, _Crippling_, _Runic_, _Hexing_ and _Siphoning_ weapon prefixes.",
+      "Added _Stalwart_, _Vigilant_ and _Elusive_ armor prefixes.",
+      "Made inventory labels, skill descriptions and ranking details easier to read at different HUD sizes.",
+      "Control bindings and language choices use more columns in landscape. Update history fits narrow screens.",
+      "Fixed ranking and badge windows opening behind the menus. Title menus now keep your chosen HUD zoom.",
+      "Fixed grass and raised terrain drawing over heroes and thrown items. Raised objects no longer show patches of floor in first- and third-person views.",
+      "Explored terrain stays visible through fog in first- and third-person views, using your brightness setting.",
+      "Fixed caves boss crashes in older saves and dungeon generation crashes on older Android versions."
+    ]
+  }
+]

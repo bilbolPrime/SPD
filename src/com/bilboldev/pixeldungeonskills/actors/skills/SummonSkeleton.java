@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -14,20 +15,16 @@ import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class SummonSkeleton extends ActiveSkill3{
-
 
     {
         name = "Summon Skeleton";
-        castText = "The dead shall obey!";
+        castText = Message.key("custom.generated.entry_the_dead_shall_obey_f749b0c50c");
         tier = 3;
         image = 43;
         mana = 3;
+        useDelay = 25f;
     }
-
 
     @Override
     public ArrayList<String> actions( Hero hero ) {
@@ -83,17 +80,10 @@ public class SummonSkeleton extends ActiveSkill3{
     }
 
     @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.55 * level));
-    }
-
-    @Override
     protected boolean upgrade()
     {
         return true;
     }
-
 
     @Override
     public String info()

@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.utils.Random;
@@ -28,38 +29,36 @@ public class Rat extends Mob {
 	{
 		name = "marsupial rat";
 		spriteClass = RatSprite.class;
-		
+
 		HP = HT = 8;
 		defenseSkill = 3;
-		
+
 		maxLvl = 5;
 
         name = Dungeon.currentDifficulty.mobPrefix() + name;
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
-
-        range = 2;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 1, 5 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 8;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 1;
 	}
-	
+
 	@Override
 	public void die( Object cause ) {
 		Ghost.Quest.processSewersKill( pos );
-		
+
 		super.die( cause );
 	}
 
@@ -70,9 +69,31 @@ public class Rat extends Mob {
     }
 
 	@Override
+	public String displayName() {
+		String prefix = Dungeon.currentDifficulty.mobPrefix();
+		String localizedBaseName;
+
+		if (this instanceof RatBrute) {
+			localizedBaseName = com.bilboldev.pixeldungeonskills.messages.Messages.maybeTranslate( "marsupial brute rat" );
+		} else if (this instanceof RatArcher) {
+			localizedBaseName = com.bilboldev.pixeldungeonskills.messages.Messages.maybeTranslate( "marsupial ranged rat" );
+		} else if (this instanceof Albino) {
+			localizedBaseName = com.bilboldev.pixeldungeonskills.messages.Messages.get( Albino.class, "name" );
+		} else {
+			localizedBaseName = com.bilboldev.pixeldungeonskills.messages.Messages.get( Rat.class, "name" );
+		}
+
+		RebornChampion reborn = buff(RebornChampion.class);
+		if (reborn != null) return reborn.displayName(localizedBaseName);
+		if (!prefix.isEmpty() && name.startsWith( prefix )) {
+			return com.bilboldev.pixeldungeonskills.messages.Messages.maybeTranslate( prefix.trim() ) + " " + localizedBaseName;
+		}
+
+		return localizedBaseName;
+	}
+
+	@Override
 	public String description() {
-		return
-			"Marsupial rats are aggressive, but rather weak denizens " +
-			"of the sewers. They can be dangerous only in big numbers.";
+		return com.bilboldev.pixeldungeonskills.messages.Messages.get( Rat.class, "desc" );
 	}
 }

@@ -38,32 +38,32 @@ public class FrozenCarpaccio extends Food {
 		image = ItemSpriteSheet.CARPACCIO;
 		energy = Hunger.STARVING - Hunger.HUNGRY;
 	}
-	
+
 	@Override
 	public void execute( Hero hero, String action ) {
-		
+
 		super.execute( hero, action );
-		
+
 		if (action.equals( AC_EAT )) {
-			
+
 			switch (Random.Int( 5 )) {
 			case 0:
-				GLog.i( "You see your hands turn invisible!" );
+				GLog.i(this.getClass(), "invis");
 				Buff.affect( hero, Invisibility.class, Invisibility.DURATION );
 				break;
 			case 1:
-				GLog.i( "You feel your skin hardens!" );
+				GLog.i(this.getClass(), "hard");
 				Buff.affect( hero, Barkskin.class ).level( hero.HT / 4 );
 				break;
 			case 2:
-				GLog.i( "Refreshing!" );
+				GLog.i(this.getClass(), "refresh");
 				Buff.detach( hero, Poison.class );
 				Buff.detach( hero, Cripple.class );
 				Buff.detach( hero, Weakness.class );
 				Buff.detach( hero, Bleeding.class );
 				break;
 			case 3:
-				GLog.i( "You feel better!" );
+				GLog.i(this.getClass(), "better");
 				if (hero.HP < hero.HT) {
 					hero.HP = Math.min( hero.HP + hero.HT / 4, hero.HT );
 					hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
@@ -72,18 +72,16 @@ public class FrozenCarpaccio extends Food {
 			}
 		}
 	}
-	
+
 	@Override
 	public String info() {
-		return 
-			"It's a piece of frozen raw meat. The only way to eat it is " +
-			"by cutting thin slices of it. And this way it's suprisingly good.";
+		return desc();
 	}
-	
+
 	public int price() {
 		return 10 * quantity;
 	};
-	
+
 	public static Food cook( MysteryMeat ingredient ) {
 		FrozenCarpaccio result = new FrozenCarpaccio();
 		result.quantity = ingredient.quantity();

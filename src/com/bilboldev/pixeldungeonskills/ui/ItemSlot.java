@@ -34,22 +34,22 @@ public class ItemSlot extends Button {
 	public static final int DEGRADED	= 0xFF4444;
 	public static final int UPGRADED	= 0x44FF44;
 	public static final int WARNING		= 0xFF8800;
-	
+
 	private static final float ENABLED	= 1.0f;
 	private static final float DISABLED	= 0.3f;
-	
+
 	protected ItemSprite icon;
 	protected BitmapText topLeft;
 	protected BitmapText topRight;
 	protected BitmapText bottomRight;
-	
+	private Item shownItem;
+
 	private static final String TXT_STRENGTH	= ":%d";
 	private static final String TXT_TYPICAL_STR	= "%d?";
-	
+
 	private static final String TXT_LEVEL	= "%+d";
-	private static final String TXT_CURSED	= "";//"-";
-	
-	// Special "virtual items"
+	private static final String TXT_CURSED	= "";
+
 	public static final Item CHEST = new Item() {
 		public int image() { return ItemSpriteSheet.CHEST; };
 	};
@@ -62,78 +62,95 @@ public class ItemSlot extends Button {
 	public static final Item SKELETON = new Item() {
 		public int image() { return ItemSpriteSheet.BONES; };
 	};
-	
+
 	public ItemSlot() {
 		super();
 	}
-	
+
 	public ItemSlot( Item item ) {
 		this();
 		item( item );
 	}
-		
+
 	@Override
 	protected void createChildren() {
-		
+
 		super.createChildren();
-		
+
 		icon = new ItemSprite();
 		add( icon );
-		
+
 		topLeft = new BitmapText( PixelScene.font1x );
 		add( topLeft );
-		
+
 		topRight = new BitmapText( PixelScene.font1x );
 		add( topRight );
-		
+
 		bottomRight = new BitmapText( PixelScene.font1x );
 		add( bottomRight );
 	}
-	
+
 	@Override
 	protected void layout() {
 		super.layout();
-		
+
 		icon.x = x + (width - icon.width) / 2;
 		icon.y = y + (height - icon.height) / 2;
-		
+
 		if (topLeft != null) {
-			topLeft.x = x;
-			topLeft.y = y;
+			fitLabel(topLeft, width - 4);
+			topLeft.x = x + 2;
+			topLeft.y = y + 2;
 		}
-		
+
 		if (topRight != null) {
-			topRight.x = x + (width - topRight.width());
-			topRight.y = y;
+			fitLabel(topRight, width - 4);
+			float combined = topLeft.width() + topRight.width();
+			if (combined > width - 6 && topLeft.width() > 0 && topRight.width() > 0) {
+				float scale = Math.max(1, width - 6) / combined;
+				topLeft.scale.set(topLeft.scale.x * scale);
+				topRight.scale.set(topRight.scale.x * scale);
+			}
+			topRight.x = x + width - topRight.width() - 2;
+			topRight.y = y + 2;
 		}
-		
+
 		if (bottomRight != null) {
-			bottomRight.x = x + (width - bottomRight.width());
-			bottomRight.y = y + (height - bottomRight.height());
+			fitLabel(bottomRight, width - 4);
+			bottomRight.x = x + width - bottomRight.width() - 2;
+			bottomRight.y = y + height - bottomRight.height() - 2;
 		}
 	}
-	
+
+	private static void fitLabel(BitmapText label, float available) {
+		label.scale.set(1);
+		label.measure();
+		if (label.width() > Math.max(1, available))
+			label.scale.set(Math.max(1, available) / label.width());
+	}
+
 	public void item( Item item ) {
+		shownItem = item;
 		if (item == null) {
-			
+
 			active = false;
 			icon.visible = topLeft.visible = topRight.visible = bottomRight.visible = false;
-			
+
 		} else {
-			
+
 			active = true;
 			icon.visible = topLeft.visible = topRight.visible = bottomRight.visible = true;
-			
+
 			icon.view( item.image(), item.glowing() );
-			
+
 			topLeft.text( item.status()  );
-			
+
 			boolean isArmor = item instanceof Armor;
 			boolean isWeapon = item instanceof Weapon;
 			if (isArmor || isWeapon) {
-				
+
 				if (item.levelKnown || (isWeapon && !(item instanceof MeleeWeapon))) {
-					
+
 					int str = isArmor ? ((Armor)item).STR : ((Weapon)item).STR();
 					topRight.text( Utils.format( TXT_STRENGTH, str ) );
 					if (str > Dungeon.hero.STR()) {
@@ -141,24 +158,24 @@ public class ItemSlot extends Button {
 					} else {
 						topRight.resetColor();
 					}
-					
+
 				} else {
-					
-					topRight.text( Utils.format( TXT_TYPICAL_STR, isArmor ? 
-						((Armor)item).typicalSTR() : 
+
+					topRight.text( Utils.format( TXT_TYPICAL_STR, isArmor ?
+						((Armor)item).typicalSTR() :
 						((MeleeWeapon)item).typicalSTR() ) );
 					topRight.hardlight( WARNING );
-					
+
 				}
 				topRight.measure();
-				
+
 			} else {
-				
+
 				topRight.text( null );
-				
+
 			}
-	
-			int level = item.visiblyUpgraded(); 
+
+			int level = item.visiblyUpgraded();
 			if (level != 0 || (item.cursed && item.cursedKnown)) {
 				bottomRight.text( item.levelKnown ? Utils.format( TXT_LEVEL, level ) : TXT_CURSED );
 				bottomRight.measure();
@@ -166,22 +183,22 @@ public class ItemSlot extends Button {
 			} else {
 				bottomRight.text( null );
 			}
-			
+
 			layout();
 		}
 	}
-	
+
 	public void enable( boolean value ) {
-		
+
 		active = value;
-		
+
 		float alpha = value ? ENABLED : DISABLED;
 		icon.alpha( alpha );
 		topLeft.alpha( alpha );
 		topRight.alpha( alpha );
 		bottomRight.alpha( alpha );
 	}
-	
+
 	public void showParams( boolean value ) {
 		if (value) {
 			add( topRight );

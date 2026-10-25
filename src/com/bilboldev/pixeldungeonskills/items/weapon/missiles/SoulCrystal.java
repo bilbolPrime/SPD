@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.graphics.Color;
 
 import com.bilboldev.noosa.audio.Sample;
@@ -25,15 +26,11 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Splash;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
-import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
-import com.bilboldev.pixeldungeonskills.levels.Level;
-import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
@@ -54,20 +51,20 @@ public class SoulCrystal extends MissileWeapon {
 		super();
 		quantity = number;
 	}
-	
+
 	@Override
 	public int min() {
 		return 1;
 	}
-	
+
 	@Override
 	public int max() {
 		return 4;
 	}
-	
+
 	@Override
 	public String desc() {
-		return 
+		return
 			"A magical crystal capable of capturing soul essence. Throw this at a weak or weakened foe and capture his spirit.";
 	}
 
@@ -76,10 +73,8 @@ public class SoulCrystal extends MissileWeapon {
 
         StringBuilder info = new StringBuilder( desc() );
 
-
         return info.toString();
     }
-
 
     @Override
     protected void onThrow( int cell ) {
@@ -87,14 +82,15 @@ public class SoulCrystal extends MissileWeapon {
         {
             Actor.findChar(cell).sprite.emitter().burst(ShadowParticle.CURSE, 6);
             Sample.INSTANCE.play( Assets.SND_CURSED );
-            GLog.p("Captured " + Actor.findChar(cell).name + "!");
-            SoulCrystalFilled crystal = new SoulCrystalFilled(((Mob) Actor.findChar(cell)).spriteClass,  Actor.findChar(cell).HT, ((Mob) Actor.findChar(cell)).defenseSkill, Actor.findChar(cell).name);
+			GLog.p("custom.generated.entry_captured_s_79d5b53bad", Message.actor(Actor.findChar( cell )));
+            SoulCrystalFilled crystal = new SoulCrystalFilled(((Mob) Actor.findChar(cell)).spriteClass,  Actor.findChar(cell).HT, ((Mob) Actor.findChar(cell)).defenseSkill,
+                    Message.actor(Actor.findChar(cell)));
             Dungeon.level.drop( crystal, cell ).sprite.drop();
             Actor.findChar(cell).damage(Actor.findChar(cell).HP, Dungeon.hero);
 
         }
         else if (Dungeon.visible[cell]) {
-                GLog.i("The " + name + " shatters");
+			GLog.i("custom.generated.entry_the_s_shatters_9133c17fa8", Message.itemName(this));
                 Sample.INSTANCE.play( Assets.SND_SHATTER );
                 Splash.at(cell, Color.parseColor("#50FFFFFF"), 5);
             }

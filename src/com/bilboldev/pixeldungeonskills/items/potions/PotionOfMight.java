@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.potions;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
@@ -27,27 +29,27 @@ public class PotionOfMight extends PotionOfStrength {
 	{
 		name = "Potion of Might";
 	}
-	
+
 	@Override
 	protected void apply( Hero hero ) {
 		setKnown();
-		
+
 		hero.STR++;
 		hero.HT += 5;
 		hero.HP += 5;
-		hero.sprite.showStatus( CharSprite.POSITIVE, "+1 str, +5 ht" );
-		GLog.p( "Newfound strength surges through your body." );
-		
+		hero.sprite.showStatus( CharSprite.POSITIVE, Message.key("custom.generated.entry_1_str_5_ht_d1932a97e3") );
+		GLog.p("custom.generated.entry_newfound_strength_surges_through_your_body_193442f0c3");
+
 		Badges.validateStrengthAttained();
 	}
-	
+
 	@Override
 	public String desc() {
 		return
 			"This powerful liquid will course through your muscles, permanently " +
 			"increasing your strength by one point and health by five points.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 200 * quantity : super.price();

@@ -19,8 +19,11 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import java.util.ArrayList;
 
+import com.bilboldev.input.GameAction;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -28,61 +31,62 @@ import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.utils.Random;
 
 public class AttackIndicator extends Tag {
-	
+
 	private static final float ENABLED	= 1.0f;
 	private static final float DISABLED	= 0.3f;
-	
+
 	private static AttackIndicator instance;
-	
+
 	private CharSprite sprite = null;
-	
+
 	private static Mob lastTarget = null;
 	private ArrayList<Mob> candidates = new ArrayList<Mob>();
-	
+
 	public AttackIndicator() {
 		super( DangerIndicator.COLOR );
-		
+
 		instance = this;
-		
+		bindAction(GameAction.ATTACK);
+
 		setSize( 24, 24 );
 		visible( false );
 		enable( false );
 	}
-	
+
 	@Override
 	protected void createChildren() {
 		super.createChildren();
 	}
-	
+
 	@Override
 	protected void layout() {
 		super.layout();
-		
+
 		if (sprite != null) {
 			sprite.x = x + (width - sprite.width()) / 2;
 			sprite.y = y + (height - sprite.height()) / 2;
 			PixelScene.align( sprite );
 		}
-	}	
-	
+	}
+
 	@Override
 	public void update() {
 		super.update();
-		
+
 		if (Dungeon.hero.isAlive()) {
-			
-			if (!Dungeon.hero.ready) {
+
+			if (LocalCoop.active() ? !LocalCoop.acceptsInput() : !Dungeon.hero.ready) {
 				enable( false );
-			}		
-			
+			}
+
 		} else {
 			visible( false );
 			enable( false );
 		}
 	}
-	
+
 	private void checkEnemies() {
-		
+
 		int heroPos = Dungeon.hero.pos;
 		candidates.clear();
 		int v = Dungeon.hero.visibleEnemies();
@@ -92,13 +96,13 @@ public class AttackIndicator extends Tag {
 				candidates.add( mob );
 			}
 		}
-		
+
 		if (!candidates.contains( lastTarget )) {
 			if (candidates.isEmpty()) {
 				lastTarget = null;
 			} else {
 				lastTarget = Random.element( candidates );
-				updateImage();				
+				updateImage();
 				flash();
 			}
 		} else {
@@ -106,18 +110,18 @@ public class AttackIndicator extends Tag {
 				flash();
 			}
 		}
-		
+
 		visible( lastTarget != null );
 		enable( bg.visible );
 	}
-	
+
 	private void updateImage() {
-		
+
 		if (sprite != null) {
 			sprite.killAndErase();
 			sprite = null;
 		}
-		
+
 		try {
 			sprite = lastTarget.spriteClass.newInstance();
 			sprite.idle();
@@ -127,41 +131,63 @@ public class AttackIndicator extends Tag {
 			sprite.x = x + (width - sprite.width()) / 2 + 1;
 			sprite.y = y + (height - sprite.height()) / 2;
 			PixelScene.align( sprite );
-			
+
 		} catch (Exception e) {
 		}
 	}
-	
+
 	private boolean enabled = true;
+
+	@Override
+	public boolean acceptsAction() {
+		return super.acceptsAction() && enabled && bg.visible &&
+				lastTarget != null && lastTarget.isAlive()
+				&& (LocalCoop.active() ? LocalCoop.acceptsInput() : Dungeon.hero.ready);
+	}
+
 	private void enable( boolean value ) {
 		enabled = value;
 		if (sprite != null) {
 			sprite.alpha( value ? ENABLED : DISABLED );
 		}
 	}
-	
+
 	private void visible( boolean value ) {
 		bg.visible = value;
 		if (sprite != null) {
 			sprite.visible = value;
 		}
 	}
-	
+
 	@Override
 	protected void onClick() {
 		if (enabled) {
 			Dungeon.hero.handle( lastTarget.pos );
 		}
 	}
-	
+
 	public static void target( Char target ) {
 		lastTarget = (Mob)target;
 		instance.updateImage();
-		
+
 		HealthIndicator.instance.target( target );
 	}
-	
+
 	public static void updateState() {
-		instance.checkEnemies();
+		try
+		{
+			instance.checkEnemies();
+		}
+		catch (Exception e){
+
+		}
+	}
+
+	public static void rebind() {
+		if (lastTarget != null) {
+			Actor actor = Actor.findById(lastTarget.id());
+			lastTarget = actor instanceof Mob && actor.getClass() == lastTarget.getClass() ? (Mob)actor : null;
+		}
+		if (instance != null) instance.checkEnemies();
 	}
 }

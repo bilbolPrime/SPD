@@ -34,38 +34,38 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.utils.Random;
 
 public class Honeypot extends Item {
-	
+
 	public static final String AC_SHATTER	= "SHATTER";
-	
+
 	{
 		name = "honeypot";
 		image = ItemSpriteSheet.HONEYPOT;
 		defaultAction = AC_THROW;
 		stackable = true;
 	}
-	
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( AC_SHATTER );
 		return actions;
 	}
-	
+
 	@Override
 	public void execute( final Hero hero, String action ) {
 		if (action.equals( AC_SHATTER )) {
-			
+
 			hero.sprite.zap( hero.pos );
 			shatter( hero.pos );
-			
+
 			detach( hero.belongings.backpack );
 			hero.spendAndNext( TIME_TO_THROW );
-			
+
 		} else {
 			super.execute( hero, action );
 		}
 	}
-	
+
 	@Override
 	protected void onThrow( int cell ) {
 		if (Level.pit[cell]) {
@@ -74,63 +74,62 @@ public class Honeypot extends Item {
 			shatter( cell );
 		}
 	}
-	
+
 	private void shatter( int pos ) {
 		Sample.INSTANCE.play( Assets.SND_SHATTER );
-		
+
 		if (Dungeon.visible[pos]) {
 			Splash.at( pos, 0xffd500, 5 );
 		}
-		
+
 		int newPos = pos;
 		if (Actor.findChar( pos ) != null) {
 			ArrayList<Integer> candidates = new ArrayList<Integer>();
 			boolean[] passable = Level.passable;
-			
+
 			for (int n : Level.NEIGHBOURS4) {
 				int c = pos + n;
 				if (passable[c] && Actor.findChar( c ) == null) {
 					candidates.add( c );
 				}
 			}
-	
+
 			newPos = candidates.size() > 0 ? Random.element( candidates ) : -1;
 		}
-		
+
 		if (newPos != -1) {
 			Bee bee = new Bee();
 			bee.spawn( Dungeon.depth );
 			bee.HP = bee.HT;
 			bee.pos = newPos;
-			
+
 			GameScene.add( bee );
 			Actor.addDelayed( new Pushing( bee, pos, newPos ), -1 );
-			
+
 			bee.sprite.alpha( 0 );
 			bee.sprite.parent.add( new AlphaTweener( bee.sprite, 1, 0.15f ) );
-			
+
 			Sample.INSTANCE.play( Assets.SND_BEE );
 		}
 	}
-	
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
-	}	
-	
+	}
+
 	@Override
 	public int price() {
 		return 50 * quantity;
 	}
-	
+
 	@Override
 	public String info() {
-		return
-			"There is not much honey in this small honeypot, but there is a golden bee there and it doesn't want to leave it.";
+		return desc();
 	}
 }

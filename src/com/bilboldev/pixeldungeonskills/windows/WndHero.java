@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+
 import java.util.Locale;
 
 import com.bilboldev.gltextures.SmartTexture;
@@ -27,9 +29,12 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
@@ -37,17 +42,18 @@ import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class WndHero extends WndTabbed {
-	
-	private static final String TXT_STATS	= "Stats";
-	private static final String TXT_BUFFS	= "Buffs";
-	
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.ARCANE;
+    }
+
 	private static final String TXT_EXP		= "Experience";
 	private static final String TXT_STR		= "Strength";
     private static final String TXT_MANA	= "Mana";
 	private static final String TXT_HEALTH	= "Health";
 	private static final String TXT_GOLD	= "Gold Collected";
 	private static final String TXT_DEPTH	= "Maximum Depth";
-
 
     private static final String TXT_Difficulty		= "Difficulty";
 
@@ -73,13 +79,13 @@ public class WndHero extends WndTabbed {
 		buffs = new BuffsTab();
 		add( buffs );
 		
-		add( new LabeledTab( TXT_STATS ) {
+		add( new LabeledTab( text( "windows.wndhero.stats", "Stats" ) ) {
 			protected void select( boolean value ) {
 				super.select( value );
 				stats.visible = stats.active = selected;
 			};
 		} );
-		add( new LabeledTab( TXT_BUFFS ) {
+		add( new LabeledTab( text( "windows.wndhero.buffs", "Buffs" ) ) {
 			protected void select( boolean value ) {
 				super.select( value );
 				buffs.visible = buffs.active = selected;
@@ -109,8 +115,8 @@ public class WndHero extends WndTabbed {
 			Hero hero = Dungeon.hero; 
 
 			BitmapText title = PixelScene.createText( 
-				Utils.format( TXT_TITLE, hero.lvl, hero.className() ).toUpperCase( Locale.ENGLISH ), 9 );
-			title.hardlight( TITLE_COLOR );
+				text( "windows.wndgameinprogress.title", TXT_TITLE, hero.lvl, hero.className() ).toUpperCase( Locale.ENGLISH ), 9 );
+			title.hardlight( titleColor() );
 			title.measure();
 			add( title );
 			
@@ -138,17 +144,18 @@ public class WndHero extends WndTabbed {
 			
 			pos = btnCatalogus.bottom() + GAP;
 			
-			statSlot( TXT_STR, hero.STR() );
-			statSlot( TXT_HEALTH, hero.HP + "/" + hero.HT );
+			statSlot( text( "windows.wndgameinprogress.str", TXT_STR ), hero.STR() );
+			statSlot( text( "windows.wndgameinprogress.health", TXT_HEALTH ), hero.HP + "/" + hero.HT );
             statSlot( TXT_MANA, hero.MP + "/" + hero.MMP );
-			statSlot( TXT_EXP, hero.exp + "/" + hero.maxExp() );
+			statSlot( text( "windows.wndgameinprogress.exp", TXT_EXP ), hero.exp + "/" + hero.maxExp() );
 
 			pos += GAP;
 
-            statSlot( TXT_Difficulty, Dungeon.currentDifficulty.title() );
+            statSlot( TXT_Difficulty, Dungeon.rules().mode == GameplayMode.REBORN
+                    ? GameplayMode.REBORN.title() : Dungeon.currentDifficulty.title() );
 
-			statSlot( TXT_GOLD, Statistics.goldCollected );
-			statSlot( TXT_DEPTH, Statistics.deepestFloor );
+			statSlot( text( "windows.wndgameinprogress.gold", TXT_GOLD ), Statistics.goldCollected );
+			statSlot( text( "windows.wndgameinprogress.depth", TXT_DEPTH ), Statistics.deepestFloor );
 			
 			pos += GAP;
 		}
@@ -176,6 +183,11 @@ public class WndHero extends WndTabbed {
 			return pos;
 		}
 	}
+
+	private static String text( String key, String fallback, Object... args ) {
+		String value = Messages.get( key, args );
+		return Messages.NO_TEXT_FOUND.equals( value ) ? Utils.format( fallback, args ) : value;
+	}
 	
 	private class BuffsTab extends Group {
 		
@@ -200,7 +212,10 @@ public class WndHero extends WndTabbed {
 				icon.y = pos;
 				add( icon );
 				
-				BitmapText txt = PixelScene.createText( buff.toString(), 8 );
+				BitmapText txt = PixelScene.createText( buff.displayName(), 8 );
+				if (buff instanceof Hunger) {
+					txt.hardlight( ((Hunger)buff).isStarving() ? 0xFF4444 : 0xFF8800 );
+				}
 				txt.x = icon.width + GAP;
 				txt.y = pos + (int)(icon.height - txt.baseLine()) / 2;
 				add( txt );

@@ -1,27 +1,23 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
+
 import com.bilboldev.utils.Random;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class KeenEye extends PassiveSkillB3{
-
 
     {
         name = "Keen Eye";
-        castText = "Gotcha!";
+        castText = Message.key("badges$badge.boss_challenge_2.title");
         image = 106;
         tier = 3;
     }
-
 
     @Override
     protected boolean upgrade()
     {
         return true;
     }
-
 
     @Override
     public String info()

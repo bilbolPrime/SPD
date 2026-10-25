@@ -27,17 +27,17 @@ public class ChargrilledMeat extends Food {
 		image = ItemSpriteSheet.STEAK;
 		energy = Hunger.STARVING - Hunger.HUNGRY;
 	}
-	
+
 	@Override
 	public String info() {
-		return "It looks like a decent steak.";
+		return desc();
 	}
-	
+
 	@Override
 	public int price() {
 		return 5 * quantity;
 	}
-	
+
 	public static Food cook( MysteryMeat ingredient ) {
 		ChargrilledMeat result = new ChargrilledMeat();
 		result.quantity = ingredient.quantity();

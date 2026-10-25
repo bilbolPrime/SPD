@@ -22,25 +22,18 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-
 import java.util.ArrayList;
 
 public class BombTriggerBeacon extends Item {
 
-
-	
 	public static final float TIME_TO_USE = 1;
-	
 
-
-	
 	{
 		name = "bomb trigger beacon";
 		image = ItemSpriteSheet.BEACON;
-		
+
 		unique = true;
 	}
-
 
     @Override
     public ArrayList<String> actions( Hero hero ) {
@@ -52,13 +45,13 @@ public class BombTriggerBeacon extends Item {
 
         return actions;
     }
-	
+
 	@Override
 	public void execute( Hero hero, String action ) {
 
         if (action == "Detonate")
         {
-            GLog.i("Beacon sends out a signal...");
+            GLog.i("items.bombtriggerbeacon.signal");
             int key = 0;
             for(int i = 0; i < Dungeon.level.heaps.size(); i++) {
                 key = Dungeon.level.heaps.keyAt(i);
@@ -73,7 +66,6 @@ public class BombTriggerBeacon extends Item {
                     }
                 }
 
-                //heap.removeRemoteBombs();
                 if (heap.isEmpty()) {
                     heap.destroy();
                 } else if (heap.sprite != null) {
@@ -82,28 +74,25 @@ public class BombTriggerBeacon extends Item {
             }
             Dungeon.observe();
             hero.spend(5);
-			
+
 		} else {
-			
+
 			super.execute( hero, action );
-			
+
 		}
 	}
-	
 
-	
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	private static final Glowing WHITE = new Glowing( 0xFFFFFF );
-	
 
 	@Override
 	public String info() {

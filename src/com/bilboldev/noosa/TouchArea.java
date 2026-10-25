@@ -22,89 +22,91 @@ import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.utils.Signal;
 
 public class TouchArea extends Visual implements Signal.Listener<Touchscreen.Touch> {
-	
-	// Its target can be toucharea itself
+
 	public Visual target;
-	
+
 	protected Touchscreen.Touch touch = null;
-	
+
 	public TouchArea( Visual target ) {
 		super( 0, 0, 0, 0 );
 		this.target = target;
-		
+
 		Touchscreen.event.add( this );
 	}
-	
+
 	public TouchArea( float x, float y, float width, float height ) {
 		super( x, y, width, height );
 		this.target = this;
-		
+
 		visible = false;
-		
+
 		Touchscreen.event.add( this );
 	}
 
 	@Override
 	public void onSignal( Touch touch ) {
-		
+
 		if (!isActive()) {
 			return;
 		}
-		
+
 		boolean hit = touch != null && target.overlapsScreenPoint( (int)touch.start.x, (int)touch.start.y );
-		
+
 		if (hit) {
 
 			Touchscreen.event.cancel();
-			
+
 			if (touch.down) {
-				
-				if (this.touch == null) {
+
+				if (this.touch == null || !this.touch.down
+						|| !Touchscreen.pointers.containsValue(this.touch)) {
 					this.touch = touch;
 				}
 				onTouchDown( touch );
-				
+
 			} else {
-				
+
 				onTouchUp( touch );
-				
+
 				if (this.touch == touch) {
 					this.touch = null;
-					onClick( touch );
+					if (!touch.cancelled) {
+						onClick( touch );
+					}
 				}
 
 			}
-			
+
 		} else {
-			
+
 			if (touch == null && this.touch != null) {
 				onDrag( this.touch );
 			}
-			
+
 			else if (this.touch != null && touch != null && !touch.down) {
 				onTouchUp( touch );
 				this.touch = null;
 			}
-			
+
 		}
 	}
-	
+
 	protected void onTouchDown( Touch touch ) {
 	}
-	
+
 	protected void onTouchUp( Touch touch ) {
 	}
-	
+
 	protected void onClick( Touch touch ) {
 	}
-	
+
 	protected void onDrag( Touch touch ) {
 	}
-	
+
 	public void reset() {
 		touch = null;
 	}
-	
+
 	@Override
 	public void destroy() {
 		Touchscreen.event.remove( this );

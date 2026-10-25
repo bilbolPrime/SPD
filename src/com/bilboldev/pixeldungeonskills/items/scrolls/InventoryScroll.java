@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
@@ -27,28 +28,31 @@ import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 
 public abstract class InventoryScroll extends Scroll {
 
-	protected String inventoryTitle = "Select an item";
+	protected Message inventoryTitle = Message.key("items.stones.stoneofintuition.inv_title");
 	protected WndBag.Mode mode = WndBag.Mode.ALL;
-	
+
 	private static final String TXT_WARNING	= "Do you really want to cancel this scroll usage? It will be consumed anyway.";
 	private static final String TXT_YES		= "Yes, I'm positive";
 	private static final String TXT_NO		= "No, I changed my mind";
-	
+
 	@Override
 	protected void doRead() {
-		
+
 		if (!isKnown()) {
 			setKnown();
 			identifiedByUse = true;
 		} else {
 			identifiedByUse = false;
 		}
-		
-		GameScene.selectItem( itemSelector, mode, inventoryTitle );
+
+		GameScene.selectItem(itemSelector, mode, inventoryTitle);
 	}
-	
+
 	private void confirmCancelation() {
-		GameScene.show( new WndOptions( name(), TXT_WARNING, TXT_YES, TXT_NO ) {
+		GameScene.show( new WndOptions(Message.itemName(this),
+		        Message.key("custom.generated.entry_do_you_really_want_to_cancel_this_scroll_usage_i_f8be76afdd"),
+		        Message.key("items.potions.exotic.exoticpotion.yes"),
+		        Message.key("items.artifacts.chaliceofblood.no")) {
 			@Override
 			protected void onSelect( int index ) {
 				switch (index) {
@@ -57,16 +61,16 @@ public abstract class InventoryScroll extends Scroll {
 					identifiedByUse = false;
 					break;
 				case 1:
-					GameScene.selectItem( itemSelector, mode, inventoryTitle );
+					GameScene.selectItem(itemSelector, mode, inventoryTitle);
 					break;
 				}
 			}
 			public void onBackPressed() {};
 		} );
 	}
-	
+
 	protected abstract void onItemSelected( Item item );
-	
+
 	protected static boolean identifiedByUse = false;
 	protected static WndBag.Listener itemSelector = new WndBag.Listener() {
 		@Override
@@ -75,18 +79,18 @@ public abstract class InventoryScroll extends Scroll {
 
 				((InventoryScroll)curItem).onItemSelected( item );
 				((InventoryScroll)curItem).readAnimation();
-				
+
 				Sample.INSTANCE.play( Assets.SND_READ );
 				Invisibility.dispel();
-				
+
 			} else if (identifiedByUse) {
-				
+
 				((InventoryScroll)curItem).confirmCancelation();
-				
+
 			} else {
 
 				curItem.collect( curUser.belongings.backpack );
-				
+
 			}
 		}
 	};

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.effects.Identification;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -27,27 +28,27 @@ public class ScrollOfIdentify extends InventoryScroll {
 
 	{
 		name = "Scroll of Identify";
-		inventoryTitle = "Select an item to identify";
+		inventoryTitle = Message.key("custom.generated.entry_select_an_item_to_identify_69bb1aed7a");
 		mode = WndBag.Mode.UNIDENTIFED;
 	}
-	
+
 	@Override
 	protected void onItemSelected( Item item ) {
-		
+
 		curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
-		
+
 		item.identify();
-		GLog.i( "It is " + item );
-		
+		GLog.i("custom.generated.entry_it_is_s_e179ddef39", Message.item(item));
+
 		Badges.validateItemLevelAquired( item );
 	}
-	
+
 	@Override
 	public String desc() {
 		return
 			"Permanently reveals all of the secrets of a single item.";
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 30 * quantity : super.price();

@@ -28,6 +28,10 @@ public class ArcherMaidenHalo extends Halo {
 
     private CharSprite target;
 
+    public CharSprite owner() {
+        return target;
+    }
+
     private float phase = 0;
 
     static final int RED = 0xb70202;
@@ -36,13 +40,11 @@ public class ArcherMaidenHalo extends Halo {
     static final int WHITE = 0xffffff;
     static final int BLACK = 0x000000;
 
-
     public ArcherMaidenHalo(CharSprite sprite) {
         super( 15, WHITE, 0.17f );
         target = sprite;
         am = 0;
     }
-
 
     @Override
     public void update() {

@@ -17,7 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import android.graphics.RectF;
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Camera;
@@ -31,6 +31,7 @@ import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
@@ -50,10 +51,16 @@ import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Random;
+import com.bilboldev.utils.RectF;
 
 import java.util.ArrayList;
 
 public class WndRatKing extends WndTabbed {
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.PARCHMENT;
+    }
 
     private static final String TXT_NO_GOLD = "Insufficient Gold";
 
@@ -70,9 +77,6 @@ public class WndRatKing extends WndTabbed {
 	private static final String TXT_PLUS = "+";
 	private static final String TXT_MINUS = "-";
 	private static final String TXT_CHAMPION_CHANCE = "Champions: %s";
-
-
-
 
 	private static final String TXT_TRUE_KING_TITLE	= "A King.. I Think";
 
@@ -103,7 +107,11 @@ public class WndRatKing extends WndTabbed {
 
     public static int maxHeight = 0;
 
-	public WndRatKing(Mode mode) {
+	public static void show(Mode mode) {
+		if (Dungeon.rules().allowsRatKing()) GameScene.show(new WndRatKing(mode));
+	}
+
+	private WndRatKing(Mode mode) {
 		super();
 
         this.mode = mode;
@@ -132,7 +140,6 @@ public class WndRatKing extends WndTabbed {
         else if(mode == Mode.CHAMPIONS) {
             CheckBox btnImmersive = null;
 
-
             int w = BTN_HEIGHT;
 
             btnZoomOut = new RedButton(TXT_MINUS) {
@@ -158,14 +165,13 @@ public class WndRatKing extends WndTabbed {
                 @Override
                 protected void onClick() {
                     if(Difficulties.canDisableChampions == false)
-                        parent.add(new previewInformation(Icons.get(Icons.CHAMP_HALO), "Disable Champions",  "Please consider donating to unlock disabling specific types of champions."));
+                        parent.add(new previewInformation(Icons.get(Icons.CHAMP_HALO), "Disable Champions",  "This feature is locked."));
                 }
             };
 
             add(btnChamps.setRect(btnZoomOut.right(), 0, WIDTH - btnZoomIn.width() - btnZoomOut.width(), BTN_HEIGHT));
 
             updateEnabled();
-
 
             CheckBox btnChief = new CheckBox("Disable Chief") {
                 @Override
@@ -190,7 +196,6 @@ public class WndRatKing extends WndTabbed {
             btnVamp.setRect(0, btnChief.bottom() + GAP, WIDTH, BTN_HEIGHT);
             btnVamp.checked(Dungeon.currentDifficulty.disableChampion(Champ.CHAMP_VAMPERIC));
             add(btnVamp);
-
 
             CheckBox btnCursed = new CheckBox("Disable Cursed") {
                 @Override
@@ -234,8 +239,6 @@ public class WndRatKing extends WndTabbed {
         else if(mode == Mode.HERO) {
             CheckBox btnImmersive = null;
 
-
-
             btnChamps = new RedButton((String.format("Mobs Information"))) {
                 @Override
                 protected void onClick() {
@@ -244,7 +247,6 @@ public class WndRatKing extends WndTabbed {
             };
 
             add(btnChamps.setRect(0, 0, WIDTH, BTN_HEIGHT));
-
 
             int w = BTN_HEIGHT;
 
@@ -271,7 +273,6 @@ public class WndRatKing extends WndTabbed {
                 }
             };
             add(btMobHP.setRect(w, BTN_HEIGHT + GAP, WIDTH - 2 * w, BTN_HEIGHT));
-
 
             add(new RedButton(TXT_MINUS) {
                 @Override
@@ -358,8 +359,8 @@ public class WndRatKing extends WndTabbed {
             titlebar.setRect(0, 0, WIDTH, 0);
             add(titlebar);
 
-            String description = "These rodents have failed me for the last time. I don't want them anymore!!\n"
-                    + "They are yours to send to their doom should you pay the proper price.\n";
+            String description = "These rodents have failed me for the last time. I don't want them anymore!!\n\n"
+                    + "They are yours to send to their doom should you pay the proper price. Your gold will be put to good use...\n";
             BitmapTextMultiline txtInfo = PixelScene.createMultiline( description, 6 );
             txtInfo.maxWidth = WIDTH;
             txtInfo.measure();
@@ -369,10 +370,10 @@ public class WndRatKing extends WndTabbed {
 
             int w = BTN_HEIGHT;
 
-            btnScoutRodent = new RedButton("SCOUT RODENT - 5 Gold") {
+            btnScoutRodent = new RedButton("SCOUT RODENT - 50 Gold") {
                 @Override
                 protected void onClick() {
-                    if (Dungeon.gold < 5) {
+                    if (Dungeon.gold < 50) {
                         text(TXT_NO_GOLD);
                     } else {
 
@@ -384,12 +385,11 @@ public class WndRatKing extends WndTabbed {
                             }
                         }
                         if(respawnPoints.size() > 0) {
-                            Dungeon.gold -= 5;
-                            SummonedPet rat = new SummonedPet(RatSprite.class);
+                            Dungeon.gold -= 50;
+                            RatScout rat = new RatScout();
                             rat.HP = rat.MP = 1;
                             rat.pos = respawnPoints.get(0);
-                            rat.name = "Scout Rodent";
-                            rat.hunt();
+
                             GameScene.add(rat);
                             WandOfBlink.appear(rat, respawnPoints.get(0));
                             Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
@@ -406,8 +406,6 @@ public class WndRatKing extends WndTabbed {
 
                 }
             };
-            add(btnFodderRodent.setRect(w/2, btnScoutRodent.bottom() + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
-
 
             btnRangerRodent = new RedButton("RANGER RODENT - 25 Gold") {
                 @Override
@@ -415,12 +413,9 @@ public class WndRatKing extends WndTabbed {
 
                 }
             };
-            add(btnRangerRodent.setRect(w/2, btnFodderRodent.bottom()  + GAP, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
 
-
-            if(maxHeight < (int) btnRangerRodent.bottom() )
-                maxHeight = (int) btnRangerRodent.bottom();
-
+            if(maxHeight < (int) btnScoutRodent.bottom() )
+                maxHeight = (int) btnScoutRodent.bottom();
 
             resize(WIDTH, maxHeight);
         }
@@ -460,7 +455,6 @@ public class WndRatKing extends WndTabbed {
                                 break;
                         }
 
-
                         Dungeon.level.drop( or, Dungeon.hero.pos ).sprite.drop();
                         hide();
                     }
@@ -468,11 +462,8 @@ public class WndRatKing extends WndTabbed {
             };
             add(btnBuyFood.setRect(w/2, (int) txtInfo.y + (int)txtInfo.height()  + GAP * 2, WIDTH - 1 * w, BTN_HEIGHT  + GAP));
 
-
-
             if(maxHeight < (int) btnBuyFood.bottom() )
                 maxHeight = (int) btnBuyFood.bottom();
-
 
             resize(WIDTH, maxHeight);
         }
@@ -488,18 +479,17 @@ public class WndRatKing extends WndTabbed {
 
         tabChampions.select(mode == Mode.CHAMPIONS);
 
-
         StatsControl tabHero = new StatsControl(Mode.HERO);
         tabHero.setSize(TAB_WIDTH, tabHeight());
         add(tabHero);
 
         tabHero.select(mode == Mode.HERO);
 
-       // StatsControl tabRats = new StatsControl(Mode.RATS);
-       // tabRats.setSize(TAB_WIDTH, tabHeight());
-      //  add(tabRats);
+        StatsControl tabRats = new StatsControl(Mode.RATS);
+        tabRats.setSize(TAB_WIDTH, tabHeight());
+       add(tabRats);
 
-       // tabRats.select(mode == Mode.RATS);
+        tabRats.select(mode == Mode.RATS);
 
         StatsControl tabShop = new StatsControl(Mode.SHOP);
         tabShop.setSize(TAB_WIDTH, tabHeight());
@@ -513,7 +503,6 @@ public class WndRatKing extends WndTabbed {
         hide();
     }
 
-	
 	private void updateEnabled() {
 		float zoom = Camera.main.zoom;
 		btnZoomIn.enable( zoom < PixelScene.maxZoom );
@@ -528,8 +517,6 @@ public class WndRatKing extends WndTabbed {
         btMobDef.text(String.format("Def: %s", ((int)((2 - Dungeon.currentDifficulty.mobDefenceModifier()) * 100) + "%")));
         btDayNight.text(Dungeon.currentDifficulty.GetToggleNightDesc());
     }
-	
-
 
     private class StatsControl extends Tab {
 
@@ -550,7 +537,7 @@ public class WndRatKing extends WndTabbed {
             {
                 case CHAMPIONS: return Icons.CHAMP_HALO;
                 case HERO: return Icons.MOB;
-                case RATS: return Icons.CHAMP_HALO;
+                case RATS: return Icons.RAT_KING_FLAG;
                 case SHOP: return Icons.SUPPORT;
             }
            return Icons.RAT_KING;
@@ -585,7 +572,7 @@ public class WndRatKing extends WndTabbed {
 
             IconTitle titlebar = new IconTitle();
             titlebar.icon( image);
-            titlebar.label( Utils.capitalize(title), TITLE_COLOR );
+            titlebar.label( Utils.capitalize(title), titleColor() );
             titlebar.setRect( 0, 0, WIDTH - GAP, 0 );
             add( titlebar );
 

@@ -35,13 +35,11 @@ public class ChampYellowHalo extends Halo {
     static final int WHITE = 0xffffff;
     static final int BLACK = 0x000000;
 
-
     public ChampYellowHalo(CharSprite sprite) {
         super( 20, YELLOW, 0.15f );
         target = sprite;
         am = 0;
     }
-
 
     @Override
     public void update() {
@@ -70,6 +68,10 @@ public class ChampYellowHalo extends Halo {
         GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE );
         super.draw();
         GLES20.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
+    }
+
+    public CharSprite owner() {
+        return target;
     }
 
     public void putOut() {

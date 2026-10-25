@@ -17,36 +17,36 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.sprites.ImpSprite;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class ImpShopkeeper extends Shopkeeper {
 
 	private static final String TXT_GREETINGS = "Hello, friend!";
-	
+
 	{
 		name = "ambitious imp";
 		spriteClass = ImpSprite.class;
 	}
-	
+
 	private boolean seenBefore = false;
-	
+
 	@Override
 	protected boolean act() {
 
 		if (!seenBefore && Dungeon.visible[pos]) {
-			yell( Utils.format( TXT_GREETINGS ) );
+			yell(Message.key("custom.generated.entry_hello_friend_9c995e20ca"));
 			seenBefore = true;
 		}
-		
+
 		return super.act();
 	}
-	
+
 	@Override
 	protected void flee() {
 		for (Heap heap: Dungeon.level.heaps.values()) {
@@ -55,16 +55,16 @@ public class ImpShopkeeper extends Shopkeeper {
 				heap.destroy();
 			}
 		}
-		
+
 		destroy();
-		
+
 		sprite.emitter().burst( Speck.factory( Speck.WOOL ), 15 );
 		sprite.killAndErase();
 	}
-	
+
 	@Override
 	public String description() {
-		return 
+		return
 			"Imps are lesser demons. They are notable for neither their strength nor their magic talent. " +
 			"But they are quite smart and sociable, and many of imps prefer to live and do business among non-demons.";
 	}

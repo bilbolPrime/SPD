@@ -18,83 +18,91 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
-import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+
+import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
+import com.bilboldev.noosa.ui.Component;
+import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
-import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
-public class WndItem extends Window {
+public class WndItem extends WndScrollable {
+
+    private final Hero hero = Dungeon.hero;
+
+    @Override
+    protected RebornChrome.Material rebornMaterial() {
+        return RebornChrome.Material.IRON;
+    }
 
 	private static final float BUTTON_WIDTH		= 36;
 	private static final float BUTTON_HEIGHT	= 16;
-	
-	private static final float GAP	= 2;
-	
-	private static final int WIDTH = 120;
-	
-	public WndItem( final WndBag owner, final Item item ) {
-		
-		super();
-		
-		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new ItemSprite( item.image(), item.glowing() ) );
-		titlebar.label( Utils.capitalize( item.toString() ) );
-		if (item.isUpgradable() && item.levelKnown) {
-			titlebar.health( (float)item.durability() / item.maxDurability() );
-		}
-		titlebar.setRect( 0, 0, WIDTH, 0 );
-		add( titlebar );
 
+	private static final float GAP	= 2;
+
+	private static final int WIDTH = 120;
+
+	public WndItem( final WndBag owner, final Item item ) {
+
+		super();
+        menuModel = new MenuModel(Message.capitalize(Message.item(item)), Message.description(item));
+		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
+
+		int color = titleColor();
 		if (item.levelKnown) {
 			if (item.level() < 0) {
-				titlebar.color( ItemSlot.DEGRADED );
+				color = ItemSlot.DEGRADED;
 			} else if (item.level() > 0) {
-				titlebar.color( item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED );
+				color = item.isBroken() ? ItemSlot.WARNING : ItemSlot.UPGRADED;
 			}
 		}
-		
-		BitmapTextMultiline info = PixelScene.createMultiline( item.info(), 6 );
-		info.maxWidth = WIDTH;
-		info.measure();
-		info.x = titlebar.left();
-		info.y = titlebar.bottom() + GAP;
-		add( info );
-	
-		float y = info.y + info.height() + GAP;
-		float x = 0;
-		
-		if (Dungeon.hero.isAlive() && owner != null) {
-			for (final String action:item.actions( Dungeon.hero )) {
-				
-				RedButton btn = new RedButton( action ) {
+		float durability = item.isUpgradable() && item.levelKnown
+				? (float)item.durability() / item.maxDurability() : Float.NaN;
+		Component titlebar = InspectionTitle.create(new ItemSprite(item.image(), item.glowing()),
+				Utils.capitalize(item.toString()), color, durability);
+		titlebar.setRect(0, 0, windowWidth, 0);
+		add(titlebar);
+
+		HighlightedText info = new HighlightedText(  6 );
+		info.text(item.displayInfo(), textWidth(windowWidth));
+		ArrayList<RedButton> buttons = new ArrayList<>();
+
+		if (hero.isAlive() && owner != null) {
+			for (final String action:item.actions( hero )) {
+
+				RedButton btn = new ActionButton( item.actionName( action, hero ) ) {
 					@Override
 					protected void onClick() {
-						item.execute( Dungeon.hero, action );
+						Runnable use = () -> {
+							if (!LocalCoop.active() || hero.isAlive()
+									&& (hero.belongings.backpack.contains(item) || item.isEquipped(hero))) {
+								item.execute(hero, action);
+							}
+						};
+						if (!LocalCoop.defer(hero, use)) use.run();
 						hide();
 						owner.hide();
 					};
 				};
 				btn.setSize( Math.max( BUTTON_WIDTH, btn.reqWidth() ), BUTTON_HEIGHT );
-				if (x + btn.width() > WIDTH) {
-					x = 0;
-					y += BUTTON_HEIGHT + GAP;
-				}
-				btn.setPos( x, y );
-				add( btn );
-				
+				buttons.add( btn );
+                menuModel.add(btn, Message.action(item, action));
+
 				if (action == item.defaultAction) {
-					btn.textColor( TITLE_COLOR );
+					btn.textColor( titleColor() );
 				}
-				
-				x += btn.width() + GAP;
+
 			}
 		}
-		
-		resize( WIDTH, (int)(y + (x > 0 ? BUTTON_HEIGHT : 0)) );
+
+		layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
 	}
 }

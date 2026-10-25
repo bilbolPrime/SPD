@@ -19,36 +19,29 @@ package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
-import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class Fletching extends Buff {
 
-
-
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
 
-
 			Hero hero = (Hero)target;
 
-            if(hero.heroSkills.passiveA1.fletching() < 1)// Huntress fletching if present
+            if(hero.skillTree.getFletching() < 1)
             {
                 spend( 100 );
                 return true;
             }
 
-                    GLog.p("Fletched an arrow!");
+                    GLog.p("custom.generated.entry_fletched_an_arrow_51eb75efd9");
                     Arrow arrow = new Arrow();
                     if(arrow.collect()  == false)
                         Dungeon.level.drop( arrow, hero.pos ).sprite.drop();
 
-
-
-
-            spend(100 - hero.heroSkills.passiveA1.fletching() * 10);
+            spend(hero.skillTree.getFletching());
 
 		} else {
 
@@ -58,6 +51,5 @@ public class Fletching extends Buff {
 
 		return true;
 	}
-	
 
 }

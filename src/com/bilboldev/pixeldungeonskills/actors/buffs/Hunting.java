@@ -24,29 +24,23 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class Hunting extends Buff {
 
-
-
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
 
-
 			Hero hero = (Hero)target;
 
-
-
-            if(hero.heroSkills.passiveA2.hunting() < 1)// Huntress Hunting if present
+            if(hero.skillTree.hunting() < 1)
             {
                 spend( 100 );
                 return true;
             }
 
-
-                  GLog.p("Hunted... something...");
+                  GLog.p("custom.generated.entry_hunted_something_924aa6a53b");
                   MysteryMeat steak = new MysteryMeat();
                   Dungeon.level.drop( steak, hero.pos ).sprite.drop();
 
-                spend( 100 - 10 * hero.heroSkills.passiveA2.hunting() );
+                spend( 100 - hero.skillTree.hunting() );
 
 		} else {
 
@@ -56,6 +50,5 @@ public class Hunting extends Buff {
 
 		return true;
 	}
-	
 
 }

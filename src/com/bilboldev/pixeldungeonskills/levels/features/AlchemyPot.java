@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.levels.features;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -24,19 +25,19 @@ import com.bilboldev.pixeldungeonskills.windows.WndBag;
 
 public class AlchemyPot {
 
-	private static final String TXT_SELECT_SEED	= "Select a seed to throw"; 
-	
+	private static final String TXT_SELECT_SEED	= "Select a seed to throw";
+
 	private static Hero hero;
 	private static int pos;
-	
+
 	public static void operate( Hero hero, int pos ) {
-		
+
 		AlchemyPot.hero = hero;
 		AlchemyPot.pos = pos;
-		
-		GameScene.selectItem( itemSelector, WndBag.Mode.SEED, TXT_SELECT_SEED );
+
+		GameScene.selectItem(itemSelector, WndBag.Mode.SEED, Message.key("custom.generated.entry_select_a_seed_to_throw_1dfb5a65d8"));
 	}
-	
+
 	private static final WndBag.Listener itemSelector = new WndBag.Listener() {
 		@Override
 		public void onSelect( Item item ) {

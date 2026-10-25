@@ -3,14 +3,9 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class SpiritArmor extends PassiveSkillA3{
-
 
     {
         name = "Spirit Armor";
@@ -33,6 +28,10 @@ public class SpiritArmor extends PassiveSkillA3{
         else if(level > 0)
             actions.add(AC_DEACTIVATE);
 
+        if(hero.skillTree.canLevel(this)){
+            actions.add(AC_ADVANCE);
+        }
+
         return actions;
     }
 
@@ -45,6 +44,9 @@ public class SpiritArmor extends PassiveSkillA3{
         else    if(action == Skill.AC_DEACTIVATE)
         {
             active = false;
+        }
+        else {
+            super.execute(hero, action);
         }
     }
 
@@ -66,7 +68,7 @@ public class SpiritArmor extends PassiveSkillA3{
         }
 
         if(maxReduction != 0)
-            GLog.p(" (Spirit Armor absorbed " + maxReduction + " damage) ");
+            GLog.p("custom.generated.entry_spirit_armor_absorbed_s_damage_c45cf18d3e", maxReduction);
 
         return maxReduction;
     }
@@ -74,15 +76,47 @@ public class SpiritArmor extends PassiveSkillA3{
     @Override
     public String info()
     {
-        return "When activated, 10% of damage per level is taken from mana when possible.\n"
-                + costUpgradeInfo();
+        return "When activated, a portion of damage is taken from mana _when_ _possible._ \n\n"
+                + extendedInfo()
+                + requiresInfo()
+                + costString();
     }
 
-    private int damageReduction()
-    {
-       if(level == 0)
-           return 10;
+    @Override
+    public String extendedInfo(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 1; i <= Skill.MAX_LEVEL; i++)
+        {
+            String levelDescription =  "Level " + i  + ": " + (int) (100 * (0.1 * i)) + "% damage absorbed.";
+            if(i == level){
+                sb.append(highlight(levelDescription));
+            }
+            else {
+                sb.append(levelDescription);
+            }
+            sb.append("\n");
+        }
+        return  sb.toString();
+    }
 
-        return level * 10;
+    @Override
+    public String requiresInfo(){
+        if(level == 0){
+            return "\nRequires: Battle Mage";
+        }
+
+        return "";
+    }
+
+    @Override
+    public String costString(){
+        return "\n\n" + highlight("This is a passive skill that can be enabled or disabled.");
+    }
+
+    @Override
+    public ArrayList<Class<? extends Skill>> getRequirements(){
+        ArrayList<Class<? extends Skill>> toReturn = new ArrayList<>();
+        toReturn.add(BattleMage.class);
+        return toReturn;
     }
 }

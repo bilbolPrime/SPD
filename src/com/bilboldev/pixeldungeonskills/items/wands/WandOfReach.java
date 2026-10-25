@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.wands;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -42,31 +43,33 @@ import com.bilboldev.utils.Callback;
 
 public class WandOfReach extends Wand {
 
-	private static final String TXT_YOU_NOW_HAVE	= "You have magically transported %s into your backpack"; 
-	
+	private static final String TXT_YOU_NOW_HAVE	= "custom.generated.entry_you_have_magically_transported_s_into_your_backp_80120c31d7";
+
 	{
 		name = "Wand of Reach";
 		hitChars = false;
 	}
-	
+
 	@Override
 	protected void onZap( int cell ) {
-		
+
 		int reach = Math.min( Ballistica.distance, power() + 4 );
-		
+
 		boolean mapUpdated = false;
 		for (int i=1; i < reach; i++) {
-			
+
 			int c = Ballistica.trace[i];
-			
+
 			int before = Dungeon.level.map[c];
-			
+
 			Char ch = Actor.findChar( c );
 			if (ch != null) {
-				Actor.addDelayed( new Swap( curUser, ch ), -1 );
+				try {
+					Actor.addDelayed(new Swap(curUser, ch), -1);
+				}catch (Exception e){}
 				break;
 			}
-			
+
 			Heap heap = Dungeon.level.heaps.get( c );
 			if (heap != null) {
 				switch (heap.type) {
@@ -81,38 +84,38 @@ public class WandOfReach extends Wand {
 					break;
 				default:
 				}
-				
+
 				break;
 			}
-			
+
 			Dungeon.level.press( c, null );
-			if (before == Terrain.OPEN_DOOR) {	
+			if (before == Terrain.OPEN_DOOR) {
 				Level.set( c, Terrain.DOOR );
 				GameScene.updateMap( c );
 			} else if (Level.water[c]) {
 				GameScene.ripple( c );
 			}
-			
+
 			mapUpdated = mapUpdated || Dungeon.level.map[c] != before;
 		}
-		
+
 		if (mapUpdated) {
 			Dungeon.observe();
 		}
 	}
-	
+
 	private void transport( Heap heap ) {
 		Item item = heap.pickUp();
 		if (item.doPickUp( curUser )) {
-			
+
 			if (item instanceof Dewdrop) {
-				// Do nothing
+
 			} else {
 				if (((item instanceof ScrollOfUpgrade || item instanceof ScrollOfEnchantment) && ((Scroll)item).isKnown()) ||
 					((item instanceof PotionOfStrength || item instanceof PotionOfMight) && ((Potion)item).isKnown())) {
-					GLog.p( TXT_YOU_NOW_HAVE, item.name() );
+					GLog.p(TXT_YOU_NOW_HAVE, Message.itemName(item));
 				} else {
-					GLog.i( TXT_YOU_NOW_HAVE, item.name() );
+					GLog.i(TXT_YOU_NOW_HAVE, Message.itemName(item));
 				}
 			}
 
@@ -120,12 +123,12 @@ public class WandOfReach extends Wand {
 			Dungeon.level.drop( item, curUser.pos ).sprite.drop();
 		}
 	}
-	
+
 	protected void fx( int cell, Callback callback ) {
 		MagicMissile.force( curUser.sprite.parent, curUser.pos, cell, callback );
 		Sample.INSTANCE.play( Assets.SND_ZAP );
 	}
-	
+
 	@Override
 	public String desc() {
 		return

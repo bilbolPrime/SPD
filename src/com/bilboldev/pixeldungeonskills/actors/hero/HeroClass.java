@@ -20,19 +20,21 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
-import com.bilboldev.pixeldungeonskills.items.ArmorKit;
-import com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled;
-import com.bilboldev.pixeldungeonskills.items.TomeOfMastery;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.HuntressSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MageSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.MercenarySkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.NecromancerSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.RogueSkillTree;
+import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
-import com.bilboldev.pixeldungeonskills.items.armor.ScaleArmor;
 import com.bilboldev.pixeldungeonskills.items.bags.Keyring;
-import com.bilboldev.pixeldungeonskills.items.bags.ScrollHolder;
+import com.bilboldev.pixeldungeonskills.items.bags.PotionHolder;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMana;
-import com.bilboldev.pixeldungeonskills.items.potions.PotionOfMindVision;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfStrength;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfShadows;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfBloodyRitual;
@@ -42,33 +44,35 @@ import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfIdentify;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfMagicMapping;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSacrifice;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfSkill;
-import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfWipeOut;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfFirebolt;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicMissile;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfRegrowth;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
+import com.bilboldev.pixeldungeonskills.items.weapon.gun.Handgun;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.ShortSword;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.SoulBlade;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.CupidArrow;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Dart;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Shuriken;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.SoulCrystal;
-import com.bilboldev.pixeldungeonskills.sprites.EyeSprite;
+import com.bilboldev.pixeldungeonskills.sprites.RatSprite;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import com.bilboldev.pixeldungeonskills.ui.Toolbar;
 import com.bilboldev.utils.Bundle;
 
 public enum HeroClass {
 
-	WARRIOR( "warrior" ), MAGE( "mage" ), ROGUE( "rogue" ), HUNTRESS( "huntress" ), HATSUNE("hatsune");
-	
+	WARRIOR( "warrior" ), MAGE( "mage" ), ROGUE( "rogue" ), HUNTRESS( "huntress" ), HATSUNE("hatsune"), DATENSHI("datenshi"), ONLINE("online"),
+	GAUNTLET( "gauntlet" ), NECROMANCER( "necromancer" ), MERCENARY( "mercenary" ), ;
+
 	private String title;
-	
+
 	private HeroClass( String title ) {
 		this.title = title;
 	}
-	
+
 	public static final String[] WAR_PERKS = {
 		"Warriors start with 11 points of Strength.",
 		"Warriors start with a unique short sword. This sword can be later \"reforged\" to upgrade another melee weapon.",
@@ -76,7 +80,7 @@ public enum HeroClass {
 		"Any piece of food restores some health when eaten.",
 		"Potions of Strength are identified from the beginning.",
 	};
-	
+
 	public static final String[] MAG_PERKS = {
 		"Mages start with a unique Wand of Magic Missile. This wand can be later \"disenchanted\" to upgrade another wand.",
 		"Mages recharge their wands faster.",
@@ -85,7 +89,7 @@ public enum HeroClass {
 		"Scrolls of Identify are identified from the beginning.",
          "Master of magic."
 	};
-	
+
 	public static final String[] ROG_PERKS = {
 		"Rogues start with a Ring of Shadows+1.",
 		"Rogues identify a type of a ring on equipping it.",
@@ -94,7 +98,7 @@ public enum HeroClass {
 		"Rogues can go without food longer.",
 		"Scrolls of Magic Mapping are identified from the beginning."
 	};
-	
+
 	public static final String[] HUN_PERKS = {
 		"Huntresses start with 15 points of Health.",
 		"Huntresses start with a unique upgradeable boomerang.",
@@ -110,54 +114,89 @@ public enum HeroClass {
             "She excels in tactics and has mastered both light and dark arts.",
             "Her hair has turned blue from her massive spiritual strength."
     };
-	
+
+	public static final String[] DATENSHI_PERKS = {
+			"One of Hatsune's daughters.",
+			"Unlike her sister Mizuki, she's adept with the dark arts.",
+			"Many questioned her sanity after she refused to accept her mother's passing.",
+			"A violent clash between the twins lead to her being exiled.",
+			"Despite her sister's efforts, the council deemed Datenshi as a threat that needs to be dealt with."
+	};
+
+	public static final String[] Necro_PERKS = {
+		"Necromancer start with a unique Wand of Magic Missile. This wand can be later \"disenchanted\" to upgrade another wand.",
+		"Necromancer recharge their wands faster.",
+		"When eaten, any piece of food restores 1 charge for all wands in the inventory.",
+		"Necromancers can use wands as a melee weapon.",
+		"Scrolls of Identify are identified from the beginning.",
+         "Master of magic."
+	};
+
+	public static final String[] MERCENARY_PERKS = {
+		"Mercenaries start with 11 points of Strength.",
+		"Mercenaries start with a unique short sword. This sword can be later \"reforged\" to upgrade another melee weapon.",
+		"Mercenaries are less proficient with missile weapons.",
+		"Any piece of food restores some health when eaten.",
+		"Potions of Strength are identified from the beginning.",
+	};
+
 	public void initHero( Hero hero ) {
-		
+
 		hero.heroClass = this;
-		
+
 		initCommon( hero );
-		
+
 		switch (this) {
 		case WARRIOR:
 			initWarrior( hero );
 			break;
-			
+
 		case MAGE:
 			initMage( hero );
 			break;
-			
+		case NECROMANCER:
+			initNecromancer( hero );
+			break;
+		case MERCENARY:
+			initMercenary( hero );
+			break;
+
 		case ROGUE:
 			initRogue( hero );
 			break;
-			
+
 		case HUNTRESS:
 			initHuntress( hero );
 			break;
+		case GAUNTLET:
+			initGauntlet( hero );
+			break;
 		}
-		
+
 		if (Badges.isUnlocked( masteryBadge() )) {
-			new TomeOfMastery().collect();
+			new ScrollOfSkill().identify().collect();
+
 		}
-		
+
 		hero.updateAwareness();
 	}
-	
+
 	private static void initCommon( Hero hero ) {
 		(hero.belongings.armor = new ClothArmor()).identify();
 		new Food().identify().collect();
 		new Keyring().collect();
+		new PotionHolder().collect();
 
         Dungeon.hero.HP -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.hero.HT -= Dungeon.currentDifficulty.difficultyHPStartPenalty();
         Dungeon.currentDifficulty.difficultyStartItemBonus();
+		Skill.availableSkill = Skill.STARTING_SKILL;
+		Skill.availableSkill += Dungeon.currentDifficulty.difficultySkillStartBonus();
 
-        Skill.availableSkill = Skill.STARTING_SKILL;
-
-        Bow tmp = new Bow(1);
-        tmp.collect();
-        tmp.doEquip(hero);
-        new Arrow(15).collect();
-        new CupidArrow(5).collect();
+		Bow tmp = new Bow(1);
+		tmp.collect();
+		tmp.doEquip(hero);
+		new Arrow(15).collect();
 
         new ScrollOfHome().setKnown();
         new ScrollOfSacrifice().setKnown();
@@ -165,31 +204,13 @@ public enum HeroClass {
         new ScrollOfSkill().setKnown();
         new ScrollOfFrostLevel().setKnown();
 
-
-        new ScrollOfHome().collect();
-       // new ScrollOfSacrifice().collect();
-       // new ScrollOfBloodyRitual().collect();
-        new ScrollOfSkill().collect();
-       // new ScrollOfMagicMapping().identify().collect();
-       // new ScrollOfFrostLevel().collect();
-
-       // new Ankh().collect();
         new PotionOfHealing().setKnown();
         new PotionOfMana().setKnown();
 
-        new PotionOfMana().collect();
-        new PotionOfMana().collect();
-        new PotionOfMana().collect();
+		new PotionOfMana().collect();
 
-       // new ScrollOfEnchantment().identify().collect();
-
-        new SoulCrystal(3).collect();
-        new SoulCrystalFilled(EyeSprite.class, 50, 20, "Captured Evil Eye").collect();
-       // new PotionOfMindVision().collect();
-        //new ArmorKit().collect();
-       // new ScrollHolder().collect();
     }
-	
+
 	public Badges.Badge masteryBadge() {
 		switch (this) {
 		case WARRIOR:
@@ -200,77 +221,127 @@ public enum HeroClass {
 			return Badges.Badge.MASTERY_ROGUE;
 		case HUNTRESS:
 			return Badges.Badge.MASTERY_HUNTRESS;
+		case NECROMANCER:
+			return Badges.Badge.MASTERY_NECROMANCER;
+		case MERCENARY:
+			return Badges.Badge.MASTERY_MERCENARY;
 		}
 		return null;
 	}
-	
+
 	private static void initWarrior( Hero hero ) {
 		hero.STR = hero.STR + 1;
 		hero.MP = hero.MMP = 20;
 		(hero.belongings.weapon = new ShortSword()).identify();
-		new Dart( 8 ).identify().collect();
-		
-		QuickSlot.primaryValue = Dart.class;
-		
+
+		QuickSlot.values[0] = Arrow.class;
+
 		new PotionOfStrength().setKnown();
 
         hero.heroSkills = CurrentSkills.WARRIOR;
         hero.heroSkills.init();
+
+        hero.skillTree = new WarriorSkillTree(0, 0).build();
 	}
-	
+
 	private static void initMage( Hero hero ) {
         hero.MP = hero.MMP = 40;
 
 		(hero.belongings.weapon = new Knuckles()).identify();
-		
+
 		WandOfMagicMissile wand = new WandOfMagicMissile();
 		wand.identify().collect();
-		
-		QuickSlot.primaryValue = wand;
-		
+
+		QuickSlot.values[0] = wand;
+
 		new ScrollOfIdentify().setKnown();
 
         hero.heroSkills = CurrentSkills.MAGE;
         hero.heroSkills.init();
+		hero.skillTree = new MageSkillTree(0, 0).build();
+
 	}
-	
+
+	private static void initNecromancer( Hero hero ) {
+        hero.MP = hero.MMP = 40;
+
+		(hero.belongings.weapon = new Knuckles()).identify();
+
+		WandOfMagicMissile wand = new WandOfMagicMissile();
+		wand.identify().collect();
+
+		QuickSlot.values[0] = wand;
+
+		new ScrollOfIdentify().setKnown();
+
+        hero.heroSkills = CurrentSkills.NECROMANCER;
+        hero.heroSkills.init();
+		hero.skillTree = new NecromancerSkillTree(0, 0).build();
+
+	}
+
+	private static void initMercenary( Hero hero ) {
+		hero.STR = hero.STR + 1;
+		hero.MP = hero.MMP = 20;
+		(hero.belongings.weapon = new Handgun()).identify();
+
+		QuickSlot.values[0] = hero.belongings.weapon;
+
+		new PotionOfStrength().setKnown();
+
+		hero.heroSkills = CurrentSkills.MERCENARY;
+		hero.heroSkills.init();
+
+		hero.skillTree = new MercenarySkillTree(0, 0).build();
+	}
+
 	private static void initRogue( Hero hero ) {
         hero.MP = hero.MMP = 30;
-		//(hero.belongings.weapon = new Dagger()).identify();
-        (hero.belongings.weapon = new DualSwords()).identify();
+		(hero.belongings.weapon = new Dagger()).identify();
+
 		(hero.belongings.ring1 = new RingOfShadows()).upgrade().identify();
-		new Dart( 8 ).identify().collect();
-		new Shuriken(10).identify().collect();
+
 		hero.belongings.ring1.activate( hero );
-		
-		QuickSlot.primaryValue = Dart.class;
-		
+
+		QuickSlot.values[0] = Arrow.class;
 		new ScrollOfMagicMapping().setKnown();
 
         hero.heroSkills = CurrentSkills.ROGUE;
         hero.heroSkills.init();
+        hero.skillTree = new RogueSkillTree(0,0).build();
 	}
-	
+
 	private static void initHuntress( Hero hero ) {
         hero.MP = hero.MMP = 35;
 		hero.HP = (hero.HT -= 5);
-		
+
 		(hero.belongings.weapon = new Dagger()).identify();
 		Boomerang boomerang = new Boomerang();
 		boomerang.identify().collect();
-		
-		QuickSlot.primaryValue = boomerang;
+
+        new Arrow(15).collect();
+        hero.belongings.bow.upgrade();
+		QuickSlot.values[0] = boomerang;
 
         hero.heroSkills = CurrentSkills.HUNTRESS;
         hero.heroSkills.init();
+
+		hero.skillTree = new HuntressSkillTree(0, 0).build();
 	}
-	
+
+	private static void initGauntlet( Hero hero ) {
+		hero.MP = hero.MMP = 20;
+		hero.HP = hero.HT = 20;
+
+		hero.belongings.armor = null;
+	}
+
 	public String title() {
 		return title;
 	}
-	
+
 	public String spritesheet() {
-		
+
 		switch (this) {
 		case WARRIOR:
 			return Assets.WARRIOR;
@@ -282,13 +353,23 @@ public enum HeroClass {
 			return Assets.HUNTRESS;
         case HATSUNE:
             return Assets.LEGEND;
+        case DATENSHI:
+				return Assets.LEGEND;
+        case ONLINE:
+            return Assets.LEGEND;
+		case GAUNTLET:
+			return Assets.WARRIOR;
+			case NECROMANCER:
+				return Assets.NECROMANCER;
+		case MERCENARY:
+			return Assets.MERCENARY;
 		}
-		
+
 		return null;
 	}
-	
+
 	public String[] perks() {
-		
+
 		switch (this) {
 		case WARRIOR:
 			return WAR_PERKS;
@@ -300,17 +381,26 @@ public enum HeroClass {
 			return HUN_PERKS;
         case HATSUNE:
              return LEGEND_PERKS;
+			case DATENSHI:
+				return DATENSHI_PERKS;
+		case NECROMANCER:
+			return Necro_PERKS;
+		case MERCENARY:
+			return MERCENARY_PERKS;
+
+			case GAUNTLET:
+				return WAR_PERKS;
 		}
-		
+
 		return null;
 	}
 
 	private static final String CLASS	= "class";
-	
+
 	public void storeInBundle( Bundle bundle ) {
 		bundle.put( CLASS, toString() );
 	}
-	
+
 	public static HeroClass restoreInBundle( Bundle bundle ) {
 		String value = bundle.getString( CLASS );
 		return value.length() > 0 ? valueOf( value ) : ROGUE;

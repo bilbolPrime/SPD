@@ -21,62 +21,122 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MirrorImage;
 import com.bilboldev.pixeldungeonskills.effects.MagicMissile;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
+import com.bilboldev.utils.Random;
+import java.util.ArrayList;
 
 public class WandOfBlink extends Wand {
 
 	{
 		name = "Wand of Blink";
 	}
-	
+
+	static final String AC_AFTER_IMAGE = "CREATE AFTER IMAGE";
+	static final int AC_AFTER_IMAGE_COST = 80;
+
+	@Override
+	public ArrayList<String> actions(Hero hero ) {
+		ArrayList<String> actions = super.actions( hero );
+		if (Dungeon.hero != null && (Dungeon.hero.heroClass == HeroClass.MAGE || Dungeon.hero.heroClass == HeroClass.NECROMANCER)){
+			actions.add(AC_AFTER_IMAGE);
+		}
+		return actions;
+	}
+
+	@Override
+	public void execute( Hero hero, String action ) {
+		if (action.equals( AC_AFTER_IMAGE )) {
+
+			if(hero.MP >= AC_AFTER_IMAGE_COST){
+				curUser = hero;
+				curItem = this;
+				hero.MP -= AC_AFTER_IMAGE_COST;
+
+				ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
+
+				for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
+					int p = curUser.pos + Level.NEIGHBOURS8[i];
+					if (Actor.findChar( p ) == null && (Level.passable[p] || Level.avoid[p])) {
+						respawnPoints.add( p );
+					}
+				}
+
+				int nImages = 1;
+				while (nImages > 0 && respawnPoints.size() > 0) {
+					int index = Random.index( respawnPoints );
+
+					MirrorImage mob = new MirrorImage();
+					mob.duplicate( curUser );
+					GameScene.add( mob );
+					WandOfBlink.appear( mob, respawnPoints.get( index ) );
+
+					respawnPoints.remove( index );
+					nImages--;
+				}
+			}
+			else {
+				GLog.n("custom.generated.entry_you_need_at_least_s_mana_to_use_create_after_ima_81fefec565", AC_AFTER_IMAGE_COST);
+			}
+
+		} else {
+			super.execute( hero, action );
+		}
+	}
+
 	@Override
 	protected void onZap( int cell ) {
 
 		int level = power();
-		
+
 		if (Ballistica.distance > level + 4) {
 			cell = Ballistica.trace[level + 3];
 		} else if (Actor.findChar( cell ) != null && Ballistica.distance > 1) {
 			cell = Ballistica.trace[Ballistica.distance - 2];
 		}
-		
+
 		curUser.sprite.visible = true;
 		appear( Dungeon.hero, cell );
 		Dungeon.observe();
 	}
-	
+
 	@Override
 	protected void fx( int cell, Callback callback ) {
 		MagicMissile.whiteLight( curUser.sprite.parent, curUser.pos, cell, callback );
 		Sample.INSTANCE.play( Assets.SND_ZAP );
 		curUser.sprite.visible = false;
 	}
-	
+
 	public static void appear( Char ch, int pos ) {
-		
+		if (LocalCoop.teleportTogether(ch, pos)) return;
+
 		ch.sprite.interruptMotion();
-		
+
 		ch.move( pos );
 		ch.sprite.place( pos );
-		
+
 		if (ch.invisible == 0) {
 			ch.sprite.alpha( 0 );
 			ch.sprite.parent.add( new AlphaTweener( ch.sprite, 1, 0.4f ) );
 		}
-		
+
 		ch.sprite.emitter().start( Speck.factory( Speck.LIGHT ), 0.2f, 3 );
 		Sample.INSTANCE.play( Assets.SND_TELEPORT );
 	}
-	
+
 	@Override
 	public String desc() {
-		return
-			"This wand will allow you to teleport in the chosen direction. " +
-			"Creatures and inanimate obstructions will block the teleportation.";
+		return super.desc();
 	}
 }

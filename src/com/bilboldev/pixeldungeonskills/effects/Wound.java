@@ -17,38 +17,40 @@
  */
 package com.bilboldev.pixeldungeonskills.effects;
 
+import com.bilboldev.pixeldungeonskills.network.PartyEffects;
+
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.DungeonTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 
 public class Wound extends Image {
 
 	private static final float TIME_TO_FADE = 0.8f;
-	
+
 	private float time;
-	
+
 	public Wound() {
 		super( Effects.get( Effects.Type.WOUND ) );
 		origin.set( width / 2, height / 2 );
 	}
-	
+
 	public void reset( int p ) {
 		revive();
-		
+
 		x = (p % Level.WIDTH) * DungeonTilemap.SIZE + (DungeonTilemap.SIZE - width) / 2;
 		y = (p / Level.WIDTH) * DungeonTilemap.SIZE + (DungeonTilemap.SIZE - height) / 2;
-		
+
 		time = TIME_TO_FADE;
 	}
-	
+
 	@Override
 	public void update() {
 		super.update();
-		
+
 		if ((time -= Game.elapsed) <= 0) {
 			kill();
 		} else {
@@ -57,23 +59,28 @@ public class Wound extends Image {
 			scale.x = 1 + p;
 		}
 	}
-	
+
 	public static void hit( Char ch ) {
 		hit( ch, 0 );
 	}
-	
+
 	public static void hit( Char ch, float angle ) {
-		Wound w = (Wound)ch.sprite.parent.recycle( Wound.class );
-		ch.sprite.parent.bringToFront( w );
-		w.reset( ch.pos );
-		w.angle = angle;
+		PartyEffects.wound(ch.pos, angle);
+		try {
+			Wound w = (Wound) ch.sprite.parent.recycle(Wound.class);
+			ch.sprite.parent.bringToFront(w);
+			w.reset(ch.pos);
+			w.angle = angle;
+		}
+		catch (Exception e){}
 	}
-	
+
 	public static void hit( int pos ) {
 		hit( pos, 0 );
 	}
-	
+
 	public static void hit( int pos, float angle ) {
+		PartyEffects.wound(pos, angle);
 		Group parent = Dungeon.hero.sprite.parent;
 		Wound w = (Wound)parent.recycle( Wound.class );
 		parent.bringToFront( w );

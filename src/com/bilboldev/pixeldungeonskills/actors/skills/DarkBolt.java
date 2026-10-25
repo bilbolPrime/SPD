@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -17,20 +18,15 @@ import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
-/**
- * Created by Moussa on 20-Jan-17.
- */
 public class DarkBolt extends ActiveSkill3{
-
 
     {
         name = "Dark Bolt";
-        castText = "I must";
+        castText = Message.key("custom.generated.entry_i_must_6ab83c4e86");
         tier = 3;
         image = 113;
         mana = 5;
     }
-
 
     @Override
     public float getAlpha()
@@ -50,17 +46,10 @@ public class DarkBolt extends ActiveSkill3{
     public void execute( Hero hero, String action ) {
         if(action == Skill.AC_CAST && hero.MP >= getManaCost())
         {
-            //hero.MP -= getManaCost();
-            //castTextYell();
+
             Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.DARK_BOLT);
             Dungeon.hero.heroSkills.lastUsed = this;
         }
-    }
-
-    @Override
-    public int getManaCost()
-    {
-        return (int)Math.ceil(mana * (1 + 0.25 * level));
     }
 
     @Override
@@ -68,7 +57,6 @@ public class DarkBolt extends ActiveSkill3{
     {
         return true;
     }
-
 
     @Override
     public String info()

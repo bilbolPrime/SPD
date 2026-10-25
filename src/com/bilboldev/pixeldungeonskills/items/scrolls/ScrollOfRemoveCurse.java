@@ -29,42 +29,42 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 
 public class ScrollOfRemoveCurse extends Scroll {
 
-	private static final String TXT_PROCCED	= 
-		"Your pack glows with a cleansing light, and a malevolent energy disperses.";
-	private static final String TXT_NOT_PROCCED	= 
-		"Your pack glows with a cleansing light, but nothing happens.";
-	
+	private static final String TXT_PROCCED	=
+		"custom.generated.entry_your_pack_glows_with_a_cleansing_light_and_a_mal_1cc400d074";
+	private static final String TXT_NOT_PROCCED	=
+		"custom.generated.entry_your_pack_glows_with_a_cleansing_light_but_nothi_5e3b578323";
+
 	{
 		name = "Scroll of Remove Curse";
 	}
-	
+
 	@Override
 	protected void doRead() {
-		
+
 		new Flare( 6, 32 ).show( curUser.sprite, 2f ) ;
 		Sample.INSTANCE.play( Assets.SND_READ );
 		Invisibility.dispel();
-		
-		boolean procced = uncurse( curUser, curUser.belongings.backpack.items.toArray( new Item[0] ) ); 
-		procced = uncurse( curUser, 
-			curUser.belongings.weapon, 
-			curUser.belongings.armor, 
-			curUser.belongings.ring1, 
+
+		boolean procced = uncurse( curUser, curUser.belongings.backpack.items.toArray( new Item[0] ) );
+		procced = uncurse( curUser,
+			curUser.belongings.weapon,
+			curUser.belongings.armor,
+			curUser.belongings.ring1,
 			curUser.belongings.ring2 ) || procced;
-		
+
 		Weakness.detach( curUser, Weakness.class );
-		
+
 		if (procced) {
-			GLog.p( TXT_PROCCED );			
-		} else {		
-			GLog.i( TXT_NOT_PROCCED );		
+			GLog.p(TXT_PROCCED);
+		} else {
+			GLog.i(TXT_NOT_PROCCED);
 		}
-		
+
 		setKnown();
-		
+
 		readAnimation();
 	}
-	
+
 	@Override
 	public String desc() {
 		return
@@ -72,9 +72,9 @@ public class ScrollOfRemoveCurse extends Scroll {
 			"the reader's weapon, armor, rings and carried items any evil " +
 			"enchantments that might prevent the wearer from removing them.";
 	}
-	
+
 	public static boolean uncurse( Hero hero, Item... items ) {
-		
+
 		boolean procced = false;
 		for (int i=0; i < items.length; i++) {
 			Item item = items[i];
@@ -83,14 +83,14 @@ public class ScrollOfRemoveCurse extends Scroll {
 				procced = true;
 			}
 		}
-		
+
 		if (procced) {
 			hero.sprite.emitter().start( ShadowParticle.UP, 0.05f, 10 );
 		}
-		
+
 		return procced;
 	}
-	
+
 	@Override
 	public int price() {
 		return isKnown() ? 30 * quantity : super.price();

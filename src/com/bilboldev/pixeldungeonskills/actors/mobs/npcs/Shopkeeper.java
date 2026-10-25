@@ -17,12 +17,14 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ShopkeeperSprite;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
@@ -31,30 +33,31 @@ import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 public class Shopkeeper extends NPC {
 
 	{
-		name = "shopkeeper";
+		String translatedName = Messages.get( Shopkeeper.class, "name" );
+		name = Messages.NO_TEXT_FOUND.equals( translatedName ) ? "shopkeeper" : translatedName;
 		spriteClass = ShopkeeperSprite.class;
 	}
-	
+
 	@Override
 	protected boolean act() {
-		
+
 		throwItem();
-		
+
 		sprite.turnTo( pos, Dungeon.hero.pos );
 		spend( TICK );
 		return true;
 	}
-	
+
 	@Override
 	public void damage( int dmg, Object src ) {
 		flee();
 	}
-	
+
 	@Override
 	public void add( Buff buff ) {
 		flee();
 	}
-	
+
 	protected void flee() {
 		for (Heap heap: Dungeon.level.heaps.values()) {
 			if (heap.type == Heap.Type.FOR_SALE) {
@@ -62,29 +65,33 @@ public class Shopkeeper extends NPC {
 				heap.destroy();
 			}
 		}
-		
+
 		destroy();
-		
+
 		sprite.killAndErase();
 		CellEmitter.get( pos ).burst( ElmoParticle.FACTORY, 6 );
 	}
-	
+
 	@Override
 	public boolean reset() {
 		return true;
 	}
-	
+
 	@Override
 	public String description() {
-		return 
+		return Messages.maybeTranslate(
 			"This stout guy looks more appropriate for a trade district in some large city " +
-			"than for a dungeon. His prices explain why he prefers to do business here.";
+			"than for a dungeon. His prices explain why he prefers to do business here." );
 	}
-	
+
 	public static WndBag sell() {
-		return GameScene.selectItem( itemSelector, WndBag.Mode.FOR_SALE, "Select an item to sell" );
+		Message title = Message.key("custom.generated.entry_select_an_item_to_sell_7ec607edbf");
+		return GameScene.selectItem(
+			itemSelector,
+			WndBag.Mode.FOR_SALE,
+			title );
 	}
-	
+
 	private static WndBag.Listener itemSelector = new WndBag.Listener() {
 		@Override
 		public void onSelect( Item item ) {

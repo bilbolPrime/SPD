@@ -19,20 +19,20 @@ package com.bilboldev.pixeldungeonskills.items.weapon.melee;
 
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
-import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
+import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
-
 import java.util.ArrayList;
 
 public class NecroBlade extends MeleeWeapon {
@@ -40,16 +40,17 @@ public class NecroBlade extends MeleeWeapon {
     public static final String AC_HEAL = "Heal";
     public static final String AC_SUMMON = "Summon";
     public static final String AC_UPGRADE = "Consume";
+    public static final String AC_BOLT = "Dark Bolt";
 
     {
 		name = "necroblade";
-		image = ItemSpriteSheet.NecroBlade5;
+		image = ItemSpriteSheet.NecroBlade0;
 	}
 
-    public int charge = 100;
+    public int charge = 0;
 
 	public NecroBlade() {
-		super( 1, 0.7f, 1f );
+		super( 4, 1f, 1f );
 	}
 
     @Override
@@ -59,11 +60,12 @@ public class NecroBlade extends MeleeWeapon {
             actions.add(AC_HEAL);
         if(charge > 55)
             actions.add(AC_SUMMON);
-        if(charge == 100)
+        if(charge == 100 && level < 3)
             actions.add(AC_UPGRADE);
+        if(charge == 100 && level >= 5)
+            actions.add(AC_BOLT);
         return actions;
     }
-
 
     @Override
     public void execute( Hero hero, String action ) {
@@ -72,16 +74,12 @@ public class NecroBlade extends MeleeWeapon {
             hero.HP += hero.HT * 0.35;
             if(hero.HP > hero.HT)
                 hero.HP = hero.HT;
-            GLog.p("NecroBlade heals " + ((int) (hero.HT * 0.35)) + " HP");
+            GLog.p("custom.generated.entry_necroblade_heals_s_hp_8bbc4d9bdf", (int) (hero.HT * 0.35));
             updateCharge(-25);
 
          CellEmitter.center(hero.pos).burst(Speck.factory(Speck.HEALING), 1);
-        // CellEmitter.center(hero.pos).burst(ShadowParticle.UP, Random.IntRange(1, 2));
-
 
         } else if (action.equals( AC_SUMMON )) {
-
-
 
             int newPos = hero.pos;
             if (Actor.findChar(newPos) != null) {
@@ -101,7 +99,7 @@ public class NecroBlade extends MeleeWeapon {
                 updateCharge(-55);
                 Skeleton skel = new Skeleton();
                 int skelLevel = this.level() > 1 ? 1 + this.level() : 1;
-                if(skelLevel > 7);
+                if (skelLevel > 7)
                     skelLevel = 7;
                 skel.spawn(skelLevel);
                 skel.HP = skel.HT;
@@ -113,17 +111,21 @@ public class NecroBlade extends MeleeWeapon {
                 skel.sprite.alpha(0);
                 skel.sprite.parent.add(new AlphaTweener(skel.sprite, 1, 0.15f));
                 CellEmitter.center(newPos).burst(ShadowParticle.UP, Random.IntRange(3, 5));
-                GLog.p("NecroBlade summoned a skeleton");
+                GLog.p("custom.generated.entry_necroblade_summoned_a_skeleton_f6f1138aa5");
             }
             else
             {
-                GLog.i("No place to summon");
+                GLog.i("custom.generated.entry_no_place_to_summon_5b4c0017f9");
             }
 
         }else if (action.equals( AC_UPGRADE )) {
             updateCharge(-100);
             this.upgrade(1);
-            GLog.p("NecroBlade consumed the souls within. It looks much better now.");
+            GLog.p("custom.generated.entry_necroblade_consumed_the_souls_within_it_looks_mu_c82caac2f2");
+        }
+        else if(action.equals(AC_BOLT)){
+            Legend.haxWand.castSpell(WandOfMagicCasting.CAST_TYPES.DARK_BOLT);
+            updateCharge(-100);
         }
         else
         {
@@ -136,10 +138,9 @@ public class NecroBlade extends MeleeWeapon {
     @Override
     public int damageRoll( Hero hero ) {
         int damage = super.damageRoll( hero );
-        damage += Random.Int((int) (charge / 8));
+        damage += Random.Int((int) (charge / 10));
         return damage;
     }
-
 
     public void updateCharge(int change)
     {
@@ -180,7 +181,9 @@ public class NecroBlade extends MeleeWeapon {
     @Override
 	public String desc() {
 		return "A blade forged from dark magic. NecroBlades consume the souls of those who perish by them. The more they consume, the stronger they become.\n" +
-                "NecroBlade energy at " + charge + "/100\n"
-                + "The energy stored within increases damage by 0 - " + ((int) (charge / 8)) + ".";
+                "NecroBlade energy at _" + charge + "/100_\n"
+                + "The energy stored within increases damage by _0_ - _" + ((int) (charge / 10)) + "_.\n\n" +
+                (level < 3 ? "The blade _hungers_ for souls.": "The blade _cannot_ consume any more souls.") + "\n\n"
+                + "After level 7, the Necro Blade unlocks _Dark_ _Bolt_. A projectile of negative energy that can completely shatter a target's essence and replace it with a slave.";
 	}
 }

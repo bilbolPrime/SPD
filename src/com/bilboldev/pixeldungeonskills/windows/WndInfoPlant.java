@@ -18,12 +18,12 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.BitmapTextMultiline;
+import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.PlantSprite;
-import com.bilboldev.pixeldungeonskills.ui.Window;
 
-public class WndInfoPlant extends Window {
+public class WndInfoPlant extends WndScrollable {
 	
 	private static final float GAP	= 2;
 	
@@ -32,22 +32,18 @@ public class WndInfoPlant extends Window {
 	public WndInfoPlant( Plant plant ) {
 		
 		super();
+		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 		
-		IconTitle titlebar = new IconTitle();
-		titlebar.icon( new PlantSprite( plant.image ) );
-		titlebar.label( plant.plantName );
-		titlebar.setRect( 0, 0, WIDTH, 0 );
+		Component titlebar = InspectionTitle.create(new PlantSprite(plant.image), plant.displayName());
+		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
 		
 		BitmapTextMultiline info = PixelScene.createMultiline( 6 );
 		add( info );
 		
-		info.text( plant.desc() );
-		info.maxWidth = WIDTH;
+		info.text( plant.displayDesc() );
+		info.maxWidth = textWidth(windowWidth);
 		info.measure();
-		info.x = titlebar.left();
-		info.y = titlebar.bottom() + GAP;
-		
-		resize( WIDTH, (int)(info.y + info.height()) );
+		layoutContent(windowWidth, titlebar, textContent(info), GAP);
 	}
 }

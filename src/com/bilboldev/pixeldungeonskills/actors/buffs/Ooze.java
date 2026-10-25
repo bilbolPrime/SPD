@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -25,28 +26,28 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class Ooze extends Buff {
-	
-	private static final String TXT_HERO_KILLED = "%s killed you...";
-	
+
+	private static final String TXT_HERO_KILLED = "actors.char.kill";
+
 	public int damage	= 1;
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.OOZE;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Caustic ooze";
 	}
-	
+
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
 			target.damage( damage, this );
 			if (!target.isAlive() && target == Dungeon.hero) {
-				Dungeon.fail( Utils.format( ResultDescriptions.OOZE, Dungeon.depth ) );
-				GLog.n( TXT_HERO_KILLED, toString() );
+				Dungeon.fail( Utils.format( ResultDescriptions.OOZE, Dungeon.depth ), Ooze.class );
+				GLog.n(TXT_HERO_KILLED, Message.key(Ooze.class, "name"));
 			}
 			spend( TICK );
 		}

@@ -18,7 +18,6 @@
 package com.bilboldev.pixeldungeonskills.items.armor;
 
 import java.util.HashMap;
-
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
@@ -32,33 +31,33 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Callback;
 
 public class HuntressArmor extends ClassArmor {
-	
-	private static final String TXT_NO_ENEMIES 		= "No enemies in sight";
-	private static final String TXT_NOT_HUNTRESS	= "Only huntresses can use this armor!";
-	
-	private static final String AC_SPECIAL = "SPECTRAL BLADES"; 
-	
+
+	private static final String TXT_NO_ENEMIES 		= "items.armor.huntressarmor.no_enemies";
+	private static final String TXT_NOT_HUNTRESS	= "custom.generated.entry_only_huntresses_can_use_this_armor_a031474223";
+
+	private static final String AC_SPECIAL = "SPECTRAL BLADES";
+
 	{
 		name = "huntress cloak";
 		image = ItemSpriteSheet.ARMOR_HUNTRESS;
 	}
-	
+
 	private HashMap<Callback, Mob> targets = new HashMap<Callback, Mob>();
-	
+
 	@Override
 	public String special() {
 		return AC_SPECIAL;
 	}
-	
+
 	@Override
 	public void doSpecial() {
-		
+
 		Item proto = new Shuriken();
-		
+
 		for (Mob mob : Dungeon.level.mobs) {
 			if (Level.fieldOfView[mob.pos]) {
-				
-				Callback callback = new Callback() {	
+
+				Callback callback = new Callback() {
 					@Override
 					public void call() {
 						curUser.attack( targets.get( this ) );
@@ -68,35 +67,35 @@ public class HuntressArmor extends ClassArmor {
 						}
 					}
 				};
-				
+
 				((MissileSprite)curUser.sprite.parent.recycle( MissileSprite.class )).
 					reset( curUser.pos, mob.pos, proto, callback );
-				
+
 				targets.put( callback, mob );
 			}
 		}
-		
+
 		if (targets.size() == 0) {
-			GLog.w( TXT_NO_ENEMIES );
+			GLog.w(TXT_NO_ENEMIES);
 			return;
 		}
-		
+
 		curUser.HP -= (curUser.HP / 3);
-		
+
 		curUser.sprite.zap( curUser.pos );
 		curUser.busy();
 	}
-	
+
 	@Override
 	public boolean doEquip( Hero hero ) {
 		if (hero.heroClass == HeroClass.HUNTRESS) {
 			return super.doEquip( hero );
 		} else {
-			GLog.w( TXT_NOT_HUNTRESS );
+			GLog.w(TXT_NOT_HUNTRESS);
 			return false;
 		}
 	}
-	
+
 	@Override
 	public String desc() {
 		return
