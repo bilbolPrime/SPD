@@ -117,6 +117,11 @@ public class Viscosity extends Glyph {
 		}
 
 		@Override
+		public int remainingTurns() {
+			return Math.max(0, damage);
+		}
+
+		@Override
 		public String toString() {
 			return Utils.format( "Defered damage (%d)", damage );
 		}

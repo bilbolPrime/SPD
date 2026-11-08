@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.levels.features;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
@@ -105,7 +107,7 @@ public class Chasm {
 				Dungeon.fail( Utils.format( ResultDescriptions.FALL, Dungeon.depth ), Chasm.class );
 				GLog.n(Chasm.class, "ondeath");
 			}
-		} );
+		}, CombatTextIcon.FALL );
 	}
 
 	public static void mobFall( Mob mob ) {

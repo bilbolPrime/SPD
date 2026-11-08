@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.CosmeticPets;
 import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
@@ -88,6 +89,8 @@ public abstract class Mob extends Char {
 	protected Char enemy;
 	protected boolean enemySeen;
 	protected boolean alerted = false;
+	private Char secondStrikeTarget;
+	private Level secondStrikeLevel;
 
 	protected static final float TIME_TO_WAKE_UP = 1f;
 
@@ -429,7 +432,7 @@ public abstract class Mob extends Char {
 		try {
 			if (!isAlive() || enemy == null || !enemy.isAlive()) return false;
 			boolean hit = super.attack(enemy);
-			if (champion.doubleAttack() && isAlive() && enemy.isAlive() && canAttack(enemy)) {
+			if (champion.doubleAttack() && isAlive() && !paralysed && enemy.isAlive() && canAttack(enemy)) {
 
 				hit = super.attack(enemy) || hit;
 			}
@@ -441,6 +444,33 @@ public abstract class Mob extends Char {
 
 	@Override
 	public void onAttackComplete() {
+		RebornChampion champion = buff(RebornChampion.class);
+		if (champion != null && champion.doubleAttack()) {
+			boolean second = secondStrikeTarget != null;
+			Char victim = second ? secondStrikeTarget : enemy;
+			Level level = second ? secondStrikeLevel : Dungeon.level;
+			secondStrikeTarget = null;
+			secondStrikeLevel = null;
+			try {
+				if (Dungeon.level == level && isAlive() && !paralysed && victim != null
+						&& victim.isAlive() && canAttack(victim)) {
+					super.attack(victim);
+					if (!second && Dungeon.level == level && isAlive() && !paralysed && victim.isAlive()
+							&& canAttack(victim) && sprite != null && sprite.parent != null) {
+						secondStrikeTarget = victim;
+						secondStrikeLevel = level;
+						sprite.attack(victim.pos);
+						return;
+					}
+				}
+			} finally {
+				if (secondStrikeTarget == null) champion.finishAttack();
+			}
+			super.onAttackComplete();
+			return;
+		}
+		secondStrikeTarget = null;
+		secondStrikeLevel = null;
 		attack( enemy );
 		super.onAttackComplete();
 	}
@@ -535,7 +565,10 @@ public abstract class Mob extends Char {
 
 	@Override
 	public void die( Object cause ) {
-        if (cause != null) DeathBomb.leave(this);
+        if (cause != null) {
+            DeathBomb.leave(this);
+            CosmeticPets.defeated(this);
+        }
 
 		super.die( cause );
 		PartySession.mobDied(this);
@@ -653,6 +686,7 @@ public abstract class Mob extends Char {
 
                     if (reg > 0) {
                         HP += reg;
+                        showRecovery(reg, false);
                         sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
                     }
                 } else if (champ == Champ.CHAMP_CURSED) {

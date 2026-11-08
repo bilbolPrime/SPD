@@ -17,8 +17,10 @@ final class PartyMessage {
     static void validate(JSONObject message, boolean host, int sequence) throws IOException, JSONException {
         String kind = string(message, "kind", 16);
         if (kind.equals("cosmetics")) {
-            fields(message, "kind", "aura");
+            fields(message, "kind", "aura", "?pet", "?hero_skin");
             integer(message, "aura", 0, 5);
+            if (message.has("pet")) integer(message, "pet", 0, 6);
+            if (message.has("hero_skin")) integer(message, "hero_skin", 0, 1);
             return;
         }
         if (host) {
@@ -35,6 +37,14 @@ final class PartyMessage {
             return;
         }
         switch (kind) {
+            case "pet_selected":
+                fields(message, "kind", "pet");
+                integer(message, "pet", 0, 6);
+                break;
+            case "pet_unlocked":
+                fields(message, "kind", "pet");
+                integer(message, "pet", 2, 6);
+                break;
             case "follow_request":
                 fields(message, "kind", "token", "depth");
                 token(message);
@@ -170,7 +180,6 @@ final class PartyMessage {
             case "resume":
             case "cancel":
             case "inventory":
-            case "skills":
             case "last_skill":
             case "go":
             case "follow":
@@ -181,9 +190,16 @@ final class PartyMessage {
                 integer(payload, "value", 0, 0);
                 break;
             case "ui_choose":
-                fields(payload, "token", "index");
+                fields(payload, "token", "index", "?alternate", "?slots");
                 token(payload);
                 integer(payload, "index", 0, 255);
+                if (payload.has("alternate")) bool(payload, "alternate");
+                if (payload.has("slots")) integer(payload, "slots", 1, QuickSlot.MAX_SLOTS);
+                break;
+            case "skills":
+                fields(payload, "value", "?slots");
+                integer(payload, "value", 0, 0);
+                if (payload.has("slots")) integer(payload, "slots", 1, QuickSlot.MAX_SLOTS);
                 break;
             case "ui_close":
                 fields(payload, "token");
@@ -194,6 +210,11 @@ final class PartyMessage {
     }
 
     private static void window(JSONObject payload) throws IOException, JSONException {
+        if (payload.has("view")) {
+            token(payload);
+            PartyWindowViews.validate(payload);
+            return;
+        }
         boolean closed = payload.has("closed") && bool(payload, "closed");
         if (closed) {
             fields(payload, "token", "closed", "choices");
@@ -201,12 +222,14 @@ final class PartyMessage {
         } else {
             int count = integer(payload, "choices", 0, 256);
             boolean rewards = payload.has("reward0");
-            String[] fields = new String[count * (rewards ? 2 : 1) + 5];
+            String[] fields = new String[count * (rewards ? 2 : 1) + 6];
             fields[0] = "token";
             fields[1] = "title";
             fields[2] = "text";
             fields[3] = "choices";
             fields[fields.length - 1] = "?image";
+            fields[fields.length - 2] = "?revision";
+            if (payload.has("revision")) integer(payload, "revision", 0, Integer.MAX_VALUE);
             if (payload.has("image")) integer(payload, "image", 0, ItemSpriteSheet.MAX_IMAGE);
             for (int i = 0; i < count; i++) {
                 fields[i + 4] = "choice" + i;

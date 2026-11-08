@@ -45,6 +45,7 @@ public class Window extends Group implements Signal.Listener<Key> {
 
 	private static final boolean DESKTOP_RUNTIME = detectDesktopRuntime();
 	private static final float DESKTOP_OVERLAY_TEXT_SCALE = 0.75f;
+	protected static final float MAX_SCREEN_FRACTION = .9f;
 	private static final ArrayList<Window> WINDOWS = new ArrayList<>();
 
 	protected int width;
@@ -127,15 +128,9 @@ public class Window extends Group implements Signal.Listener<Key> {
 			(int)chrome.width,
 			(int)chrome.height,
 			PixelScene.defaultZoom );
-		camera.x = (int)(Game.width - camera.width * camera.zoom) / 2;
-		camera.y = (int)(Game.height - camera.height * camera.zoom) / 2;
 		camera.scroll.set( chrome.x, chrome.y );
 		Camera.add( camera );
-
-		shadow.boxRect(
-			camera.x / camera.zoom,
-			camera.y / camera.zoom,
-			chrome.width(), chrome.height );
+		fitCamera();
 
 		Keys.event.add( this );
 		WINDOWS.add( this );
@@ -157,10 +152,32 @@ public class Window extends Group implements Signal.Listener<Key> {
 			height + chrome.marginVer() );
 
 		camera.resize( (int)chrome.width, (int)chrome.height );
+		fitCamera();
+	}
+
+	protected final int maxFrameWidth() {
+		return Math.max(1, (int)(Game.width * MAX_SCREEN_FRACTION / camera.zoom));
+	}
+
+	protected final int maxFrameHeight() {
+		return Math.max(1, (int)(Game.height * MAX_SCREEN_FRACTION / camera.zoom));
+	}
+
+	protected final void fitCamera() {
+
+		camera.zoom = Math.min(camera.zoom, Math.min(
+				Game.width * MAX_SCREEN_FRACTION / Math.max(1, camera.width),
+				Game.height * MAX_SCREEN_FRACTION / Math.max(1, camera.height)));
+		camera.resize(camera.width, camera.height);
 		camera.x = (int)(Game.width - camera.screenWidth()) / 2;
 		camera.y = (int)(Game.height - camera.screenHeight()) / 2;
+		updateShadow();
+	}
 
-		shadow.boxRect( camera.x / camera.zoom, camera.y / camera.zoom, chrome.width(), chrome.height );
+	protected final void updateShadow() {
+		float zoom = shadow.camera.zoom;
+		shadow.boxRect(camera.x / zoom, camera.y / zoom,
+				chrome.width() * camera.zoom / zoom, chrome.height() * camera.zoom / zoom);
 	}
 
 	public void hide() {
@@ -218,6 +235,7 @@ public class Window extends Group implements Signal.Listener<Key> {
 	}
 
 	public void onBackPressed() {
+		if (PartyWindows.close(this)) return;
 		hide();
 	}
 

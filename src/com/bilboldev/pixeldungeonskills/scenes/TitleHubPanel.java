@@ -456,11 +456,12 @@ abstract class TitleHubPanel extends TitleLayer {
             fill.y = y+1;
             fill.size(Math.max(0, width-2), Math.max(0, height-2));
             text.scale.set(textScaleX, textScaleY);
-            fit(text, Math.max(1, width-12));
+            fit(text, Math.max(1, width - 12));
             text.x = PixelScene.align(x + (width - text.width()) / 2);
             text.y = PixelScene.align(y + (height - text.baseLine()) / 2 - 1);
             if (icon != null) {
-                icon.scale.set(Math.max(0, Math.min(width - 6, height - 6)) / Math.max(icon.width, icon.height));
+                float size = Math.min(width - 6, height - 6);
+                icon.scale.set(Math.max(0, size) / Math.max(icon.width, icon.height));
                 icon.x = PixelScene.align(x + (width - icon.width()) / 2);
                 icon.y = PixelScene.align(y + (height - icon.height()) / 2);
             }

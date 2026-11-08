@@ -1,10 +1,16 @@
 package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.noosa.TextureFilm;
+import com.bilboldev.noosa.audio.Sample;
+import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RivalHuntress;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalServant;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 
 public class RivalSprite extends MobSprite {
     private boolean meleeWarning;
@@ -19,7 +25,7 @@ public class RivalSprite extends MobSprite {
     }
 
     public void appearance(HeroClass hero, int tier) {
-        texture(hero.spritesheet());
+        texture(HeroSkins.sheet(hero, 1));
         TextureFilm tiers = new TextureFilm(texture, texture.width, HeroSprite.FRAME_HEIGHT);
         TextureFilm frames = new TextureFilm(tiers, tier + 1, HeroSprite.FRAME_WIDTH, HeroSprite.FRAME_HEIGHT);
         idle = new Animation(1, true);
@@ -35,6 +41,24 @@ public class RivalSprite extends MobSprite {
         die.frames(frames, 8, 9, 10, 11, 12, 11);
         play(idle);
         resetColor();
+    }
+
+    @Override
+    public void attack(int cell) {
+        if (!(ch instanceof RivalHuntress) || Level.adjacent(ch.pos, cell)) {
+            super.attack(cell);
+            return;
+        }
+        Char archer = ch;
+        Level floor = Dungeon.level;
+        zap(cell, () -> {
+            idle();
+            if (Dungeon.level != floor || !archer.isAlive() || parent == null) return;
+            Sample.INSTANCE.play(Assets.SND_MISS);
+            ((MissileSprite)parent.recycle(MissileSprite.class)).reset(archer.pos, cell, ItemSpriteSheet.Arrow, null, () -> {
+                if (Dungeon.level == floor && archer.isAlive()) archer.onAttackComplete();
+            });
+        });
     }
 
     @Override

@@ -14,6 +14,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 import com.bilboldev.pixeldungeonskills.windows.WndOptions;
+import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndPartyMenu;
 import com.bilboldev.utils.Bundle;
 
@@ -22,7 +23,8 @@ public final class PartyWindows {
     private static final ArrayList<Window> windows = new ArrayList<>();
     private static final ArrayList<MenuModel.Choice> choices = new ArrayList<>();
     private static Window shown;
-    private static WndPartyMenu clientWindow;
+    private static Window clientWindow;
+    private static long clientToken;
     private static Bundle pendingMenu;
     private static int token;
     private static long awaitingToken;
@@ -61,6 +63,14 @@ public final class PartyWindows {
         showReceived();
     }
 
+    public static boolean displays(Window window) {
+        return PartySession.client() && window == clientWindow;
+    }
+
+    public static void replace(Window previous, Window next) {
+        if (displays(previous)) clientWindow = next;
+    }
+
     private static void showReceived() {
         if (pendingMenu == null || !(Game.scene() instanceof GameScene) || PartySession.applyingSnapshot()) return;
         Bundle message = pendingMenu;
@@ -71,13 +81,27 @@ public final class PartyWindows {
         } catch (NumberFormatException invalid) {
             return;
         }
-        if (awaitingToken != 0 && next <= awaitingToken) return;
-        awaitingToken = 0;
+        if (next <= clientToken || awaitingToken != 0 && next <= awaitingToken) return;
         if (clientWindow != null) {
             clientWindow.hide();
             clientWindow = null;
         }
+        if (message.contains("revision") && !PartySession.prepareWindow(message.getInt("revision"))) {
+            pendingMenu = message;
+            return;
+        }
+        awaitingToken = 0;
+        clientToken = next;
         if (message.getBoolean("closed")) return;
+        if (message.contains("view")) {
+            try {
+                clientWindow = PartyWindowViews.create(message);
+                GameScene.show(clientWindow);
+            } catch (IllegalArgumentException invalid) {
+                PartySession.textFailure(invalid);
+            }
+            return;
+        }
         String[] labels = new String[message.getInt("choices")];
         for (int i = 0; i < labels.length; i++) labels[i] = PartyText.render(message.getBundle("choice" + i));
         int[] images = null, quantities = null;
@@ -102,7 +126,7 @@ public final class PartyWindows {
         GameScene.show(clientWindow);
     }
 
-    public static void choose(long receivedToken, int index) {
+    public static void choose(long receivedToken, int index, boolean alternate) {
         Window window = top();
         if (PartySession.client() || receivedToken != token || window == null || window != shown) return;
         if (index < 0 || index >= choices.size()) throw new IllegalArgumentException("Unknown party menu choice");
@@ -112,7 +136,8 @@ public final class PartyWindows {
         try {
             PartySession.withRemote(() -> {
                 if (choice.button == null) ((WndOptions)window).selectForParty(choice.option);
-                else if (belongsTo(choice.button, window)) choice.button.triggerPartyAction();
+                else if (belongsTo(choice.button, window) && (!alternate || window instanceof WndBag))
+                    choice.button.triggerPartyAction(alternate);
             });
         } finally {
             changing = false;
@@ -153,9 +178,42 @@ public final class PartyWindows {
         if (PartySession.client()) awaitingToken = token;
     }
 
+    public static boolean select(Button button) {
+        return select(button, false);
+    }
+
+    public static boolean select(Button button, boolean alternate) {
+        if (!PartySession.client()) return false;
+        if (clientWindow == null || clientWindow instanceof WndPartyMenu) return true;
+        MenuModel menu = clientWindow.menuModel();
+        for (int i = 0; i < menu.choices.size(); i++) {
+            if (menu.choices.get(i).button != button) continue;
+            if (awaitingToken == 0 && belongsTo(button, clientWindow)) {
+                Bundle choice = new Bundle();
+                choice.put("token", (int)clientToken);
+                choice.put("index", i);
+                if (alternate) choice.put("alternate", true);
+                if (PartySession.command("ui_choose", choice)) awaitResponse(clientToken);
+            }
+            return true;
+        }
+        return true;
+    }
+
+    public static boolean close(Window window) {
+        if (!PartySession.client() || window != clientWindow || window instanceof WndPartyMenu) return false;
+        if (awaitingToken == 0) {
+            Bundle close = new Bundle();
+            close.put("token", (int)clientToken);
+            if (PartySession.command("ui_close", close)) awaitResponse(clientToken);
+        }
+        return true;
+    }
+
     public static void clear() {
         if (clientWindow != null) clientWindow.hide();
         clientWindow = null;
+        clientToken = 0;
         pendingMenu = null;
         awaitingToken = 0;
         for (Window window : windows) {
@@ -199,6 +257,11 @@ public final class PartyWindows {
         } else {
             MenuModel menu = shown.menuModel();
             if (menu == null) throw new IllegalArgumentException("Missing party menu: " + shown.getClass().getName());
+            if (PartyWindowViews.describe(menu, message)) {
+                choices.addAll(menu.choices);
+                PartySession.sendUi(message);
+                return;
+            }
             message.put("title", PartyText.encode(menu.title));
             message.put("text", PartyText.encode(menu.description));
             if (menu.image >= 0) message.put("image", menu.image);

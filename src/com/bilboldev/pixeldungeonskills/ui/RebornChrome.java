@@ -125,7 +125,8 @@ public final class RebornChrome extends NinePatch {
         NoosaScript script = NoosaScript.get();
         script.camera(camera());
         script.uModel.valueM4(matrix);
-        float emphasis = type == Chrome.Type.TAB_UNSELECTED ? .60f : 1f;
+        float emphasis = type == Chrome.Type.TAB_UNSELECTED ? .46f
+                : type == Chrome.Type.BUTTON && !highlighted ? .62f : 1f;
         int rim = highlighted ? 0xD1B48A : material.rim;
         texture.bind();
         light(script, rim, emphasis);
@@ -134,7 +135,7 @@ public final class RebornChrome extends NinePatch {
             stone.bind();
             int surface = material.surface;
             if (type == Chrome.Type.BUTTON) surface = highlighted ? 0x3A3228 : 0x302D36;
-            light(script, surface, emphasis);
+            light(script, surface, 1f);
             script.drawQuadSet(surfaceVertices, tiles);
         }
     }

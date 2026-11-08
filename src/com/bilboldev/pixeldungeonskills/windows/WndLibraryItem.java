@@ -6,6 +6,7 @@ import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.LibraryCatalog;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild.Property;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
@@ -37,7 +38,8 @@ public final class WndLibraryItem extends WndLibrary {
         }
 
         int width = boundedWidth(landscapeLayout() ? 360 : 144);
-        int bodyWidth = textWidth(width);
+        int totalWidth = textWidth(width);
+        int bodyWidth = landscapeLayout() ? (totalWidth - GAP * 3) / 2 : totalWidth;
         float buttonHeight = Math.max(24, 48 * Game.density / camera.zoom);
         heading = InspectionTitle.create(build.image(), build.name());
         heading.setRect(0, 0, width, 0);
@@ -79,7 +81,7 @@ public final class WndLibraryItem extends WndLibrary {
 
         int count = build.properties().size() + (build.canCurse() ? 1 : 0)
                 - (build.properties().contains(Property.BASE_ARMOR) ? 1 : 0);
-        float cellWidth = (bodyWidth - GAP * (count - 1)) / count;
+        float cellWidth = count == 0 ? bodyWidth : (bodyWidth - GAP * (count - 1)) / count;
         float rowHeight = Math.max(32, buttonHeight);
         int column = 0;
         for (Property property : build.properties()) {
@@ -106,10 +108,46 @@ public final class WndLibraryItem extends WndLibrary {
         }
         top += rowHeight + GAP;
 
+        if (!build.attributeOptions().isEmpty()) {
+            HighlightedText title = label(LibraryCatalog.text("attributes"), bodyWidth);
+            title.setPos(0, top + GAP);
+            content.add(title);
+            top = title.bottom() + GAP;
+            for (int i = 0; i < 3; i++) {
+                final int slot = i;
+                EquipmentAttribute attribute = build.attribute(slot);
+                String name = attribute == null ? LibraryCatalog.text("none") : attribute.description();
+                ItemButton choose = new ItemButton(name,
+                        () -> parent.add(new WndLibraryItemOptions(build, slot, this::rebuild)));
+                if (attribute != null) choose.textColor(0xECD095);
+                float controlWidth = buttonHeight;
+                float nameWidth = bodyWidth - 2 * (controlWidth + GAP);
+                choose.setSize(nameWidth, buttonHeight);
+                float height = Math.max(buttonHeight, choose.reqHeight());
+                choose.setRect(0, top, nameWidth, height);
+                content.add(choose);
+                ItemButton less = new ItemButton("-", () -> {
+                    build.attribute(slot, new EquipmentAttribute(attribute.type, attribute.amount - 1, attribute.target));
+                    rebuild();
+                });
+                ItemButton more = new ItemButton("+", () -> {
+                    build.attribute(slot, new EquipmentAttribute(attribute.type, attribute.amount + 1, attribute.target));
+                    rebuild();
+                });
+                less.enable(attribute != null && attribute.amount > attribute.type.min);
+                more.enable(attribute != null && attribute.amount < attribute.type.max);
+                less.setRect(nameWidth + GAP, top, controlWidth, height);
+                more.setRect(bodyWidth - controlWidth, top, controlWidth, height);
+                content.add(less);
+                content.add(more);
+                top += height + GAP;
+            }
+        }
+
         HighlightedText info = label(build.info(), bodyWidth - 8);
-        info.setPos(4, top + GAP + 4);
+        info.setPos(landscapeLayout() ? bodyWidth + GAP * 3 : 4, landscapeLayout() ? 4 : top + GAP + 4);
         content.add(info);
-        content.setSize(bodyWidth, info.bottom() + 4);
+        content.setSize(totalWidth, Math.max(top, info.bottom()) + 4);
         layoutLibrary(width, heading, content, GAP);
         pane.scrollTo(0, offset);
     }

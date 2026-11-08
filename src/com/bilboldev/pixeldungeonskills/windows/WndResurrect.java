@@ -43,7 +43,6 @@ public class WndResurrect extends WndScrollable {
         return RebornChrome.Material.ARCANE;
     }
 
-	private static final String TXT_MESSAGE	= "You died, but you were given another chance to win this dungeon. Will you take it?";
 	private static final String TXT_YES		= "Yes, I will fight!";
 	private static final String TXT_NO		= "No, I give up";
 
@@ -59,7 +58,8 @@ public class WndResurrect extends WndScrollable {
 		super();
 		int windowWidth = Presentation.reborn() ? boundedWidth(InspectionTitle.windowWidth(WIDTH)) : WIDTH;
 		final Hero fallen = Dungeon.hero;
-        menuModel = new MenuModel(Message.itemName(ankh), Message.key("custom.generated.entry_you_died_but_you_were_given_another_chance_to_wi_2f7599cafc"));
+        menuModel = new MenuModel(Message.itemName(ankh), Message.key("windows.wndresurrect.body"));
+        menuModel.image = ankh.image();
 
 		instance = this;
 		WndResurrect.causeOfDeath = causeOfDeath;
@@ -68,7 +68,7 @@ public class WndResurrect extends WndScrollable {
 		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
 
-		BitmapTextMultiline message = PixelScene.createMultiline( TXT_MESSAGE, 6 );
+		BitmapTextMultiline message = PixelScene.createMultiline( menuModel.description.toString(), 6 );
 		message.maxWidth = Presentation.reborn() ? textWidth(windowWidth) : windowWidth;
 		message.measure();
 		message.y = titlebar.bottom() + GAP;
@@ -77,12 +77,16 @@ public class WndResurrect extends WndScrollable {
 		RedButton btnYes = new RedButton( TXT_YES ) {
 			@Override
 			protected void onClick() {
+				if (WndResurrect.this.parent == null || fallen.isAlive()
+						|| !fallen.belongings.backpack.contains(ankh)) return;
 				hide();
 				if (LocalCoop.contains(fallen)) LocalCoop.activate(fallen);
+				ankh.detach(fallen.belongings.backpack);
 
 				Statistics.ankhsUsed++;
 
 				InterlevelScene.mode = InterlevelScene.Mode.RESURRECT;
+				InterlevelScene.resurrectingHero = fallen;
 				Game.switchScene( InterlevelScene.class );
 			}
 		};
@@ -93,6 +97,7 @@ public class WndResurrect extends WndScrollable {
 		RedButton btnNo = new RedButton( TXT_NO ) {
 			@Override
 			protected void onClick() {
+				if (WndResurrect.this.parent == null) return;
 				hide();
 				if (LocalCoop.contains(fallen)) LocalCoop.activate(fallen);
 

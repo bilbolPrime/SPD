@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.graphics.Color;
 
@@ -86,7 +88,7 @@ public class SoulCrystal extends MissileWeapon {
             SoulCrystalFilled crystal = new SoulCrystalFilled(((Mob) Actor.findChar(cell)).spriteClass,  Actor.findChar(cell).HT, ((Mob) Actor.findChar(cell)).defenseSkill,
                     Message.actor(Actor.findChar(cell)));
             Dungeon.level.drop( crystal, cell ).sprite.drop();
-            Actor.findChar(cell).damage(Actor.findChar(cell).HP, Dungeon.hero);
+            Actor.findChar(cell).damage(Actor.findChar(cell).HP, Dungeon.hero, CombatTextIcon.MAGIC);
 
         }
         else if (Dungeon.visible[cell]) {

@@ -41,7 +41,10 @@ public class Messages {
         "messages/reborn_bosses",
         "messages/reborn_rooms",
         "messages/gauntlet",
-        "messages/ice_caves"
+        "messages/ice_caves",
+        "messages/skills4",
+        "messages/champions",
+        "messages/daily"
 	};
 
 	public static final String NO_TEXT_FOUND = "!!!NO TEXT FOUND!!!";

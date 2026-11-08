@@ -28,8 +28,12 @@ public class TripleShot extends ActiveSkill2{
     }
 
     @Override
-    public boolean doubleShot()
+    public boolean doubleShot(boolean moreArrows)
     {
+        if (!moreArrows || count == 2) {
+            count = 0;
+            return false;
+        }
         if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
             return false;
         else if(count < 2)

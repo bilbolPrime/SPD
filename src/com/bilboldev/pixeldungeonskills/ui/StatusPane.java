@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.NinePatch;
@@ -105,7 +106,7 @@ public class StatusPane extends Component {
 		btnMenu = new MenuButton();
 		add( btnMenu );
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
+		avatar = HeroSprite.avatar( Dungeon.hero, lastTier );
 		add( avatar );
 
 		blood = new BitmaskEmitter( avatar );
@@ -197,6 +198,7 @@ public class StatusPane extends Component {
 
 		keys.y = 6;
 		supporter.setRect(depth.x - 18, depth.y - 5, 16, 16);
+        supporter.visible = supporter.active = Game.width >= Game.height;
 		lore.setRect(width < 190 ? width - 18 : supporter.left() - 18,
 				width < 190 ? 18 : supporter.top(), 16, 16);
 
@@ -345,7 +347,7 @@ public class StatusPane extends Component {
 		int tier = Dungeon.hero.tier();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
+			avatar.copy( HeroSprite.avatar( Dungeon.hero, tier ) );
 		}
 	}
 
@@ -353,7 +355,7 @@ public class StatusPane extends Component {
 		shownHero = hero;
 		lastTier = hero.tier();
 		lastLvl = lastKeys = -1;
-		avatar.copy(HeroSprite.avatar(hero.heroClass, lastTier));
+		avatar.copy(HeroSprite.avatar(hero, lastTier));
 		avatar.resetColor();
 
 		Emitter previousBlood = blood;

@@ -78,6 +78,7 @@ public class RivalNecromancer extends RivalBoss {
             if (ability == 1) {
                 int healing = Math.min(Math.min(damage / 2, HT - HP), HT / 10 - healed);
                 HP += healing;
+                showRecovery(healing, false);
                 healed += healing;
                 if (healing > 0) burst(new int[]{pos}, Speck.HEALING);
             }

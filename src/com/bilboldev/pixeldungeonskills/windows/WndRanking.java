@@ -76,7 +76,7 @@ public class WndRanking extends WndTabbed {
 
 		super();
 		windowWidth = boundedWidth(190);
-		windowHeight = Math.max(48, Math.min(200, (int)(Game.height / camera.zoom) - frameHeight() - 8));
+		windowHeight = Math.max(48, Math.min(200, maxFrameHeight() - frameHeight()));
 		resize( windowWidth, windowHeight );
 
 		thread = new Thread() {
@@ -175,7 +175,7 @@ public class WndRanking extends WndTabbed {
 			String heroClass = Dungeon.hero.className();
 
 			IconTitle title = new IconTitle();
-			title.icon( HeroSprite.avatar( Dungeon.hero.heroClass, Dungeon.hero.tier() ) );
+			title.icon( HeroSprite.avatar( Dungeon.hero, Dungeon.hero.tier() ) );
 			title.label( Utils.format( Messages.get( StatsTab.class, "title" ), Dungeon.hero.lvl, heroClass ).toUpperCase( Locale.ENGLISH ) );
 			title.setRect( 0, 0, textWidth(windowWidth), 0 );
 			content.add( title );

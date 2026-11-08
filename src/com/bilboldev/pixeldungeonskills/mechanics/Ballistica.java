@@ -26,39 +26,44 @@ public class Ballistica {
 
 	public static int[] trace = new int[Math.max( Level.WIDTH, Level.HEIGHT )];
 	public static int distance;
-	
+
+	private static boolean canTrace(int cell) {
+		return distance < trace.length && cell >= Level.WIDTH && cell < Level.LENGTH - Level.WIDTH
+				&& cell % Level.WIDTH > 0 && cell % Level.WIDTH < Level.WIDTH - 1;
+	}
+
 	public static int cast( int from, int to, boolean magic, boolean hitChars ) {
-		
+
 		int w = Level.WIDTH;
-		
+
 		int x0 = from % w;
 		int x1 = to % w;
 		int y0 = from / w;
 		int y1 = to / w;
-		
+
 		int dx = x1 - x0;
 		int dy = y1 - y0;
-		
+
 		int stepX = dx > 0 ? +1 : -1;
 		int stepY = dy > 0 ? +1 : -1;
-		
+
 		dx = Math.abs( dx );
 		dy = Math.abs( dy );
-		
+
 		int stepA;
 		int stepB;
 		int dA;
 		int dB;
-		
+
 		if (dx > dy) {
-			
+
 			stepA = stepX;
 			stepB = stepY * w;
 			dA = dx;
 			dB = dy;
 
 		} else {
-			
+
 			stepA = stepY * w;
 			stepB = stepX;
 			dA = dy;
@@ -68,33 +73,34 @@ public class Ballistica {
 
 		distance = 1;
 		trace[0] = from;
-		
+
 		int cell = from;
-		
+
 		int err = dA / 2;
 		while (cell != to || magic) {
-			
+
 			cell += stepA;
-			
+
 			err += dB;
 			if (err >= dA) {
 				err = err - dA;
 				cell = cell + stepB;
 			}
-			
+
+			if (!canTrace(cell)) return trace[distance - 1];
 			trace[distance++] = cell;
-			
+
 			if (!Level.passable[cell] && !Level.avoid[cell]) {
 				return trace[--distance - 1];
 			}
-			
+
 			if (Level.losBlocking[cell] || (hitChars && Actor.findChar( cell ) != null)) {
 				return cell;
 			}
 		}
-		
-		trace[distance++] = cell;
-		
+
+		if (distance < trace.length) trace[distance++] = cell;
+
 		return to;
 	}
 
@@ -153,6 +159,7 @@ public class Ballistica {
                 cell = cell + stepB;
             }
 
+            if (!canTrace(cell)) return trace[distance - 1];
             trace[distance++] = cell;
 
             if (!Level.passable[cell] && !Level.avoid[cell]) {
@@ -164,11 +171,10 @@ public class Ballistica {
             }
         }
 
-        trace[distance++] = cell;
+        if (distance < trace.length) trace[distance++] = cell;
 
         return to;
     }
-
 
     public static int cast( int from, int to, int skipChars ) {
 
@@ -226,6 +232,7 @@ public class Ballistica {
                 cell = cell + stepB;
             }
 
+            if (!canTrace(cell)) return trace[distance - 1];
             trace[distance++] = cell;
 
             if (!Level.passable[cell]) {
@@ -238,7 +245,7 @@ public class Ballistica {
 
         }
 
-        trace[distance++] = cell;
+        if (distance < trace.length) trace[distance++] = cell;
 
         return to;
     }

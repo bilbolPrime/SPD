@@ -23,15 +23,9 @@ package com.bilboldev.pixeldungeonskills.thetiles;
 
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.levels.Terrain;
-import com.bilboldev.utils.PathFinder;
-import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
-import com.bilboldev.noosa.Image;
 import com.bilboldev.utils.PathFinder;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,7 +43,7 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
         if (tile == Terrain.COLLAPSED_CAVE) return 321;
-		if(offsetStuff().contains(tile)){
+		if (OFFSET_TILES.contains(tile)) {
 			return tile + 256;
 		}
 
@@ -114,7 +108,12 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 		return data[pos] >= 0 && data[pos] != DungeonTileSheet.WATER;
 	}
 
-	private List<Integer> offsetStuff(){
-		return Arrays.asList(Terrain.STORAGE, Terrain.TOXIC_TRAP, Terrain.SECRET_TOXIC_TRAP, Terrain.FIRE_TRAP, Terrain.SECRET_FIRE_TRAP, Terrain.PARALYTIC_TRAP, Terrain.SECRET_PARALYTIC_TRAP, Terrain.INACTIVE_TRAP, Terrain.POISON_TRAP, Terrain.SECRET_POISON_TRAP, Terrain.ALARM_TRAP, Terrain.SECRET_ALARM_TRAP, Terrain.LIGHTNING_TRAP, Terrain.SECRET_LIGHTNING_TRAP, Terrain.GRIPPING_TRAP, Terrain.SECRET_GRIPPING_TRAP, Terrain.SUMMONING_TRAP, Terrain.SECRET_SUMMONING_TRAP);
-	}
+    private static final List<Integer> OFFSET_TILES = Arrays.asList(
+            Terrain.STORAGE, Terrain.TOXIC_TRAP, Terrain.SECRET_TOXIC_TRAP,
+            Terrain.FIRE_TRAP, Terrain.SECRET_FIRE_TRAP, Terrain.PARALYTIC_TRAP,
+            Terrain.SECRET_PARALYTIC_TRAP, Terrain.INACTIVE_TRAP, Terrain.POISON_TRAP,
+            Terrain.SECRET_POISON_TRAP, Terrain.ALARM_TRAP, Terrain.SECRET_ALARM_TRAP,
+            Terrain.LIGHTNING_TRAP, Terrain.SECRET_LIGHTNING_TRAP, Terrain.GRIPPING_TRAP,
+            Terrain.SECRET_GRIPPING_TRAP, Terrain.SUMMONING_TRAP, Terrain.SECRET_SUMMONING_TRAP);
+
 }

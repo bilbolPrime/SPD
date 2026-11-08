@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -123,7 +124,8 @@ public class RebornYog extends RebornBoss {
 
     @Override
     protected void resolveSkill(int kind, int[] cells) {
-        strike(cells, kind == RIFT ? 22 : 15, kind == RIFT ? 32 : 23, kind == RIFT);
+        strike(cells, kind == RIFT ? 22 : 15, kind == RIFT ? 32 : 23, kind == RIFT,
+                kind == EMBER ? CombatTextIcon.FIRE : kind == ROT ? CombatTextIcon.ACID : CombatTextIcon.MAGIC);
         if (!isAlive()) return;
         if (kind == ROT) splash(cells, 0xFF718C46);
         else if (kind == RIFT) burst(cells, PurpleParticle.BURST);
@@ -244,7 +246,7 @@ public class RebornYog extends RebornBoss {
 
         @Override
         protected void resolveSkill(int kind, int[] cells) {
-            strike(cells, 22, 30, kind == EMBER);
+            strike(cells, 22, 30, kind == EMBER, kind == EMBER ? CombatTextIcon.FIRE : CombatTextIcon.ACID);
             if (!isAlive()) return;
             leaveResidue(cells, kind, 3, 5);
             burst(cells, kind == ROT ? Speck.BUBBLE : Speck.LIGHT);
@@ -291,7 +293,9 @@ public class RebornYog extends RebornBoss {
             if (healedAt == RebornBoss.heroActions()) return;
             healedAt = RebornBoss.heroActions();
             if (Level.water[pos] && HP < HT) {
+                int before = HP;
                 HP = Math.min(HT, HP + 4);
+                showRecovery(HP - before, false);
                 if (sprite != null) sprite.emitter().burst(ShadowParticle.UP, 2);
             }
         }

@@ -17,7 +17,13 @@ android {
     }
 
     lint {
-        checkReleaseBuilds false
+        fatal 'NewApi'
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 
     defaultConfig {
@@ -29,6 +35,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -44,5 +51,6 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation 'org.jcraft:jorbis:0.0.17'
 }

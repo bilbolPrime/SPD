@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.quest.Pickaxe;
@@ -92,6 +93,7 @@ public final class LibraryHeroBuild {
         hero.belongings.ring2 = (Ring)equipment(Slot.RING2);
         addRingStats(hero, hero.belongings.ring1);
         addRingStats(hero, hero.belongings.ring2);
+        hero.refreshBonuses();
         return new Stats(hero);
     }
 
@@ -123,6 +125,10 @@ public final class LibraryHeroBuild {
     }
 
     private static final class PreviewHero extends Hero {
+        @Override public int attribute(EquipmentAttribute.Type type) {
+            return EquipmentAttribute.previewBonus(this, type);
+        }
+
         PreviewHero(HeroClass heroClass, int level, int strength) {
             this.heroClass = heroClass;
             lvl = level;
@@ -163,8 +169,9 @@ public final class LibraryHeroBuild {
                 Gun gun = (Gun)weapon;
                 projectiles = gun.projectilesPerShot();
                 float share = 1f / projectiles;
-                damageMin = Math.max(1, (int)(gun.min() * share));
-                damageMax = Math.max(1, (int)(gun.max() * share));
+                float bonus = 1 + hero.attribute(EquipmentAttribute.Type.RANGED) / 100f;
+                damageMin = Math.max(1, (int)(gun.min() * share * bonus));
+                damageMax = Math.max(1, (int)(gun.max() * share * bonus));
                 attackTurns = hero.hasteTime(gun.firingDelay(hero));
             } else {
                 projectiles = 1;
@@ -172,8 +179,9 @@ public final class LibraryHeroBuild {
                 int maximum = weapon == null ? Math.max(1, hero.STR() - 9) : weapon.max();
                 if (weapon instanceof Weapon) maximum += ((Weapon)weapon).excessStrengthDamage(hero);
                 if (weapon instanceof NecroBlade) maximum += Math.max(0, ((NecroBlade)weapon).charge / 10 - 1);
-                damageMin = Math.max(0, minimum);
-                damageMax = Math.max(0, maximum);
+                float bonus = 1 + hero.attribute(EquipmentAttribute.Type.MELEE) / 100f;
+                damageMin = Math.max(0, (int)(minimum * bonus));
+                damageMax = Math.max(0, (int)(maximum * bonus));
                 attackTurns = hero.hasteTime(hero.attackDelay());
             }
         }

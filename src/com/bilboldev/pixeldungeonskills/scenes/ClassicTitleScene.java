@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.scenes;
 
 import com.bilboldev.pixeldungeonskills.Lore;
+import com.bilboldev.pixeldungeonskills.DailyRun;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLES20;
@@ -43,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+import com.bilboldev.pixeldungeonskills.ui.UpdateButton;
 
 public class ClassicTitleScene extends PixelScene {
 
@@ -57,6 +59,7 @@ public class ClassicTitleScene extends PixelScene {
 	@Override
 	public void create() {
 		Lore.clearNotices();
+		DailyRun.leave();
 		com.bilboldev.pixeldungeonskills.GauntletRun.finish();
 
 		super.create();
@@ -198,12 +201,17 @@ public class ClassicTitleScene extends PixelScene {
 		btnExit.setPos( w - btnExit.width(), 0 );
 		add( btnExit );
 
+        UpdateButton updates = new UpdateButton();
+        updates.setRect(btnExit.left() - 26, 2, 24, 24);
+        add(updates);
+
         if(VersionNewsInfo.haveMessage())
         {
             add(VersionNewsInfo.getWelcomeWindow());
         }
 
 		fadeIn();
+		DailyScene.showError();
 	}
 
     private void chooseGameMode() {

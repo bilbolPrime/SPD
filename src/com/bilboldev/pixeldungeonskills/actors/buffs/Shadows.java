@@ -91,6 +91,11 @@ public class Shadows extends Invisibility {
 	}
 
 	@Override
+	public int remainingTurns() {
+		return Math.max(0, (int)Math.ceil(cooldown() + (left - 1) * TICK * 2));
+	}
+
+	@Override
 	public String toString() {
 		return "Shadowmelded";
 	}

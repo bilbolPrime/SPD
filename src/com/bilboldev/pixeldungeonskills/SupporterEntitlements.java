@@ -10,6 +10,18 @@ public final class SupporterEntitlements {
 
     private SupporterEntitlements() { }
 
+    public static boolean ownsSkins() {
+        return false;
+    }
+
+    public static boolean ownsPets() {
+        return false;
+    }
+
+    public static int tier() {
+        return 0;
+    }
+
     public static boolean ownsAura(int style) {
         return Game.isFreeDesktop() && runAurasUnlocked && style >= 1 && style <= SUBSCRIBER_ICON;
     }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Desafios diários</string>
+    <string-array name="daily_reminder_events">
+        <item>A corte do Rei dos Ratos</item>
+        <item>Fuga da prisão</item>
+        <item>O último turno</item>
+        <item>A caçada branca</item>
+        <item>O selo quebrado</item>
+        <item>O último posto</item>
+        <item>O tesouro do rei</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>O Rei dos Ratos está reunindo seus guardas. Chegue até ele antes dos reforços.</item>
+        <item>Tengu está fugindo. Abra caminho pela prisão e detenha-o.</item>
+        <item>Três mineiros estão presos. Traga-os de volta antes da partida do último elevador.</item>
+        <item>Três feras rondam as cavernas de gelo. Cace-as antes da chegada da tempestade.</item>
+        <item>Demônios estão chegando pelos locais do ritual. Sele os três.</item>
+        <item>O posto avançado está sob ataque. Resista até a ajuda chegar.</item>
+        <item>O ouro do rei está trancado. Pegue-o e fuja antes que os portões se fechem.</item>
+    </string-array>
+</resources>

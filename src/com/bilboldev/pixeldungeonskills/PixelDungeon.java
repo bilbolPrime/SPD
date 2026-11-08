@@ -145,7 +145,10 @@ public class PixelDungeon extends Game {
 	@Override
 	public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
 		super.onRequestPermissionsResult(request, permissions, grants);
-		if (networkAccess != null) networkAccess.onRequestPermissionsResult(request, permissions, grants);
+		if (networkAccess != null) {
+			networkAccess.onRequestPermissionsResult(request, permissions, grants);
+		}
+		AndroidDailyReminders.permissionResult(this, request, grants);
 	}
 
 	@Override
@@ -166,6 +169,7 @@ public class PixelDungeon extends Game {
 		NetworkAccess.install(networkAccess);
 		PartyPrompts.install(networkAccess);
 		Messages.setup( language() );
+        AndroidDailyReminders.install(this);
 
 		updateImmersiveMode();
 
@@ -229,9 +233,16 @@ public class PixelDungeon extends Game {
 			Assets.SND_MIMIC );
 	}
 
+    @Override protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        AndroidDailyReminders.opened(intent);
+    }
+
 	@Override
 	public void onResume() {
 		resumed = true;
+        AndroidDailyReminders.refresh(this);
 		PartySession.setForeground(windowFocused);
 		super.onResume();
 	}

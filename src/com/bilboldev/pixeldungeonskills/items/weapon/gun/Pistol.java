@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class Pistol extends Gun {
@@ -25,6 +26,6 @@ public class Pistol extends Gun {
 
     @Override
     public String desc() {
-        return "A reliable sidearm. Holds two shots and deals solid damage at range.";
+        return Messages.get("custom.generated.necro_merc.pistol_desc");
     }
 }

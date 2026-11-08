@@ -34,6 +34,7 @@ public class ScrollPane extends Component {
 	private static final ArrayList<ScrollPane> DESKTOP_SCROLL_PANES = new ArrayList<ScrollPane>();
 	private static final float DESKTOP_WHEEL_STEP_FACTOR = 0.25f;
 	private static final float DESKTOP_SCROLLBAR_HIT_WIDTH = 8f;
+	private static final float MOBILE_DRAG_SCALE = 1.33f;
 
 	protected static final int THUMB_COLOR		= 0xFF7b8073;
 	protected static final float THUMB_ALPHA	= 0.5f;
@@ -326,7 +327,8 @@ public class ScrollPane extends Component {
 
 				Camera c = content.camera;
 
-				c.scroll.offset( PointF.diff( lastPos, t.current ).invScale( c.zoom ) );
+				float scale = Window.isDesktopRuntime() ? 1 : MOBILE_DRAG_SCALE;
+				c.scroll.offset( PointF.diff( lastPos, t.current ).scale( scale / c.zoom ) );
 				clampScroll();
 				updateThumbPosition();
 

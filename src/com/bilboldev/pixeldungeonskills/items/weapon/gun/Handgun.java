@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class Handgun extends Gun {
@@ -25,6 +26,6 @@ public class Handgun extends Gun {
 
     @Override
     public String desc() {
-        return "A small, compact handgun. Easy to carry, low damage — but it fires and recharges quickly.";
+        return Messages.get("custom.generated.necro_merc.handgun_desc");
     }
 }

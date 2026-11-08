@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.HeroSkins;
+import com.bilboldev.pixeldungeonskills.CosmeticPets;
 import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.util.Log;
@@ -104,6 +106,8 @@ public final class PartySession {
     private static int fallenHero = -1;
     private static int sentAura = -1;
     private static int partnerAura;
+    private static int sentPet = -1, partnerPet, confirmedPet;
+    private static int sentSkin = -1, partnerSkin;
     private static boolean ending, surfaceEnding;
     private static int localIndex;
     private static int followToken, followRequester = -1, followDepth;
@@ -121,6 +125,9 @@ public final class PartySession {
     private static Bundle appliedState;
     private static String notice;
     private static CellSelector.Listener remoteTarget;
+    private static int remoteQuickSlots = 2;
+
+    public static int remoteQuickSlots() { return remoteQuickSlots; }
     private static int targetToken;
     private static Message targetPrompt;
     private static int clientTargetToken;
@@ -278,10 +285,12 @@ public final class PartySession {
         departureRequested = lanAllowed = false;
         fallenHero = -1;
         sentAura = -1;
-        partnerAura = 0;
+        partnerAura = partnerPet = partnerSkin = confirmedPet = 0;
+        sentPet = sentSkin = -1;
         ending = surfaceEnding = false;
         localIndex = 0;
         remoteTarget = null;
+        remoteQuickSlots = 2;
         targetPrompt = null;
         clientTargetToken = 0;
         sequence = receivedSequence = 0;
@@ -338,6 +347,21 @@ public final class PartySession {
 
     public static Hero partner() {
         return LocalCoop.partner(network() ? localHero() : Dungeon.hero);
+    }
+
+    public static int partnerSkin() { return partnerSkin; }
+
+    public static int pet(Hero hero) {
+        if (network() && hero != localHero()) return partnerPet;
+        return client() ? confirmedPet : CosmeticPets.selected();
+    }
+
+    public static void petUnlocked(int pet) {
+        if (!hosting || !network()) return;
+        Bundle message = new Bundle();
+        message.put("kind", "pet_unlocked");
+        message.put("pet", pet);
+        send(message);
     }
 
     public static int aura(Hero hero) {
@@ -436,12 +460,18 @@ public final class PartySession {
         }
         if (!joined) return;
         int aura = SupporterEntitlements.selectedAura();
-        if (aura != sentAura && connection != null && connection.connected()) {
+        int pet = CosmeticPets.selected();
+        int skin = started && localHero() != null ? localHero().skin : HeroSkins.localChoice;
+        if ((aura != sentAura || pet != sentPet || skin != sentSkin) && connection != null && connection.connected()) {
             Bundle appearance = new Bundle();
             appearance.put("kind", "cosmetics");
             appearance.put("aura", aura);
+            appearance.put("pet", pet);
+            appearance.put("hero_skin", skin);
             send(appearance);
             sentAura = aura;
+            sentPet = pet;
+            sentSkin = skin;
         }
         if (awaitingState && client()) requestFullState();
         if (LocalCoop.active() && Game.scene() instanceof GameScene) started = true;
@@ -640,8 +670,9 @@ public final class PartySession {
         return true;
     }
 
-    public static void command(String action, Bundle payload) {
-        if (!client() || switching || awaitingState || localHero() == null) return;
+    public static boolean command(String action, Bundle payload) {
+        if (!client() || switching || awaitingState && !action.startsWith("ui_") || localHero() == null) return false;
+        if (action.equals("skills") || action.equals("ui_choose")) payload.put("slots", QuickSlot.visibleSlots());
         Bundle message = new Bundle();
         message.put("kind", "command");
         message.put("action", action);
@@ -649,6 +680,7 @@ public final class PartySession {
         message.put("sequence", receivedSequence);
         message.put("payload", payload);
         send(message);
+        return true;
     }
 
     private static void execute(Bundle message) {
@@ -657,6 +689,7 @@ public final class PartySession {
         Bundle payload = message.getBundle("payload");
         int value = payload.getInt("value");
         String action = message.getString("action");
+        if (payload.contains("slots")) remoteQuickSlots = payload.getInt("slots");
         if (!hero.isAlive() && !action.startsWith("ui_")) return;
         if (PartyWindows.busy() && !action.startsWith("ui_") && !action.equals("ping")) return;
         if (remoteTarget != null && !action.equals("target") && !action.equals("cancel") && !action.equals("ping")) return;
@@ -694,7 +727,7 @@ public final class PartySession {
                 GameScene.show(new WndSkillsNew(null, null));
                 break;
             case "last_skill":
-                if (!LocalCoop.defer(hero, () -> hero.heroSkills.showLastUsed())) hero.heroSkills.showLastUsed();
+                hero.heroSkills.showLastUsed();
                 break;
             case "quick":
                 QuickSlot.partyUse(value, false);
@@ -733,7 +766,7 @@ public final class PartySession {
                 }
                 break;
             case "ui_choose":
-                PartyWindows.choose(token(payload), payload.getInt("index"));
+                PartyWindows.choose(token(payload), payload.getInt("index"), payload.getBoolean("alternate"));
                 break;
             case "ui_close":
                 PartyWindows.close(token(payload));
@@ -922,10 +955,22 @@ public final class PartySession {
     }
 
     public static void sendUi(Bundle payload) {
+        if (!payload.getBoolean("closed")) {
+            sendSnapshot();
+            payload.put("revision", sequence);
+        }
         Bundle message = new Bundle();
         message.put("kind", "ui");
         message.put("payload", payload);
         send(message);
+    }
+
+    static boolean prepareWindow(int revision) {
+        if (appliedSequence >= revision) return true;
+        if (pendingState == null || receivedSequence < revision || switching
+                || Dungeon.levelKey() != IceCaves.levelKey(pendingState)) return false;
+        refreshScene();
+        return client() && appliedSequence >= revision;
     }
 
     public static void finishRun(boolean surface) {
@@ -1118,6 +1163,25 @@ public final class PartySession {
             String kind = message.getString("kind");
             if (kind.equals("cosmetics")) {
                 partnerAura = message.getInt("aura");
+                partnerPet = message.getInt("pet");
+                if (hosting) {
+                    Bundle accepted = new Bundle();
+                    accepted.put("kind", "pet_selected");
+                    accepted.put("pet", partnerPet);
+                    send(accepted);
+                }
+                if (!started) {
+                    partnerSkin = message.getInt("hero_skin");
+                    if (hosting && LocalCoop.active() && partner() != null) partner().skin = partnerSkin;
+                }
+                return;
+            }
+            if (kind.equals("pet_selected")) {
+                confirmedPet = message.getInt("pet");
+                return;
+            }
+            if (kind.equals("pet_unlocked")) {
+                CosmeticPets.unlock(message.getInt("pet"));
                 return;
             }
             if (!hosting && (kind.equals("state") || kind.equals("departed") || kind.equals("finished")))

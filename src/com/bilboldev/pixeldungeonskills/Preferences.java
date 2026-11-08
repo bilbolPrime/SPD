@@ -76,4 +76,8 @@ enum Preferences {
 	void put( String key, String value ) {
 		get().edit().putString( key, value ).commit();
 	}
+
+	void putLore(String key, String value) {
+		get().edit().putString(key, value).apply();
+	}
 }

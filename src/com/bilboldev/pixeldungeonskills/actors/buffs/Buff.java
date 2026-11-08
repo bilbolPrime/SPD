@@ -17,6 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
+
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -52,6 +56,10 @@ public class Buff extends Actor {
 		return BuffIndicator.NONE;
 	}
 
+	public int remainingTurns() {
+		return -1;
+	}
+
 	public String displayName() {
 		String localized = message( "name" );
 		return localized != null ? localized : Messages.maybeTranslate( toString() );
@@ -74,7 +82,7 @@ public class Buff extends Actor {
 
 	public static<T extends FlavourBuff> T append( Char target, Class<T> buffClass, float duration ) {
 		T buff = append( target, buffClass );
-		buff.spend( duration );
+		buff.spend( duration(target, buffClass, duration) );
 		return buff;
 	}
 
@@ -89,15 +97,23 @@ public class Buff extends Actor {
 
 	public static<T extends FlavourBuff> T affect( Char target, Class<T> buffClass, float duration ) {
 		T buff = affect( target, buffClass );
-		buff.spend( duration );
+		buff.spend( duration(target, buffClass, duration) );
 		return buff;
 	}
 
 	public static<T extends FlavourBuff> T prolong( Char target, Class<T> buffClass, float duration ) {
 		T buff = affect( target, buffClass );
-		buff.postpone( duration );
+		buff.postpone( duration(target, buffClass, duration) );
 		return buff;
 	}
+
+    private static float duration(Char target, Class<? extends Buff> buffClass, float duration) {
+        if (target instanceof Hero && (buffClass == Roots.class || buffClass == Cripple.class)) {
+            Hero hero = (Hero)target;
+            if (hero.talents() != null) duration *= 1 - Math.min(50, hero.talents().bonus(Talent.Effect.TENACITY)) / 100f;
+        }
+        return duration;
+    }
 
 	public static void detach( Buff buff ) {
 		if (buff != null) {

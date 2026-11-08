@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.wands;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
@@ -228,7 +229,9 @@ public class WandOfMagicCasting extends Wand {
             }
             else  if(casting == CAST_TYPES.SOUL_SPARK)
             {
+                int before = ch.HP;
                 ch.HP = ch.HT;
+                ch.showRecovery(ch.HP - before, false);
                 ch.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.4f, 4);
             }
             else  if(casting == CAST_TYPES.SPARK)
@@ -247,12 +250,14 @@ public class WandOfMagicCasting extends Wand {
                 }
 
                 int hpBefore = ch.HP;
-                ch.damage(damage, Dungeon.hero);
+                ch.damage(damage, Dungeon.hero, CombatTextIcon.MAGIC);
 
                 int dealt = Math.max(0, hpBefore - Math.max(0, ch.HP));
 
                 if (lastUsed instanceof DrainLifeSkill && dealt > 0 && Dungeon.hero.isAlive()) {
+                    int before = Dungeon.hero.HP;
                     Dungeon.hero.HP = Math.min(Dungeon.hero.HT, Dungeon.hero.HP + dealt);
+                    Dungeon.hero.showRecovery(Dungeon.hero.HP - before, false);
                     Dungeon.hero.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.2f, 2);
                 }
 

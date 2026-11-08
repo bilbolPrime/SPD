@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.gltextures.TextureCache;
@@ -33,6 +34,9 @@ import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.hero.Belongings;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.LibraryCatalog;
+import com.bilboldev.noosa.Group;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
@@ -110,23 +114,44 @@ public class WndBag extends WndTabbed {
 	private static Bag lastBag;
 
     public boolean noDegrade = PixelDungeon.itemDeg();
+    private final Hero owner;
+    private final boolean readOnly;
+    private final Bag bag;
 
-	public WndBag( Bag bag, Listener listener, Mode mode, Message title ) {
+    public WndBag(Bag bag, Listener listener, Mode mode, Message title) {
+        this(Dungeon.hero, bag, listener, mode, title, false);
+    }
+
+    public WndBag(Hero hero, Bag bag) {
+        this(hero, bag, null, Mode.ALL, null, true);
+    }
+
+    private WndBag(Hero owner, Bag bag, Listener listener, Mode mode, Message title, boolean readOnly) {
 
 		super();
 
 		this.listener = listener;
+        this.owner = owner;
+        this.readOnly = readOnly;
+        this.bag = bag;
 		this.mode = mode;
 		this.title = title;
         menuModel = new MenuModel(title != null ? title : Message.capitalize(Message.itemName(bag)), Message.empty());
+        menuModel.view = MenuModel.View.BAG;
+        menuModel.item = bag;
+        menuModel.mode = mode.ordinal();
+        menuModel.selection = listener != null;
+        menuModel.prompt = title;
 
-		lastMode = mode;
-		lastBag = bag;
+		if (!readOnly) {
+            lastMode = mode;
+            lastBag = bag;
+        }
 
 		nCols = landscapeLayout() ? COLS_L : COLS_P;
 		nRows = (Belongings.BACKPACK_SIZE + 4 + 1) / nCols + ((Belongings.BACKPACK_SIZE + 4 + 1) % nCols > 0 ? 1 : 0);
 		int availableWidth = boundedWidth(1000);
-		int availableHeight = (int)(Game.height / camera.zoom) - frameHeight() - 8;
+		int availableHeight = maxFrameHeight() - frameHeight();
 		int columnWidth = (availableWidth - SLOT_MARGIN * (nCols - 1)) / nCols;
 		int rowHeight = (availableHeight - TITLE_HEIGHT - SLOT_MARGIN * (nRows - 1)) / nRows;
 		slotSize = Math.max(16, Math.min(Presentation.reborn() ? 32 : SLOT_SIZE,
@@ -147,7 +172,7 @@ public class WndBag extends WndTabbed {
 
 		resize( slotsWidth, slotsHeight + TITLE_HEIGHT );
 
-		Belongings stuff = Dungeon.hero.belongings;
+		Belongings stuff = owner.belongings;
 		Bag[] bags = {
 			stuff.backpack,
 			stuff.getItem( SeedPouch.class ),
@@ -197,32 +222,33 @@ public class WndBag extends WndTabbed {
 
 	protected void placeItems( Bag container ) {
 
-		Belongings stuff = Dungeon.hero.belongings;
+		Belongings stuff = owner.belongings;
 		placeItem( stuff.weapon != null ? stuff.weapon : new Placeholder( ItemSpriteSheet.WEAPON ) );
 		placeItem( stuff.armor != null ? stuff.armor : new Placeholder( ItemSpriteSheet.ARMOR ) );
 		placeItem( stuff.ring1 != null ? stuff.ring1 : new Placeholder( ItemSpriteSheet.RING ) );
 		placeItem( stuff.ring2 != null ? stuff.ring2 : new Placeholder( ItemSpriteSheet.RING ) );
         placeItem( stuff.bow != null ? stuff.bow : new Placeholder( ItemSpriteSheet.EMPTY_BOW ) );
 
-		boolean backpack = (container == Dungeon.hero.belongings.backpack);
+		boolean backpack = (container == owner.belongings.backpack);
+		int equipmentSlots = ((5 + nCols - 1) / nCols) * nCols;
 		if (!backpack) {
-			count = nCols;
+			count = equipmentSlots;
 			col = 0;
-			row = 1;
+			row = equipmentSlots / nCols;
 		}
 
 		for (Item item : container.items) {
 			placeItem( item );
 		}
 
-		while (count-(backpack ? 5 : nCols) < container.size) {
+		while (count - (backpack ? 5 : equipmentSlots) < container.size) {
 			placeItem( null );
 		}
 
-		if (container == Dungeon.hero.belongings.backpack) {
+		if (container == owner.belongings.backpack) {
 			row = nRows - 1;
 			col = nCols - 1;
-			placeItem( new Gold( Dungeon.gold ) );
+			placeItem( new Gold(readOnly ? 0 : Dungeon.gold) );
 		}
 	}
 
@@ -245,6 +271,7 @@ public class WndBag extends WndTabbed {
 
 	@Override
 	public void onMenuPressed() {
+		if (!readOnly && PartyWindows.close(this)) return;
 		if (listener == null) {
 			hide();
 		}
@@ -252,6 +279,7 @@ public class WndBag extends WndTabbed {
 
 	@Override
 	public void onBackPressed() {
+		if (!readOnly && PartyWindows.close(this)) return;
 		if (listener != null) {
 			listener.onSelect( null );
 		}
@@ -260,8 +288,12 @@ public class WndBag extends WndTabbed {
 
 	@Override
 	protected void onClick( Tab tab ) {
-		hide();
-		GameScene.show( new WndBag( ((BagTab)tab).bag, listener, mode, title ) );
+        if (!readOnly && PartyWindows.select(tab)) return;
+        Group host = parent;
+        hide();
+        WndBag next = new WndBag(owner, ((BagTab)tab).bag, listener, mode, title, readOnly);
+        if (readOnly) host.add(next);
+        else GameScene.show(next);
 	}
 
 	@Override
@@ -389,6 +421,8 @@ public class WndBag extends WndTabbed {
 			super.layout();
 		}
 
+        @Override protected Hero viewer() { return owner; }
+
 		@Override
 		public void item( Item item ) {
 			if (durability != null) {
@@ -398,19 +432,29 @@ public class WndBag extends WndTabbed {
 				}
 				durability = null;
 			}
-			super.item( item );
+            super.item(item);
+            if (readOnly && item != null) {
+                icon.view(ItemSpriteSheet.identifiedImage(item.getClass(), item.image()), item.glowing());
+                bg.texture(TextureCache.createSolid(item.isEquipped(owner) ? EQUIPPED : NORMAL));
+                if (item instanceof Wand) {
+                    Wand wand = (Wand)item;
+                    topLeft.text(wand.curCharges + "/" + wand.maxCharges);
+                }
+                enable(!(item instanceof Placeholder));
+                return;
+            }
 			if (item != null) {
 
-				bg.texture( TextureCache.createSolid( item.isEquipped( Dungeon.hero ) ? EQUIPPED : NORMAL ) );
+				bg.texture( TextureCache.createSolid( item.isEquipped(owner) ? EQUIPPED : NORMAL ) );
 				if (item.cursed && item.cursedKnown) {
 					bg.ra = +0.2f;
 					bg.ga = -0.1f;
-				} else if (!item.isIdentified()) {
+                } else if (!item.isIdentified()) {
 					bg.ra = 0.1f;
 					bg.ba = 0.1f;
 				}
 
-				if (!noDegrade && lastBag.owner.isAlive() && item.isUpgradable() && item.levelKnown
+                if (!noDegrade && bag.owner != null && bag.owner.isAlive() && item.isUpgradable() && item.levelKnown
 						&& item.maxDurability() > 0) {
 					durability = new ColorBlock[NBARS];
 					int nBars = (int)GameMath.gate( 0, Math.round( (float)NBARS * item.durability() / item.maxDurability() ), NBARS );
@@ -429,7 +473,7 @@ public class WndBag extends WndTabbed {
 				} else {
 					enable(
 						mode == Mode.QUICKSLOT && (item.defaultAction != null) ||
-						mode == Mode.FOR_SALE && (item.price() > 0) && (!item.isEquipped( Dungeon.hero ) || !item.cursed) ||
+						mode == Mode.FOR_SALE && (item.price() > 0) && (!item.isEquipped(owner) || !item.cursed) ||
 						mode == Mode.UPGRADEABLE && item.isUpgradable() ||
 						mode == Mode.UNIDENTIFED && !item.isIdentified() ||
                         mode == Mode.WEAPON && (item instanceof MeleeWeapon || item instanceof Boomerang) ||
@@ -467,6 +511,23 @@ public class WndBag extends WndTabbed {
 
 		@Override
 		protected void onClick() {
+            if (readOnly) {
+                if (item instanceof Bag) {
+                    Group host = WndBag.this.parent;
+                    hide();
+                    host.add(new WndBag(owner, (Bag)item));
+                } else if (!(item instanceof Placeholder)) {
+                    LibraryCatalog.Entry entry = LibraryCatalog.find(item);
+                    String name = entry == null ? item.name() : entry.name();
+                    if (item.level() != 0) name += String.format(java.util.Locale.ROOT, "%+d", item.level());
+                    if (item.quantity() > 1) name += " x " + item.quantity();
+                    WndBag.this.parent.add(new WndTitledMessage(new ItemSprite(
+                            ItemSpriteSheet.identifiedImage(item.getClass(), item.image()), item.glowing()), name,
+                            entry == null ? item.info(null) : entry.customizable() ? entry.info(item) : entry.description()));
+                }
+                return;
+            }
+			if (PartyWindows.select(this)) return;
 			if (listener != null) {
 
 				hide();
@@ -481,8 +542,14 @@ public class WndBag extends WndTabbed {
 
 		@Override
 		protected boolean onLongClick() {
+            if (readOnly) { onClick(); return true; }
+			if (PartyWindows.select(this, true)) return true;
 			if (listener == null && item.defaultAction != null) {
 				hide();
+				if (Dungeon.hero.talents() != null) {
+					GameScene.show(new WndQuickSlot(item));
+					return true;
+				}
 				QuickSlot.values[0] = item.stackable ? item.getClass() : item;
 				QuickSlot.refresh();
 				return true;

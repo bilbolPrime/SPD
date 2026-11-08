@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Thử thách hằng ngày</string>
+    <string-array name="daily_reminder_events">
+        <item>Triều đình Vua Chuột</item>
+        <item>Vượt ngục</item>
+        <item>Ca cuối cùng</item>
+        <item>Cuộc săn trắng</item>
+        <item>Phong ấn bị phá</item>
+        <item>Tiền đồn cuối cùng</item>
+        <item>Kho báu của vua</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Vua Chuột đang tập hợp lính canh. Hãy đến chỗ hắn trước khi viện binh tới.</item>
+        <item>Tengu đang bỏ trốn. Hãy vượt qua nhà tù và ngăn hắn lại.</item>
+        <item>Ba thợ mỏ đang mắc kẹt. Hãy đưa họ về trước khi chuyến thang máy cuối rời đi.</item>
+        <item>Ba con thú đang lang thang trong hang băng. Hãy hạ chúng trước khi bão tới.</item>
+        <item>Quỷ đang tràn qua các điểm nghi lễ. Hãy phong ấn cả ba nơi.</item>
+        <item>Tiền đồn đang bị tấn công. Hãy cầm cự đến khi cứu viện tới.</item>
+        <item>Vàng của nhà vua nằm sau những cánh cửa khóa. Hãy lấy vàng và thoát ra trước khi cổng đóng.</item>
+    </string-array>
+</resources>

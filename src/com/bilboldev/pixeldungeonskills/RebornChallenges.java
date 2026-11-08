@@ -95,8 +95,8 @@ public final class RebornChallenges {
                 || mob instanceof Swarm) return;
         int chance = Math.min(100, 25 * (1 + (Dungeon.depth - 1) / 5));
         if (random.nextInt(100) >= chance) return;
-        RebornChampion.grant(mob, true);
-        mob.challengeChampion = true;
+        RebornChampion.grant(mob, true, random);
+        mob.challengeChampion = mob.buff(RebornChampion.class) != null;
     }
 
     public static boolean doubleBoss() {

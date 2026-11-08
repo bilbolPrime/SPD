@@ -119,7 +119,7 @@ public final class LibraryRewards {
 
     public static List<Drop> drops(Entry entry, int depth) {
         List<Drop> drops = new ArrayList<>();
-        if (entry.shelf.section != Section.CREATURES) return drops;
+        if (entry.shelf.section != Section.CREATURES || entry.shelf == Shelf.PETS) return drops;
         switch (entry.key) {
             case "actors.mobs.bat.name": case "actors.mobs.swarm.name":
                 drops.add(new Drop("items.potions.potionofhealing.name"));

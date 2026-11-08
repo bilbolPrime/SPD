@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -25,6 +26,10 @@ public class TenguShadow extends Mob {
 
     @Override
     protected boolean act() {
+        if (!inCurrentLevel() || DailyRun.finished()) {
+            spend(TICK);
+            return true;
+        }
         RebornTengu owner = null;
 
         for (Mob mob : Dungeon.level.mobs)
@@ -62,8 +67,19 @@ public class TenguShadow extends Mob {
         return Random.NormalIntRange(3, 6);
     }
 
+    private boolean inCurrentLevel() {
+        return Dungeon.level != null && Dungeon.level.mobs.contains(this);
+    }
+
+    @Override
+    public void onAttackComplete() {
+        if (!inCurrentLevel() || DailyRun.finished() || !isAlive()) next();
+        else super.onAttackComplete();
+    }
+
     @Override
     public void destroy() {
+        if (!inCurrentLevel()) return;
         HP = 0;
         Actor.remove(this);
         Actor.freeCell(pos);
@@ -72,7 +88,7 @@ public class TenguShadow extends Mob {
 
     @Override
     public void die(Object source) {
-        if (removed) return;
+        if (removed || !inCurrentLevel()) return;
         if (source != null) DeathBomb.leave(this);
         removed = true;
         destroy();

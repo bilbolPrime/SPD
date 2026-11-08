@@ -77,7 +77,8 @@ public class Scorpio extends Mob {
 
 	@Override
 	public int attackProc( Char enemy, int damage ) {
-		if (buff(RebornChampion.class) == null && Random.Int( 2 ) == 0) {
+		RebornChampion champion = buff(RebornChampion.class);
+		if ((champion == null || !champion.using(RebornChampion.Skill.KNEE_SHOT)) && Random.Int( 2 ) == 0) {
 			Buff.prolong( enemy, Cripple.class, Cripple.DURATION );
 		}
 

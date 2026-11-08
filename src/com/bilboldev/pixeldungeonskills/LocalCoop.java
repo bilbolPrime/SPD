@@ -497,6 +497,7 @@ public final class LocalCoop {
                 for (int index = 0; index < skills.length; index++) {
                     Skill skill = skills[index];
                     if (skill == hero.heroSkills.lastUsed) lastUsed = index;
+                    if (hero.skillSystem == 4) continue;
                     Bundle runtime = new Bundle();
                     runtime.put("level", skill.level);
                     runtime.put("active", skill.active);
@@ -551,12 +552,15 @@ public final class LocalCoop {
             Dungeon.hero = hero;
             hero.restorePartyRuntime(state.getBundle("runtime"));
             Skill.availableSkill = state.getInt("points");
+            if (hero.talents() != null) Skill.availableSkill += hero.talents().refundedPoints();
             Skill.skillTrack = state.getFloat("clock");
+            if (hero.talents() != null) hero.talents().shiftClock(Skill.skillTrack);
             hero.ready = state.getBoolean("ready");
             hero.restoreHealth = state.getBoolean("resting");
             hero.rebornActions = state.getInt("reborn_actions");
             Skill[] skills = skills(hero);
             for (int index = 0; index < skills.length; index++) {
+                if (hero.skillSystem == 4) continue;
                 Skill skill = skills[index];
                 Bundle runtime = state.getBundle("skill_" + index);
                 skill.level = runtime.getInt("level");
@@ -599,7 +603,7 @@ public final class LocalCoop {
         if (selected != null) controls.get(selected).restore();
     }
 
-    private static Skill[] skills(Hero hero) {
+    public static Skill[] skills(Hero hero) {
         CurrentSkills current = hero.heroSkills;
         ArrayList<Skill> skills = new ArrayList<>();
         Collections.addAll(skills, current.branchPA, current.passiveA1, current.passiveA2, current.passiveA3,

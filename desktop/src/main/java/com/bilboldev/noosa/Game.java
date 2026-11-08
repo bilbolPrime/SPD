@@ -102,6 +102,8 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void create() {
+        com.bilboldev.pixeldungeonskills.GameUpdates.install(
+                new com.bilboldev.pixeldungeonskills.desktop.GitHubGameUpdates());
         graphicsContext++;
         instance = this;
         mContext = this;
@@ -263,7 +265,7 @@ public class Game extends ApplicationAdapter {
     }
 
     protected void step() {
-        if (requestedReset) {
+        if (requestedReset && (scene == null || scene.canLeave(sceneClass))) {
             requestedReset = false;
             try {
                 requestedScene = resolveScene(sceneClass).newInstance();

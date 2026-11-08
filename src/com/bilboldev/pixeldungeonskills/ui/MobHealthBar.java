@@ -22,6 +22,7 @@ public final class MobHealthBar {
     private final ColorBlock block = new ColorBlock(1, 1, 0xFFFFFFFF);
     private final Image buffIcon = new Image(Assets.BUFFS_SMALL);
     private final TextureFilm buffFrames = new TextureFilm(Assets.BUFFS_SMALL, BuffIndicator.SIZE, BuffIndicator.SIZE);
+    private final BuffIndicator.Counter counter = new BuffIndicator.Counter();
     private float left, top, scaleX, scaleY, opacity;
 
     public static float width(MobHealth.State state) {
@@ -29,8 +30,12 @@ public final class MobHealthBar {
     }
 
     public static float height(MobHealth.State state) {
-        int iconRows = (state.buffIcons.size() + buffColumns(state) - 1) / buffColumns(state);
-        return barHeight(state) + (iconRows == 0 ? 0 : iconRows * (BuffIndicator.SIZE + 1) + 1);
+        float height = barHeight(state);
+        int columns = buffColumns(state);
+        for (int first = 0; first < state.buffIcons.size(); first += columns) {
+            height += BuffIndicator.SIZE + 1 + counterHeight(state, first, columns);
+        }
+        return height + (state.buffIcons.isEmpty() ? 0 : 1);
     }
 
     private static float barHeight(MobHealth.State state) {
@@ -38,7 +43,14 @@ public final class MobHealthBar {
     }
 
     private static int buffColumns(MobHealth.State state) {
-        return Math.max(1, Math.min(4, (int)width(state) / (BuffIndicator.SIZE + 1)));
+        return Math.max(1, Math.min(4, state.buffIcons.size()));
+    }
+
+    private static int counterHeight(MobHealth.State state, int first, int columns) {
+        for (int i = first; i < Math.min(first + columns, state.buffIcons.size()); i++) {
+            if (state.buffTurns.get(i) >= 0) return BuffIndicator.Counter.HEIGHT + 1;
+        }
+        return 0;
     }
 
     private static int margin(MobHealth.State state) {
@@ -95,14 +107,17 @@ public final class MobHealthBar {
         float y = top - (height(state) - barHeight(state)) * scaleY;
         for (int first = 0; first < state.buffIcons.size(); first += columns) {
             int count = Math.min(columns, state.buffIcons.size() - first);
+            int counterHeight = counterHeight(state, first, columns);
             float x = centerX - (count * step - 1) * scaleX * 0.5f;
             for (int column = 0; column < count; column++) {
                 buffIcon.frame(buffFrames.get(state.buffIcons.get(first + column)));
                 buffIcon.x = PixelScene.align(camera, x + column * step * scaleX);
-                buffIcon.y = PixelScene.align(camera, y);
+                buffIcon.y = PixelScene.align(camera, y + counterHeight * scaleY);
                 buffIcon.draw();
+                counter.draw(state.buffTurns.get(first + column), camera,
+                        buffIcon.x + BuffIndicator.SIZE * scaleX / 2, y, step, scaleX, scaleY);
             }
-            y += step * scaleY;
+            y += (step + counterHeight) * scaleY;
         }
     }
 
@@ -212,5 +227,6 @@ public final class MobHealthBar {
     public void destroy() {
         block.destroy();
         buffIcon.destroy();
+        counter.destroy();
     }
 }

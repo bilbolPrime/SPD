@@ -10,6 +10,7 @@ public class RebornStandardPainter extends Painter {
         fill(level, room, Terrain.WALL);
         fill(level, room, 1, Terrain.EMPTY);
         for (Room.Door door : room.connected.values()) door.set(Room.Door.Type.REGULAR);
+        if (StandardPainter.paintVariant(level, room)) return;
         switch (Random.Int(3)) {
             case 0:
                 if (room.width() >= 7 && room.height() >= 7) {

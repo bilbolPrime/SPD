@@ -83,6 +83,10 @@ public enum HeroSubClass {
 	}
 
 	public String desc() {
+        if (this != NONE && com.bilboldev.pixeldungeonskills.Dungeon.hero != null
+                && com.bilboldev.pixeldungeonskills.Dungeon.hero.talents() != null) {
+            return Messages.get("skills4.subclass." + name().toLowerCase(Locale.ROOT));
+        }
 		if (this == LICH) {
 			return Messages.get("custom.generated.necro_merc.lich_desc");
 		}

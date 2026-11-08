@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 
@@ -112,7 +113,9 @@ public class Warlock extends Mob implements Callback {
 			if (champion != null && (!isAlive() || enemy == null || !enemy.isAlive())) return;
 
 			if (hit( this, enemy, true )) {
-				if (champion == null && (enemy == Dungeon.hero || LocalCoop.contains(enemy)) && Random.Int( 2 ) == 0) {
+                if ((champion == null || !champion.using(RebornChampion.Skill.CURSE))
+                        && enemy.buff(RebornCurse.class) == null
+                        && (enemy == Dungeon.hero || LocalCoop.contains(enemy)) && Random.Int( 2 ) == 0) {
 					Buff.prolong( enemy, Weakness.class, Weakness.duration( enemy ) );
 				}
 
@@ -123,7 +126,7 @@ public class Warlock extends Mob implements Callback {
 					dmg = adjustHeroDamage((Hero)enemy, dmg);
 				}
 
-				enemy.damageFrom( dmg, this, this );
+				enemy.damageFrom( dmg, this, this, CombatTextIcon.MAGIC );
 				if (champion != null) champion.onHit(enemy);
 
 				if (!enemy.isAlive() && (enemy == Dungeon.hero || LocalCoop.contains(enemy))) {

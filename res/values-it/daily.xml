@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Sfide giornaliere</string>
+    <string-array name="daily_reminder_events">
+        <item>La corte del Re dei ratti</item>
+        <item>Fuga dalla prigione</item>
+        <item>L\'ultimo turno</item>
+        <item>La caccia bianca</item>
+        <item>Il sigillo spezzato</item>
+        <item>L\'ultimo avamposto</item>
+        <item>Il tesoro del re</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Il Re dei ratti sta radunando le guardie. Raggiungilo prima che arrivino i rinforzi.</item>
+        <item>Tengu sta scappando. Fatti strada nella prigione e fermalo.</item>
+        <item>Tre minatori sono intrappolati. Riportali indietro prima che parta l\'ultimo ascensore.</item>
+        <item>Tre bestie si aggirano nelle caverne di ghiaccio. Abbattile prima della tempesta.</item>
+        <item>I demoni arrivano dai siti rituali. Sigillali tutti e tre.</item>
+        <item>L\'avamposto è sotto attacco. Resisti fino all\'arrivo dei soccorsi.</item>
+        <item>L\'oro del re è sotto chiave. Prendilo e fuggi prima che i cancelli si chiudano.</item>
+    </string-array>
+</resources>

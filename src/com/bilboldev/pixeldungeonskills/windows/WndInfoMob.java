@@ -35,10 +35,12 @@ import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.ui.HealthBar;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.LibraryChampionSkills;
+import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
 
 public class WndInfoMob extends WndScrollable {
+	private LibraryChampionSkills championSkills;
 
 	public WndInfoMob( Mob mob ) {
 
@@ -50,20 +52,30 @@ public class WndInfoMob extends WndScrollable {
 		description.text(desc(mob), textWidth(width));
 		body.add(description);
 		float bottom = description.bottom();
-		if (mob.buff(RebornChampion.class) != null) {
+		RebornChampion champion = mob.buff(RebornChampion.class);
+		if (champion != null && champion.learnedSkills().length > 0) {
 			HighlightedText intro = new HighlightedText(6);
 			intro.text(Messages.get(RebornChampion.class, "skills"), textWidth(width));
 			intro.setPos(0, bottom + 8);
 			body.add(intro);
-			LibraryChampionSkills skills = new LibraryChampionSkills(textWidth(width),
-					RebornChampion.skillsFor(mob.getClass()));
-			skills.setPos(0, intro.bottom() + 6);
-			body.add(skills);
-			bottom = skills.bottom();
+			championSkills = new LibraryChampionSkills(textWidth(width), champion);
+			championSkills.setPos(0, intro.bottom() + 6);
+			body.add(championSkills);
+			bottom = championSkills.bottom();
 		}
 		body.setSize(textWidth(width), bottom);
 		layoutContent(width, heading, body, 2);
 
+	}
+
+	@Override
+	protected ScrollPane createScrollPane(Component content) {
+		return new ScrollPane(content) {
+			@Override
+			public void onClick(float x, float y) {
+				if (championSkills != null) championSkills.onClick(x, y);
+			}
+		};
 	}
 
 	private static String desc( Mob mob ) {

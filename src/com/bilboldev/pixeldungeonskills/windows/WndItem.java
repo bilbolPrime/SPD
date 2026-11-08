@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.ui.Component;
@@ -28,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
@@ -51,9 +53,20 @@ public class WndItem extends WndScrollable {
 	private static final int WIDTH = 120;
 
 	public WndItem( final WndBag owner, final Item item ) {
+		this(owner, item, owner != null);
+	}
+
+	public static WndItem forParty(Item item, boolean actions) {
+		return new WndItem(null, item, actions);
+	}
+
+	private WndItem(final WndBag owner, final Item item, boolean actions) {
 
 		super();
         menuModel = new MenuModel(Message.capitalize(Message.item(item)), Message.description(item));
+        menuModel.view = MenuModel.View.ITEM;
+        menuModel.item = item;
+        menuModel.selection = actions;
 		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 
 		int color = titleColor();
@@ -75,21 +88,23 @@ public class WndItem extends WndScrollable {
 		info.text(item.displayInfo(), textWidth(windowWidth));
 		ArrayList<RedButton> buttons = new ArrayList<>();
 
-		if (hero.isAlive() && owner != null) {
+		if (hero.isAlive() && actions) {
 			for (final String action:item.actions( hero )) {
 
 				RedButton btn = new ActionButton( item.actionName( action, hero ) ) {
 					@Override
 					protected void onClick() {
+						if (PartyWindows.select(this)) return;
 						Runnable use = () -> {
 							if (!LocalCoop.active() || hero.isAlive()
-									&& (hero.belongings.backpack.contains(item) || item.isEquipped(hero))) {
+									&& (hero.belongings.backpack.contains(item) || item.isEquipped(hero))
+									&& item.actions(hero).contains(action)) {
 								item.execute(hero, action);
 							}
 						};
 						if (!LocalCoop.defer(hero, use)) use.run();
 						hide();
-						owner.hide();
+						if (owner != null) owner.hide();
 					};
 				};
 				btn.setSize( Math.max( BUTTON_WIDTH, btn.reqWidth() ), BUTTON_HEIGHT );
@@ -101,6 +116,19 @@ public class WndItem extends WndScrollable {
 				}
 
 			}
+            if (hero.talents() != null && item.defaultAction != null) {
+                RedButton bind = new ActionButton(Message.key("skills4.quickslot").toString()) {
+                    @Override protected void onClick() {
+                        if (PartyWindows.select(this)) return;
+                        hide();
+                        if (owner != null) owner.hide();
+                        LocalCoop.withHero(hero, () -> GameScene.show(new WndQuickSlot(item)));
+                    }
+                };
+                bind.setSize(Math.max(BUTTON_WIDTH, bind.reqWidth()), BUTTON_HEIGHT);
+                buttons.add(bind);
+                menuModel.add(bind, Message.key("skills4.quickslot"));
+            }
 		}
 
 		layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));

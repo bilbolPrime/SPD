@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
@@ -148,6 +150,17 @@ public class SummonedPet extends NPC {
     public int range = 1;
 
     private int customDegradeRate = DEGRADE_RATE;
+    private boolean reprieved;
+
+    @Override public void die(Object cause) {
+        if (HP <= 0 && !reprieved && owner().talents() != null && Random.Int(100) < owner().talents().bonus(
+                Talent.Effect.MINION_REPRIEVE)) {
+            reprieved = true;
+            HP = Math.max(1, HT / 4);
+            return;
+        }
+        super.die(cause);
+    }
 
     public static final String PET_TYPE = "pettype";
     public static final String NAME = "name";
@@ -208,6 +221,7 @@ public class SummonedPet extends NPC {
 
     @Override
     public void storeInBundle( Bundle bundle ) {
+        bundle.put("reprieved", reprieved);
         super.storeInBundle( bundle );
         bundle.put( LEVEL, level );
         bundle.put( PET_TYPE, petType );
@@ -223,6 +237,7 @@ public class SummonedPet extends NPC {
 
     @Override
     public void restoreFromBundle( Bundle bundle ) {
+        reprieved = bundle.getBoolean("reprieved");
         super.restoreFromBundle( bundle );
         petType = PET_TYPES.valueOf(bundle.getString( PET_TYPE ));
         level = bundle.getInt( LEVEL );

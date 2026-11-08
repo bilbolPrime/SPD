@@ -17,26 +17,61 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.missiles;
 
-import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
 import java.util.ArrayList;
 
 public class Bow extends MissileWeapon {
 
+    public static final String AC_SHOOT = "SHOOT";
+
 	{
         name = "Bow";
 		image = ItemSpriteSheet.Bow;
 
         stackable = false;
+        defaultAction = AC_SHOOT;
 	}
+
+    public static Arrow ammunition(Hero hero) {
+        for (Item item : hero.belongings.backpack) {
+            if (item.getClass() == Arrow.class && item.quantity() > 0) return (Arrow)item;
+        }
+        return null;
+    }
+
+    @Override
+    public void execute(Hero hero, String action) {
+        if (!AC_SHOOT.equals(action)) {
+            super.execute(hero, action);
+            return;
+        }
+        if (!hero.isAlive()) return;
+        if (!isEquipped(hero)) {
+            QuickSlot.cancel();
+            GLog.w(Bow.class, "equip");
+            return;
+        }
+        Arrow arrows = ammunition(hero);
+        if (arrows == null) {
+            QuickSlot.cancel();
+            GLog.w(Bow.class, "no_arrows");
+            return;
+        }
+        arrows.execute(hero, AC_THROW);
+    }
 
     @Override
     public boolean doEquip( final Hero hero ) {
+
+        if (isEquipped(hero)) return true;
 
         if (hero.belongings.bow == null ) {
 
@@ -93,6 +128,7 @@ public class Bow extends MissileWeapon {
 
 	@Override
 	public Item random() {
+		EquipmentAttribute.roll(this);
 		randomPrefix();
 		quantity = 1;
 		return this;
@@ -108,6 +144,8 @@ public class Bow extends MissileWeapon {
         if(hero.belongings.bow == this)
             hero.belongings.bow = null;
         super.doDrop(hero);
+        QuickSlot.cancel();
+        QuickSlot.refresh();
     }
 
     @Override
@@ -120,12 +158,13 @@ public class Bow extends MissileWeapon {
         ArrayList<String> actions = super.actions( hero );
         actions.remove( AC_THROW );
         actions.remove( AC_EQUIP );
-        if(Dungeon.hero.belongings.bow != this) {
+        if(hero.belongings.bow != this) {
             if(actions.contains(AC_EQUIP) == false)
                 actions.add(AC_EQUIP);
         }
         else
         {
+            actions.add(AC_SHOOT);
             if(actions.contains(AC_UNEQUIP) == false)
                 actions.add(AC_UNEQUIP);
         }

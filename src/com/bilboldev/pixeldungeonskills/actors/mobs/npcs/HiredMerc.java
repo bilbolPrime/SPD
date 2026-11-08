@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -26,8 +28,6 @@ import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Dagger;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.Mace;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
-import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Boomerang;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.FrostBow;
 import com.bilboldev.pixeldungeonskills.levels.Level;
@@ -366,6 +366,10 @@ public class HiredMerc extends NPC {
         }
 
         standGuard = false;
+        if (owner().talents() != null) {
+            damage = damage * (100 - Math.min(40, owner().talents().bonus(
+                    Talent.Effect.MERC_GUARD))) / 100;
+        }
         return damage;
     }
 
@@ -506,19 +510,12 @@ public class HiredMerc extends NPC {
     @Override
     public int damageRoll()
     {
-        if(weapon == null)
-            return mercType.getDamage(level);
-
-        if(weapon instanceof Bow)
-            return (int)(mercType.getDamage(level) * 1.2f);
-
-        if(weapon instanceof Boomerang)
-            return ((Boomerang)weapon).damageRoll(this);
-
-        if(weapon instanceof MeleeWeapon)
-            return ((MeleeWeapon)weapon).damageRoll(this);
-
-        return ((Weapon) weapon).damageRoll(this);
+        int damage;
+        if (weapon == null) damage = mercType.getDamage(level);
+        else if (weapon instanceof Bow) damage = (int)(mercType.getDamage(level) * 1.2f);
+        else damage = ((Weapon)weapon).damageRoll(this);
+        if (owner().talents() != null) damage = damage * (100 + owner().talents().bonus(Talent.Effect.MERC_DAMAGE)) / 100;
+        return damage;
     }
 
     @Override
@@ -603,8 +600,14 @@ public class HiredMerc extends NPC {
         {
             GLog.p("actors.mobs.npcs.hiredmerc.drink", Message.actor(this), Message.itemName(carrying));
             super.sprite.emitter().start(Speck.factory(Speck.HEALING), 0.4f, 4);
+            int before = Math.max(0, HP);
             HP = HT;
-            if (carrying instanceof PotionOfRejuvenation) MP = MMP;
+            showRecovery(HP - before, false);
+            if (carrying instanceof PotionOfRejuvenation) {
+                before = MP;
+                MP = MMP;
+                showRecovery(MP - before, true);
+            }
             carrying = null;
             return;
         }

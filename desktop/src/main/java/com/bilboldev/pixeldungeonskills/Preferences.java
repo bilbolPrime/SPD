@@ -103,4 +103,8 @@ enum Preferences {
         } catch (Exception ignored) {
         }
     }
+
+    void putLore(String key, String value) {
+        get().putString(key, value).flush();
+    }
 }

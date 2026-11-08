@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.pixeldungeonskills.LibraryCatalog.Entry;
@@ -7,6 +9,7 @@ import com.bilboldev.pixeldungeonskills.LibraryCatalog.Section;
 import com.bilboldev.pixeldungeonskills.LibraryCatalog.Shelf;
 import com.bilboldev.pixeldungeonskills.LibraryRewards.Drop;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
@@ -21,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.scrolls.Scroll;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
@@ -61,7 +65,7 @@ public final class Lore {
                 if (saved.length() > 0) saved.append('\n');
                 saved.append(entry);
             }
-            Preferences.INSTANCE.put(DISCOVERIES, saved.toString());
+            Preferences.INSTANCE.putLore(DISCOVERIES, saved.toString());
             changed = false;
         }
         if (checkCompletion) {
@@ -71,7 +75,8 @@ public final class Lore {
     }
 
     public static synchronized boolean known(Entry entry) {
-        if (entry.shelf.section == Section.HEROES || entry.shelf.section == Section.SKILLS || entry.knownAtStart()) return true;
+        if (entry.shelf.section == Section.HEROES
+                || (entry.shelf.section == Section.SKILLS && entry.championSkill == null) || entry.knownAtStart()) return true;
         load();
         if (entry.shelf == Shelf.RIVALS) {
             for (int depth = 5; depth <= 20; depth += 5) {
@@ -91,6 +96,15 @@ public final class Lore {
         if (key == null) return true;
         load();
         return discoveries.contains("MODIFIER:" + key);
+    }
+
+    public static synchronized boolean knownAttribute(Entry item, EquipmentAttribute attribute) {
+        load();
+        return discoveries.contains(attributeKey(item, attribute));
+    }
+
+    private static String attributeKey(Entry item, EquipmentAttribute attribute) {
+        return "ATTRIBUTE:" + item.id() + ":" + attribute.key();
     }
 
     public static synchronized boolean dropped(Entry creature, int depth, String itemKey) {
@@ -133,9 +147,6 @@ public final class Lore {
             if (mob instanceof Prospector) ((Prospector)mob).updateLore();
             if (visible(mob.pos) && mob.invisible == 0) see(mob);
         }
-        for (Item item : Dungeon.hero.belongings) identify(item);
-        identify(Dungeon.hero.belongings.backpack);
-        if (Dungeon.hero.belongings.bow != null) identify(Dungeon.hero.belongings.bow);
         for (Heap heap : Dungeon.level.heaps.values()) {
             if (visible(heap.pos) && (heap.type == Heap.Type.HEAP || heap.type == Heap.Type.FOR_SALE)) {
                 for (Item item : heap.items) identify(item);
@@ -144,10 +155,37 @@ public final class Lore {
         save();
     }
 
+    public static synchronized void inventory() {
+        if (!solo()) return;
+        for (Item item : Dungeon.hero.belongings) identify(item);
+        identify(Dungeon.hero.belongings.backpack);
+        if (Dungeon.hero.belongings.bow != null) identify(Dungeon.hero.belongings.bow);
+        save();
+    }
+
     private static void see(Mob mob) {
         Entry entry = LibraryCatalog.find(mob);
         if (entry == null) return;
         discover(entry, mob instanceof RivalBoss ? ((RivalBoss)mob).tier() * 5 : 0);
+        RebornChampion champion = mob.buff(RebornChampion.class);
+        if (champion != null) {
+            for (RebornChampion.Skill skill : champion.learnedSkills()) {
+                discover(LibraryCatalog.championSkill(skill), 0);
+                if (remember(championKey(entry, skill))) {
+                    notices.add(new Notice(champion.displayName(entry.name()),
+                            Messages.get("champions.knows", (Object)skill.title(), champion.rank(skill)), entry::image));
+                }
+            }
+        }
+    }
+
+    private static String championKey(Entry creature, RebornChampion.Skill skill) {
+        return "CHAMPION:" + creature.id() + ":" + skill.name();
+    }
+
+    public static synchronized boolean knownChampionSkill(Entry creature, RebornChampion.Skill skill) {
+        load();
+        return discoveries.contains(championKey(creature, skill));
     }
 
     private static void discover(Entry entry, int depth) {
@@ -167,8 +205,16 @@ public final class Lore {
     }
 
     private static void identify(Item item) {
-        boolean identified = typeKnown(item);
         Entry entry = LibraryCatalog.find(item);
+        if (item.isIdentified()) {
+            for (EquipmentAttribute attribute : item.attributes) {
+                discover(LibraryCatalog.find(Shelf.ATTRIBUTES, attribute.type.name()), 0);
+                if (entry != null && remember(attributeKey(entry, attribute))) {
+                    notices.add(new Notice(entry.name(), attribute.rangeDescription(), entry::image));
+                }
+            }
+        }
+        boolean identified = typeKnown(item);
         if (entry != null && (identified || item instanceof Weapon || item instanceof Armor)) discover(entry, 0);
         if (!identified) return;
         for (String modifier : LibraryItemBuild.modifierKeys(item)) {
@@ -237,7 +283,8 @@ public final class Lore {
         if (required == null) {
             required = new TreeSet<>();
             for (Entry entry : LibraryCatalog.entries()) {
-                if (entry.shelf.section == Section.HEROES || entry.shelf.section == Section.SKILLS) continue;
+                if (entry.shelf.section == Section.HEROES
+                        || (entry.shelf.section == Section.SKILLS && entry.championSkill == null)) continue;
                 if (entry.shelf == Shelf.RIVALS) {
                     for (int depth = 5; depth <= 20; depth += 5) {
                         required.add(entry.id() + ":" + depth);
@@ -245,6 +292,17 @@ public final class Lore {
                     }
                 } else {
                     if (!entry.knownAtStart()) required.add(entry.id());
+                    LibraryCreatureStats creature = entry.creatureStats();
+                    if (creature != null) {
+                        for (RebornChampion.Skill skill : creature.championSkills()) {
+                            required.add(championKey(entry, skill));
+                        }
+                    }
+                    if (entry.customizable()) {
+                        for (EquipmentAttribute attribute : EquipmentAttribute.options(entry.newItem())) {
+                            required.add(attributeKey(entry, attribute));
+                        }
+                    }
                     if (entry.shelf == Shelf.QUESTS) required.add(entry.id() + ":reward");
                     for (Drop drop : LibraryRewards.drops(entry)) required.add(dropKey(entry, 0, drop.key()));
                 }

@@ -24,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfLiquidFlame;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfPsionicBlast;
@@ -37,15 +38,15 @@ public class Elemental extends Mob {
 	{
 		name = "fire elemental";
 		spriteClass = ElementalSprite.class;
-		
+
 		HP = HT = 65;
 		defenseSkill = 20;
-		
+
 		EXP = 10;
 		maxLvl = 20;
-		
+
 		flying = true;
-		
+
 		loot = new PotionOfLiquidFlame();
 		lootChance = 0.1f;
 
@@ -53,25 +54,26 @@ public class Elemental extends Mob {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return Random.NormalIntRange( 16, 20 );
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return 25;
 	}
-	
+
 	@Override
 	public int dr() {
 		return 5;
 	}
-	
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
-		if (Random.Int( 2 ) == 0) {
+		RebornChampion champion = buff(RebornChampion.class);
+		if ((champion == null || !champion.using(RebornChampion.Skill.FIRE)) && Random.Int( 2 ) == 0) {
 			Buff.affect( enemy, Burning.class ).reignite( enemy );
 		}
 
@@ -79,12 +81,13 @@ public class Elemental extends Mob {
 
 		return damage;
 	}
-	
+
 	@Override
 	public void add( Buff buff ) {
 		if (buff instanceof Burning) {
 			if (HP < HT) {
 				HP++;
+				showRecovery(1, false);
 				sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 			}
 		} else {
@@ -94,14 +97,14 @@ public class Elemental extends Mob {
 			super.add( buff );
 		}
 	}
-	
+
 	@Override
 	public String description() {
 		return
 			"Wandering fire elementals are a byproduct of summoning greater entities. " +
 			"They are too chaotic in their nature to be controlled by even the most powerful demonologist.";
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( Burning.class );
@@ -109,7 +112,7 @@ public class Elemental extends Mob {
 		IMMUNITIES.add( WandOfFirebolt.class );
 		IMMUNITIES.add( ScrollOfPsionicBlast.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;

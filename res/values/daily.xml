@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Daily Challenges</string>
+    <string-array name="daily_reminder_events">
+        <item>The Rat King\'s Court</item>
+        <item>Prison Break</item>
+        <item>The Last Shift</item>
+        <item>The White Hunt</item>
+        <item>The Broken Seal</item>
+        <item>The Last Outpost</item>
+        <item>The King\'s Hoard</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>The Rat King is gathering his guards. Reach him before reinforcements arrive.</item>
+        <item>Tengu is escaping. Break through the prison and stop him.</item>
+        <item>Three miners are trapped. Bring them back before the last lift leaves.</item>
+        <item>Three beasts roam the ice caves. Hunt them down before the storm closes in.</item>
+        <item>Demons are coming through the ritual sites. Seal all three.</item>
+        <item>The outpost is under attack. Hold it until help arrives.</item>
+        <item>The King\'s gold is behind locked doors. Take it and get out before the gates close.</item>
+    </string-array>
+</resources>

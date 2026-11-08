@@ -23,7 +23,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.utils.Random;
 
 public class RemoteBomb extends Item {
-	
+
 	{
 		name = "remote bomb";
 		image = ItemSpriteSheet.RemoteBomb;
@@ -40,38 +40,33 @@ public class RemoteBomb extends Item {
         {
             RemoteBombGround tmp = new RemoteBombGround();
             tmp.pos = cell;
+            tmp.droppedByHero = droppedByHero;
             Dungeon.level.drop( tmp, cell ).sprite.drop();
         }
 
-
     }
-			
 
-
-
-
-	
 	@Override
 	public boolean isUpgradable() {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isIdentified() {
 		return true;
 	}
-	
+
 	@Override
 	public Item random() {
         quantity = Random.Int(1, 1);
 		return this;
-	}	
-	
+	}
+
 	@Override
 	public int price() {
 		return 10 * quantity;
 	}
-	
+
 	@Override
 	public String info() {
 		return

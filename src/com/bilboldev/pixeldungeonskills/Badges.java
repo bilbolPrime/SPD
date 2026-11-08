@@ -253,7 +253,7 @@ public class Badges {
 	}
 
 	public static void saveGlobal() {
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Bundle bundle = null;
 
@@ -639,7 +639,7 @@ public class Badges {
 
 	public static void validateBossSlain() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 		Badge badge = null;
 		switch (Dungeon.depth) {
 		case 5:
@@ -775,7 +775,7 @@ public class Badges {
 
 	public static void validateMastery() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		switch (Dungeon.hero.heroClass) {
@@ -834,7 +834,7 @@ public class Badges {
 
 	public static void validateRare( Mob mob ) {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		if (mob instanceof Albino) {
@@ -866,7 +866,7 @@ public class Badges {
 
 	public static void validateVictory() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = Badge.VICTORY;
 		displayBadge( badge );
@@ -977,7 +977,7 @@ public class Badges {
 	}
 
 	private static void displayBadge( Badge badge ) {
-		if (GauntletRun.active() || LocalCoop.active()) return;
+		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		if (badge == null) {
 			return;
@@ -1000,6 +1000,7 @@ public class Badges {
 	}
 
 	public static boolean isUnlocked( Badge badge ) {
+		restoreGlobalIfNeeded();
 		return global.contains( badge );
 	}
 

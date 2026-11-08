@@ -10,9 +10,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.NecromancerSkill
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.RogueSkillTree;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.WarriorSkillTree;
-import com.bilboldev.pixeldungeonskills.scenes.GameScene;
-import com.bilboldev.pixeldungeonskills.windows.WndSkillNew;
-import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.utils.Bundle;
 
 public enum CurrentSkills{
@@ -264,18 +262,8 @@ public enum CurrentSkills{
         }
     }
 
-    public void showLastUsed()
-    {
-        if(lastUsed != null) {
-            if(lastUsed.quickCast && lastUsed.canCast()){
-                lastUsed.execute(Dungeon.hero, Skill.AC_CAST);
-            }
-            else {
-                WndSkillsNew tmp = null;
-                GameScene.show(new WndSkillNew(tmp, lastUsed));
-            }
-        }
-
+    public void showLastUsed() {
+        QuickSlot.useSticky();
     }
 
     public void storeInBundle( Bundle bundle )

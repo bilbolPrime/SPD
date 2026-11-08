@@ -11,6 +11,7 @@ import com.bilboldev.pixeldungeonskills.actors.blobs.Fire;
 import com.bilboldev.pixeldungeonskills.actors.blobs.ToxicGas;
 import com.bilboldev.pixeldungeonskills.actors.buffs.*;
 import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.Splash;
 import com.bilboldev.pixeldungeonskills.items.keys.SkeletonKey;
@@ -346,12 +347,16 @@ public abstract class RebornBoss extends Mob {
     }
 
     protected void strike(int[] cells, int min, int max, boolean ranged) {
+        strike(cells, min, max, ranged, CombatTextIcon.PHYSICAL);
+    }
+
+    protected void strike(int[] cells, int min, int max, boolean ranged, CombatTextIcon type) {
         for (int cell : cells) {
             if (!valid(cell) || Level.solid[cell] || !lineClear(warningOrigin, cell)) continue;
             Char victim = Actor.findChar(cell);
             if (victim != null && victim != this && !ally(victim)) {
                 if (ranged && (victim == Dungeon.hero || LocalCoop.contains(victim)) && ((Hero)victim).dodgeWithArmor(this)) continue;
-                hit(victim, Random.NormalIntRange(min, max));
+                hit(victim, Random.NormalIntRange(min, max), true, type);
             }
             if (!isAlive()) break;
         }
@@ -362,10 +367,10 @@ public abstract class RebornBoss extends Mob {
     }
 
     protected void hit(Char victim, int damage) {
-        hit(victim, damage, true);
+        hit(victim, damage, true, CombatTextIcon.PHYSICAL);
     }
 
-    private void hit(Char victim, int damage, boolean attack) {
+    private void hit(Char victim, int damage, boolean attack, CombatTextIcon type) {
         NecroWeakened weakened = buff(NecroWeakened.class);
         if (weakened != null) damage = (int)(damage * weakened.outgoingDamageModifier());
         if (victim == Dungeon.hero || LocalCoop.contains(victim)) {
@@ -373,8 +378,8 @@ public abstract class RebornBoss extends Mob {
         }
         damage = victim.defenseProc(this, Math.max(0, damage - Random.IntRange(0, victim.dr())));
         if (damage >= 0) {
-            if (attack) victim.damageFrom(damage, this, this);
-            else victim.damage(damage, this);
+            if (attack) victim.damageFrom(damage, this, this, type);
+            else victim.damage(damage, this, type);
         }
         if (victim.sprite != null) victim.sprite.flash();
         if ((victim == Dungeon.hero || LocalCoop.contains(victim)) && !victim.isAlive())
@@ -397,7 +402,9 @@ public abstract class RebornBoss extends Mob {
         residueAt = RebornBoss.heroActions();
         for (int cell : residue) if (valid(cell) && !Level.water[cell]) {
             Char victim = Actor.findChar(cell);
-            if (victim != null && victim != this && !ally(victim)) hit(victim, residueKind == SLIME ? 4 : 8, false);
+            if (victim != null && victim != this && !ally(victim))
+                hit(victim, residueKind == SLIME ? 4 : 8, false,
+                        residueKind == EMBER ? CombatTextIcon.FIRE : CombatTextIcon.ACID);
             if (!isAlive()) return;
         }
         if (--residueTurns <= 0) residue = new int[0];

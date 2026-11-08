@@ -22,7 +22,7 @@ import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 public class Barkskin extends Buff {
 
 	private int level = 0;
-	
+
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
@@ -31,31 +31,36 @@ public class Barkskin extends Buff {
 			if (--level <= 0) {
 				detach();
 			}
-			
+
 		} else {
-			
+
 			detach();
-			
+
 		}
 
 		return true;
 	}
-	
+
 	public int level() {
 		return level;
 	}
-	
+
+	@Override
+	public int remainingTurns() {
+		return Math.max(0, level);
+	}
+
 	public void level( int value ) {
 		if (level < value) {
 			level = value;
 		}
 	}
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.BARKSKIN;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Barkskin";

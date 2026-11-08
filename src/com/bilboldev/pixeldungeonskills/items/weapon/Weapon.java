@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -209,6 +211,7 @@ abstract public class Weapon extends KindOfWeapon {
 
 	@Override
 	public Item random() {
+		EquipmentAttribute.roll(this);
 		randomPrefix();
 		if (Random.Float() < 0.4) {
 			int n = 1;

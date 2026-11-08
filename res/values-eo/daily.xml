@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Ĉiutagaj defioj</string>
+    <string-array name="daily_reminder_events">
+        <item>La kortego de la Rata Reĝo</item>
+        <item>Fuĝo el malliberejo</item>
+        <item>La lasta deĵoro</item>
+        <item>La blanka ĉaso</item>
+        <item>La rompita sigelo</item>
+        <item>La lasta antaŭposteno</item>
+        <item>La reĝa trezoro</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>La Rata Reĝo kunvenigas siajn gardistojn. Atingu lin antaŭ ol alvenos plifortigoj.</item>
+        <item>Tengu fuĝas. Trarompu la malliberejon kaj haltigu lin.</item>
+        <item>Tri ministoj estas kaptitaj. Revenigu ilin antaŭ ol foriros la lasta lifto.</item>
+        <item>Tri bestioj vagas tra la glaciaj kavernoj. Ĉasu ilin antaŭ ol alvenos la ŝtormo.</item>
+        <item>Demonoj venas el la ritejoj. Sigelu ĉiujn tri.</item>
+        <item>La antaŭposteno estas atakata. Defendu ĝin ĝis alvenos helpo.</item>
+        <item>La oro de la reĝo estas malantaŭ ŝlositaj pordoj. Prenu ĝin kaj eskapu antaŭ ol la pordegoj fermiĝos.</item>
+    </string-array>
+</resources>

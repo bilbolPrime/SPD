@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Dagliga utmaningar</string>
+    <string-array name="daily_reminder_events">
+        <item>Råttkungens hov</item>
+        <item>Fängelseutbrottet</item>
+        <item>Det sista skiftet</item>
+        <item>Den vita jakten</item>
+        <item>Det brutna sigillet</item>
+        <item>Den sista utposten</item>
+        <item>Kungens skatt</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Råttkungen samlar sina vakter. Nå honom innan förstärkningarna kommer.</item>
+        <item>Tengu flyr. Kämpa dig genom fängelset och stoppa honom.</item>
+        <item>Tre gruvarbetare är instängda. För dem tillbaka innan den sista hissen går.</item>
+        <item>Tre bestar strövar genom isgrottorna. Fäll dem innan stormen drar in.</item>
+        <item>Demoner tar sig in genom ritualplatserna. Försegla alla tre.</item>
+        <item>Utposten är under attack. Håll ut tills hjälpen kommer.</item>
+        <item>Kungens guld är inlåst. Ta det och fly innan portarna stängs.</item>
+    </string-array>
+</resources>

@@ -18,7 +18,6 @@ import java.util.ArrayList;
 
 public abstract class WndScrollable extends Window {
 
-    private static final int SCREEN_MARGIN = 4;
     protected static final int SCROLL_GUTTER = 4;
 
     protected WndScrollable() {
@@ -35,7 +34,7 @@ public abstract class WndScrollable extends Window {
 
     protected final int boundedWidth(int preferredWidth) {
         return Math.max(1, Math.min(preferredWidth,
-                (int)(Game.width / camera.zoom) - chrome.marginHor() - SCREEN_MARGIN * 2));
+                maxFrameWidth() - chrome.marginHor()));
     }
 
     protected final int textWidth(int windowWidth) {
@@ -76,10 +75,9 @@ public abstract class WndScrollable extends Window {
         float footerHeight = controlsHeight + (buttons.length == 0 ? 0 : y + rowHeight + gap);
         int fixedHeight = (int)Math.ceil(top + footerHeight);
 
-        float minimumHeight = fixedHeight + 16 + frameHeight() + SCREEN_MARGIN * 2;
-        camera.zoom = Math.min(camera.zoom, Game.height / minimumHeight);
-        int available = Math.max(1, (int)(Game.height / camera.zoom)
-                - frameHeight() - SCREEN_MARGIN * 2 - fixedHeight);
+        float minimumHeight = fixedHeight + 16 + frameHeight();
+        camera.zoom = Math.min(camera.zoom, Game.height * MAX_SCREEN_FRACTION / minimumHeight);
+        int available = Math.max(1, maxFrameHeight() - frameHeight() - fixedHeight);
         int bodyHeight = Math.min((int)Math.ceil(content.height()), available);
 
         ScrollPane body = createScrollPane(content);
@@ -240,6 +238,26 @@ public abstract class WndScrollable extends Window {
         content.add(text);
         content.setSize(text.width(), text.height());
         return content;
+    }
+
+    protected static class IconActionButton extends ActionButton {
+        public IconActionButton(String label) { super(label); }
+
+        @Override protected float textScale() { return 7f / 9; }
+
+        @Override protected void layout() {
+            super.layout();
+            if (icon == null) return;
+            float contentHeight = icon.height() + 3 + text.height();
+            icon.x = x + (width - icon.width()) / 2;
+            icon.y = y + (height - contentHeight) / 2;
+            text.x = x + (width - text.width()) / 2;
+            text.y = icon.y + icon.height() + 3;
+        }
+
+        @Override public float reqHeight() {
+            return text.height() + (icon == null ? 0 : icon.height()) + 10;
+        }
     }
 
     protected static class ActionButton extends RedButton {

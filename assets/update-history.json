@@ -788,5 +788,104 @@
         ]
       }
     ]
+  },
+  {
+    "version": "2.2.1",
+    "build": 145,
+    "date": "2026-11-02",
+    "sections": [
+      {
+        "title": "Gauntlet",
+        "notes": [
+          "Fixed a crash when starting _Gauntlet_ after playing in party mode."
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.2.2",
+    "build": 146,
+    "date": "2026-11-04",
+    "sections": [
+      {
+        "title": "Fixes",
+        "notes": [
+          "Fixed crashes with older Android versions."
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.3.0",
+    "build": 147,
+    "date": "2026-11-08",
+    "sections": [
+      {
+        "title": "Skills and Equipment",
+        "notes": [
+          "New Reborn games have _three skill trees per class_: shared training and two subclass trees. Choose a subclass to open its branch. Classic and existing Reborn saves keep their original skills.",
+          "Each class keeps its familiar abilities and gains new ways to fight, defend and support its allies.",
+          "Reborn equipment can carry _one to three attributes_, with bonuses to health, mana, combat stats and skills.",
+          "_Champions_ draw different skills and ranks from their own pools."
+        ]
+      },
+      {
+        "title": "QoL Changes",
+        "notes": [
+          "_Skill quickslots_ show cooldowns, mana shortages and active toggles.",
+          "_Bows_ have a Shoot action and work in quickslots. Arrow quickslots still work.",
+          "Only the Huntress starts with a bow and 30 arrows. Other heroes can find bows in the dungeon.",
+          "_Ankh revivals_ leave lost belongings and gold on the floor to collect. Equipped gear and stored supplies stay safe. Ankhs no longer appear in party games.",
+          "Timed effects show their _remaining turns_ beside their icons.",
+          "In Reborn, _discovery cards_ describe loot, creatures, chests, plants and useful dungeon features. Identified equipment shows its attributes and enchantment effects. Known curses appear on their own line.",
+          "Creature cards and Lore show abilities, immunities, resistances and weaknesses.",
+          "Browse _Lore_ in image grids.",
+          "Reborn combat numbers show _damage types_, absorbed damage and active HP or mana recovery.",
+          "Reborn has deeper wall shadows, softer borders and drifting ice dust. Fire and magic cast light; explosions give a brief flash and shake. Extra effects can be turned off in settings.",
+          "Attack warnings use sparks, wisps and frost to mark threatened tiles, growing along the attack path.",
+          "Gauntlet uses the new skills, discovery cards and equipment attributes. Its wave counter and countdown sit beside the map.",
+          "_Touch scrolling_ is faster, and large windows leave room around their edges to dismiss them.",
+          "The _update scroll_ lets you know when a new version is available."
+        ]
+      },
+      {
+        "title": "Daily Challenges",
+        "notes": [
+          "_Seven daily events_ offer a short adventure with a prepared hero, a turn limit and a different objective.",
+          "_The Rat King's Court_: free a captive, raid guarded stores and break through the king's bodyguards.",
+          "_Prison Break_: hunt two escape captains, search locked rooms and confront Tengu in his hideout.",
+          "_The Last Shift_: find three stranded miners and escort them to the lift while DM-300 patrols the tunnels.",
+          "_The White Hunt_: track three dangerous creatures through the Ice Caves and reach the exit before the storm closes in.",
+          "_The Broken Seal_: shut down three ritual sites in the Demon Halls. Each sealed site stops a source of reinforcements.",
+          "_The Last Outpost_: defend the captain until help arrives. Gather supplies and free prisoners between attacks.",
+          "_The King's Hoard_: steal the treasury key, prepare an escape route, take the gold and flee while the alarm brings more guards.",
+          "Calendar marks show victories, failed attempts and missed days. Supporters can replay the _previous three days_."
+        ]
+      },
+      {
+        "title": "Supporter Cosmetics",
+        "notes": [
+          "Choose from _six alternate hero skins_ when starting a run. The choice stays with that hero. Rival heroes also wear these skins.",
+          "Bring a _cosmetic pet_: start with a little rat, then defeat bosses to unlock Goo, Tengu, DM-300, Old Rime and Yog companions.",
+          "Pets roam, hop and react to nearby enemies. They never fight, block a path or affect turns.",
+          "Pick or disable auras and pets from the appearance menu. In portrait, its button sits on the left.",
+          "The Donate window previews skins, auras and pets and lists the supporter benefits."
+        ]
+      },
+      {
+        "title": "Fixes",
+        "notes": [
+          "Restored missing _Reborn room varieties_, including graveyards and studies.",
+          "_Online party guests_ now see the full inventory, storage and skill windows instead of text menus.",
+          "Fixed piercing arrows reaching beyond the edge of a floor.",
+          "Fixed an occasional freeze while changing floors and interrupted actions after rotating the screen or changing display settings.",
+          "Fixed ranged rivals leaving their sprites behind when retreating. The rival Huntress fires visible arrows with her normal ranged attack.",
+          "Fixed the rejuvenation potion's cut-off sprite and summoned ghosts showing skeleton descriptions.",
+          "Reduced pauses when discovering Lore and corrected descriptions and translations.",
+          "Fixed Back closing the game instead of dismissing windows on Android 13.",
+          "Fixed a crash when leaving a party lobby on older Android versions."
+        ]
+      }
+    ]
   }
 ]

@@ -18,7 +18,12 @@
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 public class FlavourBuff extends Buff {
-	
+
+	@Override
+	public int remainingTurns() {
+		return time == Float.MAX_VALUE ? -1 : Math.max(0, (int)Math.ceil(cooldown()));
+	}
+
 	@Override
 	public boolean act() {
 		detach();

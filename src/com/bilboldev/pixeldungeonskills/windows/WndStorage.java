@@ -18,11 +18,13 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
 
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.audio.Sample;
@@ -101,7 +103,12 @@ public class WndStorage extends WndTabbed {
 		this.listener = listener;
 		this.mode = mode;
 		this.title = title;
-        menuModel = new MenuModel(title != null ? title : Message.key("custom.generated.entry_storage_9e092dda4f"), Message.empty());
+        menuModel = new MenuModel(title != null ? title : Message.key("custom.generated.entry_storage_9e092dda4f"),
+                Message.key("windows.wndstorage.info"));
+        menuModel.view = MenuModel.View.STORAGE;
+        menuModel.mode = mode.ordinal();
+        menuModel.selection = listener != null;
+        menuModel.prompt = title;
 
 		lastMode = mode;
 		lastBag = bag;
@@ -121,7 +128,12 @@ public class WndStorage extends WndTabbed {
 
 		placeItems( bag );
 
-		resize( slotsWidth, slotsHeight + TITLE_HEIGHT );
+		BitmapTextMultiline info = PixelScene.createMultiline(menuModel.description.toString(), 6);
+		info.maxWidth = slotsWidth;
+		info.measure();
+		info.y = slotsHeight + TITLE_HEIGHT + 4;
+		add(info);
+		resize(slotsWidth, (int)Math.ceil(info.y + info.height()));
 
 	}
 
@@ -356,6 +368,7 @@ public class WndStorage extends WndTabbed {
 
 		@Override
 		protected void onClick() {
+			if (PartyWindows.select(this)) return;
 			if (listener != null) {
 
 				hide();

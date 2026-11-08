@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -229,6 +230,7 @@ public class Yog extends Mob {
 			if (Level.water[pos] && HP < HT) {
 				sprite.emitter().burst( ShadowParticle.UP, 2 );
 				HP += REGENERATION;
+				showRecovery(REGENERATION, false);
 			}
 
 			return super.act();
@@ -310,7 +312,7 @@ public class Yog extends Mob {
 				if (hit( this, enemy, true )) {
 
 					int dmg =  damageRoll();
-					enemy.damageFrom( dmg, this, this );
+					enemy.damageFrom( dmg, this, this, CombatTextIcon.FIRE );
 
 					enemy.sprite.bloodBurstA( sprite.center(), dmg );
 					enemy.sprite.flash();

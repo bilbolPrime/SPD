@@ -93,7 +93,7 @@ public class GauntletStatusPane extends Component {
 		btnMenu = new MenuButton();
 		add( btnMenu );
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, 0 );
+		avatar = HeroSprite.avatar( Dungeon.hero, 0 );
 		add( avatar );
 
 		blood = new BitmaskEmitter( avatar );
@@ -264,7 +264,7 @@ public class GauntletStatusPane extends Component {
 		int tier = Dungeon.hero.tier();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
+			avatar.copy( HeroSprite.avatar( Dungeon.hero, tier ) );
 		}
 
 		if (Dungeon.hero.lvl != lastLvl) {

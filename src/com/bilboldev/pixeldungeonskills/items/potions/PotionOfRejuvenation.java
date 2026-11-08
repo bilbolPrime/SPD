@@ -16,7 +16,9 @@ public class PotionOfRejuvenation extends Potion {
     @Override
     protected void apply(Hero hero) {
         PotionOfHealing.heal(hero);
+        int before = hero.MP;
         hero.MP = hero.MMP;
+        hero.showRecovery(hero.MP - before, true);
         Buff.detach(hero, ManaRecovery.class);
         StatusPane.takingDamage = StatusPane.manaDropping = 0;
     }

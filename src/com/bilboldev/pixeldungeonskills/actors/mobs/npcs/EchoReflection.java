@@ -26,7 +26,7 @@ public class EchoReflection extends RoomProp {
     @Override
     public EchoSprite sprite() {
         EchoSprite sprite = (EchoSprite)super.sprite();
-        sprite.appearance(Dungeon.hero.heroClass, armorTier);
+        sprite.appearance(Dungeon.hero.heroClass, armorTier, Dungeon.hero.skin);
         return sprite;
     }
 

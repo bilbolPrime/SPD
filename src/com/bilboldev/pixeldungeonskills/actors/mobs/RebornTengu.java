@@ -259,7 +259,7 @@ public class RebornTengu extends Tengu {
             ((MissileSprite)sprite.parent.recycle(MissileSprite.class)).reset(shotOrigin, end, new Shuriken(), null);
     }
 
-    private boolean arenaCell(int cell) {
+    protected boolean arenaCell(int cell) {
         return cell >= 0 && cell < Level.LENGTH && Level.passable[cell] && !Level.avoid[cell]
                 && (!(Dungeon.level instanceof PrisonBossLevel) || ((PrisonBossLevel)Dungeon.level).insideArena(cell));
     }
@@ -336,6 +336,10 @@ public class RebornTengu extends Tengu {
         warning = new int[0];
         for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0]))
             if (mob instanceof TenguShadow && ((TenguShadow)mob).ownerId == id()) mob.die(null);
+        finishDeath(cause);
+    }
+
+    protected void finishDeath(Object cause) {
         super.die(cause);
     }
 

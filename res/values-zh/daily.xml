@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">每日挑战</string>
+    <string-array name="daily_reminder_events">
+        <item>鼠王的宫廷</item>
+        <item>越狱</item>
+        <item>最后一班</item>
+        <item>白色狩猎</item>
+        <item>破碎的封印</item>
+        <item>最后的哨所</item>
+        <item>国王的宝库</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>鼠王正在集结卫兵。赶在援军到来前找到他。</item>
+        <item>天狗正准备逃走。突破监狱，阻止他。</item>
+        <item>三名矿工被困在地下。在最后一班升降机离开前带他们回来。</item>
+        <item>三头猛兽在冰洞中游荡。在风暴来临前猎杀它们。</item>
+        <item>三座祭坛正在召唤恶魔。快去封印它们。</item>
+        <item>前哨站遭到攻击。坚持到援军抵达。</item>
+        <item>国王的黄金藏在锁住的门后。抢到黄金，在大门关闭前逃出去。</item>
+    </string-array>
+</resources>

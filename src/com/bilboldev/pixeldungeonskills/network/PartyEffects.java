@@ -6,6 +6,7 @@ import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.effects.Flare;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
@@ -195,9 +196,16 @@ public final class PartyEffects {
 
     public static void number(CharSprite sprite, int color, String text) {
         if (!recording() || !sprite.visible || sprite.ch == null || !text.matches("[+-]?[0-9]{1,9}")) return;
+        number(sprite, color, Integer.parseInt(text), text.startsWith("+"), CombatTextIcon.NONE);
+    }
+
+    public static void number(CharSprite sprite, int color, int amount, boolean plus, CombatTextIcon icon) {
+        if (!recording() || !sprite.visible || sprite.ch == null) return;
+        if (amount < -999999999 || amount > 999999999) return;
         Bundle event = status(sprite, color);
-        event.put("number", Integer.parseInt(text));
-        event.put("plus", text.startsWith("+"));
+        event.put("number", amount);
+        event.put("plus", plus);
+        if (icon != CombatTextIcon.NONE) event.put("damage", icon.id);
         queue(event);
     }
 
@@ -381,7 +389,7 @@ public final class PartyEffects {
                 break;
             case STATUS:
                 boolean numeric = e.has("number");
-                if (numeric) fields(e, "type", "x", "y", "cell", "actor", "height", "color", "number", "plus");
+                if (numeric) fields(e, "type", "x", "y", "cell", "actor", "height", "color", "number", "plus", "?damage");
                 else fields(e, "type", "x", "y", "cell", "actor", "height", "color", "text");
                 position(e);
                 cell(e, "cell");
@@ -391,6 +399,7 @@ public final class PartyEffects {
                 if (numeric) {
                     integer(e, "number", -999999999, 999999999);
                     bool(e, "plus");
+                    if (e.has("damage")) integer(e, "damage", 0, CombatTextIcon.ABSORBED.id);
                 } else statusText(object(e, "text"));
                 break;
             case SOUND:

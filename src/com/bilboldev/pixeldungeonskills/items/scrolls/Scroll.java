@@ -114,8 +114,8 @@ public abstract class Scroll extends Item {
 
 	public Scroll() {
 		super();
-		image = handler.image( this );
-		rune = handler.label( this );
+		image = handler == null ? ItemSpriteSheet.SCROLL_KAUNAN : handler.image(this);
+		rune = handler == null ? "KAUNAN" : handler.label(this);
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public abstract class Scroll extends Item {
 	}
 
 	public boolean isKnown() {
-		return handler.isKnown( this );
+		return handler != null && handler.isKnown(this);
 	}
 
 	public void setKnown() {

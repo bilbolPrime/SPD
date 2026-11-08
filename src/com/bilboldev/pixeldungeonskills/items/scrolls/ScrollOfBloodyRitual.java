@@ -60,7 +60,9 @@ public class ScrollOfBloodyRitual extends Scroll {
 		}
 
         Dungeon.hero.HT -= damage;
+        int before = Dungeon.hero.HP;
         Dungeon.hero.HP = Dungeon.hero.HT;
+        Dungeon.hero.showRecovery(Dungeon.hero.HP - before, false);
         StatusPane.takingDamage = 0;
 
 		GLog.n("custom.generated.entry_scroll_of_bloody_ritual_took_away_s_of_your_max_a58fb692bc", damage);

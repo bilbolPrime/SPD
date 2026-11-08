@@ -374,7 +374,7 @@ public void BindSignarlR()
 
 	protected void step() {
 
-		if (requestedReset) {
+		if (requestedReset && (scene == null || scene.canLeave(sceneClass))) {
 			requestedReset = false;
 			try {
 				requestedScene = resolveScene(sceneClass).newInstance();

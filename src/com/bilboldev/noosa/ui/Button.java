@@ -66,11 +66,12 @@ public class Button extends Component {
 		return true;
 	}
 
-	public boolean triggerPartyAction() {
+	public boolean triggerPartyAction(boolean alternate) {
 		for (Gizmo ancestor = this; ancestor != null; ancestor = ancestor.parent) {
 			if (!ancestor.exists || !ancestor.active || !ancestor.visible) return false;
 			if (ancestor instanceof Window) {
 				if (!((Window)ancestor).isPartyWindow()) return false;
+				if (alternate) return onLongClick();
 				onClick();
 				return true;
 			}

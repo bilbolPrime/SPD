@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.levels.painters;
 import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ImpShopkeeper;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
@@ -164,7 +165,7 @@ public class ShopPainter extends Painter {
 		items.add( new OverpricedRation() );
 		items.add( new OverpricedRation() );
 
-		items.add( new Ankh() );
+		if (!LocalCoop.active()) items.add( new Ankh() );
 
 		Item[] range =items.toArray( new Item[0] );
 		Random.shuffle( range );

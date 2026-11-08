@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Denní výzvy</string>
+    <string-array name="daily_reminder_events">
+        <item>Dvůr Krysího krále</item>
+        <item>Útěk z vězení</item>
+        <item>Poslední směna</item>
+        <item>Bílý lov</item>
+        <item>Zlomená pečeť</item>
+        <item>Poslední výspa</item>
+        <item>Královský poklad</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Krysí král svolává své stráže. Dostaň se k němu, než dorazí posily.</item>
+        <item>Tengu prchá. Probij se vězením a zastav ho.</item>
+        <item>Tři horníci uvízli v dole. Přiveď je zpět, než odjede poslední výtah.</item>
+        <item>Ledovými jeskyněmi se potulují tři bestie. Ulov je, než přijde bouře.</item>
+        <item>Z obřadních míst přicházejí démoni. Zapečeť všechna tři.</item>
+        <item>Základna je pod útokem. Ubraň ji, než dorazí pomoc.</item>
+        <item>Královo zlato je pod zámkem. Zmocni se ho a unikni, než se zavřou brány.</item>
+    </string-array>
+</resources>

@@ -11,7 +11,6 @@ import com.bilboldev.pixeldungeonskills.LibraryRewards;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.LibraryRewards.Drop;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
-import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
@@ -42,10 +41,23 @@ public final class LibraryRewardsPanel extends Component {
         add(badges);
         skills = new IconRow("champion_skills", columnWidth);
         for (RebornChampion.Skill ability : abilities) {
-            Skill skill = LibraryChampionSkills.heroSkill(ability);
-            skills.icon(new SkillSprite(skill.image), () -> Game.scene().add(new WndTitledMessage(
-                    new SkillSprite(skill.image), Messages.capitalize(Messages.maybeTranslate(skill.name)),
-                    LibraryChampionSkills.description(ability))));
+            boolean known = Lore.knownChampionSkill(entry, ability);
+            Image image = new SkillSprite(ability.icon);
+            if (!known) image.hardlight(0x000000);
+            skills.icon(image, () -> {
+                Image icon = new SkillSprite(ability.icon);
+                if (!known) icon.hardlight(0x000000);
+                String info = Messages.get("champions.unknown");
+                if (known) {
+                    String name = Messages.get(RebornChampion.class, "name", (Object)entry.name());
+                    info = Messages.get("champions.pool", (Object)name, ability.title(),
+                            creature.championMinRank(ability), creature.championMaxRank());
+                    for (int rank = creature.championMinRank(ability); rank <= creature.championMaxRank(); rank++) {
+                        info += "\n\n" + Messages.get("skills4.rank_row", rank, ability.description(rank));
+                    }
+                }
+                Game.scene().add(new WndTitledMessage(icon, known ? ability.title() : "???", info));
+            });
         }
         add(skills);
         drops = new IconRow("drops", width);

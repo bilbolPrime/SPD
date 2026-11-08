@@ -34,6 +34,11 @@ public class Combo extends Buff {
 	}
 
 	@Override
+	public int remainingTurns() {
+		return Math.max(0, (int)Math.ceil(cooldown()));
+	}
+
+	@Override
 	public String toString() {
 		return "Combo";
 	}

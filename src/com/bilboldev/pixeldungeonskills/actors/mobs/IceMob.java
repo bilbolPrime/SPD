@@ -10,6 +10,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frostbite;
 import com.bilboldev.pixeldungeonskills.actors.buffs.FrostCoating;
 import com.bilboldev.pixeldungeonskills.actors.buffs.NecroWeakened;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Sleep;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -140,21 +141,36 @@ public abstract class IceMob extends Mob {
     }
 
     protected void strike(int[] cells, int low, int high) {
-        for (int cell : cells) {
-            if (!RebornBoss.valid(cell) || Level.solid[cell] || !RebornBoss.lineClear(attackOrigin, cell)) continue;
-            Char victim = Actor.findChar(cell);
-            if (victim == null || victim == this || victim instanceof Mob && ((Mob)victim).hostile) continue;
-            if (victim instanceof Hero && !Level.adjacent(attackOrigin, cell) && ((Hero)victim).dodgeWithArmor(this)) continue;
-            int damage = Random.NormalIntRange(low, high);
-            NecroWeakened weakened = buff(NecroWeakened.class);
-            if (weakened != null) damage = (int)(damage * weakened.outgoingDamageModifier());
-            if (victim instanceof Hero) damage = adjustHeroDamage((Hero)victim, damage);
-            damage = victim.defenseProc(this, Math.max(0, damage - Random.IntRange(0, victim.dr())));
-            if (damage >= 0) victim.damageFrom(damage, this, this);
-            if (victim.sprite != null) victim.sprite.flash();
-            if (victim instanceof Hero && !victim.isAlive())
-                Dungeon.fail(Utils.format(ResultDescriptions.MOB, Utils.indefinite(name), Dungeon.depth), this);
-            if (!isAlive()) break;
+        RebornChampion champion = buff(RebornChampion.class);
+        boolean started = false;
+        try {
+            for (int cell : cells) {
+                if (!RebornBoss.valid(cell) || Level.solid[cell] || !RebornBoss.lineClear(attackOrigin, cell)) continue;
+                Char victim = Actor.findChar(cell);
+                if (victim == null || victim == this || victim instanceof Mob && ((Mob)victim).hostile) continue;
+                if (victim instanceof Hero && !Level.adjacent(attackOrigin, cell) && ((Hero)victim).dodgeWithArmor(this)) continue;
+                if (champion != null && !started) {
+                    champion.beginAttack(victim);
+                    spend(TICK * (champion.delayMultiplier() - 1f));
+                    started = true;
+                }
+                int damage = Random.NormalIntRange(low, high);
+                if (champion != null) damage = champion.damage(damage);
+                NecroWeakened weakened = buff(NecroWeakened.class);
+                if (weakened != null) damage = (int)(damage * weakened.outgoingDamageModifier());
+                if (victim instanceof Hero) damage = adjustHeroDamage((Hero)victim, damage);
+                damage = victim.defenseProc(this, Math.max(0, damage - Random.IntRange(0, victim.dr())));
+                if (damage >= 0) {
+                    victim.damageFrom(damage, this, this);
+                    if (champion != null) champion.onHit(victim);
+                }
+                if (victim.sprite != null) victim.sprite.flash();
+                if (victim instanceof Hero && !victim.isAlive())
+                    Dungeon.fail(Utils.format(ResultDescriptions.MOB, Utils.indefinite(name), Dungeon.depth), this);
+                if (!isAlive()) break;
+            }
+        } finally {
+            if (champion != null) champion.finishAttack();
         }
     }
 

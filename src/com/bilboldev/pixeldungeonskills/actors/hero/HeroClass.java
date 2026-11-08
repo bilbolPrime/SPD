@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.RebornSkillTree;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -174,11 +176,21 @@ public enum HeroClass {
 			break;
 		}
 
-		if (Badges.isUnlocked( masteryBadge() )) {
+		if (!DailyRun.active() && Badges.isUnlocked( masteryBadge() )) {
 			new ScrollOfSkill().identify().collect();
 
 		}
 
+        if (Dungeon.rules().hasRebornEncounters()
+                && (this == WARRIOR || this == MAGE || this == ROGUE || this == HUNTRESS
+                || this == NECROMANCER || this == MERCENARY)) {
+            hero.skillSystem = 4;
+            hero.skillTree = new RebornSkillTree(hero);
+            if (this == HUNTRESS) {
+                QuickSlot.values[0] = hero.belongings.getItem(Boomerang.class);
+                if (QuickSlot.visibleSlots() > 1) QuickSlot.values[1] = hero.belongings.bow;
+            }
+        }
 		hero.updateAwareness();
 	}
 
@@ -193,11 +205,6 @@ public enum HeroClass {
         Dungeon.currentDifficulty.difficultyStartItemBonus();
 		Skill.availableSkill = Skill.STARTING_SKILL;
 		Skill.availableSkill += Dungeon.currentDifficulty.difficultySkillStartBonus();
-
-		Bow tmp = new Bow(1);
-		tmp.collect();
-		tmp.doEquip(hero);
-		new Arrow(15).collect();
 
         new ScrollOfHome().setKnown();
         new ScrollOfSacrifice().setKnown();
@@ -235,8 +242,6 @@ public enum HeroClass {
 		hero.STR = hero.STR + 1;
 		hero.MP = hero.MMP = 20;
 		(hero.belongings.weapon = new ShortSword()).identify();
-
-		QuickSlot.values[0] = Arrow.class;
 
 		new PotionOfStrength().setKnown();
 
@@ -305,7 +310,6 @@ public enum HeroClass {
 
 		hero.belongings.ring1.activate( hero );
 
-		QuickSlot.values[0] = Arrow.class;
 		new ScrollOfMagicMapping().setKnown();
 
         hero.heroSkills = CurrentSkills.ROGUE;
@@ -321,9 +325,10 @@ public enum HeroClass {
 		Boomerang boomerang = new Boomerang();
 		boomerang.identify().collect();
 
-        new Arrow(15).collect();
+        hero.belongings.bow = new Bow();
         hero.belongings.bow.upgrade();
-		QuickSlot.values[0] = boomerang;
+        new Arrow(30).collect();
+		QuickSlot.values[0] = hero.belongings.bow;
 
         hero.heroSkills = CurrentSkills.HUNTRESS;
         hero.heroSkills.init();

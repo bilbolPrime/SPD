@@ -50,7 +50,7 @@ public final class PartyConnection implements Closeable {
     public static final int DEFAULT_PORT = 47864;
     public static final int DISCOVERY_PORT = 47865;
 
-    public static final int PROTOCOL = 2;
+    public static final int PROTOCOL = 3;
 
     public static final String FORK_ID = "00000000-0000-0000-0000-000000000000";
     public static final int MAX_MESSAGE_BYTES = 4 * 1024 * 1024;
@@ -476,6 +476,7 @@ public final class PartyConnection implements Closeable {
     private final class Link {
         final int number = nextPeer.incrementAndGet();
         final Socket socket;
+        final String address;
         final boolean incoming;
         final long created = System.nanoTime();
         final ArrayBlockingQueue<Frame> outgoing = new ArrayBlockingQueue<>(64);
@@ -492,6 +493,8 @@ public final class PartyConnection implements Closeable {
 
         Link(Socket socket, boolean incoming) throws SocketException {
             this.socket = socket;
+
+            address = socket.getInetAddress().getHostAddress();
             this.incoming = incoming;
             socket.setTcpNoDelay(true);
             socket.setKeepAlive(true);
@@ -560,7 +563,7 @@ public final class PartyConnection implements Closeable {
                     receive(message, length);
                 }
             } catch (IOException | JSONException | GeneralSecurityException | IllegalArgumentException failure) {
-                if (incoming && !authenticated) failed(socket.getInetAddress().getHostAddress());
+                if (incoming && !authenticated) failed(address);
                 end(failure instanceof SocketTimeoutException ? "The connection stopped responding"
                         : failure instanceof EOFException || failure instanceof SocketException ? "Connection closed" : "invalid_data");
             }
@@ -633,7 +636,7 @@ public final class PartyConnection implements Closeable {
             } else if ("proof".equals(kind) && incoming && security != null && !authenticated) {
                 security.verify(message.getString("proof"));
                 authenticated = true;
-                peer = new Peer(number, requestedHero, socket.getInetAddress().getHostAddress());
+                peer = new Peer(number, requestedHero, address);
                 offer(PartyConnection.message("waiting").put("challenges", challenges), null);
                 if (!post(() -> {
                     if (!ended && !approved) listener.onJoinRequest(peer);
@@ -642,7 +645,7 @@ public final class PartyConnection implements Closeable {
                 }
             } else if ("accepted".equals(kind) && !incoming && authenticated && !approved) {
                 if (hero(PartySymbols.name(PartyMessage.integer(message, "hero", 1, 65535))) != requestedHero) throw new IOException("Host hero changed during pairing");
-                peer = new Peer(number, requestedHero, socket.getInetAddress().getHostAddress());
+                peer = new Peer(number, requestedHero, address);
                 synchronized (this) {
                     if (ended) return;
                     approved = true;

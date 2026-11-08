@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -27,7 +29,7 @@ public class MercenaryArmor extends ClassArmor {
 
 	@Override
 	public String desc() {
-		return "A mercenary's coat with hidden pockets everywhere. Its secret stash restores half ammo to every gun you are carrying.";
+		return Messages.get("custom.generated.necro_merc.mercenary_coat_desc");
 	}
 
 	@Override

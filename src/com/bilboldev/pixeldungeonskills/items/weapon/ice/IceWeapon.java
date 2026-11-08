@@ -4,6 +4,7 @@ import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -36,6 +37,7 @@ public interface IceWeapon {
             case MERCENARY: item = new FrostbiteRifle(); break;
             default: throw new IllegalArgumentException("No ice weapon for " + heroClass);
         }
+        EquipmentAttribute.roll(item);
         return item.identify();
     }
 }

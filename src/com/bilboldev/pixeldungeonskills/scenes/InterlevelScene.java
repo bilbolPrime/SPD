@@ -47,10 +47,13 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Rat;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Crab;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Skeleton;
 import com.bilboldev.pixeldungeonskills.items.Generator;
+import com.bilboldev.pixeldungeonskills.items.Heap;
+import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.Betrayal;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.FirstWave;
 import com.bilboldev.pixeldungeonskills.levels.Campaigns.SoulFury;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.MovieLevel;
 import com.bilboldev.pixeldungeonskills.levels.Online.BetaRoomsLevel;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -81,6 +84,7 @@ public class InterlevelScene extends PixelScene {
 
 	public static boolean fallIntoPit;
 	public static Hero fallingHero;
+	public static Hero resurrectingHero;
 
 	private enum Phase {
 		FADE_IN, STATIC, FADE_OUT
@@ -231,10 +235,6 @@ public class InterlevelScene extends PixelScene {
 
 				}
 
-				if (phase == Phase.STATIC && error == null) {
-					phase = Phase.FADE_OUT;
-					timeLeft = TIME_TO_FADE;
-				}
 			}
 		};
 		thread.start();
@@ -289,6 +289,13 @@ public class InterlevelScene extends PixelScene {
 			break;
 
 		case STATIC:
+			if (thread == null || thread.isAlive()) break;
+			thread = null;
+			if (error == null) {
+				phase = Phase.FADE_OUT;
+				timeLeft = TIME_TO_FADE;
+				break;
+			}
 			if (error != null) {
                 if (mode != Mode.MOVIE && mode != Mode.MOVIE_OUT) {
                     add(new WndError(error) {
@@ -624,10 +631,16 @@ public class InterlevelScene extends PixelScene {
 
 	private void resurrect() throws Exception {
 
+		if (resurrectingHero != null) {
+			LocalCoop.activate(resurrectingHero);
+			resurrectingHero = null;
+		}
+		int dropPos = Dungeon.hero.pos;
+		ArrayList<Item> dropped;
 		Actor.fixTime();
 		if (LocalCoop.active()) {
 			Actor.clear();
-			Dungeon.hero.resurrect(-1);
+			dropped = Dungeon.hero.resurrect(-1);
 			Dungeon.hero.time = 0;
 			Dungeon.hero.curAction = null;
 			Dungeon.hero.restoreHealth = false;
@@ -635,18 +648,45 @@ public class InterlevelScene extends PixelScene {
 			Actor.init();
 			Actor respawner = Dungeon.level.respawner();
 			if (respawner != null) Actor.add(respawner);
+			dropResurrectionItems(dropped, dropPos);
 			Dungeon.observe();
 			return;
 		}
 
 		if (Dungeon.bossLevel()) {
-			Dungeon.hero.resurrect( Dungeon.depth );
+			dropped = Dungeon.hero.resurrect( Dungeon.depth );
 			Dungeon.depth--;
 			Level level = Dungeon.newLevel();
 			Dungeon.switchLevel( level, level.entrance );
+			dropPos = level.entrance;
 		} else {
-			Dungeon.hero.resurrect( -1 );
+			dropped = Dungeon.hero.resurrect( -1 );
 			Dungeon.resetLevel();
+		}
+		dropResurrectionItems(dropped, dropPos);
+	}
+
+	private void dropResurrectionItems(ArrayList<Item> items, int pos) throws IOException {
+		if (items.isEmpty()) return;
+		Level level = Dungeon.level;
+		int cell = -1;
+		for (int i = 0; i < Level.LENGTH; i++) {
+			Heap heap = level.heaps.get(i);
+			if (!Level.passable[i] || Level.pit[i] || Level.avoid[i] || Level.secret[i]
+					|| level.map[i] == Terrain.ALCHEMY || heap != null && heap.type != Heap.Type.HEAP) continue;
+			if (cell == -1 || Level.distance(pos, i) < Level.distance(pos, cell)) cell = i;
+		}
+		if (cell == -1) throw new IOException("No floor for resurrection belongings");
+		Heap heap = level.heaps.get(cell);
+		if (heap == null) {
+			heap = new Heap();
+			heap.pos = cell;
+			level.heaps.put(cell, heap);
+		}
+
+		for (Item item : items) {
+			item.droppedOnDeath = true;
+			heap.drop(item);
 		}
 	}
 

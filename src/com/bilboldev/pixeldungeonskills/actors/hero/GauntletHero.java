@@ -5,6 +5,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletArena;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.windows.WndGauntletDie;
 import com.bilboldev.utils.Bundle;
@@ -42,7 +43,7 @@ public class GauntletHero extends Hero {
 
     @Override
     public boolean act() {
-        if (!GauntletRun.acceptsInput()) {
+        if (GauntletRun.hero() != this || !GauntletRun.acceptsInput()) {
             ready = false;
             return false;
         }
@@ -52,9 +53,11 @@ public class GauntletHero extends Hero {
 
     @Override
     protected boolean getCloser(int target) {
+        GauntletArena arena = GauntletRun.arena();
+        if (arena == null || GauntletRun.hero() != this) return false;
         int oldPos = pos;
         boolean moved = super.getCloser(target);
-        if (moved && pos != oldPos) GauntletRun.arena().heroStepped();
+        if (moved && pos != oldPos) arena.heroStepped();
         return moved;
     }
 
@@ -68,14 +71,15 @@ public class GauntletHero extends Hero {
 
     @Override
     public void die(Object cause) {
-        if (dead) return;
+        GauntletArena arena = GauntletRun.arena();
+        if (dead || arena == null || GauntletRun.hero() != this) return;
         dead = true;
         interrupt();
         curAction = null;
         ready = false;
         destroy();
         if (sprite != null) sprite.die();
-        GauntletRun.arena().heroDied();
+        arena.heroDied();
         Sample.INSTANCE.play(Assets.SND_DEATH);
         GameScene.show(new WndGauntletDie());
     }

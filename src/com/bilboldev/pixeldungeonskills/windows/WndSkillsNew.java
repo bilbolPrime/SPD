@@ -17,9 +17,12 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.LibraryCatalog;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.noosa.Group;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
-
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
@@ -43,6 +46,14 @@ import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlot;
 import com.bilboldev.pixeldungeonskills.ui.SkillSlotNew;
 import com.bilboldev.utils.RectF;
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.TalentSkill;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
+import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
+import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
+import com.bilboldev.pixeldungeonskills.ui.RebornSlot;
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import java.util.ArrayList;
 
 public class WndSkillsNew extends WndTabbed {
 
@@ -63,6 +74,11 @@ public class WndSkillsNew extends WndTabbed {
 
 	private Listener listener;
 	private Message title;
+    private int treeTab;
+    private final Hero owner;
+    private final boolean readOnly;
+    private final boolean quickslot;
+    private final int previewPoints;
 
 	private int nCols;
 	private int nRows;
@@ -73,12 +89,42 @@ public class WndSkillsNew extends WndTabbed {
 
     public boolean noDegrade = PixelDungeon.itemDeg();
 	public WndSkillsNew(Listener listener, Message title) {
+		this(listener, title, 0);
+	}
+
+    public WndSkillsNew(Listener listener, Message title, int treeTab) {
+        this(Dungeon.hero, listener, title, treeTab, false, 0, false);
+    }
+
+    public WndSkillsNew(Hero hero, int freePoints) {
+        this(hero, null, null, 0, true, freePoints, false);
+    }
+
+    public static WndSkillsNew quickslot(Listener listener, int treeTab) {
+        return new WndSkillsNew(Dungeon.hero, listener, Message.key("skills4.quickslot"), treeTab, false, 0, true);
+    }
+
+    private WndSkillsNew(Hero hero, Listener listener, Message title, int treeTab, boolean readOnly, int freePoints,
+                         boolean quickslot) {
 
 		super();
 
 		this.listener = listener;
+        owner = hero;
+        this.readOnly = readOnly;
+        this.quickslot = quickslot;
+        previewPoints = freePoints;
 		this.title = title;
-        menuModel = new MenuModel(title != null ? title : Message.key("windows.wndskills.points_title", Skill.availableSkill), Message.empty());
+        menuModel = new MenuModel(title != null ? title : Message.key("windows.wndskills.points_title", points()), Message.empty());
+        menuModel.view = quickslot ? MenuModel.View.QUICK_SKILLS : MenuModel.View.SKILLS;
+        menuModel.selection = listener != null;
+        menuModel.prompt = title;
+        this.treeTab = Math.max(0, Math.min(2, treeTab));
+        if (owner.talents() != null) {
+            menuModel.mode = this.treeTab;
+            placeTalents();
+            return;
+        }
 
 		nCols = 8;
 		nRows = 6;
@@ -104,20 +150,216 @@ public class WndSkillsNew extends WndTabbed {
 		}
 
 		String heading = Messages.capitalize( Messages.maybeTranslate( "Skills" ) );
-		if (Skill.availableSkill > 0) {
+		if (points() > 0) {
 			return Messages.get(WndSkillsNew.class, "title_points", heading,
-					Skill.availableSkill, Messages.maybeTranslate("points)"));
+					points(), Messages.maybeTranslate("points)"));
 		}
 		return heading;
 	}
 
-	protected void placeSkills(  ) {
+    private int points() { return readOnly ? previewPoints : Skill.availableSkill; }
 
-		placeSkillLine( );
-		for(SkillContainer skillContainer : Dungeon.hero.skillTree.getSkills()){
-			placeSkill( skillContainer, false);
-		}
+    public void reopen() {
+        hide();
+        GameScene.show(new WndSkillsNew(listener, title, treeTab));
+    }
 
+    private void placeTalents() {
+        int w = boundedWidth(176);
+        int h = Math.min(178, maxFrameHeight() - frameHeight());
+        ArrayList<HeroSubClass> branches = new ArrayList<>();
+        for (TalentSkill skill : owner.talents().talents()) {
+            if (!branches.contains(skill.talent.subclass)) branches.add(skill.talent.subclass);
+        }
+        HeroSubClass branch = branches.get(treeTab);
+        String name = (branch == HeroSubClass.NONE ? Message.heroClass(owner.heroClass) : Message.subclass(branch, false)).toString();
+        HighlightedText heading = new HighlightedText(9);
+        heading.text(title != null ? title.toString() : Messages.capitalize(name), w - 40, false);
+        heading.setColor(titleColor(), titleColor());
+        heading.setPos(28 + (w - 28 - heading.width()) / 2, 0);
+        add(heading);
+        BitmapText points = PixelScene.createText(Messages.get("skills4.points", points()), 7);
+        points.measure();
+        points.hardlight(0xB7ADA3);
+        points.x = PixelScene.align((w - points.width()) / 2);
+        points.y = heading.bottom() + 3;
+        add(points);
+
+        for (HeroSubClass tabBranch : branches) {
+            TreeTab tab = new TreeTab(treeIcon(tabBranch));
+            tab.setSize(36, tabHeight());
+            add(tab);
+            menuModel.add(tab, tabBranch == HeroSubClass.NONE ? Message.heroClass(owner.heroClass) : Message.subclass(tabBranch, false));
+        }
+        resize(w, h);
+        select(treeTab);
+
+        ArrayList<TalentButton> nodes = new ArrayList<>();
+        float top = points.y + points.height() + 9;
+        float rowHeight = (height - top - 30) / 3;
+        for (TalentSkill skill : owner.talents().talents()) {
+            if (skill.talent.subclass != branch) continue;
+            TalentButton node = new TalentButton(skill);
+            float center = w * (.18f + skill.talent.column * .32f);
+            node.setRect(PixelScene.align(center - 12), PixelScene.align(top + skill.talent.row * rowHeight), 24, 24);
+            nodes.add(node);
+        }
+        for (TalentButton node : nodes) {
+            TalentSkill previous = owner.talents().prerequisite(node.skill.talent);
+            if (previous == null) continue;
+            TalentButton from = null;
+            for (TalentButton candidate : nodes) if (candidate.skill == previous) from = candidate;
+            if (from == null) continue;
+            float x = from.left() + from.width() / 2;
+            float y = from.bottom();
+            float targetX = node.left() + node.width() / 2;
+            float bend = PixelScene.align(y + (node.top() - y) / 2);
+            boolean learned = previous.level > 0 && (branch == HeroSubClass.NONE || branch == owner.subClass);
+            connection(x, y, x, bend, learned);
+            connection(x, bend, targetX, bend, learned);
+            connection(targetX, bend, targetX, node.top(), learned);
+        }
+        for (TalentButton node : nodes) {
+            add(node);
+            menuModel.add(node, Message.skillName(node.skill));
+        }
+        Button identity = new Button() {
+            final Image icon = treeIcon(branch);
+            { add(icon); }
+            @Override protected void layout() {
+                super.layout();
+                icon.x = x + (width - icon.width()) / 2;
+                icon.y = y + (height - icon.height()) / 2;
+            }
+            @Override protected void onClick() {
+                if (branch == HeroSubClass.NONE || !readOnly && PartyWindows.select(this)) return;
+                WndTitledMessage description = new WndTitledMessage(treeIcon(branch), Message.subclass(branch, false),
+                        Message.key("skills4.subclass." + branch.name().toLowerCase(java.util.Locale.ROOT)));
+                if (readOnly) WndSkillsNew.this.parent.add(description);
+                else GameScene.show(description);
+            }
+        };
+        identity.setRect(0, 0, 24, 24);
+        add(identity);
+        if (branch != HeroSubClass.NONE) menuModel.add(identity, Message.subclass(branch, false));
+    }
+
+    private void connection(float x1, float y1, float x2, float y2, boolean learned) {
+        float w = Math.max(1, Math.abs(x2 - x1));
+        float h = Math.max(1, Math.abs(y2 - y1));
+        ColorBlock shadow = new ColorBlock(w + 2, h + 2, 0xFF17151D);
+        shadow.x = Math.min(x1, x2) - 1;
+        shadow.y = Math.min(y1, y2) - 1;
+        add(shadow);
+        ColorBlock line = new ColorBlock(w, h, learned ? 0xFFB49C6F : 0xFF554E61);
+        line.x = Math.min(x1, x2);
+        line.y = Math.min(y1, y2);
+        add(line);
+    }
+
+    private Image treeIcon(HeroSubClass branch) {
+        if (branch == HeroSubClass.NONE) return LibraryCatalog.heroImage(owner.spritesheet(), owner.tier());
+        int icon;
+        switch (branch) {
+            case GLADIATOR: icon = 128; break;
+            case BERSERKER: icon = 129; break;
+            case BATTLEMAGE: icon = 130; break;
+            case WARLOCK: icon = 131; break;
+            case FREERUNNER: icon = 153; break;
+            case ASSASSIN: icon = 154; break;
+            case WARDEN: icon = 145; break;
+            case SNIPER: icon = 146; break;
+            case SPIRIT_BINDER: icon = 176; break;
+            case LICH: icon = 177; break;
+            case MARSHAL: icon = 161; break;
+            case EXECUTIONER: icon = 160; break;
+            default: throw new IllegalArgumentException("Missing subclass icon");
+        }
+        return new SkillSprite(icon);
+    }
+
+    private class TreeTab extends Tab {
+        private final Image icon;
+
+        TreeTab(Image icon) {
+            this.icon = icon;
+            add(icon);
+        }
+
+        @Override protected void layout() {
+            super.layout();
+            if (icon == null || bg == null) return;
+            icon.x = PixelScene.align(WndSkillsNew.this.camera, x + (width - icon.width()) / 2);
+            icon.y = PixelScene.align(WndSkillsNew.this.camera,
+                    y + bg.marginTop() + (height - bg.marginVer() - icon.height()) / 2);
+            icon.alpha(selected ? 1 : .6f);
+        }
+    }
+
+    private class TalentButton extends Button {
+        private final TalentSkill skill;
+        private final ColorBlock well;
+        private final SkillSprite icon;
+        private final BitmapText rank;
+
+        TalentButton(TalentSkill skill) {
+            this.skill = skill;
+            well = RebornSlot.create(24, 24, 0xFF46404D);
+            add(well);
+            icon = new SkillSprite(skill.image());
+            if (quickslot) {
+                active = QuickSlot.canAssign(skill);
+                icon.alpha(active ? 1 : .25f);
+                well.color(active ? 0xFFB49C6F : 0xFF46404D);
+            } else icon.alpha(skill.rank() > 0 ? 1 : skill.tree.canLevel(skill, points()) ? .8f : .6f);
+            add(icon);
+            rank = new BitmapText(PixelScene.font1x);
+            int extra = Math.max(0, skill.rank() - skill.level);
+            rank.text(extra > 0 ? skill.level + "+" + extra : Integer.toString(skill.rank()));
+            rank.measure();
+            rank.visible = skill.rank() > 0;
+            rank.hardlight(skill.rank() > skill.level ? 0x86B9DE : 0xE5D1A7);
+            add(rank);
+        }
+
+        @Override protected void layout() {
+            super.layout();
+            if (icon == null) return;
+            well.x = x;
+            well.y = y;
+            icon.x = x + 4;
+            icon.y = y + 3;
+            rank.x = x + width - rank.width() - 2;
+            rank.y = y + height - rank.height() - 1;
+        }
+
+        @Override protected void onTouchDown() {
+            well.brightness(1.4f);
+            Sample.INSTANCE.play(Assets.SND_CLICK);
+        }
+
+        @Override protected void onTouchUp() { well.resetColor(); }
+
+        @Override protected void onClick() {
+            if (quickslot && !QuickSlot.canAssign(skill)) return;
+            if (readOnly) {
+                WndSkillsNew.this.parent.add(new WndTitledMessage(new SkillSprite(skill.image()), skill.talent.title(),
+                        skill.info(previewPoints, true)));
+                return;
+            }
+            if (PartyWindows.select(this)) return;
+            if (listener != null) {
+                hide();
+                listener.onSelect(skill);
+            } else GameScene.show(new WndSkillNew(WndSkillsNew.this, skill));
+        }
+    }
+
+    protected void placeSkills() {
+        placeSkillLine();
+        for (SkillContainer skillContainer : owner.skillTree.getSkills()) {
+            placeSkill(skillContainer, false);
+        }
     }
 
 	protected void placeSkill(final SkillContainer skill, boolean showBackground ) {
@@ -162,6 +404,7 @@ public class WndSkillsNew extends WndTabbed {
 
 	@Override
 	public void onMenuPressed() {
+		if (!readOnly && PartyWindows.close(this)) return;
 		if (listener == null) {
 			hide();
 		}
@@ -169,6 +412,7 @@ public class WndSkillsNew extends WndTabbed {
 
 	@Override
 	public void onBackPressed() {
+		if (!readOnly && PartyWindows.close(this)) return;
 		if (listener != null) {
 			listener.onSelect( null );
 		}
@@ -177,13 +421,18 @@ public class WndSkillsNew extends WndTabbed {
 
 	@Override
 	protected void onClick( Tab tab ) {
-		hide();
-		GameScene.show( new WndSkillsNew( listener, title ) );
+        if (!readOnly && PartyWindows.select(tab)) return;
+        Group host = parent;
+        hide();
+        WndSkillsNew next = new WndSkillsNew(owner, listener, title, tab instanceof TreeTab ? tabs.indexOf(tab) : 0,
+                readOnly, previewPoints, quickslot);
+        if (readOnly) host.add(next);
+        else GameScene.show(next);
 	}
 
 	@Override
 	protected int tabHeight() {
-		return 20;
+		return owner != null && owner.talents() != null ? 29 : 20;
 	}
 
 	private class BagTab extends Tab {
@@ -317,6 +566,7 @@ public class WndSkillsNew extends WndTabbed {
 
 		@Override
 		protected void onClick() {
+            if (PartyWindows.select(this)) return;
             if (listener != null) {
 
                 hide();
@@ -365,7 +615,7 @@ public class WndSkillsNew extends WndTabbed {
 			bg.x = x + SLOT_SIZE / 2;
 			bg.y = y  + SLOT_SIZE ;
 
-			for(ColorBlock bg : Dungeon.hero.skillTree.setCoords(x, y).getBackground()){
+			for(ColorBlock bg : owner.skillTree.setCoords(x, y).getBackground()){
 				add(bg);
 			}
 

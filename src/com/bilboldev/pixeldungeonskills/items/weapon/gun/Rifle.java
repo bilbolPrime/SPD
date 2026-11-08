@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class Rifle extends Gun {
@@ -26,6 +27,6 @@ public class Rifle extends Gun {
 
     @Override
     public String desc() {
-        return "A long-barrelled precision firearm. Highly accurate and powerful, but slow to swing in melee.";
+        return Messages.get("custom.generated.necro_merc.rifle_desc");
     }
 }

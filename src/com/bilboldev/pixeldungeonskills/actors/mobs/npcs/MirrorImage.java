@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.HeroSkins;
 import java.util.HashSet;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -32,69 +34,77 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class MirrorImage extends NPC {
-	
+
 	{
 		name = "mirror image";
 		spriteClass = MirrorSprite.class;
-		
+
 		state = HUNTING;
 	}
-	
+
 	public int tier;
-	
+    public int skin;
+    public HeroClass guise;
+
 	private int attack;
 	private int damage;
-	
+
 	private static final String TIER	= "tier";
 	private static final String ATTACK	= "attack";
 	private static final String DAMAGE	= "damage";
-	
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( TIER, tier );
+        bundle.put("hero_skin", skin);
+        if (guise != null) bundle.put("guise", guise);
 		bundle.put( ATTACK, attack );
 		bundle.put( DAMAGE, damage );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		tier = bundle.getInt( TIER );
+        skin = bundle.getInt("hero_skin") == 1 ? 1 : 0;
+        guise = bundle.contains("guise") ? bundle.getEnum("guise", HeroClass.class) : Dungeon.hero.heroClass;
 		attack = bundle.getInt( ATTACK );
 		damage = bundle.getInt( DAMAGE );
 	}
-	
+
 	public void duplicate( Hero hero ) {
 		tier = hero.tier();
+        guise = hero.heroClass;
+        skin = hero.skin;
 		attack = hero.attackSkill( hero );
 		damage = hero.damageRoll();
 	}
-	
+
 	@Override
 	public int attackSkill( Char target ) {
 		return attack;
 	}
-	
+
 	@Override
 	public int damageRoll() {
 		return damage;
 	}
-	
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
 		int dmg = super.attackProc( enemy, damage );
 
-        if(this instanceof ShadowClone == false) {
+		if (this instanceof ShadowClone == false) {
             destroy();
             sprite.die();
         }
-		
+
 		return dmg;
 	}
-	
+
 	protected Char chooseEnemy() {
-		
+
 		if (enemy == null || !enemy.isAlive()) {
 			HashSet<Mob> enemies = new HashSet<Mob>();
 			for (Mob mob:Dungeon.level.mobs) {
@@ -102,48 +112,49 @@ public class MirrorImage extends NPC {
 					enemies.add( mob );
 				}
 			}
-			
+
 			return enemies.size() > 0 ? Random.element( enemies ) : null;
 		}
-		
+
 		return enemy;
 	}
-	
+
 	@Override
 	public String description() {
 		return
 			"This illusion bears a close resemblance to you, " +
 			"but it's paler and twitches a little.";
 	}
-	
+
 	@Override
 	public CharSprite sprite() {
 		CharSprite s = super.sprite();
-		((MirrorSprite)s).updateArmor( tier );
+		s.texture(HeroSkins.sheet(guise == null ? Dungeon.hero.heroClass : guise, skin));
+        ((MirrorSprite)s).updateArmor( tier );
 		return s;
 	}
 
 	@Override
 	public void interact() {
-		
+
 		int curPos = pos;
-		
+
 		moveSprite( pos, Dungeon.hero.pos );
 		move( Dungeon.hero.pos );
-		
+
 		Dungeon.hero.sprite.move( Dungeon.hero.pos, curPos );
 		Dungeon.hero.move( curPos );
-		
+
 		Dungeon.hero.spend( 1 / Dungeon.hero.speed() );
 		Dungeon.hero.busy();
 	}
-	
+
 	private static final HashSet<Class<?>> IMMUNITIES = new HashSet<Class<?>>();
 	static {
 		IMMUNITIES.add( ToxicGas.class );
 		IMMUNITIES.add( Burning.class );
 	}
-	
+
 	@Override
 	public HashSet<Class<?>> immunities() {
 		return IMMUNITIES;

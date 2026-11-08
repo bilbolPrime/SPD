@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -86,7 +87,9 @@ public class RebornDM300 extends RebornBoss {
     public void move(int step) {
         super.move(step);
         if (isAlive() && Dungeon.level.map[pos] == Terrain.INACTIVE_TRAP && HP < HT) {
+            int before = HP;
             HP += Random.Int(1, HT - HP);
+            showRecovery(HP - before, false);
             if (sprite != null) sprite.emitter().burst(ElmoParticle.FACTORY, 5);
             if (Dungeon.visible[pos] && Dungeon.hero.isAlive()) GLog.n(this.getClass(), "repair");
         }
@@ -162,7 +165,7 @@ public class RebornDM300 extends RebornBoss {
                 cooldown = 0;
             }
         } else {
-            strike(cells, 14, 22, true);
+            strike(cells, 14, 22, true, CombatTextIcon.STEAM);
             if (!isAlive()) return;
             burst(cells, Speck.STEAM);
             for (int cell : cells) if (valid(cell) && !Level.solid[cell] && lineClear(warningOrigin, cell)) gas(cell, 10);

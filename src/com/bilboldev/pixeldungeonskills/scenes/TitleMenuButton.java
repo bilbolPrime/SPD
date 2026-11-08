@@ -55,14 +55,15 @@ abstract class TitleMenuButton extends Button {
         accent.x = x + 1;
         accent.y = y + 1;
         accent.size(primary ? 2 : 1, height - 2);
-        float iconSize = Math.min(22, height - 6);
+        boolean compact = width < 120;
+        float iconSize = Math.min(compact ? 16 : 22, height - 6);
         icon.scale.set(iconSize / Math.max(icon.width, icon.height));
         icon.x = PixelScene.align(x + 8);
         icon.y = PixelScene.align(y + (height - iconSize) / 2);
         label.scale.set(labelScaleX, labelScaleY);
-        float fit = Math.min(1, (width - 53) / Math.max(1, label.width()));
+        float fit = Math.min(1, (width - (compact ? 43 : 53)) / Math.max(1, label.width()));
         label.scale.set(labelScaleX * fit, labelScaleY * fit);
-        label.x = PixelScene.align(x + 38);
+        label.x = PixelScene.align(x + (compact ? 28 : 38));
         label.y = PixelScene.align(y + (height - label.baseLine()) / 2 - 1);
         arrow.x = PixelScene.align(x + width - arrow.width() - 9);
         arrow.y = PixelScene.align(y + (height - arrow.baseLine()) / 2 - 1);

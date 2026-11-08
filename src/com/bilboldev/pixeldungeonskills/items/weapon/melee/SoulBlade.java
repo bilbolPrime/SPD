@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.weapon.melee;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -73,9 +75,11 @@ public class SoulBlade extends MeleeWeapon {
         if (action.equals( AC_HEAL )) {
 
             hero.MP -= 20;
+            int before = hero.HP;
             hero.HP += 20;
             if(hero.HP > hero.HT)
                 hero.HP = hero.HT;
+            hero.showRecovery(hero.HP - before, false);
             GLog.p("custom.generated.entry_soul_blade_heals_20_hp_0eba83fafc");
 
          CellEmitter.center(hero.pos).burst(Speck.factory(Speck.HEALING), 1);
@@ -140,10 +144,6 @@ public class SoulBlade extends MeleeWeapon {
 
     @Override
 	public String desc() {
-		return "A blade that can only be held by the purest of champions. The soul blade is powered by the very soul essence of its wielder.\n" +
-                "\n" +
-                highlight("Level 3: Recover 20 health for 20 mana") + " \n\n"+
-                highlight("Level 5: Dispel any curses for 50 mana") + " \n\n"+
-                        highlight("Level 7: Channels all spiritual energy into the blade damage all hostiles; at least 50 mana") +  " \n";
+		return Messages.get("library.items.soulblade.desc");
 	}
 }

@@ -308,7 +308,7 @@ public class Skill{
         return 0;
     }
 
-    public boolean doubleShot()
+    public boolean doubleShot(boolean moreArrows)
     {
         return false;
     }

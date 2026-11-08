@@ -24,19 +24,17 @@ public class WndPartyMenu extends WndOptions {
 
     @Override
     protected void onSelect(int index) {
-        PartyWindows.awaitResponse(token);
         Bundle choice = new Bundle();
         choice.put("token", (int)token);
         choice.put("index", index);
-        PartySession.command("ui_choose", choice);
+        if (PartySession.command("ui_choose", choice)) PartyWindows.awaitResponse(token);
     }
 
     @Override
     public void onBackPressed() {
-        PartyWindows.awaitResponse(token);
         Bundle choice = new Bundle();
         choice.put("token", (int)token);
-        PartySession.command("ui_close", choice);
+        if (PartySession.command("ui_close", choice)) PartyWindows.awaitResponse(token);
         super.onBackPressed();
     }
 }

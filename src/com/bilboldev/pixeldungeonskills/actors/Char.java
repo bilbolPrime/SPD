@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors;
 
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import java.util.HashSet;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.audio.Sample;
@@ -316,8 +317,11 @@ public abstract class Char extends Actor {
 				}
 			}
 
-			int dr = this instanceof Hero && ((Hero)this).rangedWeapon != null && ((Hero)this).subClass == HeroSubClass.SNIPER ? 0 :
+			int dr = this instanceof Hero && ((Hero)this).talents() == null && ((Hero)this).rangedWeapon != null && ((Hero)this).subClass == HeroSubClass.SNIPER ? 0 :
 				Random.IntRange( 0, enemy.dr() );
+			if (attacker != null && attacker.talents() != null) {
+				dr = attacker.talents().armorAfterPiercing(dr, attacker.rangedWeapon != null);
+			}
 			if (attacker != null && attacker.rangedWeapon == null && attacker.belongings.weapon instanceof RimePick) {
 				dr = RimePick.pierce(enemy, dr);
 			}
@@ -404,6 +408,7 @@ public abstract class Char extends Actor {
 			    return true;
 			int hpBefore = enemy.HP;
             enemy.damageFrom( effectiveDamage, this, this );
+            if (attacker != null && attacker.talents() != null && hpBefore > 0 && !enemy.isAlive()) attacker.talents().killed(enemy);
 			if (prefix != null && isAlive()) {
 				prefix.onHit(this, enemy, Math.max(0, hpBefore - Math.max(0, enemy.HP)));
 			}
@@ -522,8 +527,12 @@ public abstract class Char extends Actor {
 				bonusAttackSkill = (LocalCoop.active() ? (Hero)attacker : Dungeon.hero).skillTree.aimedShot();
 			}
 
-			float acuRoll = Random.Float(attacker.attackSkill(defender) + bonusAttackSkill);
-			float defRoll = Random.Float(defender.defenseSkill(attacker));
+			RebornChampion attackerChampion = attacker.buff(RebornChampion.class);
+			RebornChampion defenderChampion = defender.buff(RebornChampion.class);
+			float acuRoll = Random.Float((attacker.attackSkill(defender) + bonusAttackSkill)
+					* (attackerChampion == null ? 1f : attackerChampion.accuracy()));
+			float defRoll = Random.Float(defender.defenseSkill(attacker)
+					* (defenderChampion == null ? 1f : defenderChampion.evasion()));
 
 			if (defender instanceof Hero && Level.distance(attacker.pos, defender.pos) > 1 && ((Hero) defender).skillTree.rangedDodgeChance())
 				return false;
@@ -578,11 +587,38 @@ public abstract class Char extends Actor {
 
 	public float speed() {
 		float speed = buff(Cripple.class) == null ? baseSpeed : baseSpeed * 0.5f;
+		RebornChampion champion = buff(RebornChampion.class);
+		if (champion != null) speed *= champion.movement();
 		return buff(Frostbite.class) == null ? speed : speed * 0.8f;
 	}
 
+	public void showRecovery(int amount, boolean mana) {
+		if (sprite != null) sprite.showRecovery(amount, mana);
+	}
+
 	private int damageColor = -1;
+	private CombatTextIcon damageType;
 	private Char damageAttacker;
+
+	public void damageFrom(int dmg, Object src, Char attacker, CombatTextIcon type) {
+		CombatTextIcon previous = damageType;
+		damageType = type;
+		try {
+			damageFrom(dmg, src, attacker);
+		} finally {
+			damageType = previous;
+		}
+	}
+
+	public void damage(int dmg, Object src, CombatTextIcon type) {
+		CombatTextIcon previous = damageType;
+		damageType = type;
+		try {
+			damage(dmg, src);
+		} finally {
+			damageType = previous;
+		}
+	}
 
 	public void damageFrom(int dmg, Object src, Char attacker) {
         if (RebornChallenges.enraged(attacker)) dmg = (int)Math.ceil(dmg * 1.5f);
@@ -612,6 +648,8 @@ public abstract class Char extends Actor {
 	}
 
 	public void damage( int dmg, Object src ) {
+		CombatTextIcon type = damageType;
+		damageType = null;
 
 		if (HP <= 0) {
 			return;
@@ -643,11 +681,13 @@ public abstract class Char extends Actor {
             }
         }
 
+		RebornChampion champion = buff(RebornChampion.class);
+		if (champion != null) dmg = champion.reduceDamage(dmg, type == null ? CombatTextIcon.of(src) : type);
 		HP -= dmg;
 		if (dmg > 0 || src instanceof Char) {
-			sprite.showStatus( damageColor != -1 ? damageColor :
+			sprite.showDamage( damageColor != -1 ? damageColor :
 				(HP > HT / 2 ? CharSprite.WARNING : CharSprite.NEGATIVE),
-				Integer.toString( dmg ) );
+				dmg, type == null ? CombatTextIcon.of(src) : type );
 		}
 		if (HP <= 0) {
 			die( src );

@@ -17,6 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.DailyReminders;
+
+import com.bilboldev.pixeldungeonskills.DailyRun;
+
 import com.bilboldev.pixeldungeonskills.effects.DeathBombs;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.network.PartyEffects;
@@ -30,6 +34,7 @@ import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Gizmo;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
+import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.NoosaScript;
 import com.bilboldev.noosa.SkinnedBlock;
 import com.bilboldev.noosa.audio.Music;
@@ -52,6 +57,7 @@ import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonWallsTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.FogOfWar;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -91,6 +97,8 @@ import com.bilboldev.pixeldungeonskills.ui.Banner;
 import com.bilboldev.pixeldungeonskills.ui.BusyIndicator;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
 import com.bilboldev.pixeldungeonskills.ui.HealthIndicator;
+import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
+import com.bilboldev.pixeldungeonskills.thetiles.WallShadows;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.ui.Toast;
@@ -105,6 +113,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
 import com.bilboldev.utils.Random;
 import com.bilboldev.utils.SparseArray;
+import com.bilboldev.utils.RectF;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 public class GameScene extends PixelScene {
@@ -131,6 +140,8 @@ public class GameScene extends PixelScene {
 	private RaisedTerrainTilemap raisedTerrain;
 	private DungeonWallsTilemap walls;
 	private WallBlockingTilemap wallBlocking;
+    WallShadows wallShadows;
+    DungeonLighting lighting;
 	protected FogOfWar fog;
 	protected FogOfWarNew fogNew;
 	protected HeroSprite hero;
@@ -165,6 +176,8 @@ public class GameScene extends PixelScene {
     com.bilboldev.pixeldungeonskills.effects.BossWarnings bossWarnings;
     private FirstPersonButton firstPersonButton;
     private boolean partyStateReady = true;
+    ItemDropCards itemDrops;
+    private final RectF dropObstacle = new RectF();
 
     public void originalCreate()
     {
@@ -177,7 +190,7 @@ public class GameScene extends PixelScene {
         if (!partyStateReady) return;
         com.bilboldev.pixeldungeonskills.DungeonMusic.enter();
 
-		if (!com.bilboldev.pixeldungeonskills.GauntletRun.active())
+		if (!com.bilboldev.pixeldungeonskills.GauntletRun.active() && !DailyRun.active())
 			PixelDungeon.lastClass( Dungeon.hero.heroClass.ordinal() );
 
 		super.create();
@@ -207,6 +220,10 @@ public class GameScene extends PixelScene {
 			tiles = createFlatTilemap();
 
 		terrain.add( tiles );
+        if (Dungeon.rules().hasRebornEncounters()) {
+            wallShadows = new WallShadows(Dungeon.level);
+            terrain.add(wallShadows);
+        }
 
 		Dungeon.level.addVisuals( this );
 
@@ -280,7 +297,16 @@ public class GameScene extends PixelScene {
 		if(Difficulties.is3d)
 			add(walls);
 
+        if (wallShadows != null) {
+            lighting = new DungeonLighting(Dungeon.level, wallShadows);
+            add(lighting);
+        }
+
 		add( emitters );
+        if (Dungeon.level instanceof com.bilboldev.pixeldungeonskills.levels.IceCavesLevel
+                || Dungeon.level instanceof com.bilboldev.pixeldungeonskills.levels.DailyHuntLevel
+                || Dungeon.level instanceof com.bilboldev.pixeldungeonskills.levels.IceBossLevel)
+            com.bilboldev.pixeldungeonskills.effects.IceDust.addTo(emitters, Dungeon.level, wallShadows);
 		add( effects );
         if (Dungeon.rules().hasRebornEncounters()) {
             tenguWarnings = new com.bilboldev.pixeldungeonskills.effects.TenguWarnings();
@@ -335,6 +361,11 @@ public class GameScene extends PixelScene {
 		add( statuses );
 
 		add( cellSelector = new CellSelector( tiles ) );
+
+        if (Dungeon.rules().mode == com.bilboldev.pixeldungeonskills.GameplayMode.REBORN) {
+            itemDrops = new ItemDropCards(this);
+            add(itemDrops);
+        }
 
 		StatusPane sb = new StatusPane();
 		sb.camera = uiCamera;
@@ -477,7 +508,7 @@ public class GameScene extends PixelScene {
 
     @Override
     public Gizmo add(Gizmo child) {
-        if (PartySession.client() && child instanceof WndSkillsNew) {
+        if (PartySession.client() && child instanceof WndSkillsNew && !PartyWindows.displays((Window)child)) {
             PartySession.openSkills();
             child.destroy();
             return child;
@@ -489,6 +520,14 @@ public class GameScene extends PixelScene {
 
     protected DungeonTilemapOld createFlatTilemap() {
         return new DungeonTilemapOld();
+    }
+
+    @Override
+    public boolean canLeave(Class<? extends Scene> next) {
+        if (next != getClass() || PartySession.client() || Dungeon.hero == null || !Dungeon.hero.isAlive()) return true;
+
+        Actor current = Actor.current();
+        return current == null || current instanceof Hero && ((Hero)current).ready;
     }
 
 	public void destroy() {
@@ -505,6 +544,70 @@ public class GameScene extends PixelScene {
 
     public static boolean isFirstPerson() {
         return isPerspectiveView() && !scene.firstPersonView.isThirdPerson();
+    }
+
+    public static void ignoreItemDrop(Heap heap, Item item, int quantity) {
+        if (scene != null && scene == Game.scene() && scene.itemDrops != null
+                && Dungeon.level != null && Dungeon.level.heaps.get(heap.pos) == heap) {
+            scene.itemDrops.ignore(item, quantity);
+        }
+    }
+
+    public boolean itemDropBounds(Heap heap, RectF bounds) {
+        int cell = heap.pos;
+        if (Dungeon.visible == null || cell < 0 || cell >= Dungeon.visible.length || !Dungeon.visible[cell]
+                || heap.sprite == null || !heap.sprite.exists || !heap.sprite.visible) return false;
+        if (firstPersonView != null) return firstPersonView.itemBounds(heap.sprite, bounds);
+        screenBounds(heap.sprite, bounds);
+        return bounds.right > 0 && bounds.left < uiCamera.width && bounds.bottom > 38 && bounds.top < itemDropBottom();
+    }
+
+    public boolean terrainCardBounds(int cell, RectF bounds) {
+        if (Dungeon.visible == null || cell < 0 || cell >= Dungeon.visible.length || !Dungeon.visible[cell]) return false;
+        if (firstPersonView != null) return firstPersonView.cellBounds(cell, bounds);
+        screenBounds((cell % Dungeon.level.width()) * 16, (cell / Dungeon.level.width()) * 16, 16, 16, bounds);
+        return bounds.right > 0 && bounds.left < uiCamera.width && bounds.bottom > 38 && bounds.top < itemDropBottom();
+    }
+
+    public boolean mobCardBounds(Mob mob, RectF bounds) {
+        if (Dungeon.visible == null || mob.pos < 0 || mob.pos >= Dungeon.visible.length || !Dungeon.visible[mob.pos]
+                || mob.sprite == null || !mob.sprite.exists || !mob.sprite.visible) return false;
+        if (firstPersonView != null) return firstPersonView.spriteCardBounds(mob.sprite, bounds);
+        screenBounds(mob.sprite, bounds);
+        return bounds.right > 0 && bounds.left < uiCamera.width && bounds.bottom > 38 && bounds.top < itemDropBottom();
+    }
+
+    private void screenBounds(com.bilboldev.noosa.Visual sprite, RectF bounds) {
+        screenBounds(sprite.x, sprite.y, sprite.width(), sprite.height(), bounds);
+    }
+
+    private void screenBounds(float worldX, float worldY, float width, float height, RectF bounds) {
+        Camera world = Camera.main;
+        float x = ((worldX - world.scroll.x) * world.zoom + world.x - uiCamera.x) / uiCamera.zoom + uiCamera.scroll.x;
+        float y = ((worldY - world.scroll.y) * world.zoom + world.y - uiCamera.y) / uiCamera.zoom + uiCamera.scroll.y;
+        float scale = world.zoom / uiCamera.zoom;
+        bounds.set(x, y, x + width * scale, y + height * scale);
+    }
+
+    public float itemDropBottom() {
+        return toolbar == null ? uiCamera.height - 48 : toolbar.top() - 24;
+    }
+
+    public boolean itemDropObstructed(RectF bounds) {
+        if (bounds.left < 25 && bounds.top < 102) return true;
+        if (firstPersonView != null) return firstPersonView.itemCardObstructed(bounds);
+        if (hero != null) {
+            screenBounds(hero, dropObstacle);
+            if (bounds.left < dropObstacle.right && bounds.right > dropObstacle.left
+                    && bounds.top < dropObstacle.bottom && bounds.bottom > dropObstacle.top) return true;
+        }
+        for (Hero member : LocalCoop.heroes()) {
+            if (member.sprite == null || !member.sprite.visible) continue;
+            screenBounds(member.sprite, dropObstacle);
+            if (bounds.left < dropObstacle.right && bounds.right > dropObstacle.left
+                    && bounds.top < dropObstacle.bottom && bounds.bottom > dropObstacle.top) return true;
+        }
+        return false;
     }
 
     public static boolean isThirdPerson() {
@@ -689,13 +792,16 @@ public class GameScene extends PixelScene {
 
 		}
 
+		DailyReminders.showRequested(true);
 		water.offset( 0, -5 * Game.elapsed );
 		PartySession.beforeActors();
 
 		if (!PartySession.client()
 				&& !PartyWindows.busy()
 				&& (!LocalCoop.active() || Window.topWindow() == null)
-				&& (!GauntletRun.active() || GauntletRun.acceptsInput())) {
+				&& (!GauntletRun.active() || GauntletRun.acceptsInput())
+                && (!DailyRun.active()
+                    || (!DailyRun.finished() && Window.topWindow() == null))) {
 			LocalCoop.updateFollowing();
 			Actor.process();
 		}
@@ -722,7 +828,7 @@ public class GameScene extends PixelScene {
 
 		try
 		{
-			cellSelector.enabled = LocalCoop.active() ? LocalCoop.acceptsInput() : Dungeon.hero.ready;
+			cellSelector.enabled = !DailyRun.finished() && (LocalCoop.active() ? LocalCoop.acceptsInput() : Dungeon.hero.ready);
 		}
 		catch (Exception e){
 
@@ -913,6 +1019,23 @@ public class GameScene extends PixelScene {
 		scene.effects.add( effect );
 	}
 
+    public static void spellLight(Emitter missile, int color) {
+        if (scene != null && scene.lighting != null && color != 0) scene.lighting.follow(missile, color);
+    }
+
+    public static void updateDungeonEffects() {
+        if (scene != null && scene.lighting != null) scene.lighting.enabled(Presentation.dungeonEffects());
+    }
+
+    public static void explosionLight(float x, float y) {
+        if (scene == null || scene.lighting == null || !Presentation.dungeonEffects()) return;
+        int cx = (int)(x / 16), cy = (int)(y / 16);
+        if (cx < 0 || cy < 0 || cx >= Level.WIDTH || cy >= Level.HEIGHT || !Dungeon.visible[cx + cy * Level.WIDTH]) return;
+        scene.lighting.burst(x, y, 4, 0xFFD5A0);
+        if (scene.firstPersonView != null) scene.firstPersonView.shake();
+        else Camera.main.shake(.6f, .18f);
+    }
+
 	public static Ripple ripple( int pos ) {
 		PartyEffects.ripple(pos);
 		Ripple ripple = (Ripple)scene.ripples.recycle( Ripple.class );
@@ -950,6 +1073,7 @@ public class GameScene extends PixelScene {
 	public static void updateMap() {
 		if (scene != null) {
 			scene.tiles.updateMap();
+            if (scene.wallShadows != null) scene.wallShadows.updateMap();
 
 			if(scene.raisedTerrain != null)
 				scene.raisedTerrain.updateMap();
@@ -967,6 +1091,7 @@ public class GameScene extends PixelScene {
 	public static void updateMap( int cell ) {
 		if (scene != null) {
 			scene.tiles.updateMapCell( cell );
+            if (scene.wallShadows != null) scene.wallShadows.updateMapCell(cell);
 
 			if(scene.terrainFeatures != null)
 				scene.terrainFeatures.updateMapCell(cell);
@@ -1162,7 +1287,7 @@ public class GameScene extends PixelScene {
 	}
 
 	public static void ready() {
-		Lore.observe();
+		Lore.inventory();
 		selectCell( defaultCellListener );
 		QuickSlot.cancel();
 	}

@@ -22,6 +22,8 @@ import com.bilboldev.noosa.Visual;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
+import com.bilboldev.utils.Random;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
@@ -54,6 +56,9 @@ public class Pushing extends Actor {
 
     public static void knockBack(int sourceCell, Char target, int distance) {
         if (!Level.adjacent(sourceCell, target.pos) || !target.isAlive()) return;
+        RebornChampion champion = target.buff(RebornChampion.class);
+        if (champion != null && champion.rank(RebornChampion.Skill.BRACE) > 0
+                && Random.Int(100) < champion.rank(RebornChampion.Skill.BRACE) * 10) return;
         int origin = target.pos;
         int dx = Integer.signum(origin % Level.WIDTH - sourceCell % Level.WIDTH);
         int dy = Integer.signum(origin / Level.WIDTH - sourceCell / Level.WIDTH);

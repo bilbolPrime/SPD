@@ -66,7 +66,9 @@ public class PotionOfHealing extends Potion {
 
 	public static void heal( Hero hero ) {
 
+		int before = hero.HP;
 		hero.HP = hero.HT;
+		hero.showRecovery(hero.HP - before, false);
 		Buff.detach( hero, Healing.class );
 		cleanse(hero);
 		hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
@@ -74,10 +76,12 @@ public class PotionOfHealing extends Potion {
 
     public static void heal( Hero hero, int limit ) {
 
+        int before = hero.HP;
         hero.HP += hero.HT * limit / 100;
 
         if(hero.HP > hero.HT)
             hero.HP = hero.HT;
+        hero.showRecovery(hero.HP - before, false);
 
         cleanse(hero);
         hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );

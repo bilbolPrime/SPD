@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 import com.bilboldev.pixeldungeonskills.messages.ActionMessages;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 
@@ -75,6 +76,9 @@ public class WndSkill extends WndScrollable {
 
 		super();
         menuModel = new MenuModel(Message.capitalize(Message.skillName(skill)), Message.skillDescription(skill));
+        menuModel.view = MenuModel.View.OLD_SKILL;
+        menuModel.skill = skill;
+        menuModel.selection = informationOnly;
 		int windowWidth = boundedWidth(landscapeLayout() ? 180 : 150);
 		ArrayList<RedButton> buttons = new ArrayList<>();
 
@@ -103,6 +107,7 @@ public class WndSkill extends WndScrollable {
 
 					@Override
 					protected void onClick() {
+						if (PartyWindows.select(this)) return;
 						Runnable use = () -> {
 							if (!LocalCoop.active() || hero.isAlive() && !skill.coolDown()
 									&& skill.actions(hero).contains(action)) {

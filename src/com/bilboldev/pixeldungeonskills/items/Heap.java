@@ -46,6 +46,7 @@ import com.bilboldev.pixeldungeonskills.items.food.MysteryMeat;
 import com.bilboldev.pixeldungeonskills.items.scrolls.Scroll;
 import com.bilboldev.pixeldungeonskills.plants.Plant.Seed;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Bundlable;
@@ -167,13 +168,16 @@ public class Heap implements Bundlable {
 	}
 
 	public void drop( Item item ) {
-
+		int added = item.quantity();
+		boolean quiet = item.droppedByHero;
+		boolean afterDeath = item.droppedOnDeath;
 		if (item.stackable) {
 
 			Class<?> c = item.getClass();
 			for (Item i : items) {
 				if (i.getClass() == c) {
 					i.quantity += item.quantity;
+					if (i instanceof Gold) ((Gold)i).recovered += ((Gold)item).recovered;
 					item = i;
 					break;
 				}
@@ -181,6 +185,8 @@ public class Heap implements Bundlable {
 			items.remove( item );
 
 		}
+
+		if (afterDeath) item.droppedOnDeath = true;
 
 		if (item instanceof Dewdrop) {
 			items.add( item );
@@ -191,6 +197,8 @@ public class Heap implements Bundlable {
 		if (sprite != null) {
 			sprite.view( image(), glowing() );
 		}
+
+		if (quiet) GameScene.ignoreItemDrop(this, item, added);
 	}
 
 	public void replace( Item a, Item b ) {

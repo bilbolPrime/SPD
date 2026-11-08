@@ -46,22 +46,20 @@ public class DoubleShot extends ActiveSkill2 {
     }
 
     @Override
-    public boolean doubleShot()
+    public boolean doubleShot(boolean moreArrows)
     {
-        if(active == false || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown())
+        if (onDouble) {
+            onDouble = false;
             return false;
-        else if(onDouble == false)
-        {
-            onDouble = true;
-            damageBoost = 2;
-            Dungeon.hero.spendSkillMana(getManaCost());
-            StatusPane.manaDropping += getManaCost();
-
-            castTextYell();
-            return true;
         }
-        onDouble = false;
-        return false;
+        if (!moreArrows || !active || !Dungeon.hero.canUseSkill(getManaCost()) || coolDown()) return false;
+
+        onDouble = true;
+        damageBoost = 2;
+        Dungeon.hero.spendSkillMana(getManaCost());
+        StatusPane.manaDropping += getManaCost();
+        castTextYell();
+        return true;
     }
 
     @Override

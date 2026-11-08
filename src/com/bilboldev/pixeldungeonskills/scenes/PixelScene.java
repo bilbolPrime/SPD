@@ -52,15 +52,15 @@ public class PixelScene extends Scene {
 
 	private static final float MIN_WIDTH_DESKTOP = 360;
 	private static final float MIN_HEIGHT_DESKTOP = 200;
-	
+
 	public static float defaultZoom = 0;
 	public static int minDefaultZoom;
 	public static int maxDefaultZoom;
 	public static float minZoom;
 	public static float maxZoom;
-	
+
 	public static Camera uiCamera;
-	
+
 	public static BitmapText.Font font1x;
 	public static BitmapText.Font font15x;
 	public static BitmapText.Font font2x;
@@ -74,14 +74,14 @@ public class PixelScene extends Scene {
 		if (child instanceof Window) bringToFront(child);
 		return child;
 	}
-	
+
 	@Override
 	public void create() {
-		
+
 		super.create();
-		
+
 		GameScene.scene = null;
-		
+
 		boolean desktop = PixelDungeon.supportsWindowedMode();
 		boolean landscape = com.bilboldev.pixeldungeonskills.ui.Window.landscapeLayout();
 		float minWidth, minHeight;
@@ -95,7 +95,7 @@ public class PixelScene extends Scene {
 			minWidth = MIN_WIDTH_P;
 			minHeight = MIN_HEIGHT_P;
 		}
-		
+
 		maxDefaultZoom = Math.max(1, (int)Math.min(Game.width / minWidth, Game.height / minHeight));
 		minDefaultZoom = Math.min(maxDefaultZoom, Math.max(2, (int)Math.ceil(Game.density * 2)));
 		defaultZoom = PixelDungeon.uiScale();
@@ -110,37 +110,37 @@ public class PixelScene extends Scene {
 			}
 		}
 		minZoom = 1;
-		maxZoom = defaultZoom * 2;	
-		
+		maxZoom = defaultZoom * 2;
+
 		Camera.reset( new PixelCamera( defaultZoom ) );
-		
+
 		float uiZoom = defaultZoom;
 		uiCamera = Camera.createFullscreen( uiZoom );
 		Camera.add( uiCamera );
-		
+
 		if (font1x == null) {
 
-			font1x = Font.colorMarked( 
+			font1x = Font.colorMarked(
 				BitmapCache.get( Assets.FONTS1X ), 0x00000000, BitmapText.Font.LATIN_FULL );
 			font1x.baseLine = 6;
 			font1x.tracking = -1;
 
-			font15x = Font.colorMarked( 
+			font15x = Font.colorMarked(
 					BitmapCache.get( Assets.FONTS15X ), 12, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font15x.baseLine = 9;
 			font15x.tracking = -1;
 
-			font2x = Font.colorMarked( 
+			font2x = Font.colorMarked(
 				BitmapCache.get( Assets.FONTS2X ), 14, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font2x.baseLine = 11;
 			font2x.tracking = -1;
 
-			font25x = Font.colorMarked( 
+			font25x = Font.colorMarked(
 				BitmapCache.get( Assets.FONTS25X ), 17, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font25x.baseLine = 13;
 			font25x.tracking = -1;
 
-			font3x = Font.colorMarked( 
+			font3x = Font.colorMarked(
 				BitmapCache.get( Assets.FONTS3X ), 22, 0x00000000, BitmapText.Font.LATIN_FULL );
 			font3x.baseLine = 17;
 			font3x.tracking = -2;
@@ -150,16 +150,16 @@ public class PixelScene extends Scene {
 			RenderedText.setFont( Assets.PIXEL_FONT_TTF );
 		}
 	}
-	
+
 	@Override
 	public void destroy() {
 		super.destroy();
 		Touchscreen.event.removeAll();
 	}
-	
+
 	public static BitmapText.Font font;
 	public static float scale;
-	
+
 	public static void chooseFont( float size ) {
 		chooseFont( size, defaultZoom );
 	}
@@ -221,32 +221,32 @@ public class PixelScene extends Scene {
 
 		scale /= zoom;
 	}
-	
+
 	public static BitmapText createText( float size ) {
 		return createText( null, size );
 	}
-	
+
 	public static BitmapText createText( String text, float size ) {
-		
+
 		chooseFont( size );
-		
+
 		BitmapText result = new BitmapText( text, font );
 		result.scale.set( scale );
-		
+
 		return result;
 	}
-	
+
 	public static BitmapTextMultiline createMultiline( float size ) {
 		return createMultiline( null, size );
 	}
-	
+
 	public static BitmapTextMultiline createMultiline( String text, float size ) {
-		
+
 		chooseFont( size );
-		
+
 		BitmapTextMultiline result = new BitmapTextMultiline( text, font );
 		result.scale.set( scale );
-		
+
 		return result;
 	}
 
@@ -265,7 +265,7 @@ public class PixelScene extends Scene {
 		result.scale.set( 1 / (float)defaultZoom );
 		return result;
 	}
-	
+
 	public static float align( Camera camera, float pos ) {
 		return ((int)(pos * camera.zoom)) / camera.zoom;
 	}
@@ -273,7 +273,7 @@ public class PixelScene extends Scene {
 	public static float align( float pos ) {
 		return ((int)(pos * defaultZoom)) / defaultZoom;
 	}
-	
+
 	public static void align( Visual v ) {
 		Camera c = v.camera();
 		v.x = align( c, v.x );
@@ -292,11 +292,11 @@ public class PixelScene extends Scene {
 			fadeIn( 0xFF000000, false );
 		}
 	}
-	
+
 	protected void fadeIn( int color, boolean light ) {
 		add( new Fader( color, light ) );
 	}
-	
+
 	public static void showBadge( Badges.Badge badge ) {
 		BadgeBanner banner = BadgeBanner.show( badge.image );
 		banner.camera = uiCamera;
@@ -304,31 +304,31 @@ public class PixelScene extends Scene {
 		banner.y = align( banner.camera, (banner.camera.height - banner.height) / 3 );
 		Game.scene().add( banner );
 	}
-	
+
 	protected static class Fader extends ColorBlock {
-		
+
 		private static float FADE_TIME = 1f;
-		
+
 		private boolean light;
-		
+
 		private float time;
-		
+
 		public Fader( int color, boolean light ) {
 			super( uiCamera.width, uiCamera.height, color );
-			
+
 			this.light = light;
-			
+
 			camera = uiCamera;
-			
+
 			alpha( 1f );
 			time = FADE_TIME;
 		}
-		
+
 		@Override
 		public void update() {
-			
+
 			super.update();
-			
+
 			if ((time -= Game.elapsed) <= 0) {
 				alpha( 0f );
 				parent.remove( this );
@@ -336,7 +336,7 @@ public class PixelScene extends Scene {
 				alpha( time / FADE_TIME );
 			}
 		}
-		
+
 		@Override
 		public void draw() {
 			if (light) {
@@ -348,28 +348,28 @@ public class PixelScene extends Scene {
 			}
 		}
 	}
-	
+
 	private static class PixelCamera extends Camera {
-		
+
 		public PixelCamera( float zoom ) {
-			super( 
-				(int)(Game.width - Math.ceil( Game.width / zoom ) * zoom) / 2, 
-				(int)(Game.height - Math.ceil( Game.height / zoom ) * zoom) / 2, 
-				(int)Math.ceil( Game.width / zoom ), 
+			super(
+				(int)(Game.width - Math.ceil( Game.width / zoom ) * zoom) / 2,
+				(int)(Game.height - Math.ceil( Game.height / zoom ) * zoom) / 2,
+				(int)Math.ceil( Game.width / zoom ),
 				(int)Math.ceil( Game.height / zoom ), zoom );
 		}
-		
+
 		@Override
 		protected void updateMatrix() {
 			float sx = align( this, scroll.x + shakeX );
 			float sy = align( this, scroll.y + shakeY );
-			
+
 			matrix[0] = +zoom * invW2;
 			matrix[5] = -zoom * invH2;
-			
+
 			matrix[12] = -1 + x * invW2 - sx * matrix[0];
 			matrix[13] = +1 - y * invH2 - sy * matrix[5];
-			
+
 		}
 	}
 }

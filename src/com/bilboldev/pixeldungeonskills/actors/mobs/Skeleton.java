@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 
@@ -72,11 +73,11 @@ public class Skeleton extends Mob {
 				int damage = Math.max( 0,  damageRoll() - Random.IntRange( 0, ch.dr() / 2 ) );
                 if (LocalCoop.contains(ch)) {
                     LocalCoop.withHero((Hero)ch, () -> ch.damage(
-                            damage - ((Hero)ch).heroSkills.passiveA3.incomingDamageReduction(damage), this));
+                            damage - ((Hero)ch).heroSkills.passiveA3.incomingDamageReduction(damage), this, CombatTextIcon.EXPLOSION));
                 } else if (ch == Dungeon.hero)
-                    ch.damage(damage - Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(damage), this);
+                    ch.damage(damage - Dungeon.hero.heroSkills.passiveA3.incomingDamageReduction(damage), this, CombatTextIcon.EXPLOSION);
                 else
-                    ch.damage( damage, this );
+                    ch.damage( damage, this, CombatTextIcon.EXPLOSION );
 				if ((ch == Dungeon.hero || LocalCoop.contains(ch)) && !ch.isAlive()) {
 					heroKilled = true;
 				}

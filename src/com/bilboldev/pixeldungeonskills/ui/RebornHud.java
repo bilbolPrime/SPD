@@ -41,22 +41,22 @@ public final class RebornHud {
             case 0x3B3D37: return 0x221F29;
             case 0x3E4039: return 0x2A2631;
             case 0x494C45: return 0x34303D;
-            case 0x53564E: return 0x503D62;
-            case 0x585B52: return 0x614875;
-            case 0x63665C: return 0x785695;
-            case 0x696E61: return 0x8962A4;
+            case 0x53564E: return 0x443C50;
+            case 0x585B52: return 0x50475D;
+            case 0x63665C: return 0x61566E;
+            case 0x696E61: return 0x70637D;
             case 0x7B8073: return 0x38333F;
-            case 0x8C9184: return 0xA17DBB;
-            case 0x979C8F: return 0xB991D1;
-            case 0xA0A695: return 0xC5A1E5;
-            case 0xB1B6A9: return 0xD0B0E0;
-            case 0xCACFC2: return 0xE0CEE8;
+            case 0x8C9184: return 0x83738E;
+            case 0x979C8F: return 0x97859F;
+            case 0xA0A695: return 0xA391B0;
+            case 0xB1B6A9: return 0xB0A0BA;
+            case 0xCACFC2: return 0xC8BDCE;
             case 0x313329: return 0x24212B;
-            case 0x52564C: return 0x674D7D;
-            case 0xD0D2B2: return 0xDAC7E5;
+            case 0x52564C: return 0x594B66;
+            case 0xD0D2B2: return 0xC1B1CC;
             case 0x802635: return status ? 0x29232F : rgb;
             case 0x992E2E: return status ? 0x43374F : rgb;
-            case 0xBF5039: return status ? 0xC5A1E5 : rgb;
+            case 0xBF5039: return status ? 0xA391B0 : rgb;
             default: return rgb;
         }
     }

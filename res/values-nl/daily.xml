@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Dagelijkse uitdagingen</string>
+    <string-array name="daily_reminder_events">
+        <item>Het hof van de Rattenkoning</item>
+        <item>Gevangenisuitbraak</item>
+        <item>De laatste ploeg</item>
+        <item>De witte jacht</item>
+        <item>Het gebroken zegel</item>
+        <item>De laatste buitenpost</item>
+        <item>De schat van de koning</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>De Rattenkoning verzamelt zijn wachters. Bereik hem voordat de versterking aankomt.</item>
+        <item>Tengu ontsnapt. Baan je een weg door de gevangenis en houd hem tegen.</item>
+        <item>Drie mijnwerkers zitten vast. Breng ze terug voordat de laatste lift vertrekt.</item>
+        <item>Drie beesten dwalen door de ijsgrotten. Jaag op ze voordat de storm losbarst.</item>
+        <item>Demonen komen via de rituele plekken binnen. Verzegel ze alle drie.</item>
+        <item>De buitenpost wordt aangevallen. Houd stand totdat er hulp komt.</item>
+        <item>Het goud van de koning ligt achter slot en grendel. Pak het en ontsnap voordat de poorten sluiten.</item>
+    </string-array>
+</resources>

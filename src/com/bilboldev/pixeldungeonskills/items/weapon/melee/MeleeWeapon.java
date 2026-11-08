@@ -108,34 +108,31 @@ public class MeleeWeapon extends Weapon {
 			}
 		}
 
-		if (DLY != 1f) {
-			info.append( " " );
-			info.append( "This is a rather " + (DLY < 1f ? "fast" : "slow") );
-			if (ACU != 1f) {
-				if ((ACU > 1f) == (DLY < 1f)) {
-					info.append( " and ");
-				} else {
-					info.append( " but ");
-				}
-				info.append( ACU > 1f ? "accurate" : "inaccurate" );
-			}
-			info.append( " weapon. ");
+		String handling = null;
+		if (DLY < 1f) {
+			handling = ACU > 1f ? "weapon_fast_and_accurate"
+					: ACU < 1f ? "weapon_fast_but_inaccurate" : "weapon_fast";
+		} else if (DLY > 1f) {
+			handling = ACU > 1f ? "weapon_slow_but_accurate"
+					: ACU < 1f ? "weapon_slow_and_inaccurate" : "weapon_slow";
 		} else if (ACU != 1f) {
-			info.append( " " );
-			info.append( "This is a rather " + (ACU > 1f ? "accurate" : "inaccurate") + " weapon. " );
+			handling = ACU > 1f ? "weapon_accurate" : "weapon_inaccurate";
+		}
+		if (handling != null) {
+			info.append( " " ).append( Messages.get( "network.partytext." + handling ) );
 		}
 		switch (imbue) {
 		case SPEED:
-			info.append( "It was balanced to make it faster. " );
+			info.append( " " ).append( Messages.get( "custom.generated.entry_it_was_balanced_to_make_it_faster_b36ba83810" ) );
 			break;
 		case ACCURACY:
-			info.append( "It was balanced to make it more accurate. " );
+			info.append( " " ).append( Messages.get( "custom.generated.entry_it_was_balanced_to_make_it_more_accurate_b328f44d91" ) );
 			break;
 		case NONE:
 		}
 
-		if (enchantment != null) {
-			info.append( "It is enchanted." );
+		if (enchantment != null && !isIdentified()) {
+			info.append( " " ).append( Messages.get( "custom.generated.entry_it_is_enchanted_6868574903" ) );
 		}
 
 		if (levelKnown && viewer != null && viewer.belongings.backpack.items.contains( this )) {

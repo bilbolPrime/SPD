@@ -17,11 +17,13 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.TalentSkill;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 import com.bilboldev.pixeldungeonskills.messages.ActionMessages;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
-
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
@@ -68,21 +70,33 @@ public class WndSkillNew extends WndScrollable {
 	}
 
 	public WndSkillNew(final WndSkillsNew owner, final Skill skill) {
+		this(owner, skill, owner != null);
+	}
+
+	public static WndSkillNew forParty(Skill skill, boolean fontControls) {
+		return new WndSkillNew(null, skill, fontControls);
+	}
+
+	private WndSkillNew(final WndSkillsNew owner, final Skill skill, final boolean fontControls) {
 
 		super();
         menuModel = new MenuModel(Message.capitalize(Message.skillName(skill)), Message.skillDescription(skill));
+        menuModel.view = MenuModel.View.SKILL;
+        menuModel.skill = skill;
+        menuModel.selection = fontControls;
 		windowWidth = boundedWidth(landscapeLayout() ? 180 : 150);
 		ArrayList<RedButton> buttons = new ArrayList<>();
 
 		IconTitle titlebar = new IconTitle();
 		titlebar.icon( new SkillSprite( skill.image() ) );
 		titlebar.label( Messages.capitalize( Messages.maybeTranslate( skill.name ) ) );
-        titlebar.setRect( 0, 0, windowWidth - (owner == null ? 0 : 17), 0 );
+        titlebar.setRect( 0, 0, windowWidth - (fontControls ? 17 : 0), 0 );
 
 		Component info = buildInfoComponent(buildInfoText(skill));
 
-		if (hero.isAlive() && !skill.coolDown()) {
+		if (hero.isAlive()) {
 			for (final String action:skill.actions( hero )) {
+                if (!allowed(skill, action)) continue;
 
 				RedButton btn = new ActionButton( action ) {
 					@Override
@@ -92,17 +106,21 @@ public class WndSkillNew extends WndScrollable {
 
 					@Override
 					protected void onClick() {
+						if (PartyWindows.select(this)) return;
 						Runnable use = () -> {
-							if (!LocalCoop.active() || hero.isAlive() && !skill.coolDown()
-									&& skill.actions(hero).contains(action)) {
+							if (hero.isAlive() && allowed(skill, action) && skill.actions(hero).contains(action)) {
+								int previousRank = skill.level;
 								skill.execute(hero, action);
+								if (owner != null && Skill.AC_ADVANCE.equals(action)) owner.reopen();
+								if (Skill.AC_ADVANCE.equals(action) && previousRank == 0 && skill.level > 0) QuickSlot.learned(skill);
 							}
 						};
-						if (!LocalCoop.defer(hero, use)) use.run();
+						if (turnless(action) || selectsTarget(skill, action)) LocalCoop.withHero(hero, use);
+						else if (!LocalCoop.defer(hero, use)) use.run();
 						hide();
                         if(owner != null)
                         {
-                            owner.hide();
+                            if (!Skill.AC_ADVANCE.equals(action)) owner.hide();
                             if(skill instanceof BranchSkill)
                                 GameScene.show(new WndSkills(null, null));
                         }
@@ -114,7 +132,9 @@ public class WndSkillNew extends WndScrollable {
 			}
 		}
 
-		if(owner != null){
+		addQuickSlot(buttons, skill);
+
+		if(fontControls){
 			if(!PixelDungeon.skillFontSize()){
 				RedButton btn = new RedButton( "A+" ) {
 					@Override
@@ -125,8 +145,10 @@ public class WndSkillNew extends WndScrollable {
 					@Override
 					protected void onClick() {
 						PixelDungeon.skillFontSize(true);
+						WndSkillNew replacement = new WndSkillNew(owner, skill, fontControls);
+						PartyWindows.replace(WndSkillNew.this, replacement);
 						hide();
-						GameScene.show(new WndSkillNew(owner, skill));
+						GameScene.show(replacement);
 					};
 				};
 				btn.setSize( 15f, 15f );
@@ -144,8 +166,10 @@ public class WndSkillNew extends WndScrollable {
 					@Override
 					protected void onClick() {
 						PixelDungeon.skillFontSize(false);
+						WndSkillNew replacement = new WndSkillNew(owner, skill, fontControls);
+						PartyWindows.replace(WndSkillNew.this, replacement);
 						hide();
-						GameScene.show(new WndSkillNew(owner, skill));
+						GameScene.show(replacement);
 					};
 				};
 				btn.setSize( 15f, 15f );
@@ -163,6 +187,8 @@ public class WndSkillNew extends WndScrollable {
 
 		super();
         menuModel = new MenuModel(Message.capitalize(Message.skillName(skill)), Message.skillDescription(skill));
+        menuModel.view = MenuModel.View.SKILL;
+        menuModel.skill = skill;
 		windowWidth = boundedWidth(landscapeLayout() ? 180 : 150);
 		ArrayList<RedButton> buttons = new ArrayList<>();
 
@@ -173,8 +199,9 @@ public class WndSkillNew extends WndScrollable {
 
 		Component info = buildInfoComponent(buildInfoText(skill));
 
-		if (hero.isAlive() && !skill.coolDown()) {
+		if (hero.isAlive()) {
 			for (final String action:skill.actions( hero )) {
+                if (!allowed(skill, action)) continue;
 				RedButton btn = new ActionButton( action ) {
 					@Override
 					protected float textScale() {
@@ -183,17 +210,24 @@ public class WndSkillNew extends WndScrollable {
 
 					@Override
 					protected void onClick() {
+						if (PartyWindows.select(this)) return;
 						Runnable use = () -> {
-							if (!LocalCoop.active() || hero.isAlive() && !skill.coolDown()
-									&& skill.actions(hero).contains(action)) {
+							if (hero.isAlive() && allowed(skill, action) && skill.actions(hero).contains(action)) {
+								int previousRank = skill.level;
 								skill.execute(hero, action);
+								if (owner != null && Skill.AC_ADVANCE.equals(action)) {
+									owner.hide();
+									GameScene.show(new WndSkills(null, null));
+								}
+								if (Skill.AC_ADVANCE.equals(action) && previousRank == 0 && skill.level > 0) QuickSlot.learned(skill);
 							}
 						};
-						if (!LocalCoop.defer(hero, use)) use.run();
+						if (turnless(action) || selectsTarget(skill, action)) LocalCoop.withHero(hero, use);
+						else if (!LocalCoop.defer(hero, use)) use.run();
 						hide();
 						if(owner != null)
 						{
-							owner.hide();
+							if (!Skill.AC_ADVANCE.equals(action)) owner.hide();
 							if(skill instanceof BranchSkill)
 								GameScene.show(new WndSkills(null, null));
 						}
@@ -210,12 +244,40 @@ public class WndSkillNew extends WndScrollable {
 			}
 		}
 
+		addQuickSlot(buttons, skill);
 		layoutContent(windowWidth, titlebar, info, GAP, buttons.toArray(new RedButton[0]));
 	}
 
+    private boolean allowed(Skill skill, String action) {
+        return !skill.coolDown() || turnless(action);
+    }
+
+    private boolean turnless(String action) {
+        return Skill.AC_ADVANCE.equals(action) || Skill.AC_DEACTIVATE.equals(action) || Skill.AC_ACTIVATE.equals(action);
+    }
+
+    private boolean selectsTarget(Skill skill, String action) {
+        return Skill.AC_CAST.equals(action) && skill instanceof TalentSkill && ((TalentSkill)skill).talent.targeted();
+    }
+
+    private void addQuickSlot(ArrayList<RedButton> buttons, Skill skill) {
+        if (!QuickSlot.canAssign(skill)) return;
+        String label = Dungeon.hero.talents() != null || QuickSlot.freeSlot() >= 0 ? "skills4.quickslot" : "skills4.sticky";
+        RedButton button = new RedButton(Messages.get(label)) {
+            @Override protected void onClick() {
+                if (PartyWindows.select(this)) return;
+                hide();
+                QuickSlot.assign(skill);
+            }
+        };
+        button.setSize(Math.max(BUTTON_WIDTH, button.reqWidth()), BUTTON_HEIGHT);
+        buttons.add(button);
+        menuModel.add(button, Message.key(label));
+    }
+
 	private String buildInfoText( Skill skill ) {
 		String infoText = localizeSkillInfo( skill.info() );
-		if (skill.coolDown()) {
+		if (skill.coolDown() && !(skill instanceof TalentSkill)) {
 			infoText += "\n" + Messages.maybeTranslate( "This skill is on cool down" );
 		}
 		return infoText;

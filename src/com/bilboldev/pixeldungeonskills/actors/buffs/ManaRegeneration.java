@@ -19,7 +19,6 @@ package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
-import com.bilboldev.pixeldungeonskills.items.rings.RingOfMending;
 
 public class ManaRegeneration extends Buff {
 
@@ -28,7 +27,6 @@ public class ManaRegeneration extends Buff {
 	@Override
 	public boolean act() {
 		if (target.isAlive()) {
-
 			if (target.MP < target.MMP) {
 				target.MP += 1;
 			}

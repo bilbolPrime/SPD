@@ -26,6 +26,7 @@ import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.Visual;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.effects.CosmeticPet;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.scenes.PartyPresentation;
@@ -127,11 +128,13 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 
 	private static boolean depthSorted(Gizmo child) {
 		return child instanceof CharSprite || child instanceof PartyPresentation.Death || child instanceof MissileSprite
+				|| child instanceof CosmeticPet
 				|| child instanceof DiscardedItemSprite
 				|| child instanceof ItemSprite && ((ItemSprite)child).isDropping();
 	}
 
 	private static float groundY(Visual sprite) {
+		if (sprite instanceof CosmeticPet) return ((CosmeticPet)sprite).groundY();
 		if (sprite instanceof PartyPresentation.Death) return ((PartyPresentation.Death)sprite).groundY();
 		return sprite instanceof CharSprite ? ((CharSprite)sprite).groundY() : ((ItemSprite)sprite).groundY();
 	}

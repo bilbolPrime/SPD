@@ -88,7 +88,7 @@ public class CupidArrow extends Arrow {
     @Override
     public ArrayList<String> actions( Hero hero ) {
         ArrayList<String> actions = super.actions( hero );
-        if (Dungeon.hero.belongings.bow != null) {
+        if (hero.belongings.bow != null) {
             if (!actions.contains( AC_THROW )) {
                 actions.add( AC_THROW );
             }

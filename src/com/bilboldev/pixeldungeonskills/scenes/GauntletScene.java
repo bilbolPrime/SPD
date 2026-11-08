@@ -15,7 +15,6 @@ import com.bilboldev.pixeldungeonskills.thetiles.DungeonWallsTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.RaisedTerrainTilemap;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
-import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.ui.GauntletHeckle;
 import com.bilboldev.pixeldungeonskills.windows.WndGauntletVictory;
@@ -28,7 +27,6 @@ public class GauntletScene extends GameScene {
     private GauntletArena arena;
     private GauntletHero hero;
     private int renderedTheme;
-    private RenderedTextMultiline waveLabel;
     private final ArrayList<Spectator> spectators = new ArrayList<>();
     private final HashMap<Integer, ItemSprite> rewardMarkers = new HashMap<>();
     private Group rewardOverlay;
@@ -54,8 +52,12 @@ public class GauntletScene extends GameScene {
     @Override
     public void create() {
         arena = GauntletRun.arena();
-        if (arena == null) throw new IllegalStateException("Missing Gauntlet arena");
-        hero = (GauntletHero)Dungeon.hero;
+        hero = GauntletRun.hero();
+        if (arena == null || hero == null) {
+            arena = null;
+            Game.switchScene(TitleScene.class);
+            return;
+        }
         InterlevelScene.mode = InterlevelScene.Mode.NONE;
         super.create();
         Camera.main.zoom(Math.max(minZoom, Math.min(maxZoom, defaultZoom + GauntletRun.zoomOffset())));
@@ -71,11 +73,6 @@ public class GauntletScene extends GameScene {
 
         members.remove(rewardOverlay);
         members.add(members.indexOf(fogNew) + 1, rewardOverlay);
-        waveLabel = PixelScene.renderMultiline("", 7);
-        waveLabel.camera = uiCamera;
-        waveLabel.hardlight(Window.TITLE_COLOR);
-        waveLabel.maxWidth(Math.max(1, uiCamera.width - 60));
-        add(waveLabel);
         heckle = new GauntletHeckle();
         heckle.camera = uiCamera;
         int heckleWidth = Math.min(150, uiCamera.width - 70);
@@ -87,7 +84,6 @@ public class GauntletScene extends GameScene {
         noticedHits = hero.hitsTaken();
         renderedTheme = arena.theme();
         updateRewards();
-        updateHud();
         if (arena.phase() == GauntletArena.Phase.LOST)
             show(new com.bilboldev.pixeldungeonskills.windows.WndGauntletDie());
     }
@@ -110,6 +106,12 @@ public class GauntletScene extends GameScene {
                 ((DungeonTilemap)member).refreshTexture();
             else if (member instanceof Group) refreshTheme((Group)member);
         }
+    }
+
+    @Override
+    public void draw() {
+        if (arena == null || GauntletRun.arena() != arena || Dungeon.hero != hero) return;
+        super.draw();
     }
 
     @Override
@@ -136,7 +138,6 @@ public class GauntletScene extends GameScene {
         updateRewards();
         cellSelector.enabled = GauntletRun.acceptsInput() && Dungeon.hero.ready;
         busy.visible = GauntletRun.acceptsInput() && !Dungeon.hero.ready;
-        updateHud();
         updateHeckling();
     }
 
@@ -187,16 +188,6 @@ public class GauntletScene extends GameScene {
             marker.place(cell);
             marker.visible = !Dungeon.visible[cell];
         }
-    }
-
-    private void updateHud() {
-        String label = arena.phase() == GauntletArena.Phase.PREPARING
-                ? (arena.stepsRemaining() == 1
-                    ? Messages.get("gauntlet.wave_in_step", arena.completed() + 1)
-                    : Messages.get("gauntlet.wave_in_steps", arena.completed() + 1, arena.stepsRemaining()))
-                : Messages.get("gauntlet.wave", arena.wave(), GauntletArena.WAVES, arena.themeName());
-        if (!label.equals(waveLabel.text())) waveLabel.text(label);
-        waveLabel.setPos((uiCamera.width - waveLabel.width()) / 2f, 19);
     }
 
     private void frameArena() {

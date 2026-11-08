@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Group;
@@ -17,6 +18,8 @@ import com.bilboldev.pixeldungeonskills.LibraryCreatureStats;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
+import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
@@ -24,6 +27,7 @@ import com.bilboldev.pixeldungeonskills.ui.LibraryStats;
 import com.bilboldev.pixeldungeonskills.ui.LibraryRivalSkills;
 import com.bilboldev.pixeldungeonskills.ui.LibraryRewardsPanel;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
+import com.bilboldev.pixeldungeonskills.ui.RebornSlot;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndLibrary;
@@ -31,11 +35,14 @@ import com.bilboldev.pixeldungeonskills.windows.WndLibraryHero;
 import com.bilboldev.pixeldungeonskills.windows.WndLibraryItem;
 import com.bilboldev.pixeldungeonskills.windows.WndLibrarySkills;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Locale;
 
 final class LibraryPanel extends TitleHubPanel {
+    private static final String[] RIVAL_TIERS = {"I", "II", "III", "IV"};
     private static Shelf shelf = Shelf.DEPTHS;
     private static Entry selected;
+    private static int selectedDepth;
     private static LibraryItemBuild itemBuild;
     private static LibraryHeroBuild heroBuild;
     private static float listOffset;
@@ -62,7 +69,8 @@ final class LibraryPanel extends TitleHubPanel {
         }
         add(body = new Group());
         float left = cardX + 10, width = cardW - 20, top = cardY + 10;
-        Section[] sections = Section.values();
+        Section[] sections = {Section.DEPTHS, Section.QUESTS, Section.ITEMS, Section.CREATURES,
+                Section.HEROES, Section.SKILLS, Section.RECIPES};
         float tabGap = portrait ? 2 : 4;
         float tabWidth = (width - tabGap * (sections.length - 1)) / sections.length;
         for (int i = 0; i < sections.length; i++) {
@@ -88,40 +96,80 @@ final class LibraryPanel extends TitleHubPanel {
         }
         shown.clear();
         for (Entry entry : LibraryCatalog.entries()) {
-            if (entry.shelf == shelf) shown.add(entry);
+            if (entry.shelf == shelf) {
+                for (int i = 0; i < (shelf == Shelf.RIVALS ? 4 : 1); i++) shown.add(entry);
+            }
         }
         LibraryCatalog.sort(shown);
+        if (shelf == Shelf.ABILITIES) {
+            shown.sort(Comparator.comparingInt((Entry entry) -> entry.skillClass == null
+                    ? Integer.MAX_VALUE : entry.skillClass.ordinal())
+                    .thenComparing(Entry::name, String.CASE_INSENSITIVE_ORDER));
+        }
         text(body, LibraryCatalog.text("count", shown.size()), 7, 0xBCA98B, left, top);
         top += 16;
         Component content = new Component();
         rows.clear();
-        int columns = width >= 260 ? 2 : 1;
-        float cellWidth = width / columns, rowHeight = Math.max(40, target + 8);
-        for (int i = 0; i < shown.size(); i++) {
-            Entry entry = shown.get(i);
-            float x = i % columns * cellWidth, y = i / columns * rowHeight;
-            Component row = new Component();
-            row.setRect(x, y, cellWidth - 4, rowHeight - 4);
-            ColorBlock fill = new ColorBlock(row.width(), row.height(), 0x801F1C29);
-            fill.x = x;
-            fill.y = y;
-            row.add(fill);
-            Icon icon = new Icon(entry);
-            icon.setRect(x + 3, y + 3, 35, row.height() - 6);
-            row.add(icon);
-            HighlightedText name = label(row, Lore.known(entry) ? entry.name() : "???", 9, x + 44, y + 4, cellWidth - 52);
-            name.setPos(name.left(), y + Math.max(4, (row.height() - name.height()) / 2));
-            content.add(row);
-            rows.add(row);
+        boolean captions = shelf == Shelf.DEPTHS || shelf == Shelf.QUESTS || shelf == Shelf.ATTRIBUTES;
+        int columns = captions ? (portrait ? 3 : 4) : (portrait ? 4 : 6);
+        if (shelf == Shelf.RIVALS) columns = 4;
+        columns = Math.max(1, Math.min(columns, (int)((width + 6) / (Math.max(36, target) + 6))));
+        float cellWidth = (float)Math.floor((width - 6 * (columns - 1)) / columns);
+        float y = 0;
+        for (int start = 0; start < shown.size();) {
+            int end = shown.size();
+            if (shelf == Shelf.ABILITIES) {
+                Entry first = shown.get(start);
+                end = start + 1;
+                while (end < shown.size() && shown.get(end).skillClass == first.skillClass) end++;
+                String title = first.skillClass == null ? LibraryCatalog.text("champion_skills")
+                        : Messages.capitalize(Message.heroClass(first.skillClass).toString());
+                HighlightedText heading = label(content, title, 9, 0, y, width);
+                heading.setColor(0xECD095, 0xECD095);
+                y = heading.bottom() + 6;
+            }
+            for (int i = start; i < end; i += columns) {
+                float bottom = y;
+                for (int column = 0; column < columns && i + column < end; column++) {
+                    int index = i + column;
+                    int depth = shelf == Shelf.RIVALS ? (index % 4 + 1) * 5 : 0;
+                    Component cell = cell(shown.get(index), depth, column * (cellWidth + 6), y, cellWidth, captions);
+                    content.add(cell);
+                    rows.add(cell);
+                    bottom = Math.max(bottom, cell.bottom());
+                }
+                y = bottom + 6;
+            }
+            start = end;
+            if (shelf == Shelf.ABILITIES) y += 6;
         }
-        content.setSize(width, (float)Math.ceil(shown.size() / (float)columns) * rowHeight);
+        content.setSize(width, Math.max(0, y - 6));
         list = new ScrollPane(content) {
+            @Override
+            public void update() {
+                updateVisibleCells();
+                super.update();
+            }
+
+            @Override
+            public void scrollTo(float x, float y) {
+                super.scrollTo(x, y);
+                updateVisibleCells();
+            }
+
+            private void updateVisibleCells() {
+                float top = content().camera.scroll.y;
+                for (Component cell : rows) {
+                    cell.active = cell.visible = cell.bottom() > top && cell.top() < top + height();
+                }
+            }
+
             @Override
             public void onClick(float x, float y) {
                 for (int i = 0; i < rows.size(); i++) {
                     if (rows.get(i).inside(x, y)) {
                         Sample.INSTANCE.play(Assets.SND_CLICK);
-                        open(shown.get(i));
+                        open(shown.get(i), shelf == Shelf.RIVALS ? (i % 4 + 1) * 5 : 0);
                         return;
                     }
                 }
@@ -130,6 +178,32 @@ final class LibraryPanel extends TitleHubPanel {
         body.add(list);
         list.setRect(left, top, width, Math.max(20, cardY + cardH - top - 10));
         list.scrollTo(0, listOffset);
+    }
+
+    private static Component cell(Entry entry, int depth, float x, float y, float size, boolean caption) {
+        Component cell = new Component();
+        ColorBlock frame = RebornSlot.create(size, size, 0xFF46404D);
+        frame.x = x;
+        frame.y = y;
+        cell.add(frame);
+        boolean known = Lore.known(entry) && (entry.shelf != Shelf.RIVALS || Lore.known(entry, depth));
+        Icon icon = new Icon(entry, false, depth);
+        icon.setRect(x + 4, y + 4, size - 8, size - (known || caption ? 8 : 18));
+        cell.add(icon);
+        String variant = entry.shelf == Shelf.RIVALS ? RIVAL_TIERS[depth / 5 - 1] : entry.questVariant;
+        if (variant != null) {
+            BitmapText number = text(cell, variant, 7, 0xECD095, 0, y + 3);
+            number.x = PixelScene.align(x + size - number.width() - 3);
+        }
+        float height = size;
+        if (caption || !known) {
+            HighlightedText name = label(cell, known ? entry.name() : "???", 7, x, 0, size);
+            name.setPos(PixelScene.align(x + (size - name.width()) / 2),
+                    caption ? y + size + 3 : y + size - name.height() - 3);
+            height = Math.max(height, name.bottom() - y);
+        }
+        cell.setRect(x, y, size, height);
+        return cell;
     }
 
     private void select(Shelf choice) {
@@ -147,8 +221,9 @@ final class LibraryPanel extends TitleHubPanel {
         select(shelves[index]);
     }
 
-    private void open(Entry entry) {
+    private void open(Entry entry, int depth) {
         selected = entry;
+        selectedDepth = depth;
         itemBuild = null;
         heroBuild = null;
         showSelected();
@@ -170,12 +245,13 @@ final class LibraryPanel extends TitleHubPanel {
                     itemBuild = new LibraryItemBuild(entry);
                 }
                 showSelected();
-            }));
+            }, selectedDepth));
         }
     }
 
     private static void clearSelection() {
         selected = null;
+        selectedDepth = 0;
         itemBuild = null;
         heroBuild = null;
     }
@@ -212,10 +288,6 @@ final class LibraryPanel extends TitleHubPanel {
             }
         };
 
-        EntryWindow(Entry entry, Runnable customize) {
-            this(entry, customize, firstDepth(entry));
-        }
-
         EntryWindow(Entry entry, Runnable customize, int depth) {
             int width = boundedWidth(landscapeLayout() ? 400 : 144);
             int bodyWidth = textWidth(width);
@@ -231,33 +303,13 @@ final class LibraryPanel extends TitleHubPanel {
             name.setColor(titleColor(), titleColor());
             name.setPos(48, Math.max(0, (40 - name.height()) / 2));
             heading.setSize(width, Math.max(40, name.bottom()));
-            if (entry.shelf == Shelf.RIVALS && revealed) {
-                if (wide) name.setPos(48, 0);
-                float left = wide ? 48 : 0;
-                float y = wide ? name.bottom() + 4 : heading.height() + 6;
-                float cell = (width - left - 9) / 4f;
-                String[] tiers = {"I", "II", "III", "IV"};
-                for (int i = 0; i < 4; i++) {
-                    final int choice = (i + 1) * 5;
-                    RedButton button = new ActionButton(tiers[i]) {
-                        @Override protected void onClick() {
-                            Group owner = EntryWindow.this.parent;
-                            EntryWindow.this.hide();
-                            selected = entry;
-                            owner.add(new EntryWindow(entry, customize, choice));
-                        }
-                    };
-                    button.enable(choice != depth);
-                    button.setRect(left + i * (cell + 3), y, cell, Math.max(24, 48 * Game.density / camera.zoom));
-                    heading.add(button);
-                    heading.setSize(width, Math.max(heading.height(), button.bottom()));
-                }
-            }
             String info;
             if (known) info = entry.info();
             else if (entry.shelf == Shelf.DEPTHS) info = LibraryCatalog.text("unknown_depth");
+            else if (entry.championSkill != null) info = Messages.get("champions.unknown");
             else if (entry.shelf == Shelf.QUESTS) info = LibraryCatalog.text("unknown_quest");
             else if (entry.shelf == Shelf.RECIPES) info = LibraryCatalog.text("unknown_recipe");
+            else if (entry.shelf == Shelf.ATTRIBUTES) info = LibraryCatalog.text("unknown_attribute");
             else if (entry.shelf == Shelf.RIVALS && revealed) info = LibraryCatalog.text("unknown_rival_depth");
             else if (entry.shelf.section == Section.ITEMS) info = LibraryCatalog.text("unknown_item");
             else info = LibraryCatalog.text("unknown_creature");
@@ -370,14 +422,6 @@ final class LibraryPanel extends TitleHubPanel {
         private final Image image;
         private Emitter cloud;
 
-        Icon(Entry entry) {
-            this(entry, false);
-        }
-
-        Icon(Entry entry, boolean selected) {
-            this(entry, selected, firstDepth(entry));
-        }
-
         Icon(Entry entry, boolean selected, int depth) {
             boolean known = Lore.known(entry) && (entry.shelf != Shelf.RIVALS || Lore.known(entry, depth));
             if (entry.shelf == Shelf.DEPTHS && !known) {
@@ -407,12 +451,4 @@ final class LibraryPanel extends TitleHubPanel {
         }
     }
 
-    private static int firstDepth(Entry entry) {
-        if (entry.shelf == Shelf.RIVALS) {
-            for (int depth = 5; depth <= 20; depth += 5) {
-                if (Lore.known(entry, depth)) return depth;
-            }
-        }
-        return 5;
-    }
 }

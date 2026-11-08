@@ -14,6 +14,10 @@ public final class RebornRoomPainter extends Painter {
         fill(level, room, Terrain.WALL);
         fill(level, room, 1, Terrain.EMPTY);
         for (Room.Door door : room.connected.values()) door.set(Room.Door.Type.REGULAR);
+        if (!landmark && StandardPainter.paintVariant(level, room)) {
+            reconnect(level, room);
+            return;
+        }
         Shape s = new Shape(level, room, landmark);
         if (landmark) landmark(s);
         else if (level instanceof SewerLevel) sewers(s, style);

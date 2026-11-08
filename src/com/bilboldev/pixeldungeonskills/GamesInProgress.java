@@ -61,6 +61,7 @@ public class GamesInProgress {
 		public int depth;
 		public int level;
 		public int armorTier;
+        public int skin;
 		public int challenges;
 		public int difficulty;
 		public RunRules rules = RunRules.CLASSIC;

@@ -261,6 +261,10 @@ public class Blacksmith extends NPC {
 		private static boolean completed;
 		private static boolean reforged;
 
+		public static boolean rewardTaken() {
+			return reforged;
+		}
+
 		public static void reset() {
 			spawned		= false;
 			given		= false;

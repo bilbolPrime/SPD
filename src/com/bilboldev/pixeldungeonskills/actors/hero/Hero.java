@@ -17,6 +17,13 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+import com.bilboldev.pixeldungeonskills.DailyRun;
+
+import com.bilboldev.pixeldungeonskills.HeroSkins;
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
+
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.RebornSkillTree;
+
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
@@ -50,6 +57,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Hunting;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Light;
 import com.bilboldev.pixeldungeonskills.actors.buffs.ManaRegeneration;
+import com.bilboldev.pixeldungeonskills.actors.buffs.SkillRecovery;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Ooze;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Paralysis;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
@@ -84,9 +92,11 @@ import com.bilboldev.pixeldungeonskills.items.Amulet;
 import com.bilboldev.pixeldungeonskills.items.Ankh;
 import com.bilboldev.pixeldungeonskills.items.DewVial;
 import com.bilboldev.pixeldungeonskills.items.Dewdrop;
+import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Heap.Type;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.ArmorPrefix;
@@ -115,6 +125,12 @@ import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.GlacierCleaver;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.MissileWeapon;
+import com.bilboldev.pixeldungeonskills.levels.DailyLevel;
+import com.bilboldev.pixeldungeonskills.levels.DailyMineLevel;
+import com.bilboldev.pixeldungeonskills.levels.DailyHuntLevel;
+import com.bilboldev.pixeldungeonskills.levels.DailySealLevel;
+import com.bilboldev.pixeldungeonskills.levels.DailyOutpostLevel;
+import com.bilboldev.pixeldungeonskills.levels.DailyHoardLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.features.AlchemyPot;
@@ -140,6 +156,34 @@ import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 public class Hero extends Char {
+    public int skillSystem = 3;
+    public int skin;
+
+    public String spritesheet() {
+        return HeroSkins.sheet(heroClass, skin);
+    }
+    private int bonusHealth;
+    private int bonusMana;
+
+    public RebornSkillTree talents() {
+        return skillTree instanceof RebornSkillTree
+                ? (RebornSkillTree)skillTree : null;
+    }
+
+    public void refreshBonuses() {
+        int health = (talents() == null ? 0 : talents().healthBonus()) + attribute(EquipmentAttribute.Type.HEALTH);
+        int mana = (talents() == null ? 0 : talents().manaBonus()) + attribute(EquipmentAttribute.Type.MANA);
+        HT = Math.max(1, HT + health - bonusHealth);
+        MMP = Math.max(0, MMP + mana - bonusMana);
+        HP = Math.min(HP, HT);
+        MP = Math.min(MP, MMP);
+        bonusHealth = health;
+        bonusMana = mana;
+    }
+
+    public int attribute(EquipmentAttribute.Type type) {
+        return EquipmentAttribute.bonus(this, type);
+    }
 
     public boolean canUseSkill(int mana) {
         return MP >= mana && (!RebornChallenges.active(RebornChallenges.BLOOD_MAGIC) || HP > mana);
@@ -270,6 +314,10 @@ public class Hero extends Char {
 	private static final int  skills_3_reset_version = 118;
 	@Override
 	public void storeInBundle( Bundle bundle ) {
+        bundle.put("skill_system", skillSystem);
+        bundle.put("hero_skin", skin);
+        bundle.put("bonus_health", bonusHealth);
+        bundle.put("bonus_mana", bonusMana);
         if (Dungeon.rules().hasRebornEncounters()) bundle.put("reborn_actions", rebornActions);
 
 		super.storeInBundle( bundle );
@@ -277,8 +325,12 @@ public class Hero extends Char {
 		heroClass.storeInBundle( bundle );
 		subClass.storeInBundle( bundle );
 
-        heroSkills.storeInBundle(bundle);
+        if (skillSystem == 3) heroSkills.storeInBundle(bundle);
 		skillTree.storeInBundle(bundle);
+        int sticky = -1;
+        Skill[] skills = LocalCoop.skills(this);
+        for (int i = 0; i < skills.length; i++) if (skills[i] == heroSkills.lastUsed) sticky = i;
+        bundle.put("sticky_skill", sticky);
 
         bundle.put( SKILLS_AVAILABLE,  Skill.availableSkill);
 		bundle.put( ATTACK, attackSkill );
@@ -308,6 +360,10 @@ public class Hero extends Char {
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
+        skillSystem = bundle.getInt("skill_system") == 4 ? 4 : 3;
+        skin = bundle.getInt("hero_skin") == 1 ? 1 : 0;
+        bonusHealth = bundle.getInt("bonus_health");
+        bonusMana = bundle.getInt("bonus_mana");
         rebornActions = bundle.getInt("reborn_actions");
 		super.restoreFromBundle( bundle );
 		heroClass = HeroClass.restoreInBundle( bundle );
@@ -396,18 +452,23 @@ public class Hero extends Char {
         }
         else
         {
-            heroSkills = CurrentSkills.restoreFromBundle(bundle);
+            heroSkills = skillSystem == 4 ? CurrentSkills.valueOf(heroClass.name()) : CurrentSkills.restoreFromBundle(bundle);
             heroSkills.init(this);
-            heroSkills.restoreSkillsFromBundle(bundle);
-            skillTree = heroSkills.getSkillTree();
+            if (skillSystem == 3) heroSkills.restoreSkillsFromBundle(bundle);
+            skillTree = skillSystem == 4 ? new RebornSkillTree(this) : heroSkills.getSkillTree();
 			skillTree.restoreSkillsFromBundle(bundle);
             Skill.availableSkill = bundle.getInt(SKILLS_AVAILABLE);
+            if (talents() != null) Skill.availableSkill += talents().refundedPoints();
         }
+        Skill[] skills = LocalCoop.skills(this);
+        int sticky = bundle.contains("sticky_skill") ? bundle.getInt("sticky_skill") : -1;
+        heroSkills.lastUsed = sticky >= 0 && sticky < skills.length ? skills[sticky] : null;
 	}
 
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
 		info.level = bundle.getInt( LEVEL );
-		info.armorTier = com.bilboldev.pixeldungeonskills.items.armor.Armor.previewTier(bundle.getBundle("armor"));
+        info.skin = bundle.getInt("hero_skin") == 1 ? 1 : 0;
+		info.armorTier = Armor.previewTier(bundle.getBundle("armor"));
 		info.difficulty = info.rules.difficulty(bundle.getInt(DIFFICULTY));
 	}
 
@@ -428,6 +489,7 @@ public class Hero extends Char {
 	}
 
 	public boolean shoot( Char enemy, MissileWeapon wep ) {
+		if (wep instanceof Arrow && talents() != null) talents().prepareShot(false);
 
 		rangedWeapon = wep;
 		boolean result = attack( enemy );
@@ -437,6 +499,7 @@ public class Hero extends Char {
 	}
 
     public boolean shootThrough( Char enemy, MissileWeapon wep ) {
+        if (wep instanceof Arrow && talents() != null) talents().prepareShot(false);
 
         rangedWeapon = wep;
         boolean result = attack( enemy );
@@ -463,7 +526,7 @@ public class Hero extends Char {
 		}
 
 		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
-        int attackSkillTmp = attackSkill;
+        int attackSkillTmp = attackSkill + attribute(EquipmentAttribute.Type.ACCURACY);
 
         if(wep instanceof MeleeWeapon){
         	attackSkillTmp += skillTree.getMeleeAttackSkillBonus();
@@ -498,7 +561,8 @@ public class Hero extends Char {
 
 		int aEnc = belongings.armor != null ? belongings.armor.STR - STR() : 0;
 
-		int calculatedDefenseSkill = defenseSkill + skillTree.evasionDefenceBonus();
+		int calculatedDefenseSkill = defenseSkill + skillTree.evasionDefenceBonus() + attribute(EquipmentAttribute.Type.EVASION)
+                + (talents() == null ? 0 : talents().evasion(enemy));
 		if (belongings.armor != null && belongings.armor.prefix == ArmorPrefix.ELUSIVE
 				&& buff(ArmorEvasion.class) != null) {
 			calculatedDefenseSkill += ArmorEvasion.BONUS;
@@ -528,7 +592,7 @@ public class Hero extends Char {
 		if (barkskin != null) {
 			dr += barkskin.level();
 		}
-		return dr;
+		return dr + (talents() == null ? 0 : talents().armorBonus()) + attribute(EquipmentAttribute.Type.ARMOR);
 	}
 
 	@Override
@@ -545,6 +609,7 @@ public class Hero extends Char {
 			dmg *= skillTree.getMeleeModifier();
 		}
 
+		dmg *= 1 + attribute(rangedWeapon == null ? EquipmentAttribute.Type.MELEE : EquipmentAttribute.Type.RANGED) / 100f;
 		return buff( Fury.class ) != null ? (int)(dmg * 1.5f) : dmg;
 	}
 
@@ -558,7 +623,7 @@ public class Hero extends Char {
 
 		} else {
 
-			float speed = super.speed();
+			float speed = super.speed() * (talents() == null ? 1 : talents().movement());
 			return ((HeroSprite)sprite).sprint( subClass == HeroSubClass.FREERUNNER && !isStarving() ) ? 1.6f * speed : speed;
 
 		}
@@ -577,7 +642,7 @@ public class Hero extends Char {
 				return wep.speedFactor( this ) / skillTree.getMeleeSpeedBonus();
 			}
 
-			return wep.speedFactor( this );
+			return wep.speedFactor( this ) / (talents() == null || rangedWeapon == null ? 1 : talents().missileSpeed());
 
 		} else {
 			return 1f;
@@ -596,6 +661,7 @@ public class Hero extends Char {
 			Skill.skillTrack += time;
 		}
 
+		DailyRun.spend(hasteTime(time));
 		super.spend(hasteTime(time));
 	}
 
@@ -615,6 +681,12 @@ public class Hero extends Char {
 
 	@Override
 	public boolean act() {
+        if (DailyRun.checkTime()) return false;
+        if (Dungeon.level instanceof DailySealLevel) ((DailySealLevel)Dungeon.level).updateRitual();
+        else if (Dungeon.level instanceof DailyOutpostLevel) ((DailyOutpostLevel)Dungeon.level).updateSiege();
+        else if (Dungeon.level instanceof DailyHoardLevel) ((DailyHoardLevel)Dungeon.level).updateAlarm();
+        refreshBonuses();
+        if (talents() != null) Buff.affect(this, SkillRecovery.class);
 
 		super.act();
 
@@ -782,6 +854,7 @@ public class Hero extends Char {
 				Sign.read( pos );
 			}
 			ready();
+			if (Dungeon.level instanceof DailySealLevel) ((DailySealLevel)Dungeon.level).interactSite(this);
 
 			return false;
 		}
@@ -980,6 +1053,36 @@ public class Hero extends Char {
 
 			theKey = null;
 			int door = Dungeon.level.map[doorCell];
+			if (door == Terrain.LOCKED_DOOR && Dungeon.level instanceof DailyHoardLevel
+					&& doorCell == ((DailyHoardLevel)Dungeon.level).vaultDoor) {
+				ready();
+				((DailyHoardLevel)Dungeon.level).interactVault(this);
+				return false;
+			}
+			if (door == Terrain.LOCKED_DOOR && Dungeon.level instanceof DailyOutpostLevel
+					&& ((DailyOutpostLevel)Dungeon.level).isCellDoor(doorCell)) {
+				ready();
+				((DailyOutpostLevel)Dungeon.level).interactRescue(this, doorCell);
+				return false;
+			}
+			if (door == Terrain.LOCKED_DOOR && Dungeon.level instanceof DailyMineLevel
+					&& ((DailyMineLevel)Dungeon.level).isMinerDoor(doorCell)) {
+				ready();
+				((DailyMineLevel)Dungeon.level).interactRescue(this, doorCell);
+				return false;
+			}
+			if (door == Terrain.LOCKED_DOOR && Dungeon.level instanceof DailyLevel
+					&& doorCell == ((DailyLevel)Dungeon.level).rescueDoor) {
+				ready();
+				((DailyLevel)Dungeon.level).interactRescue(this);
+				return false;
+			}
+			if (door == Terrain.LOCKED_DOOR && Dungeon.level instanceof DailyLevel
+					&& doorCell == ((DailyLevel)Dungeon.level).bossEntrance) {
+				GLog.w(Message.local(((DailyLevel)Dungeon.level).doorDescription(doorCell)));
+				ready();
+				return false;
+			}
 
 			if (door == Terrain.LOCKED_DOOR) {
 
@@ -1018,6 +1121,16 @@ public class Hero extends Char {
 	protected boolean actDescend( HeroAction.Descend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.exit) {
+			if (Dungeon.level instanceof DailyHoardLevel) {
+				ready();
+				((DailyHoardLevel)Dungeon.level).depart(this);
+				return false;
+			}
+			if (Dungeon.level instanceof DailyHuntLevel) {
+				ready();
+				((DailyHuntLevel)Dungeon.level).depart(this);
+				return false;
+			}
 
 			curAction = null;
 
@@ -1062,6 +1175,31 @@ public class Hero extends Char {
 	protected boolean actAscend( HeroAction.Ascend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.entrance) {
+			if (Dungeon.level instanceof DailyHoardLevel) {
+				ready();
+				GameScene.show(new WndMessage(Messages.get("daily.hoard_entrance_desc")));
+				return false;
+			}
+			if (Dungeon.level instanceof DailyOutpostLevel) {
+				ready();
+				GameScene.show(new WndMessage(Messages.get("daily.outpost_entrance_desc")));
+				return false;
+			}
+			if (Dungeon.level instanceof DailySealLevel) {
+				ready();
+				GameScene.show(new WndMessage(Messages.get("daily.seal_entrance_desc")));
+				return false;
+			}
+			if (Dungeon.level instanceof DailyHuntLevel) {
+				ready();
+				GameScene.show(new WndMessage(Messages.get("daily.hunt_entrance_desc")));
+				return false;
+			}
+			if (Dungeon.level instanceof DailyMineLevel) {
+				ready();
+				((DailyMineLevel)Dungeon.level).depart(this);
+				return false;
+			}
 
 			if (Dungeon.depth == 1) {
 
@@ -1109,6 +1247,7 @@ public class Hero extends Char {
 		}
 
 		if (Level.adjacent( pos, enemy.pos ) && enemy.isAlive() && !isCharmedBy( enemy )) {
+			if (talents() != null && talents().useAttackSkill(enemy)) return false;
 
             boolean doubleAttack = false;
             KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
@@ -1185,16 +1324,14 @@ public class Hero extends Char {
 			case SPIRIT_BINDER:
 				if (wep instanceof Wand) {
 					Wand wand = (Wand)wep;
-					if (wand.curCharges >= wand.maxCharges) {
-
-						wand.use();
-
-					} else if (damage > 0) {
-
-						wand.curCharges++;
-						wand.updateQuickslot();
-
-						ScrollOfRecharging.charge( this );
+					if (talents() == null || !talents().chargedStrikeActive()) {
+						if (wand.curCharges >= wand.maxCharges) {
+							wand.use();
+						} else if (damage > 0) {
+							wand.curCharges++;
+							wand.updateQuickslot();
+							ScrollOfRecharging.charge(this);
+						}
 					}
 					damage += wand.curCharges;
 				}
@@ -1243,6 +1380,7 @@ public class Hero extends Char {
 		}
 
         damage *= Dungeon.currentDifficulty.mobDefenceModifier();
+		if (talents() != null) damage = talents().attack(enemy, damage, rangedWeapon != null);
 
 		return damage;
 	}
@@ -1254,6 +1392,7 @@ public class Hero extends Char {
 			return LocalCoop.withHero(this, () -> defenseProc(enemy, incoming));
 		}
 
+		if (talents() != null) damage = talents().meleeDefense(enemy, damage);
 		RingOfThorns.Thorns thorns = buff( RingOfThorns.Thorns.class );
 		if (thorns != null) {
 			int dmg = Random.IntRange( 0, damage );
@@ -1287,12 +1426,16 @@ public class Hero extends Char {
 			return;
 		}
 		Char attacker = takeDamageAttacker();
+        if (src instanceof Poison && talents() != null) dmg = dmg * (100 - Math.min(60,
+                talents().bonus(Talent.Effect.POISON_RESISTANCE))) / 100;
 		restoreHealth = false;
 
 		if(src == null || !(src instanceof Hunger)){
 			dmg *= skillTree.getDamageReductionModifier();
 
-			dmg -= skillTree.SpiritArmorAbsorb(dmg);
+			int absorbed = skillTree.SpiritArmorAbsorb(dmg);
+			dmg -= absorbed;
+			if (absorbed > 0 && sprite != null) sprite.showAbsorbed(absorbed);
 		}
 
 		ArmorPrefix prefix = belongings.armor != null ? belongings.armor.prefix : null;
@@ -1493,6 +1636,14 @@ public class Hero extends Char {
 		return act();
 	}
 
+    public void startAtLevel(int level) {
+        if (lvl != 1 || level < 1 || level > 30) throw new IllegalArgumentException("Invalid starting level");
+        attackSkill += level - 1;
+        defenseSkill += level - 1;
+        lvl = level;
+        updateAwareness();
+    }
+
 	public void earnExp( int exp ) {
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, () -> earnExp(exp));
@@ -1541,6 +1692,7 @@ public class Hero extends Char {
 			int value = Math.min( HT - HP, 1 + (Dungeon.depth - 1) / 5 );
 			if (value > 0) {
 				HP += value;
+				showRecovery(value, false);
 				sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 			}
 
@@ -1688,6 +1840,10 @@ public class Hero extends Char {
 	}
 
 	public static void reallyDie( Object cause ) {
+        if (DailyRun.active()) {
+            DailyRun.finish(false);
+            return;
+        }
 		if (LocalCoop.active()) {
 			Hero fallen = Dungeon.hero;
 			fallen.interrupt();
@@ -1745,6 +1901,7 @@ public class Hero extends Char {
 			}
 
 			Item item = Random.element( items );
+			item.droppedOnDeath = true;
 			Dungeon.level.drop( item, cell ).sprite.drop( pos );
 			items.remove( item );
 		}
@@ -1760,6 +1917,7 @@ public class Hero extends Char {
 
 	@Override
 	public void move( int step ) {
+        if (talents() != null && step != pos) talents().moved();
 		super.move( step );
 
 		if (!flying) {
@@ -1966,15 +2124,17 @@ public class Hero extends Char {
 		return smthFound;
 	}
 
-	public void resurrect( int resetLevel ) {
+	public ArrayList<Item> resurrect( int resetLevel ) {
 
 		HP = HT;
-		Dungeon.gold = 0;
 		exp = 0;
 
-		belongings.resurrect(resetLevel);
+		ArrayList<Item> dropped = belongings.resurrect(resetLevel);
+		if (Dungeon.gold > 0) dropped.add(Gold.recovered(Dungeon.gold));
+		Dungeon.gold = 0;
 
 		live();
+		return dropped;
 	}
 
 	@Override

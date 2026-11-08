@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.utils.Bundlable;
@@ -39,6 +41,8 @@ final class PartyObjects {
                 com.bilboldev.pixeldungeonskills.items.rings.RingOfThorns.Thorns.class,
                 com.bilboldev.pixeldungeonskills.items.weapon.gun.Gun.Charger.class);
         add(
+                com.bilboldev.pixeldungeonskills.actors.buffs.SkillEffect.class,
+                com.bilboldev.pixeldungeonskills.actors.buffs.SkillRecovery.class,
                 com.bilboldev.pixeldungeonskills.levels.IceCavesLevel.class,
                 com.bilboldev.pixeldungeonskills.levels.IceBossLevel.class,
                 com.bilboldev.pixeldungeonskills.actors.buffs.Frostbite.class,
@@ -116,7 +120,7 @@ final class PartyObjects {
                 com.bilboldev.pixeldungeonskills.actors.buffs.Terror.class,
                 com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo.class,
                 com.bilboldev.pixeldungeonskills.actors.buffs.Weakness.class,
-                com.bilboldev.pixeldungeonskills.actors.hero.Hero.class,
+                Hero.class,
                 com.bilboldev.pixeldungeonskills.actors.mobs.Acidic.class,
                 com.bilboldev.pixeldungeonskills.actors.mobs.Albino.class,
                 com.bilboldev.pixeldungeonskills.actors.mobs.Bandit.class,

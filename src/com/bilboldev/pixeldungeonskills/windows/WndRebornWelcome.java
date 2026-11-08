@@ -9,6 +9,7 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.NinePatch;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.GameUpdates;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -61,6 +62,13 @@ public final class WndRebornWelcome extends WndScrollable {
             notice.setPos(PAD, bottom + 12);
             content.add(notice);
             bottom = notice.bottom();
+        }
+        if (GameUpdates.available()) {
+            RenderedTextMultiline update = paragraph(Messages.get(VersionNewsInfo.class, "update_available"),
+                    9, 0xECD095, textWidth);
+            update.setPos(PAD, bottom + 12);
+            content.add(update);
+            bottom = update.bottom();
         }
         content.setSize(width - SCROLL_GUTTER, bottom + PAD);
 

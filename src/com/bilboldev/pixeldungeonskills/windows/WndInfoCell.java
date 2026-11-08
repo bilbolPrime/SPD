@@ -27,30 +27,31 @@ import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.DailyLevel;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 
 public class WndInfoCell extends WndScrollable {
-	
+
 	private static final float GAP	= 2;
-	
+
 	private static final int WIDTH = 120;
-	
+
 	private static final String TXT_NOTHING	= "There is nothing here.";
-	
+
 	public WndInfoCell( int cell ) {
-		
+
 		super();
 		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
-		
+
 		int tile = Dungeon.level.map[cell];
 		if (Level.water[cell]) {
 			tile = Terrain.WATER;
 		} else if (Level.pit[cell]) {
 			tile = Terrain.CHASM;
 		}
-		
+
 		Image image;
 		if (tile == Terrain.WATER) {
 			image = new Image( Dungeon.level.waterTex() );
@@ -58,15 +59,24 @@ public class WndInfoCell extends WndScrollable {
 		} else {
 			image = Difficulties.is3d ? DungeonTerrainTilemap.tile( cell, tile ) : DungeonTilemapOld.tile( tile );
 		}
-		Component titlebar = InspectionTitle.create(image, Dungeon.level.tileName(tile));
+		String name = Dungeon.level.tileName(tile);
+		String description = Dungeon.level.tileDesc(tile);
+		if (Dungeon.level instanceof DailyLevel) {
+			DailyLevel daily = (DailyLevel)Dungeon.level;
+			if (daily.doorName(cell) != null) {
+				name = daily.doorName(cell);
+				description = daily.doorDescription(cell);
+			}
+		}
+		Component titlebar = InspectionTitle.create(image, name);
 		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
-		
+
 		BitmapTextMultiline info = PixelScene.createMultiline( 6 );
 		add( info );
-		
-		StringBuilder desc = new StringBuilder( Dungeon.level.tileDesc( tile ) );
-		
+
+		StringBuilder desc = new StringBuilder(description);
+
 		final char newLine = '\n';
 		for (Blob blob:Dungeon.level.blobs.values()) {
 			String blobDesc = blob.displayTileDesc();
@@ -77,7 +87,7 @@ public class WndInfoCell extends WndScrollable {
 				desc.append( blobDesc );
 			}
 		}
-		
+
 		info.text( desc.length() > 0 ? desc.toString() : Messages.get( WndInfoCell.class, "nothing" ) );
 		info.maxWidth = textWidth(windowWidth);
 		info.measure();

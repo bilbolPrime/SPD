@@ -49,6 +49,11 @@ public final class PartyParticles {
             PartyEffects.particles(factory, interval, quantity, target == null ? x : target.x,
                     target == null ? y : target.y, target == null ? width : target.width,
                     target == null ? height : target.height, renderAnchor());
+            if (factory == BlastParticle.FACTORY && quantity > 0) {
+                com.bilboldev.pixeldungeonskills.scenes.GameScene.explosionLight(
+                        target == null ? x + width / 2 : target.x + target.width / 2,
+                        target == null ? y + height / 2 : target.y + target.height / 2);
+            }
             super.start(factory, interval, quantity);
         }
     }

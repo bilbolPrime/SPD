@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.wands;
 
+import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
@@ -56,10 +58,6 @@ public abstract class Wand extends KindOfWeapon {
 	private static final int USAGES_TO_KNOW	= 40;
 
 	public static final String AC_ZAP	= "ZAP";
-
-	private static final String TXT_WOOD	= "This thin %s wand is warm to the touch. Who knows what it will do when used?";
-	private static final String TXT_DAMAGE	= "When this wand is used as a melee weapon, its damage is _%d_ to _%d_ per hit.";
-	private static final String TXT_WEAPON	= "You can use this wand as a melee weapon.";
 
 	private static final String TXT_FIZZLES		= "your wand fizzles; it must be out of charges for now";
 	private static final String TXT_SELF_TARGET	= "You can't target yourself";
@@ -147,7 +145,9 @@ public abstract class Wand extends KindOfWeapon {
 	protected float wandBonusDamageModifier(){
 		try
 		{
-			return Dungeon.hero.skillTree.getWandDamageModifier();
+			return Dungeon.hero.skillTree.getWandDamageModifier()
+					* (1 + EquipmentAttribute.bonus(Dungeon.hero,
+					EquipmentAttribute.Type.WANDS) / 100f);
 		}
 		catch (Exception e){
 			return 1f;
@@ -207,6 +207,9 @@ public abstract class Wand extends KindOfWeapon {
 		}
 		int health = target.HP;
 		target.damage( amount, damageSource );
+		if (caster != null && caster.talents() != null && health > 0 && !target.isAlive()) {
+			caster.talents().killed(target);
+		}
 		if (triggered) {
 			effect.onHit( caster, target, Math.min( health, Math.max( 0, health - target.HP ) ) );
 		}
@@ -259,7 +262,7 @@ public abstract class Wand extends KindOfWeapon {
 	}
 
 	public boolean isKnown() {
-		return handler.isKnown( this );
+		return handler != null && handler.isKnown(this);
 	}
 
 	public void setKnown() {
@@ -312,19 +315,14 @@ public abstract class Wand extends KindOfWeapon {
 	@Override
 	public String info(Hero viewer) {
 		boolean known = viewer == null || isKnown();
-		StringBuilder info = new StringBuilder( known ? desc() : Messages.maybeTranslate( TXT_WOOD, wood ) );
+		StringBuilder info = new StringBuilder( known ? desc() : Messages.get(
+				"custom.generated.entry_this_thin_s_wand_is_warm_to_the_touch_who_knows_394e93e37c", (Object)Messages.maybeTranslate(wood)) );
 		if (viewer == null || viewer.heroClass == HeroClass.MAGE || viewer.heroClass == HeroClass.NECROMANCER) {
-			String battlemageDesc = viewer != null && known ? message( "bmage_desc" ) : null;
-			if (battlemageDesc != null) {
-				info.append( "\n\n" );
-				info.append( battlemageDesc );
+			info.append( "\n\n" );
+			if (levelKnown) {
+				info.append( Messages.get( "custom.generated.entry_when_this_wand_is_used_as_a_melee_weapon_its_dam_08c0d22dd9", min(), max() ) );
 			} else {
-				info.append( "\n\n" );
-				if (levelKnown) {
-					info.append( Messages.maybeTranslate( TXT_DAMAGE, min(), max() ) );
-				} else {
-					info.append( Messages.maybeTranslate( TXT_WEAPON ) );
-				}
+				info.append( Messages.get( "custom.generated.entry_you_can_use_this_wand_as_a_melee_weapon_09be929d8e" ) );
 			}
 		}
 		info.append( prefixInfo() );
@@ -416,6 +414,7 @@ public abstract class Wand extends KindOfWeapon {
 
 	@Override
 	public Item random() {
+		EquipmentAttribute.roll(this);
 		if (Random.Float() < 0.5f) {
 			upgrade();
 			if (Random.Float() < 0.15f) {

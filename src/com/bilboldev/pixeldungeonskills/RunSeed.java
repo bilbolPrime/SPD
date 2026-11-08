@@ -6,7 +6,8 @@ import java.io.IOException;
 
 public final class RunSeed {
     public static final int SYMBOLS = 6;
-    public static final int INITIAL = 1, FLOOR = 2, GRASS = 3, PLANT = 4, WELL = 5, ALCHEMY = 6, QUEST = 7, CHALLENGES = 8;
+    public static final int INITIAL = 1, FLOOR = 2, GRASS = 3, PLANT = 4, WELL = 5, ALCHEMY = 6, QUEST = 7,
+            CHALLENGES = 8, CHAMPION = 9;
     public final long code;
     public final boolean custom;
 
@@ -93,7 +94,7 @@ public final class RunSeed {
     }
 
     public static boolean customRun() {
-        return active() && Dungeon.seed.custom;
+        return DailyRun.active() || active() && Dungeon.seed.custom;
     }
 
     public static Random.Scope scope(int domain, int position) {

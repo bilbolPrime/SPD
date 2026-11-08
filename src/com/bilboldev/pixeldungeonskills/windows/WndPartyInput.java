@@ -153,10 +153,10 @@ public class WndPartyInput extends WndScrollable {
         int available = PartyPrompts.keyboardTop > 0 ? Math.min(Game.height, PartyPrompts.keyboardTop) : Game.height;
         if (available != availableHeight) {
             availableHeight = available;
-            camera.zoom = Math.min(PixelScene.defaultZoom, (available - 8f) / (height + chrome.marginVer()));
+            camera.zoom = Math.min(PixelScene.defaultZoom, available * MAX_SCREEN_FRACTION / (height + chrome.marginVer()));
             resize(width, height);
             camera.y = Math.max(0, (int)(available - camera.screenHeight()) / 2);
-            shadow.boxRect(camera.x / camera.zoom, camera.y / camera.zoom, chrome.width(), chrome.height());
+            updateShadow();
         }
     }
 

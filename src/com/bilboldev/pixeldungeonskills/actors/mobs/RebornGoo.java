@@ -55,6 +55,7 @@ public class RebornGoo extends RebornBoss {
             healedAt = RebornBoss.heroActions();
             if (Level.water[pos] && HP < HT) {
                 HP++;
+                showRecovery(1, false);
                 if (sprite != null) sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
             }
         }

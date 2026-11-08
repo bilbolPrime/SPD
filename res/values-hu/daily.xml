@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Napi kihívások</string>
+    <string-array name="daily_reminder_events">
+        <item>A Patkánykirály udvara</item>
+        <item>Szökés a börtönből</item>
+        <item>Az utolsó műszak</item>
+        <item>A fehér vadászat</item>
+        <item>A megtört pecsét</item>
+        <item>Az utolsó őrhely</item>
+        <item>A király kincse</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>A Patkánykirály gyűjti az őrségét. Érd el, mielőtt megérkezik az erősítés.</item>
+        <item>Tengu szökik. Verekedd át magad a börtönön, és állítsd meg.</item>
+        <item>Három bányász rekedt lent. Hozd vissza őket, mielőtt elindul az utolsó felvonó.</item>
+        <item>Három bestia járja a jégbarlangokat. Vadászd le őket, mielőtt megérkezik a vihar.</item>
+        <item>Démonok érkeznek a szertartáshelyekről. Zárd le mindhármat.</item>
+        <item>Az előőrsöt támadják. Tarts ki, amíg megérkezik a segítség.</item>
+        <item>A király aranyát zárt ajtók őrzik. Szerezd meg, és menekülj el, mielőtt bezárulnak a kapuk.</item>
+    </string-array>
+</resources>

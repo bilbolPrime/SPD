@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfMagicCasting;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -71,9 +72,11 @@ public class NecroBlade extends MeleeWeapon {
     public void execute( Hero hero, String action ) {
         if (action.equals( AC_HEAL )) {
 
+            int before = hero.HP;
             hero.HP += hero.HT * 0.35;
             if(hero.HP > hero.HT)
                 hero.HP = hero.HT;
+            hero.showRecovery(hero.HP - before, false);
             GLog.p("custom.generated.entry_necroblade_heals_s_hp_8bbc4d9bdf", (int) (hero.HT * 0.35));
             updateCharge(-25);
 
@@ -180,10 +183,10 @@ public class NecroBlade extends MeleeWeapon {
 
     @Override
 	public String desc() {
-		return "A blade forged from dark magic. NecroBlades consume the souls of those who perish by them. The more they consume, the stronger they become.\n" +
-                "NecroBlade energy at _" + charge + "/100_\n"
-                + "The energy stored within increases damage by _0_ - _" + ((int) (charge / 10)) + "_.\n\n" +
-                (level < 3 ? "The blade _hungers_ for souls.": "The blade _cannot_ consume any more souls.") + "\n\n"
-                + "After level 7, the Necro Blade unlocks _Dark_ _Bolt_. A projectile of negative energy that can completely shatter a target's essence and replace it with a slave.";
+		return Messages.get("network.partytext.necroblade_intro") + "\n"
+                + Messages.get("network.partytext.necroblade_energy", charge) + "\n"
+                + Messages.get("network.partytext.necroblade_damage", charge / 10) + "\n\n"
+                + Messages.get(level < 3 ? "network.partytext.necroblade_hungry" : "network.partytext.necroblade_full") + "\n\n"
+                + Messages.get("network.partytext.necroblade_bolt");
 	}
 }

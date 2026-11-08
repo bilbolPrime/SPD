@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.input.GameAction;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
@@ -28,9 +29,13 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.levels.DailyOutpostLevel;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.windows.WndPartner;
+import com.bilboldev.pixeldungeonskills.windows.WndDaily;
+import com.bilboldev.pixeldungeonskills.windows.WndDailyChallenge;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
@@ -55,6 +60,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.windows.WndCatalogus;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
+import com.bilboldev.pixeldungeonskills.windows.WndHeroAppearance;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoCell;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoItem;
 import com.bilboldev.pixeldungeonskills.windows.WndInfoMob;
@@ -76,6 +82,7 @@ public class Toolbar extends Component {
 	private Tool btnWait;
     private Tool btnSkill;
     private Tool btnMerc;
+    private Tool btnSupport;
     private Tool btnLastUsed;
 
     private Tool btnKing;
@@ -152,39 +159,11 @@ public class Toolbar extends Component {
         });
 		add(btnChallenges = new ChallengeTool());
 
-            add(btnLastUsed = new Tool(40, 7, 20, 25) {
-				private SkillsIndicator skillsIndicator;
-                @Override
-                protected void onClick() {
-                    final Hero user = Dungeon.hero;
-                    if (PartySession.input(user, "last_skill", 0)) return;
-                    if (!LocalCoop.defer(user, () -> user.heroSkills.showLastUsed())) user.heroSkills.showLastUsed();
-                }
+        add(btnLastUsed = new QuickslotTool(83, 7, 22, 25, -1));
 
-                ;
-
-                protected boolean onLongClick() {
-                    final Hero user = Dungeon.hero;
-                    if (PartySession.input(user, "last_skill", 0)) return true;
-                    if (!LocalCoop.defer(user, () -> user.heroSkills.showLastUsed())) user.heroSkills.showLastUsed();
-                    return true;
-                }
-
-				@Override
-				protected void createChildren() {
-					super.createChildren();
-					skillsIndicator = new SkillsIndicator();
-					skillsIndicator.skillCooldown = true;
-					add( skillsIndicator );
-				};
-				@Override
-				protected void layout() {
-					super.layout();
-					skillsIndicator.fill( this );
-				};
-            });
-
-        add(btnMerc = LocalCoop.active() ? new PartnerTool() : new MercTool());
+        add(btnMerc = DailyRun.active() ? new DailyTool() : GauntletRun.active() ? new GauntletTool()
+                : LocalCoop.active() ? new PartnerTool() : new MercTool());
+        add(btnSupport = new SupportTool());
 
 		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
@@ -239,7 +218,6 @@ public class Toolbar extends Component {
 		btnWait.bindAction(GameAction.WAIT);
 		btnWait.bindAlternateAction(GameAction.REST);
 		btnSkill.bindAction(GameAction.SKILLS);
-		btnLastUsed.bindAction(GameAction.LAST_SKILL);
 		btnKing.bindAction(GameAction.RAT_KING);
 		btnMerc.bindAction(GameAction.MERCENARIES);
 		btnInfoSearch.bindAction(GameAction.EXAMINE);
@@ -256,6 +234,7 @@ public class Toolbar extends Component {
         btnSkill.setPos(btnWait.right(), y);
         btnKing.setPos(0, 100);
 		btnChallenges.setPos(btnKing.left(), btnKing.top());
+        btnSupport.setPos(0, 160);
         btnLastUsed.setPos(btnSkill.right(), y);
 		int count = Math.min(Presentation.quickSlots(), maxQuickSlots(width, camera().height));
 		float right = x + width;
@@ -285,7 +264,7 @@ public class Toolbar extends Component {
 		super.update();
 
 		boolean enabled = LocalCoop.active() ? LocalCoop.acceptsInput() && Dungeon.hero.isAlive() : Dungeon.hero.ready;
-		if (LocalCoop.active()) btnLastUsed.visible = Dungeon.hero.heroSkills.lastUsed != null;
+		btnLastUsed.visible = true;
 		if (lastEnabled != enabled) {
 			lastEnabled = enabled;
 
@@ -293,8 +272,6 @@ public class Toolbar extends Component {
 				if (tool instanceof Tool) {
                     ((Tool)tool).enable(lastEnabled && (!(tool instanceof QuickslotTool) || tool.visible));
 
-                    if(tool == btnLastUsed)
-                        tool.visible = Dungeon.hero.heroSkills.lastUsed != null;
                     if(tool == btnMerc && Dungeon.depth == ColdGirl.FROST_DEPTH)
                         ((Tool)tool).enable(false);
 				}
@@ -308,6 +285,8 @@ public class Toolbar extends Component {
 	}
 
 	private void updateModeTools() {
+		btnSupport.visible = Game.width < Game.height;
+		btnSupport.enable(btnSupport.visible);
 		boolean enabled = LocalCoop.active() ? LocalCoop.acceptsInput() && Dungeon.hero.isAlive() : Dungeon.hero.ready;
 		btnKing.visible = Dungeon.rules().allowsRatKing();
 		btnKing.enable(btnKing.visible && enabled);
@@ -319,6 +298,10 @@ public class Toolbar extends Component {
 			btnMerc.enable(enabled && partner != null
 					&& (partner.isAlive() || PartySession.network() || PartySession.splitControls())
 					&& GameScene.canAcceptMovement() && Window.topWindow() == null);
+		} else if (btnMerc instanceof DailyTool) {
+			btnMerc.enable(!DailyRun.finished());
+		} else if (btnMerc instanceof GauntletTool) {
+			btnMerc.enable(GauntletRun.acceptsInput());
 		} else {
 			btnMerc.visible = !GauntletRun.active();
 			btnMerc.enable(btnMerc.visible && enabled && Dungeon.depth != ColdGirl.FROST_DEPTH);
@@ -337,7 +320,7 @@ public class Toolbar extends Component {
 	}
 
 	private static int maxQuickSlots(float width, float height) {
-		int left = width >= height ? 80 : 60;
+		int left = width >= height ? 84 : 62;
 		return Math.max(1, Math.min(QuickSlot.MAX_SLOTS, (int)(width - left - 23) / 22));
 	}
 
@@ -488,6 +471,30 @@ public class Toolbar extends Component {
 		}
 	}
 
+    private static class SupportTool extends Tool {
+        private Image icon;
+
+        SupportTool() {
+            super(83, 7, 22, 25);
+        }
+
+        @Override protected void createChildren() {
+            super.createChildren();
+            add(icon = Icons.SUPPORT.get());
+        }
+
+        @Override protected void layout() {
+            super.layout();
+            icon.x = PixelScene.align(x + (width - icon.width()) / 2);
+            icon.y = PixelScene.align(y + (height - icon.height()) / 2);
+        }
+
+        @Override protected void onClick() {
+            Game.scene().add(new WndHeroAppearance(
+                    PartySession.network() ? PartySession.localHero() : Dungeon.hero));
+        }
+    }
+
 	private static class ChallengeTool extends Tool {
 		private ItemSprite icon;
 		private BitmapText count;
@@ -519,6 +526,109 @@ public class Toolbar extends Component {
 		@Override
 		protected void onClick() {
 			GameScene.show(new WndRebornChallenges(Dungeon.challenges, null));
+		}
+	}
+
+	private static class GauntletTool extends Tool {
+        private Image icon;
+        private BitmapText wave, steps;
+        private int shownWave = -1, shownSteps = -1;
+
+        GauntletTool() { super(83, 7, 22, 25); }
+
+        @Override protected void createChildren() {
+            super.createChildren();
+            add(icon = Icons.RAT_KING.get());
+            icon.scale.set(10f / Math.max(icon.width, icon.height));
+            add(wave = new BitmapText(PixelScene.font1x));
+            add(steps = new BitmapText(PixelScene.font1x));
+            wave.hardlight(0xFFEBA4);
+            steps.hardlight(0xFFD36A);
+        }
+
+        @Override public void update() {
+            super.update();
+            GauntletArena arena = GauntletRun.arena();
+            if (arena == null) return;
+            boolean preparing = arena.phase() == GauntletArena.Phase.PREPARING;
+            int number = arena.wave();
+            int remaining = preparing ? arena.stepsRemaining() : -1;
+            if (shownWave == number && shownSteps == remaining) return;
+            shownWave = number;
+            shownSteps = remaining;
+            wave.text(number + "/" + GauntletArena.WAVES);
+            wave.measure();
+            wave.scale.set(Math.min(1, (width - 4) / Math.max(1, wave.width)));
+            steps.text(preparing ? Integer.toString(remaining) : "");
+            steps.measure();
+            steps.scale.set(Math.min(1, 9f / Math.max(1, steps.width)));
+            layout();
+        }
+
+        @Override protected void layout() {
+            super.layout();
+            wave.x = PixelScene.align(camera(), x + (width - wave.width()) / 2);
+            wave.y = y + 3;
+            icon.x = PixelScene.align(camera(), x + (shownSteps < 0 ? (width - icon.width()) / 2 : 2));
+            icon.y = bottom() - icon.height() - 2;
+            steps.x = right() - steps.width() - 2;
+            steps.y = bottom() - steps.height() - 3;
+        }
+
+        @Override protected void onClick() {
+            GauntletArena arena = GauntletRun.arena();
+            if (arena == null) return;
+            String text = Messages.get("gauntlet.wave", Math.max(1, arena.wave()), GauntletArena.WAVES, arena.themeName());
+            if (arena.phase() == GauntletArena.Phase.PREPARING) {
+                text += "\n\n" + (arena.stepsRemaining() == 1
+                        ? Messages.get("gauntlet.wave_in_step", arena.completed() + 1)
+                        : Messages.get("gauntlet.wave_in_steps", arena.completed() + 1, arena.stepsRemaining()));
+            }
+            GameScene.show(new com.bilboldev.pixeldungeonskills.windows.WndTitledMessage(
+                    Icons.RAT_KING.get(), Messages.get("gauntlet.title"), text));
+        }
+    }
+
+	private static class DailyTool extends Tool {
+		private Image icon;
+		private BitmapText turns;
+		private int shownTurns = -1;
+
+		DailyTool() {
+			super(83, 7, 22, 25);
+		}
+
+		@Override protected void createChildren() {
+			super.createChildren();
+			add(icon = WndDaily.image(DailyRun.day()));
+			icon.scale.set(12f / Math.max(icon.width, icon.height));
+			add(turns = new BitmapText(PixelScene.font1x));
+		}
+
+		@Override public void update() {
+			super.update();
+			int remaining = DailyRun.remainingTurns();
+			if (remaining == shownTurns) return;
+			shownTurns = remaining;
+			turns.text(Integer.toString(remaining));
+			turns.measure();
+			turns.scale.set(Math.min(1, (width - 4) / Math.max(1, turns.width)));
+			turns.hardlight(Dungeon.level instanceof DailyOutpostLevel
+					&& remaining <= 30 ? 0xA7D8B0 : remaining <= 30 ? 0xFF6666
+					: remaining <= 100 ? 0xFFD36A : 0xFFEBA4);
+			layout();
+		}
+
+		@Override protected void layout() {
+			super.layout();
+			icon.x = PixelScene.align(camera(), x + (width - icon.width()) / 2);
+			icon.y = y + 3;
+			turns.x = PixelScene.align(camera(), x + (width - turns.width()) / 2);
+			turns.y = bottom() - turns.height() - 2;
+		}
+
+		@Override protected void onClick() {
+			GameScene.show(new WndDailyChallenge(DailyRun.day(), true));
 		}
 	}
 
@@ -640,7 +750,7 @@ public class Toolbar extends Component {
 			if (partner != null && (shownPartner != partner || shownTier != partner.tier())) {
 				shownPartner = partner;
 				shownTier = partner.tier();
-				portrait.copy(HeroSprite.avatar(partner.heroClass, shownTier));
+				portrait.copy(HeroSprite.avatar(partner, shownTier));
 				layout();
 			}
 		}

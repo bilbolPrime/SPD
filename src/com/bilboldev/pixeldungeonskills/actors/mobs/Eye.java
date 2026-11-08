@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -143,7 +144,7 @@ public class Eye extends Mob {
 						dmg = adjustHeroDamage(LocalCoop.active() ? (Hero)ch : Dungeon.hero, dmg);
 					}
 
-					ch.damageFrom( dmg, this, this );
+					ch.damageFrom( dmg, this, this, CombatTextIcon.MAGIC );
 					if (champion != null) champion.onHit(ch);
 
 					if (Dungeon.visible[pos]) {

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.*;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -54,6 +55,10 @@ public abstract class RivalBoss extends RebornBoss {
 
     public boolean meleeWarning() {
         return false;
+    }
+
+    public int warningAbility() {
+        return ability;
     }
 
     public final int tier() {
@@ -228,7 +233,7 @@ public abstract class RivalBoss extends RebornBoss {
             damage = RebornCurse.spellDamage(this, damage);
             if (victim instanceof Hero) damage = adjustHeroDamage((Hero)victim, damage);
             int hp = victim.HP;
-            victim.damageFrom(damage, this, this);
+            victim.damageFrom(damage, this, this, CombatTextIcon.MAGIC);
             lost += Math.max(0, hp - Math.max(0, victim.HP));
             if (victim.sprite != null) victim.sprite.flash();
             if (victim instanceof Hero && !victim.isAlive())
@@ -265,11 +270,12 @@ public abstract class RivalBoss extends RebornBoss {
 
     @Override
     protected boolean doAttack(Char enemy) {
+        int from = pos;
         if (preferredRange() > 1 && !rooted && retreats < 2
                 && Level.distance(pos, enemy.pos) < preferredRange() - 1 && getFurther(enemy.pos)) {
             retreats++;
             spend(TICK);
-            return true;
+            return moveSprite(from, pos);
         }
         retreats = 0;
         return super.doAttack(enemy);

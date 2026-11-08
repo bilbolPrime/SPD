@@ -26,15 +26,17 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Statistics;
+import com.bilboldev.pixeldungeonskills.levels.DailyHoardLevel;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class Gold extends Item {
+
+	int recovered;
 
 	private static final String TXT_COLLECT	= "Collect gold coins to spend them later in a shop.";
 	private static final String TXT_INFO	= "A pile of %d gold coins. " + TXT_COLLECT;
@@ -54,6 +56,12 @@ public class Gold extends Item {
 		this.quantity = value;
 	}
 
+	public static Gold recovered(int value) {
+		Gold gold = new Gold(value);
+		gold.recovered = value;
+		return gold;
+	}
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		return new ArrayList<String>();
@@ -62,15 +70,21 @@ public class Gold extends Item {
 	@Override
 	public boolean doPickUp( Hero hero ) {
 
-		Dungeon.gold += quantity + hero.skillTree.getLootBonus(quantity);
-		Statistics.goldCollected += quantity  + hero.skillTree.getLootBonus(quantity);
-		Badges.validateGoldCollected();
+		int found = quantity - recovered;
+		int bonus = hero.skillTree.getLootBonus(found);
+		Dungeon.gold += quantity + bonus;
+		if (found > 0) {
+			Statistics.goldCollected += found + bonus;
+			Badges.validateGoldCollected();
+		}
 
 		GameScene.pickUp( this );
-        if(hero.skillTree.getLootBonus(quantity) == 0)
-		    hero.sprite.showStatus( CharSprite.NEUTRAL, Message.key("custom.generated.entry_d_dbf0d0f640", quantity));
-        else
-            hero.sprite.showStatus( CharSprite.NEUTRAL, Message.key("custom.generated.entry_d_d_loot_d4156b722a", quantity,hero.skillTree.getLootBonus(quantity)));
+		if (Dungeon.level instanceof DailyHoardLevel) ((DailyHoardLevel)Dungeon.level).collectGold(this, hero);
+		if (bonus == 0) {
+			hero.sprite.showStatus( CharSprite.NEUTRAL, Message.key("custom.generated.entry_d_dbf0d0f640", quantity));
+		} else {
+			hero.sprite.showStatus( CharSprite.NEUTRAL, Message.key("custom.generated.entry_d_d_loot_d4156b722a", quantity, bonus));
+		}
 
 		hero.spendAndNext( TIME_TO_PICK_UP );
 
@@ -101,16 +115,19 @@ public class Gold extends Item {
 	}
 
 	private static final String VALUE	= "value";
+	private static final String RECOVERED = "recovered";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( VALUE, quantity );
+		if (recovered > 0) bundle.put( RECOVERED, recovered );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle(bundle);
 		quantity = bundle.getInt( VALUE );
+		recovered = bundle.getInt( RECOVERED );
 	}
 }

@@ -1,6 +1,8 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects;
 
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
@@ -24,7 +26,8 @@ public class DrainLife extends WeaponEffect {
         if (healed <= 0) return;
         source.HP += healed;
         if (source.sprite != null && source.sprite.visible) {
-            source.sprite.showStatus(CharSprite.POSITIVE, "+" + healed);
+            if (Dungeon.rules().mode == GameplayMode.REBORN) source.showRecovery(healed, false);
+            else source.sprite.showStatus(CharSprite.POSITIVE, "+" + healed);
             source.sprite.centerEmitter().burst(Speck.factory(Speck.HEALING), 3);
         }
     }

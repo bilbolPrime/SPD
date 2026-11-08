@@ -88,6 +88,12 @@ public class MagicMissile extends Emitter {
 	@Override
 	public void pour(Factory factory, float interval) {
 		PartyEffects.magic(fromCell, toCell, velocity, width, factory, interval);
+		int color = factory == FlameParticle.FACTORY ? 0xFFB56B
+				: factory == MagicParticle.FACTORY ? 0x7BBEFF
+				: factory == ColdParticle.FACTORY || factory == SlowParticle.FACTORY ? 0xB0EAFF
+				: factory == PurpleParticle.MISSILE ? 0xC29CFF
+				: factory == WhiteParticle.FACTORY || factory == ForceParticle.FACTORY ? 0xDCEBFF : 0;
+		com.bilboldev.pixeldungeonskills.scenes.GameScene.spellLight(this, color);
 		super.pour(factory, interval);
 	}
 

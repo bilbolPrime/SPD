@@ -89,7 +89,7 @@ public class MissionStatusPane extends Component {
 		btnMenu = new MenuButton();
 		add( btnMenu );
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, 0 );
+		avatar = HeroSprite.avatar( Dungeon.hero, 0 );
 		add( avatar );
 
 		blood = new BitmaskEmitter( avatar );

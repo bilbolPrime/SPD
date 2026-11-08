@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 import com.bilboldev.pixeldungeonskills.IceCaves;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -191,16 +192,17 @@ public class Belongings implements Iterable<Item> {
 		return Random.element( backpack.items );
 	}
 
-	public void resurrect( int depth ) {
+	public ArrayList<Item> resurrect( int depth ) {
+		ArrayList<Item> dropped = new ArrayList<>();
 		for (Item item : backpack.items.toArray( new Item[0])) {
 			if (item instanceof Key) {
 				if (((Key)item).depth == IceCaves.levelKey(depth)) {
-					item.detachAll( backpack );
+					dropped.add(item.detachAll(backpack));
 				}
 			} else if (item.unique) {
 
 			} else if (!item.isEquipped( owner )) {
-				item.detachAll( backpack );
+				dropped.add(item.detachAll(backpack));
 			}
 		}
 
@@ -221,6 +223,7 @@ public class Belongings implements Iterable<Item> {
 			ring2.cursed = false;
 			ring2.activate( owner );
 		}
+		return dropped;
 	}
 
 	public int charge( boolean full) {

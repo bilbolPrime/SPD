@@ -397,6 +397,15 @@ public abstract class Level implements Bundlable {
 
 	abstract protected void createItems();
 
+    public boolean wallIsExposed(int cell) {
+        for (int offset : NEIGHBOURS4) {
+            int next = cell + offset;
+            if (next >= 0 && next < map.length && distance(cell, next) == 1
+                    && (Terrain.flags[map[next]] & Terrain.SOLID) == 0) return true;
+        }
+        return false;
+    }
+
 	public void addVisuals( Scene scene ) {
 		for (int i=0; i < LENGTH; i++) {
 			if (pit[i]) {

@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.noosa.BitmapText;
@@ -78,6 +79,9 @@ public class WndSkills extends WndTabbed {
 		this.listener = listener;
 		this.title = title;
         menuModel = new MenuModel(title != null ? title : Message.key("windows.wndskills.points_title", Skill.availableSkill), Message.empty());
+        menuModel.view = MenuModel.View.OLD_SKILLS;
+        menuModel.selection = listener != null;
+        menuModel.prompt = title;
 
 		nCols = 4;
 		nRows = 3;
@@ -150,6 +154,7 @@ public class WndSkills extends WndTabbed {
 
 	@Override
 	public void onMenuPressed() {
+		if (PartyWindows.close(this)) return;
 		if (listener == null) {
 			hide();
 		}
@@ -157,6 +162,7 @@ public class WndSkills extends WndTabbed {
 
 	@Override
 	public void onBackPressed() {
+		if (PartyWindows.close(this)) return;
 		if (listener != null) {
 			listener.onSelect( null );
 		}
@@ -165,6 +171,7 @@ public class WndSkills extends WndTabbed {
 
 	@Override
 	protected void onClick( Tab tab ) {
+		if (PartyWindows.select(tab)) return;
 		hide();
 		GameScene.show( new WndSkills( listener, title ) );
 	}
@@ -306,6 +313,7 @@ public class WndSkills extends WndTabbed {
 
 		@Override
 		protected void onClick() {
+            if (PartyWindows.select(this)) return;
             if (listener != null) {
 
                 hide();

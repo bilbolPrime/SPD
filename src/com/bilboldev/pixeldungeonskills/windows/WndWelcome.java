@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.windows;
 
 import com.bilboldev.noosa.Game;
+import com.bilboldev.pixeldungeonskills.GameUpdates;
 import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -32,6 +33,9 @@ public class WndWelcome extends WndScrollable {
         title.setRect(0, 0, width, 0);
         String text = message + "\n\n" + Messages.get(WndWelcome.class, "classic");
         if (Game.isFreeDesktop()) text += "\n\n" + Messages.get(WndWelcome.class, "free_desktop");
+        if (GameUpdates.available()) {
+            text += "\n\n" + Messages.get(VersionNewsInfo.class, "update_available");
+        }
         RenderedTextMultiline body = PixelScene.renderMultiline(text, 8);
         body.maxWidth(textWidth(width));
 

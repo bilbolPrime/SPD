@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.sprites;
 
+import com.bilboldev.pixeldungeonskills.effects.CosmeticPet;
+import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.Camera;
@@ -53,6 +55,8 @@ public class HeroSprite extends CharSprite {
     protected Animation read;
     private boolean equippedWeaponAnimation;
     private SupporterAura supporterAura;
+    private CosmeticPet cosmeticPet;
+    public CosmeticPet petImage() { return cosmeticPet == null ? null : cosmeticPet.image(); }
     private Emitter healing, manaRecovery;
     private static final Emitter.Factory MANA_PARTICLES = new Emitter.Factory() {
         @Override
@@ -72,7 +76,7 @@ public class HeroSprite extends CharSprite {
 
 		link( hero );
 
-		texture( hero.heroClass.spritesheet() );
+		texture( hero.spritesheet() );
 		updateArmor();
 
 		idle();
@@ -178,6 +182,10 @@ public class HeroSprite extends CharSprite {
         if (Game.scene() instanceof GameScene && parent != null) {
             healing = recoveryEffect(healing, ch.isAlive() && ch.buff(Healing.class) != null, Speck.factory(Speck.HEALING));
             manaRecovery = recoveryEffect(manaRecovery, ch.isAlive() && ch.buff(ManaRecovery.class) != null, MANA_PARTICLES);
+            if (cosmeticPet == null && PartySession.pet((Hero)ch) > 0) {
+                cosmeticPet = new CosmeticPet(this);
+                parent.add(cosmeticPet);
+            }
             int style = PartySession.aura((Hero)ch);
             if (style > 0 && supporterAura == null) {
                 supporterAura = new SupporterAura(this);
@@ -283,10 +291,18 @@ public class HeroSprite extends CharSprite {
 		return tiers;
 	}
 
-	public static Image avatar( HeroClass cl, int armorTier ) {
+	public static Image avatar(Hero hero, int armorTier) {
+        return avatar(hero.heroClass, armorTier, hero.skin);
+    }
+
+    public static Image avatar(HeroClass cl, int armorTier) {
+        return avatar(cl, armorTier, 0);
+    }
+
+    public static Image avatar(HeroClass cl, int armorTier, int skin) {
 
 		RectF patch = tiers().get( armorTier );
-		Image avatar = new Image( cl.spritesheet() );
+		Image avatar = new Image(HeroSkins.sheet(cl, skin));
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
 		frame.shift( patch.left, patch.top );
 		avatar.frame( frame );

@@ -68,7 +68,9 @@ public class Food extends Item {
 			case WARRIOR:
 			case MERCENARY:
 				if (hero.HP < hero.HT) {
+					int before = hero.HP;
 					hero.HP = Math.min( hero.HP + 5, hero.HT );
+					hero.showRecovery(hero.HP - before, false);
 					hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 				}
 				break;

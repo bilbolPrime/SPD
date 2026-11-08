@@ -36,6 +36,7 @@ tasks.named('compileJava', JavaCompile).configure {
         exclude 'com/bilboldev/noosa/audio/Music.java'
         exclude 'com/bilboldev/noosa/audio/MusicOutput.java'
         exclude 'com/bilboldev/noosa/audio/Sample.java'
+        exclude 'com/bilboldev/pixeldungeonskills/AndroidDailyReminders.java'
         exclude 'com/bilboldev/pixeldungeonskills/network/AndroidNetworkAccess.java'
         exclude 'com/bilboldev/pixeldungeonskills/PixelDungeon.java'
         exclude 'com/bilboldev/pixeldungeonskills/Preferences.java'

@@ -1,7 +1,10 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -149,6 +152,7 @@ public abstract class Gun extends MeleeWeapon {
             final Hero hero = (Hero) curUser;
             if (!RebornChallenges.targetAllowed(hero, cell)) return;
             final SkillTree tree = hero.skillTree;
+            if (hero.talents() != null) hero.talents().prepareShot(true);
             final SkillTree.GunShotData shotData = tree.prepareGunShot(hero);
             final int primaryTargetCell = Ballistica.cast(hero.pos, cell, false, true);
             final float finalDelay = firingDelay(hero);
@@ -178,7 +182,8 @@ public abstract class Gun extends MeleeWeapon {
                                         && (!RebornChallenges.active(RebornChallenges.POINT_BLANK) || Level.adjacent(hero.pos, target.pos))) {
 
                                     int dmg = Math.max(1, (int)(Random.NormalIntRange(min(), max())
-                                            * tree.getGunDamageModifier() * shotData.damageModifier * damageMult));
+                                            * tree.getGunDamageModifier() * shotData.damageModifier * damageMult
+                                            * (1 + hero.attribute(EquipmentAttribute.Type.RANGED) / 100f)));
 
                                     float attackSkill = hero.attackSkill(target)
                                             + tree.getRangedAttackSkillBonus()
@@ -190,15 +195,20 @@ public abstract class Gun extends MeleeWeapon {
                                     if (attackRoll >= defenseRoll) {
 
                                         int armor = (int)(Random.IntRange(0, Math.max(0, target.dr())) * damageMult);
-                                        dmg = target.defenseProc(hero, Math.max(0, dmg - armor));
+                                        if (hero.talents() != null) armor = hero.talents().armorAfterPiercing(armor, true);
+                                        dmg = Math.max(0, dmg - armor);
+                                        if (hero.talents() != null) dmg = hero.talents().attack(target, dmg, true);
+                                        dmg = target.defenseProc(hero, dmg);
                                         if (!hero.isAlive()) break;
                                         if (dmg < 0) continue;
+                                        int healthBefore = target.HP;
                                         float executeThreshold = tree.getGunExecuteThreshold();
                                         if (executeThreshold > 0f && target.HP <= Math.max(1, (int)(target.HT * executeThreshold))) {
                                             target.damage(target.HP, Gun.this);
                                         } else {
                                             target.damage(dmg, Gun.this);
                                         }
+                                        if (hero.talents() != null && healthBefore > 0 && !target.isAlive()) hero.talents().killed(target);
                                         onHit(target);
 
                                         if (tree.shouldFleeOnGunHit() || shotData.flee) {
@@ -309,9 +319,9 @@ public abstract class Gun extends MeleeWeapon {
     @Override
     public String info(Hero viewer) {
         StringBuilder sb = new StringBuilder(super.info(viewer));
-        sb.append("\n\nAmmo: ").append(curCharges).append(" / ").append(effectiveMaxAmmo(viewer));
-        sb.append("\nRearms every ~").append((int)turnsPerCharge()).append(" turns.");
-        sb.append("\n\nThis firearm fires at range. Cannot be used in melee to shoot.");
+        sb.append("\n\n").append(Messages.get("custom.generated.necro_merc.ammo_status", curCharges, effectiveMaxAmmo(viewer)));
+        sb.append("\n").append(Messages.get("custom.generated.necro_merc.rearms_every", (int)turnsPerCharge()));
+        sb.append("\n\n").append(Messages.get("custom.generated.necro_merc.firearm_info"));
         return sb.toString();
     }
 

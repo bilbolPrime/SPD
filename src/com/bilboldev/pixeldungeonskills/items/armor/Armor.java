@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import java.util.ArrayList;
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -290,6 +292,7 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public Item random() {
+		EquipmentAttribute.roll(this);
 		randomPrefix();
 		if (Random.Float() < 0.4) {
 			int n = 1;

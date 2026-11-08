@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Codzienne wyzwania</string>
+    <string-array name="daily_reminder_events">
+        <item>Dwór Króla Szczurów</item>
+        <item>Ucieczka z więzienia</item>
+        <item>Ostatnia zmiana</item>
+        <item>Białe łowy</item>
+        <item>Złamana pieczęć</item>
+        <item>Ostatni posterunek</item>
+        <item>Królewski skarbiec</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Król Szczurów zbiera strażników. Dotrzyj do niego, zanim nadejdą posiłki.</item>
+        <item>Tengu ucieka. Przebij się przez więzienie i powstrzymaj go.</item>
+        <item>Trzech górników zostało uwięzionych. Sprowadź ich z powrotem przed odjazdem ostatniej windy.</item>
+        <item>Trzy bestie grasują w lodowych jaskiniach. Upoluj je, zanim nadejdzie zamieć.</item>
+        <item>Z miejsc rytuału nadciągają demony. Zapieczętuj wszystkie trzy.</item>
+        <item>Posterunek jest atakowany. Utrzymaj go do nadejścia pomocy.</item>
+        <item>Złoto króla jest pod kluczem. Zdobądź je i uciekaj, zanim bramy się zamkną.</item>
+    </string-array>
+</resources>

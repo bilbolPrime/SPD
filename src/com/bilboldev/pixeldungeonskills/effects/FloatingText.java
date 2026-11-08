@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
+import com.bilboldev.noosa.Image;
+import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -39,6 +41,38 @@ public class FloatingText extends BitmapText {
 	private CharSprite owner;
 	private int remoteActor = -1;
 	private float startY, anchorHeight;
+	private CombatTextIcon icon = CombatTextIcon.NONE;
+	private Image iconImage;
+
+	public CombatTextIcon icon() {
+		return icon;
+	}
+
+	@Override
+	public float width() {
+		return super.width() + (icon == CombatTextIcon.NONE ? 0 : CombatTextIcon.WIDTH + 1);
+	}
+
+	@Override
+	public float height() {
+		return icon == CombatTextIcon.NONE ? super.height() : Math.max(super.height(), CombatTextIcon.HEIGHT);
+	}
+
+	@Override
+	public void draw() {
+		super.draw();
+		drawIcon(camera(), x + super.width() + 1, y, 1, 1);
+	}
+
+	public void drawIcon(Camera camera, float x, float y, float scaleX, float scaleY) {
+		if (icon == CombatTextIcon.NONE) return;
+		iconImage.camera = camera;
+		iconImage.scale.set(scaleX, scaleY);
+		iconImage.x = PixelScene.align(camera, x);
+		iconImage.y = PixelScene.align(camera, y);
+		iconImage.alpha(am);
+		iconImage.draw();
+	}
 
 	public CharSprite owner() {
 		if (remoteActor >= 0) {
@@ -99,16 +133,26 @@ public class FloatingText extends BitmapText {
 	@Override
 	public void destroy() {
 		kill();
+		if (iconImage != null) iconImage.destroy();
 		super.destroy();
 	}
 
 	public void reset( float x, float y, String text, int color ) {
+		reset(x, y, text, color, CombatTextIcon.NONE);
+	}
+
+	public void reset(float x, float y, String text, int color, CombatTextIcon type) {
 
 		revive();
 		owner = null;
 		startY = y;
 		remoteActor = -1;
 		anchorHeight = 1;
+		icon = type;
+		if (type != CombatTextIcon.NONE) {
+			if (iconImage == null) iconImage = new Image(Assets.DAMAGE_ICONS);
+			iconImage.frame(type.id * CombatTextIcon.WIDTH, 0, CombatTextIcon.WIDTH, CombatTextIcon.HEIGHT);
+		}
 
 		if (cameraZoom != Camera.main.zoom) {
 			cameraZoom = Camera.main.zoom;
@@ -121,22 +165,31 @@ public class FloatingText extends BitmapText {
 		hardlight( color );
 
 		measure();
-		this.x = PixelScene.align( x - width() / 2 );
+		this.x = PixelScene.align(x - width() / 2);
 		this.y = y - height();
 
 		timeLeft = LIFESPAN;
 	}
 
 	public void resetAt(float x, float y, int cell, int actor, float height, String text, int color) {
-		reset(x, y, text, color);
+		resetAt(x, y, cell, actor, height, text, color, CombatTextIcon.NONE);
+	}
+
+	public void resetAt(float x, float y, int cell, int actor, float height, String text, int color, CombatTextIcon type) {
+		reset(x, y, text, color, type);
 		remoteActor = actor;
 		anchorHeight = Math.max(0.5f, height / DungeonTilemap.SIZE);
 		push(this, cell);
 	}
 
 	public static void show( float x, float y, CharSprite owner, String text, int color ) {
+		show(x, y, owner, text, color, CombatTextIcon.NONE);
+	}
+
+	public static void show(float x, float y, CharSprite owner, String text, int color, CombatTextIcon type) {
 		FloatingText txt = GameScene.status();
-		txt.reset( x, y, text, color );
+		if (txt == null) return;
+		txt.reset(x, y, text, color, type);
 		txt.owner = owner;
 		txt.anchorHeight = Math.max(0.5f, owner.height / DungeonTilemap.SIZE);
 		push( txt, owner.ch.pos );
@@ -167,8 +220,9 @@ public class FloatingText extends BitmapText {
 			int aboveIndex = stack.size() - 1;
 			while (aboveIndex >= 0) {
 				FloatingText above = stack.get( aboveIndex );
-				if (above.y + above.height() > below.y) {
-					above.y = below.y - above.height();
+				float gap = above.icon != CombatTextIcon.NONE || below.icon != CombatTextIcon.NONE ? 1 : 0;
+				if (above.y + above.height() + gap > below.y) {
+					above.y = below.y - above.height() - gap;
 
 					below = above;
 					aboveIndex--;

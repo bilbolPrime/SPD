@@ -9,6 +9,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.effects.FloatingText;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.ui.HealthIndicator;
@@ -77,8 +78,11 @@ final class FirstPersonCombat {
 
             float scale = (float)Math.max(0.8, Math.min(1.5, point.pixelsPerTile / 64));
             label.scale.set(source.scale.x * scale * pixelX, source.scale.y * scale * pixelY);
-            label.x = PixelScene.align(ui, (float)(point.x * pixelX - label.width() * 0.5));
-            label.y = PixelScene.align(ui, (float)((point.y - 5 - source.rise() * scale) * pixelY - label.height()));
+            boolean hasIcon = source.icon() != CombatTextIcon.NONE;
+            float rowWidth = label.width() + (hasIcon ? (CombatTextIcon.WIDTH + 1) * scale * pixelX : 0);
+            float rowHeight = hasIcon ? Math.max(label.height(), CombatTextIcon.HEIGHT * scale * pixelY) : label.height();
+            label.x = PixelScene.align(ui, (float)(point.x * pixelX - rowWidth * 0.5));
+            label.y = PixelScene.align(ui, (float)((point.y - 5 - source.rise() * scale) * pixelY - rowHeight));
             label.rm = source.rm;
             label.gm = source.gm;
             label.bm = source.bm;
@@ -88,6 +92,7 @@ final class FirstPersonCombat {
             label.ba = source.ba;
             label.aa = source.aa;
             label.draw();
+            source.drawIcon(ui, label.x + label.width() + scale * pixelX, label.y, scale * pixelX, scale * pixelY);
         }
     }
 

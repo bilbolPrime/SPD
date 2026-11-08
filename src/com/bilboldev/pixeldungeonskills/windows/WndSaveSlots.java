@@ -38,7 +38,7 @@ public class WndSaveSlots extends WndScrollable {
         this.dockRight = dockRight && Game.width > Game.height;
         int columns = this.dockRight ? 2 : Game.width > Game.height ? 3 : 1;
         int preferredWidth = columns * CARD_WIDTH + (columns - 1) * GAP + SCROLL_GUTTER;
-        float availableWidth = this.dockRight ? Game.width * .54f - 16 : Game.width - 8f;
+        float availableWidth = Game.width * (this.dockRight ? .5f : MAX_SCREEN_FRACTION);
         camera.zoom = Math.min(camera.zoom, availableWidth / (preferredWidth + chrome.marginHor()));
         int windowWidth = boundedWidth(preferredWidth);
         float cardWidth = (textWidth(windowWidth) - (columns - 1) * GAP) / (float)columns;
@@ -65,7 +65,8 @@ public class WndSaveSlots extends WndScrollable {
         super.resize(width, height);
         if (dockRight) {
             camera.x = Math.round(Game.width * .73f - camera.screenWidth() / 2);
-            shadow.boxRect(camera.x / camera.zoom, camera.y / camera.zoom, chrome.width(), chrome.height());
+            camera.x = Math.min(camera.x, (int)(Game.width * .95f - camera.screenWidth()));
+            updateShadow();
         }
     }
 
@@ -110,7 +111,7 @@ public class WndSaveSlots extends WndScrollable {
             accent = new ColorBlock(1, 1, playable && info.rules.mode == GameplayMode.REBORN
                     ? 0xFFBC9BEA : playable ? 0xFFB6A46C : 0xFF686C68);
             add(accent);
-            hero = HeroSprite.avatar(heroClass, playable ? info.armorTier : 1);
+            hero = HeroSprite.avatar(heroClass, playable ? info.armorTier : 1, playable ? info.skin : 0);
             hero.scale.set(2);
             if (!playable) hero.alpha(0.3f);
             add(hero);

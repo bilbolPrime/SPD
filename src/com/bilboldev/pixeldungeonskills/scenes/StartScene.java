@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.windows.WndHeroSkin;
+import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import com.bilboldev.noosa.Game;
@@ -54,6 +56,8 @@ public class StartScene extends TitleScene {
         boolean network;
         boolean hosting;
         boolean seedChosen;
+        boolean skinChosen;
+        boolean companionSkinChosen;
         RunSeed seed;
         final int[] symbols = {-1, -1, -1, -1, -1, -1};
         float departureTime;
@@ -126,6 +130,7 @@ public class StartScene extends TitleScene {
         if (pendingStart == null || (activeStartWindow != null && activeStartWindow.parent == host)) return;
         final StartFlow flow = pendingStart;
         final Step step = flow.step;
+        if (step != Step.SLOT && chooseSkin(host, flow, () -> ensureStartDialog(host))) return;
         if (step == Step.COMPANION || step == Step.DEPART) return;
         if (step == Step.SLOT) {
             activeStartWindow = new com.bilboldev.pixeldungeonskills.windows.WndSaveSlots(flow.heroClass, host instanceof TitleScene) {
@@ -393,7 +398,33 @@ public class StartScene extends TitleScene {
         }
     }
 
+    private static boolean chooseSkin(PixelScene host, StartFlow flow, Runnable next) {
+        if (flow.skinChosen) return false;
+        flow.skinChosen = true;
+        HeroSkins.localChoice = 0;
+        HeroSkins.companionChoice = 0;
+        activeStartWindow = new WndHeroSkin(flow.heroClass, skin -> {
+            HeroSkins.localChoice = skin;
+            activeStartWindow = null;
+            next.run();
+        });
+        host.add(activeStartWindow);
+        return true;
+    }
+
     private static void startNewGame(StartFlow flow) {
+        PixelScene host = (PixelScene)Game.scene();
+        if (chooseSkin(host, flow, () -> startNewGame(flow))) return;
+        if (!flow.network && flow.companion != null && !flow.companionSkinChosen) {
+            flow.companionSkinChosen = true;
+            activeStartWindow = new WndHeroSkin(flow.companion, skin -> {
+                HeroSkins.companionChoice = skin;
+                activeStartWindow = null;
+                startNewGame(flow);
+            });
+            host.add(activeStartWindow);
+            return;
+        }
         if (flow.mode == GameplayMode.REBORN && !flow.seedChosen) {
             flow.step = Step.SEED;
             ensureStartDialog((PixelScene)Game.scene());

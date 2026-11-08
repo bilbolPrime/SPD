@@ -53,6 +53,10 @@ public class Prospector extends NPC {
         return Messages.get(Prospector.class, "desc");
     }
 
+    public boolean questCompleted() {
+        return completed;
+    }
+
     @Override
     public void interact() {
         sprite.turnTo(pos, Dungeon.hero.pos);

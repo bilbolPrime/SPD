@@ -16,7 +16,9 @@ import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.Gizmo;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
+import com.bilboldev.pixeldungeonskills.effects.CosmeticPet;
 import com.bilboldev.pixeldungeonskills.effects.Ripple;
 import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
 import com.bilboldev.pixeldungeonskills.effects.TenguWarnings;
@@ -30,6 +32,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Vertigo;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
@@ -90,6 +93,8 @@ final class FirstPersonView {
     private final int width, height;
 
     private final int[] pixels, cells, indicatorPixels;
+    private final int[] cellLeft, cellTop, cellRight, cellBottom;
+    private boolean cellBoundsReady;
     private boolean indicatorsVisible;
     private final double[] depth, surfaceDepth, pickDepth;
     private final int[] floorTiles;
@@ -133,6 +138,10 @@ final class FirstPersonView {
         pixels = new int[width * height];
         indicatorPixels = new int[pixels.length];
         cells = new int[pixels.length];
+        cellLeft = new int[level.map.length];
+        cellTop = new int[level.map.length];
+        cellRight = new int[level.map.length];
+        cellBottom = new int[level.map.length];
         depth = new double[width];
         surfaceDepth = new double[pixels.length];
         pickDepth = new double[pixels.length];
@@ -232,6 +241,7 @@ final class FirstPersonView {
     }
 
     void draw() {
+        cellBoundsReady = false;
         viewHero = GameScene.cameraHero();
         if (destroyed || Dungeon.level != level || viewHero == null || !valid(viewHero.pos)) {
             throw new IllegalStateException("First-person view belongs to a different level");
@@ -258,6 +268,10 @@ final class FirstPersonView {
         int bossMarks = scene.bossWarnings == null ? 0 : scene.bossWarnings.count();
         if (bossMarks > 0 || previousBossMarks > 0) backgroundValid = false;
         previousBossMarks = bossMarks;
+        if (scene.lighting != null && scene.lighting.revision() != previousLightingRevision) {
+            previousLightingRevision = scene.lighting.revision();
+            backgroundValid = false;
+        }
         for (int i = 0; i < bossMarks; i++) source(scene.bossWarnings.at(i).texture);
         drawSurfaces(prepareSurfaces());
         billboards();
@@ -271,7 +285,15 @@ final class FirstPersonView {
             }
         }
         texture.upload(pixels);
+        float oldX = image.x, oldY = image.y;
+        if (shakeLeft > 0) {
+            float strength = shakeLeft / .18f;
+            image.x += (float)Math.sin(shakeLeft * 135) * strength * .7f;
+            image.y += (float)Math.cos(shakeLeft * 110) * strength * .5f;
+        }
         image.draw();
+        image.x = oldX;
+        image.y = oldY;
         if (!thirdPerson) heldWeapon.draw();
         combat.draw();
         mapCamera.focusOn((float)heroX * 16, (float)heroY * 16);
@@ -279,8 +301,12 @@ final class FirstPersonView {
     }
 
     void update() {
+        shakeLeft = Math.max(0, shakeLeft - Game.elapsed);
         if (!thirdPerson) heldWeapon.update();
     }
+
+    private float shakeLeft;
+    void shake() { shakeLeft = .18f; }
 
     void drawIndicators() {
         if (!indicatorsVisible) return;
@@ -677,6 +703,7 @@ final class FirstPersonView {
                     int terrain = valid(cell) ? level.map[cell] : Terrain.WALL;
                     int color = roof ? surfacePixel(cell, wx, wy, true)
                             : wallPixel(terrain, tx, eyeHeight + rz * distance);
+                    if (!roof && scene.lighting != null) color = scene.lighting.tint(color, cell, wx, wy);
                     pixels[index] = terrainFog.apply(shade(color,
                             terrainLight(cell, wx, wy) * (roof ? 0.65 : vertical ? 0.8 : 1)), wx, wy);
                     cells[index] = !seen(cell) ? -1 : !roof && door(terrain) ? cell : -2 - cell;
@@ -697,9 +724,15 @@ final class FirstPersonView {
     private final boolean[] previousTenguWarnings = new boolean[Level.LENGTH];
     private Pixels warningTexture;
     private int previousBossMarks;
+    private int previousLightingRevision = -1;
 
     private int surfacePixel(int cell, double wx, double wy, boolean ceiling) {
         int color = terrainPixel(cell, wx, wy, ceiling);
+        if (!ceiling && scene.wallShadows != null) {
+            int x = (int)((wx - Math.floor(wx)) * 16), y = (int)((wy - Math.floor(wy)) * 16);
+            color = shade(color, 1 - scene.wallShadows.opacity(cell, x, y));
+        }
+        if (scene.lighting != null) color = scene.lighting.tint(color, cell, wx, wy);
         if (!ceiling && Dungeon.visible[cell] && scene.bossWarnings != null) {
             for (com.bilboldev.pixeldungeonskills.effects.BossWarnings.Mark mark = scene.bossWarnings.atCell(cell);
                  mark != null;
@@ -827,6 +860,7 @@ final class FirstPersonView {
 
                 boolean raised = face == DungeonTileSheet.RAISED_WALL || face == DungeonTileSheet.RAISED_WALL_DECO;
                 int color = known ? tilePixel(face, tx, raised ? 4 + ty * 12 / 16 : ty) : 0xFF000000;
+                if (known && scene.lighting != null) color = scene.lighting.tint(color, cell, wx, wy);
                 int index = x + y * width;
                 pixels[index] = known ? terrainFog.apply(shade(color, light), wx, wy) : color;
                 cells[index] = !seen(cell) ? -1 : door(terrain) ? cell : -2 - cell;
@@ -866,6 +900,8 @@ final class FirstPersonView {
                     : terrain == Terrain.BARRICADE ? 1.0 : 0.85, true, true);
         }
         if (thirdPerson) addSprite(viewHero.sprite, viewHero.pos, 1.0);
+        addCosmeticPet(viewHero);
+        if (LocalCoop.active()) for (Hero hero : LocalCoop.heroes()) if (hero != viewHero) addCosmeticPet(hero);
         effects.collect();
 
         for (int i = sprites.size(); i < billboardPool.size(); i++) billboardPool.get(i).sprite = null;
@@ -876,6 +912,8 @@ final class FirstPersonView {
             Image s = b.sprite;
             boolean indicator = s instanceof EmoIcon;
             boolean creature = s instanceof CharSprite;
+            boolean item = s instanceof ItemSprite;
+            boolean card = item || creature && ((CharSprite)s).ch instanceof Mob;
             boolean aura = s instanceof SupporterAura.Light;
             Pixels source = source(s.texture);
             RectF frame = s.frame();
@@ -928,6 +966,15 @@ final class FirstPersonView {
                             : source.at(fx + tx, fy + ty);
                     double alpha = Math.min(1, (color >>> 24) / 255.0 * s.am + s.aa) * b.opacity;
                     if (alpha <= 0.01) continue;
+                    if (card) {
+                        if (!b.visiblePixels) b.itemBounds.set(x, y, x + 1, y + 1);
+                        else {
+                            b.itemBounds.left = Math.min(b.itemBounds.left, x);
+                            b.itemBounds.top = Math.min(b.itemBounds.top, y);
+                            b.itemBounds.right = Math.max(b.itemBounds.right, x + 1);
+                            b.itemBounds.bottom = Math.max(b.itemBounds.bottom, y + 1);
+                        }
+                    }
                     b.visiblePixels = true;
                     color = litColor(color, s, b.tint);
                     color = shade(color, light);
@@ -957,6 +1004,62 @@ final class FirstPersonView {
             CharSprite s = it.next();
             if (!s.exists || s.ch == null || !s.ch.isAlive()) it.remove();
         }
+    }
+
+    boolean itemBounds(ItemSprite item, RectF bounds) {
+        return spriteCardBounds(item, bounds);
+    }
+
+    boolean spriteCardBounds(Image sprite, RectF bounds) {
+        for (Billboard b : sprites) {
+            if (b.sprite != sprite || !b.visiblePixels || b.cell < 0) continue;
+            float scaleX = (float)ui.width / width, scaleY = (float)ui.height / height;
+            bounds.set(b.itemBounds.left * scaleX, b.itemBounds.top * scaleY,
+                    b.itemBounds.right * scaleX, b.itemBounds.bottom * scaleY);
+            return bounds.right > 0 && bounds.left < ui.width && bounds.bottom > 38 && bounds.top < scene.itemDropBottom();
+        }
+        return false;
+    }
+
+    boolean cellBounds(int cell, RectF bounds) {
+        if (!cellBoundsReady) {
+            Arrays.fill(cellLeft, width);
+            Arrays.fill(cellTop, height);
+            Arrays.fill(cellRight, -1);
+            Arrays.fill(cellBottom, -1);
+
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int visible = cells[x + y * width];
+                    if (visible < -1) visible = -2 - visible;
+                    if (visible < 0 || visible >= cellLeft.length) continue;
+                    cellLeft[visible] = Math.min(cellLeft[visible], x);
+                    cellTop[visible] = Math.min(cellTop[visible], y);
+                    cellRight[visible] = Math.max(cellRight[visible], x + 1);
+                    cellBottom[visible] = Math.max(cellBottom[visible], y + 1);
+                }
+            }
+            cellBoundsReady = true;
+        }
+        if (cellRight[cell] <= cellLeft[cell]) return false;
+        float scaleX = (float)ui.width / width, scaleY = (float)ui.height / height;
+        bounds.set(cellLeft[cell] * scaleX, cellTop[cell] * scaleY,
+                cellRight[cell] * scaleX, cellBottom[cell] * scaleY);
+        return bounds.bottom > 38 && bounds.top < scene.itemDropBottom();
+    }
+
+    boolean itemCardObstructed(RectF bounds) {
+        float left = (mapCamera.x - ui.x) / ui.zoom;
+        float top = (mapCamera.y - ui.y) / ui.zoom;
+        if (bounds.left < left + mapCamera.screenWidth() / ui.zoom && bounds.right > left
+                && bounds.top < top + mapCamera.screenHeight() / ui.zoom && bounds.bottom > top) return true;
+        if (!thirdPerson) return false;
+        StatusPoint point = combatPoint(viewHero.pos, 1, viewHero.sprite, false);
+        if (point == null) return false;
+        float x = (float)(point.x * ui.width / width), y = (float)(point.y * ui.height / height);
+        float size = (float)(point.pixelsPerTile * ui.height / height);
+        return bounds.left < x + size / 2 && bounds.right > x - size / 2
+                && bounds.top < y + size && bounds.bottom > y - size / 2;
     }
 
     private void pickBody(Billboard b) {
@@ -995,6 +1098,14 @@ final class FirstPersonView {
 
     void decorationSprite(Image sprite, int cell, double size) {
         addSprite(sprite, cell, size, false);
+    }
+
+    private void addCosmeticPet(Hero hero) {
+        if (!(hero.sprite instanceof HeroSprite) || !seen(hero.pos)) return;
+        CosmeticPet pet = ((HeroSprite)hero.sprite).petImage();
+        if (pet == null) return;
+        effectSprite(pet, pet.floorX(), pet.floorY(), pet.elevation() + pet.height() / 32,
+                pet.height() / 16, 0, pet.am, -1, false, false);
     }
 
     private void addSprite(Image sprite, int cell, double size) {
@@ -1533,6 +1644,7 @@ final class FirstPersonView {
         boolean emissive, upright, additive;
         double projectedDepth;
         boolean visiblePixels;
+        final RectF itemBounds = new RectF();
         Billboard set(Image sprite, int cell, double distance, double side, double size, double z,
                   double aspect, double rotation, double opacity, int tint, boolean emissive, boolean upright) {
             this.sprite = sprite;

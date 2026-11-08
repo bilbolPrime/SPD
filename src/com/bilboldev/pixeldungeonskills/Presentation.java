@@ -46,6 +46,15 @@ public final class Presentation {
         return Math.max(1, Math.min(QuickSlot.MAX_SLOTS, Preferences.INSTANCE.getInt("quick_slot_count", 2)));
     }
 
+    public static boolean dungeonEffects() {
+        return Preferences.INSTANCE.getBoolean("reborn_effects", true);
+    }
+
+    public static void dungeonEffects(boolean enabled) {
+        Preferences.INSTANCE.put("reborn_effects", enabled);
+        GameScene.updateDungeonEffects();
+    }
+
     public static void quickSlots(int count) {
         Preferences.INSTANCE.put("quick_slot_count", Math.max(1, Math.min(QuickSlot.MAX_SLOTS, count)));
         Toolbar.updateQuickSlots();

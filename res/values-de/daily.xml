@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Tägliche Herausforderungen</string>
+    <string-array name="daily_reminder_events">
+        <item>Der Hof des Rattenkönigs</item>
+        <item>Gefängnisausbruch</item>
+        <item>Die letzte Schicht</item>
+        <item>Die weiße Jagd</item>
+        <item>Das gebrochene Siegel</item>
+        <item>Der letzte Außenposten</item>
+        <item>Der Schatz des Königs</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Der Rattenkönig versammelt seine Wachen. Erreiche ihn, bevor die Verstärkung eintrifft.</item>
+        <item>Tengu flieht. Kämpfe dich durch das Gefängnis und halte ihn auf.</item>
+        <item>Drei Bergleute sitzen fest. Bring sie zurück, bevor der letzte Aufzug abfährt.</item>
+        <item>Drei Bestien streifen durch die Eishöhlen. Erlege sie, bevor der Sturm aufzieht.</item>
+        <item>An den Ritualstätten tauchen Dämonen auf. Versiegle alle drei Stätten.</item>
+        <item>Der Außenposten wird angegriffen. Halte durch, bis Hilfe eintrifft.</item>
+        <item>Das Gold des Königs liegt hinter verschlossenen Türen. Hol es dir und entkomme, bevor die Tore schließen.</item>
+    </string-array>
+</resources>

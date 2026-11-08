@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Desafíos diarios</string>
+    <string-array name="daily_reminder_events">
+        <item>La corte del Rey Rata</item>
+        <item>Fuga de la prisión</item>
+        <item>El último turno</item>
+        <item>La cacería blanca</item>
+        <item>El sello roto</item>
+        <item>El último puesto</item>
+        <item>El tesoro del rey</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>El Rey Rata está reuniendo a sus guardias. Llega hasta él antes que los refuerzos.</item>
+        <item>Tengu está escapando. Ábrete paso por la prisión y detenlo.</item>
+        <item>Hay tres mineros atrapados. Tráelos de vuelta antes de que salga el último ascensor.</item>
+        <item>Tres bestias rondan las cuevas de hielo. Cázalas antes de que llegue la tormenta.</item>
+        <item>Los demonios llegan por los lugares del ritual. Sella los tres.</item>
+        <item>Están atacando el puesto avanzado. Resiste hasta que llegue ayuda.</item>
+        <item>El oro del rey está bajo llave. Llévatelo y escapa antes de que cierren las puertas.</item>
+    </string-array>
+</resources>

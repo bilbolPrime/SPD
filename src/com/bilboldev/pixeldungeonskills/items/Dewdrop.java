@@ -22,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
@@ -51,11 +52,13 @@ public class Dewdrop extends Item {
 				value++;
 			}
 
+			if (hero.talents() != null) value += hero.talents().bonus(com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent.Effect.HEALING);
 			int effect = Math.min( hero.HT - hero.HP, value * quantity );
 			if (effect > 0) {
 				hero.HP += effect;
 				hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
-				hero.sprite.showStatus( CharSprite.POSITIVE, Message.key("custom.generated.entry_dhp_35065109e1", effect));
+				if (Dungeon.rules().mode == GameplayMode.REBORN) hero.showRecovery(effect, false);
+				else hero.sprite.showStatus( CharSprite.POSITIVE, Message.key("custom.generated.entry_dhp_35065109e1", effect));
 			}
 
 		} else if (vial != null) {

@@ -40,14 +40,19 @@ public class StandardPainter extends Painter {
 		for (Room.Door door : room.connected.values()) {
 			door.set( Room.Door.Type.REGULAR );
 		}
+		if (!paintVariant( level, room )) {
+			fill( level, room, 1, Terrain.EMPTY );
+		}
+	}
 
+	static boolean paintVariant( Level level, Room room ) {
 		if (!Dungeon.bossLevel() && Random.Int( 5 ) == 0) {
 			switch (Random.Int( 6 )) {
 			case 0:
 				if (level.feeling != Level.Feeling.GRASS) {
 					if (Math.min( room.width(), room.height() ) >= 4 && Math.max( room.width(), room.height() ) >= 6) {
 						paintGraveyard( level, room );
-						return;
+						return true;
 					}
 					break;
 				} else {
@@ -56,26 +61,26 @@ public class StandardPainter extends Painter {
 			case 1:
 				if (Dungeon.depth > 1) {
 					paintBurned( level, room );
-					return;
+					return true;
 				}
 				break;
 			case 2:
 				if (Math.max( room.width(), room.height() ) >= 4) {
 					paintStriped( level, room );
-					return;
+					return true;
 				}
 				break;
 			case 3:
 				if (room.width() >= 6 && room.height() >= 6) {
 					paintStudy( level, room );
-					return;
+					return true;
 				}
 				break;
 			case 4:
 				if (level.feeling != Level.Feeling.WATER) {
 					if (room.connected.size() == 2 && room.width() >= 4 && room.height() >= 4) {
 						paintBridge( level, room );
-						return;
+						return true;
 					}
 					break;
 				} else {
@@ -85,13 +90,12 @@ public class StandardPainter extends Painter {
 				if (!Dungeon.bossLevel() && !Dungeon.bossLevel( Dungeon.depth + 1 ) &&
 					Math.min( room.width(), room.height() ) >= 5) {
 					paintFissure( level, room );
-					return;
+					return true;
 				}
 				break;
 			}
 		}
-
-		fill( level, room, 1, Terrain.EMPTY );
+		return false;
 	}
 
 	private static void paintBurned( Level level, Room room ) {

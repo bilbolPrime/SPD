@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
+
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -30,7 +32,7 @@ public class NecromancerArmor extends ClassArmor {
 
 	@Override
 	public String desc() {
-		return "A necromancer's robe steeped in black magic. Its power weakens and poisons all nearby enemies within 5 tiles.";
+		return Messages.get("custom.generated.necro_merc.necromancer_robe_desc");
 	}
 
 	@Override

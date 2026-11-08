@@ -199,7 +199,9 @@ public class Bestiary {
 
 	public static boolean isBoss( Char mob ) {
 		return
-			(mob instanceof RebornBoss && !(mob instanceof RebornKing.Retainer)) ||
+			(mob instanceof DailyFoe && ((DailyFoe)mob).leader()) ||
+			mob instanceof DailyRatKing ||
+            (mob instanceof RebornBoss && !(mob instanceof RebornKing.Retainer)) ||
 			mob instanceof Goo ||
 			mob instanceof Tengu ||
 			mob instanceof DM300 ||

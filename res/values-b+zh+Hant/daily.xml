@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">每日挑戰</string>
+    <string-array name="daily_reminder_events">
+        <item>鼠王的宮廷</item>
+        <item>越獄</item>
+        <item>最後一班</item>
+        <item>白色狩獵</item>
+        <item>破碎的封印</item>
+        <item>最後的哨所</item>
+        <item>國王的寶庫</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>鼠王正在集結衛兵。趕在援軍到來前找到他。</item>
+        <item>天狗正準備逃走。突破監獄，阻止他。</item>
+        <item>三名礦工被困在地下。在最後一班升降機離開前帶他們回來。</item>
+        <item>三頭猛獸在冰洞中遊蕩。在風暴來臨前獵殺牠們。</item>
+        <item>三座祭壇正在召喚惡魔。快去封印它們。</item>
+        <item>前哨站遭到攻擊。堅持到援軍抵達。</item>
+        <item>國王的黃金藏在鎖住的門後。搶到黃金，在大門關閉前逃出去。</item>
+    </string-array>
+</resources>

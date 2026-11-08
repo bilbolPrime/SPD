@@ -3,7 +3,9 @@ package com.bilboldev.pixeldungeonskills;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.MovieClip;
 import com.bilboldev.noosa.TextureFilm;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.GlacierCleaver;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.HoarfrostStaff;
@@ -29,9 +31,9 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ShadowClone;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
-import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.*;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.items.*;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
 import com.bilboldev.pixeldungeonskills.items.bags.*;
@@ -56,12 +58,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.function.Supplier;
 
 public final class LibraryCatalog {
     public enum Section {
-        DEPTHS, QUESTS, ITEMS, CREATURES, HEROES, SKILLS, RECIPES;
+        DEPTHS, QUESTS, ITEMS, CREATURES, HEROES, SKILLS, RECIPES, ATTRIBUTES;
 
         public Image image() {
             switch (this) {
@@ -72,6 +76,7 @@ public final class LibraryCatalog {
                 case HEROES: return heroImage(Assets.WARRIOR, 0);
                 case SKILLS: return Icons.SKILLS.get();
                 case RECIPES: return new ItemSprite(ItemSpriteSheet.RECIPE_HEALING, null);
+                case ATTRIBUTES: return new ItemSprite(ItemSpriteSheet.RING_DIAMOND, null);
                 default: throw new AssertionError(this);
             }
         }
@@ -85,7 +90,7 @@ public final class LibraryCatalog {
         WANDS(Section.ITEMS), POTIONS(Section.ITEMS), SCROLLS(Section.ITEMS),
         FOOD(Section.ITEMS), SEEDS(Section.ITEMS), MISC(Section.ITEMS),
         ENEMIES(Section.CREATURES), BOSSES(Section.CREATURES), RIVALS(Section.CREATURES), PEOPLE(Section.CREATURES),
-        CLASSES(Section.HEROES), ABILITIES(Section.SKILLS), RECIPES(Section.RECIPES);
+        PETS(Section.CREATURES), CLASSES(Section.HEROES), ABILITIES(Section.SKILLS), RECIPES(Section.RECIPES), ATTRIBUTES(Section.ATTRIBUTES);
 
         public final Section section;
 
@@ -107,6 +112,9 @@ public final class LibraryCatalog {
         private String rewardKey;
         public final boolean countsForIdentification;
         public final HeroClass heroClass;
+        public HeroClass skillClass;
+        public String questVariant;
+        public RebornChampion.Skill championSkill;
         private final Supplier<String> name, description;
         private final Supplier<Image> image;
         private final Supplier<? extends Item> equipment;
@@ -114,6 +122,7 @@ public final class LibraryCatalog {
 
         boolean knownAtStart() {
             if (shelf == Shelf.DEPTHS) return region == Region.SEWERS;
+            if (shelf == Shelf.PETS) return true;
 
             return type == Bag.class || type == ClothArmor.class || type == Food.class
                     || type == Keyring.class || type == PotionHolder.class || type == Bow.class
@@ -171,7 +180,11 @@ public final class LibraryCatalog {
         }
 
         public String info() {
-            if (equipment == null) return description();
+            if (equipment == null) {
+                String traits = shelf == Shelf.ENEMIES || shelf == Shelf.BOSSES
+                        ? LibraryCreatureStats.traits(type) : "";
+                return description() + (traits.isEmpty() ? "" : "\n\n" + traits);
+            }
             Item item = newItem();
             if (item.weaponEffect != null && !Lore.knownModifier("weapon_prefix:" + item.weaponEffect.Name)) {
                 item.weaponEffect = null;
@@ -197,7 +210,7 @@ public final class LibraryCatalog {
                 String result = description() + "\n\n" + text("ring_level", item.level())
                         + "\n\n" + ringStats((Ring)item);
                 if (item.cursed) result += "\n\n" + Messages.get("items.rings.ring.curse_known");
-                return result;
+                return result + EquipmentAttribute.describe(item, true);
             }
             String details = item.info(null);
             String result = item instanceof IceWeapon ? details : description() + details.substring(item.desc().length());
@@ -210,7 +223,7 @@ public final class LibraryCatalog {
                 result += "\n\n" + text("strength", ((Weapon)item).STR);
             }
             if (item instanceof Gun) result += "\n\n" + text("gun_modifiers");
-            return result;
+            return result + LibraryItemBuild.enchantmentInfo(item) + EquipmentAttribute.describe(item, true);
         }
 
         public Image image() {
@@ -235,13 +248,22 @@ public final class LibraryCatalog {
 
         public Image image(int depth) {
             if (shelf != Shelf.RIVALS) return image();
-            Image portrait = heroImage(rivalClass().spritesheet(), depth / 5 + 1);
+            Image portrait = heroImage(HeroSkins.sheet(rivalClass(), 1), depth / 5 + 1);
             portrait.tint(0xB52B32, .38f);
             return portrait;
         }
     }
 
     private static final List<Entry> entries = createEntries();
+    private static final Map<Class<?>, Entry> byType = new HashMap<>();
+    private static final Map<String, Entry> byKey = new HashMap<>();
+
+    static {
+        for (Entry entry : entries) {
+            if (entry.type != null && !byType.containsKey(entry.type)) byType.put(entry.type, entry);
+            byKey.put(entry.shelf.name() + ':' + entry.key, entry);
+        }
+    }
 
     private LibraryCatalog() { }
 
@@ -254,6 +276,7 @@ public final class LibraryCatalog {
                         : entry.region == null ? Integer.MAX_VALUE : entry.region.ordinal())
                 .thenComparingInt(entry -> entry.depth)
                 .thenComparingInt(entry -> entry.tier)
+                .thenComparing(entry -> entry.questVariant == null ? "" : entry.questVariant)
                 .thenComparing(Entry::name, String.CASE_INSENSITIVE_ORDER));
     }
 
@@ -317,17 +340,11 @@ public final class LibraryCatalog {
     }
 
     static Entry findType(Class<?> type) {
-        for (Entry entry : entries) {
-            if (entry.type == type) return entry;
-        }
-        return null;
+        return byType.get(type);
     }
 
     public static Entry find(Shelf shelf, String key) {
-        for (Entry entry : entries) {
-            if (entry.shelf == shelf && entry.key.equals(key)) return entry;
-        }
-        return null;
+        return byKey.get(shelf.name() + ':' + key);
     }
 
     public static Entry item(String key) {
@@ -431,13 +448,15 @@ public final class LibraryCatalog {
         list.add(entry);
     }
 
-    private static void quest(List<Entry> list, Region region, int depth, String name, String giver, Supplier<Image> image) {
+    private static void quest(List<Entry> list, Region region, int depth, String name, String giver,
+                              String variant, Supplier<Image> image) {
         String key = "library.quest." + name;
         Entry entry = new Entry(key + ".name", Shelf.QUESTS, () -> Messages.get(key + ".name"),
                 () -> Messages.get(key + ".desc"), image, false, null, null, null);
         entry.region = region;
         entry.depth = depth;
         entry.rewardKey = "library.quest." + giver + ".reward";
+        entry.questVariant = variant;
         list.add(entry);
     }
 
@@ -501,47 +520,75 @@ public final class LibraryCatalog {
         list.add(new Entry("rival." + hero.name(), Shelf.RIVALS,
                 () -> Messages.get("actors.mobs.rivalboss.name", (Object)Messages.maybeTranslate(hero.title())),
                 () -> text("rival_desc"), () -> {
-            Image image = heroImage(hero.spritesheet(), 2);
+            Image image = heroImage(HeroSkins.sheet(hero, 1), 2);
             image.tint(0xB52B32, .38f);
             return image;
         }, false, null, null, () -> LibraryCreatureStats.rival(hero, 5)));
     }
 
-    private static void skills(List<Entry> list, HeroClass hero, SkillTree tree) {
-        for (SkillContainer container : tree.getSkills()) {
-            Skill skill = container.skill;
-            list.add(new Entry("skill." + hero.name() + "." + skill.image, Shelf.ABILITIES,
-                    () -> Messages.maybeTranslate(skill.name), () -> {
-                StringBuilder info = new StringBuilder(text("skill_owner",
-                        Messages.capitalize(Messages.maybeTranslate(hero.title()))));
-                info.append('\n');
-                for (String line : skill.info().split("\\n", -1)) {
-                    info.append('\n').append(Messages.maybeTranslate(line));
+    private static void skills(List<Entry> list, HeroClass hero) {
+        for (Talent talent : Talent.values()) {
+            if (talent.heroClass != hero || !talent.available()) continue;
+            Entry entry = new Entry(talent.name(), Shelf.ABILITIES, talent::title,
+                    () -> {
+                        StringBuilder info = new StringBuilder(text("skill_owner", Message.heroClass(hero).toString()));
+                        if (talent.subclass != HeroSubClass.NONE) info.append('\n').append(Message.subclass(talent.subclass, false));
+                        info.append("\n\n").append(Messages.get(talent.key() + ".intro"));
+                        for (int rank = 1; rank <= talent.maxRank(); rank++) {
+                            info.append("\n\n").append(Messages.get("skills4.rank_row", rank, talent.rankDescription(rank)));
+                        }
+                        return info.toString();
+                    },
+                    () -> new SkillSprite(talent.icon), false, null, null, null);
+            entry.skillClass = hero;
+            list.add(entry);
+        }
+    }
+
+    public static Entry championSkill(RebornChampion.Skill skill) {
+        return find(Shelf.ABILITIES, skill.key());
+    }
+
+    private static void championSkills(List<Entry> list) {
+        for (RebornChampion.Skill skill : RebornChampion.Skill.values()) {
+            if (skill == RebornChampion.Skill.NONE) continue;
+            Entry entry = new Entry(skill.key(), Shelf.ABILITIES, skill::title, () -> {
+                StringBuilder info = new StringBuilder(Messages.get("champions.owner"));
+                for (int rank = 1; rank <= 5; rank++) {
+                    info.append("\n\n").append(Messages.get("skills4.rank_row", rank, skill.description(rank)));
                 }
                 return info.toString();
-            }, () -> new SkillSprite(skill.image), false, null, null, null));
+            }, () -> new SkillSprite(skill.icon), false, null, null, null);
+            entry.championSkill = skill;
+            list.add(entry);
         }
     }
 
     private static List<Entry> createEntries() {
         List<Entry> list = new ArrayList<>();
+        championSkills(list);
+        for (int i = 1; i <= CosmeticPets.COUNT; i++) {
+            final int pet = i;
+            list.add(new Entry("pet." + pet, Shelf.PETS, () -> CosmeticPets.name(pet),
+                    () -> CosmeticPets.description(pet), () -> CosmeticPets.image(pet), false, null, null, null));
+        }
         chapter(list, Region.SEWERS, 1, "sewers", Assets.TILES_SEWERS_3D);
         chapter(list, Region.PRISON, 6, "prison", Assets.TILES_PRISON_3D);
         chapter(list, Region.CAVES, 11, "caves", Assets.TILES_CAVES_3D);
         chapter(list, Region.CITY, 16, "city", Assets.TILES_CITY_3D);
         chapter(list, Region.HALLS, 22, "halls", Assets.TILES_HALLS_3D);
-        quest(list, Region.SEWERS, 2, "ghost_rose", "ghost", () -> idleImage(new GhostSprite()));
-        quest(list, Region.SEWERS, 2, "ghost_rat", "ghost", () -> idleImage(new GhostSprite()));
-        quest(list, Region.SEWERS, 2, "ghost_curse", "ghost", () -> idleImage(new GhostSprite()));
-        quest(list, Region.PRISON, 7, "wandmaker_berry", "wandmaker", () -> idleImage(new WandmakerSprite()));
-        quest(list, Region.PRISON, 7, "wandmaker_dust", "wandmaker", () -> idleImage(new WandmakerSprite()));
-        quest(list, Region.PRISON, 7, "wandmaker_fish", "wandmaker", () -> idleImage(new WandmakerSprite()));
-        quest(list, Region.CAVES, 12, "blacksmith_gold", "blacksmith", () -> idleImage(new BlacksmithSprite()));
-        quest(list, Region.CAVES, 12, "blacksmith_blood", "blacksmith", () -> idleImage(new BlacksmithSprite()));
-        quest(list, Region.ICE_CAVES, 11, "prospector_torches", "prospector", () -> idleImage(new ProspectorSprite()));
-        quest(list, Region.ICE_CAVES, 11, "prospector_iceclaws", "prospector", () -> idleImage(new ProspectorSprite()));
-        quest(list, Region.CITY, 17, "imp_golems", "imp", () -> idleImage(new ImpSprite()));
-        quest(list, Region.CITY, 17, "imp_monks", "imp", () -> idleImage(new ImpSprite()));
+        quest(list, Region.SEWERS, 2, "ghost_rose", "ghost", "I", () -> idleImage(new GhostSprite()));
+        quest(list, Region.SEWERS, 2, "ghost_rat", "ghost", "II", () -> idleImage(new GhostSprite()));
+        quest(list, Region.SEWERS, 2, "ghost_curse", "ghost", "III", () -> idleImage(new GhostSprite()));
+        quest(list, Region.PRISON, 7, "wandmaker_berry", "wandmaker", "I", () -> idleImage(new WandmakerSprite()));
+        quest(list, Region.PRISON, 7, "wandmaker_dust", "wandmaker", "II", () -> idleImage(new WandmakerSprite()));
+        quest(list, Region.PRISON, 7, "wandmaker_fish", "wandmaker", "III", () -> idleImage(new WandmakerSprite()));
+        quest(list, Region.CAVES, 12, "blacksmith_gold", "blacksmith", "I", () -> idleImage(new BlacksmithSprite()));
+        quest(list, Region.CAVES, 12, "blacksmith_blood", "blacksmith", "II", () -> idleImage(new BlacksmithSprite()));
+        quest(list, Region.ICE_CAVES, 11, "prospector_torches", "prospector", "I", () -> idleImage(new ProspectorSprite()));
+        quest(list, Region.ICE_CAVES, 11, "prospector_iceclaws", "prospector", "II", () -> idleImage(new ProspectorSprite()));
+        quest(list, Region.CITY, 17, "imp_golems", "imp", "I", () -> idleImage(new ImpSprite()));
+        quest(list, Region.CITY, 17, "imp_monks", "imp", "II", () -> idleImage(new ImpSprite()));
 
         item(list, Shelf.MISC, Amulet.class, ItemSpriteSheet.AMULET, "items.amulet.name", "items.amulet.desc");
         item(list, Shelf.MISC, Ankh.class, ItemSpriteSheet.ANKH, "items.ankh.name", "items.ankh.desc");
@@ -741,7 +788,7 @@ public final class LibraryCatalog {
         creature(list, Shelf.BOSSES, Region.ICE_CAVES, 14, OldRime.class, "actors.mobs.oldrime.name", "actors.mobs.oldrime.desc", () -> idleImage(new IceSprite.Rime()));
         creature(list, Shelf.PEOPLE, Region.ICE_CAVES, 11, Prospector.class, "actors.mobs.npcs.prospector.name", "actors.mobs.npcs.prospector.desc", () -> idleImage(new ProspectorSprite()));
         creature(list, Shelf.ENEMIES, RivalServant.class, "actors.mobs.rivalservant.name", "actors.mobs.rivalservant.desc", () -> idleImage(new SkeletonSprite()));
-        creature(list, Shelf.ENEMIES, RivalServant.class, "actors.mobs.rivalservant.clone", "actors.mobs.rivalservant.desc", () -> heroImage(Assets.ROGUE, 2));
+        creature(list, Shelf.ENEMIES, RivalServant.class, "actors.mobs.rivalservant.clone", "actors.mobs.rivalservant.desc", () -> heroImage(HeroSkins.sheet(HeroClass.ROGUE, 1), 2));
         for (int role = 0; role < 4; role++) {
             final int tint = new int[]{0xFFFFFF, 0xA6CCFF, 0xFFBF73, 0xA6FFA6}[role];
             final String key = "actors.mobs.rebornking$retainer.";
@@ -790,7 +837,7 @@ public final class LibraryCatalog {
         }
         for (HeroClass hero : new HeroClass[]{HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE,
                 HeroClass.HUNTRESS, HeroClass.NECROMANCER, HeroClass.MERCENARY}) {
-            skills(list, hero, skillTree(hero));
+            skills(list, hero);
         }
         for (AlchemyRecipe recipe : AlchemyRecipe.values()) {
             list.add(new Entry(recipe.name(), Shelf.RECIPES,
@@ -798,6 +845,10 @@ public final class LibraryCatalog {
                     () -> text("recipe_desc", findType(recipe.seed).name(), findType(recipe.lorePotion()).name()),
                     () -> new ItemSprite(ItemSpriteSheet.RECIPE_HEALING + recipe.ordinal(), null),
                     false, null, null, null));
+        }
+        for (EquipmentAttribute.Type type : EquipmentAttribute.Type.values()) {
+            list.add(new Entry(type.name(), Shelf.ATTRIBUTES, type::title, type::description,
+                    () -> new ItemSprite(type.image, null), false, null, null, null));
         }
         return Collections.unmodifiableList(list);
     }

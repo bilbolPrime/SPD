@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.items.rings;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
@@ -315,7 +317,7 @@ public class Ring extends EquipableItem {
 
 	@Override
 	public String displayInfo() {
-		return isKnown() ? super.displayInfo() : info();
+		return isKnown() ? super.displayInfo() : info() + EquipmentAttribute.describe(this);
 	}
 
 	@Override
@@ -331,6 +333,7 @@ public class Ring extends EquipableItem {
 
 	@Override
 	public Item random() {
+		EquipmentAttribute.roll(this);
 		int lvl = Random.Int( 1, 3 );
 		if (Random.Float() < 0.3f) {
 			degrade( lvl );

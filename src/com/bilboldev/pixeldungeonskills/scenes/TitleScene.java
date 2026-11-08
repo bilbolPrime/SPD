@@ -17,6 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.DailyReminders;
+
+import com.bilboldev.pixeldungeonskills.DailyRun;
+
 import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
 import com.bilboldev.gltextures.TextureCache;
@@ -29,10 +33,6 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TouchArea;
 import com.bilboldev.noosa.audio.Music;
-import com.bilboldev.noosa.audio.Sample;
-import com.bilboldev.noosa.particles.Emitter;
-import com.bilboldev.noosa.ui.Button;
-import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Difficulties;
@@ -45,15 +45,15 @@ import com.bilboldev.pixeldungeonskills.VersionNewsInfo;
 import com.bilboldev.pixeldungeonskills.actors.Online.OnlineHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
-import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+import com.bilboldev.pixeldungeonskills.ui.UpdateButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.windows.WndDaily;
 import com.bilboldev.pixeldungeonskills.windows.WndSettings;
-import com.bilboldev.pixeldungeonskills.windows.WndUpdateHistory;
 import com.bilboldev.utils.Signal;
 import com.bilboldev.utils.PointF;
 
@@ -87,6 +87,7 @@ public class TitleScene extends PixelScene {
     public void create() {
         Lore.clearNotices();
         GauntletRun.finish();
+        DailyRun.leave();
         SupporterEntitlements.resetRunAura();
         super.create();
         Badges.loadGlobal();
@@ -121,6 +122,23 @@ public class TitleScene extends PixelScene {
         }
 
         addAction(Messages.get(TitleScene.class, "play"), 0, true, Page.HEROES);
+        TitleMenuButton daily = new TitleMenuButton(Messages.get("daily.menu"), 0, false) {
+            private long date = DailyRun.today();
+            { icon(WndDaily.image(date)); }
+
+            @Override protected void onClick() { TitleScene.this.add(new WndDaily()); }
+
+            @Override public void update() {
+                super.update();
+                if (date != DailyRun.today()) {
+                    date = DailyRun.today();
+                    icon(WndDaily.image(date));
+                    layout();
+                }
+            }
+        };
+        home.add(daily);
+        buttons.add(daily);
         addAction(Messages.get(TitleScene.class, "rankings"), 2, false, Page.RANKINGS);
         addAction(Messages.maybeTranslate("Badges"), 3, false, Page.BADGES);
         TitleMenuButton library = addAction(Messages.get(TitleScene.class, "library"), 1, false, Page.LIBRARY);
@@ -129,8 +147,13 @@ public class TitleScene extends PixelScene {
         float menuWidth = Math.min(portrait ? 176 : 164, portrait ? w - 32 : w * 0.35f);
         float gap = 4;
         float available = h - (portrait ? 124 : 48) - (buttons.size() - 1) * gap;
-        float buttonHeight = Math.min(Math.max(34, 48 * Game.density / zoom), available / buttons.size());
-        float menuHeight = buttons.size() * buttonHeight + (buttons.size() - 1) * gap;
+        float targetHeight = Math.max(34, 48 * Game.density / zoom);
+        boolean paired = !portrait && available / buttons.size() < targetHeight;
+        int rows = buttons.size() - (paired ? 2 : 0);
+        if (paired) menuWidth = Math.min(240, w * .46f);
+        available = h - (portrait ? 124 : 48) - (rows - 1) * gap;
+        float buttonHeight = Math.min(targetHeight, available / rows);
+        float menuHeight = rows * buttonHeight + (rows - 1) * gap;
         float menuX = portrait ? (w - menuWidth) / 2 : Math.max(16, w * 0.065f);
         boolean shortLandscape = !portrait && h - menuHeight < 150;
         Image title = BannerSprites.get(BannerSprites.Type.PIXEL_DUNGEON);
@@ -156,7 +179,11 @@ public class TitleScene extends PixelScene {
         runes.alpha(0.32f);
         home.add(runes);
         for (int i = 0; i < buttons.size(); i++) {
-            buttons.get(i).setRect(align(menuX), align(menuY + i * (buttonHeight + gap)), menuWidth, buttonHeight);
+            boolean sharedRow = paired && i >= 2 && i < 6;
+            int row = sharedRow ? 2 + (i - 2) / 2 : paired && i >= 6 ? i - 2 : i;
+            float buttonWidth = sharedRow ? (menuWidth - gap) / 2 : menuWidth;
+            float x = menuX + (sharedRow && i % 2 == 1 ? buttonWidth + gap : 0);
+            buttons.get(i).setRect(align(x), align(menuY + row * (buttonHeight + gap)), buttonWidth, buttonHeight);
         }
         utilities(w, h);
 
@@ -316,49 +343,7 @@ public class TitleScene extends PixelScene {
         exit.setRect(w - 30, 8, 24, 24);
         add(exit);
 
-        Button history = new Button() {
-            private Image scroll;
-            private Emitter sparks;
-
-            @Override
-            protected void createChildren() {
-                super.createChildren();
-                scroll = new Image(Assets.CHROME, 32, 32, 32, 32);
-                scroll.scale.set(.5f);
-                add(scroll);
-                sparks = new Emitter();
-                add(sparks);
-                if (Presentation.lastReadUpdate() < Game.versionBuild) {
-                    sparks.pour(Speck.factory(Speck.LIGHT), .3f);
-                }
-            }
-
-            @Override
-            protected void layout() {
-                super.layout();
-                scroll.x = align(x + (width - scroll.width()) / 2);
-                scroll.y = y;
-                sparks.pos(scroll.x - 2, scroll.y - 2, scroll.width() + 4, scroll.height() + 4);
-            }
-
-            @Override
-            protected void onTouchDown() {
-                scroll.brightness(1.3f);
-                Sample.INSTANCE.play(Assets.SND_CLICK);
-            }
-
-            @Override
-            protected void onTouchUp() {
-                scroll.resetColor();
-            }
-
-            @Override
-            protected void onClick() {
-                TitleScene.this.add(new WndUpdateHistory());
-                sparks.on = false;
-                sparks.kill();
-            }
-        };
+        UpdateButton history = new UpdateButton();
         history.setRect(exit.left() - 28, 8, 24, 24);
         add(history);
 
@@ -399,6 +384,8 @@ public class TitleScene extends PixelScene {
 
     @Override
     public void update() {
+        DailyScene.showError();
+        DailyReminders.showRequested(false);
         float dt = Math.min(Game.elapsed, 0.1f);
         if (!PixelDungeon.titleAnimation()) revealTime = REVEAL_DELAY + REVEAL_FADE;
         revealTime += dt;

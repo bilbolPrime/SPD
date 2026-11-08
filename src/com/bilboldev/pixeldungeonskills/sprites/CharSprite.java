@@ -46,6 +46,8 @@ import com.bilboldev.pixeldungeonskills.effects.ChampWhiteHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampYellowHalo;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.FloatingText;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
+import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.effects.IceBlock;
 import com.bilboldev.pixeldungeonskills.effects.RebornAura;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
@@ -56,7 +58,6 @@ import com.bilboldev.pixeldungeonskills.items.potions.PotionOfInvisibility;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
-import com.bilboldev.pixeldungeonskills.utils.Utils;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.PointF;
 import com.bilboldev.utils.RectF;
@@ -96,6 +97,10 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 	public Animation idleAnimation() {
 		return idle;
+	}
+
+	public Animation runAnimation() {
+		return run;
 	}
 
 	public static final class VisualAnimation {
@@ -183,6 +188,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 
 	protected Callback animCallback;
+	private Callback dashCallback;
 
 	protected Tweener motion;
 	private final java.util.ArrayDeque<int[]> visualMoves = new java.util.ArrayDeque<>();
@@ -319,6 +325,28 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		}
 	}
 
+	public void showDamage(int color, int amount, CombatTextIcon type) {
+		if (!visible) return;
+		if (Dungeon.rules().mode != GameplayMode.REBORN) type = CombatTextIcon.NONE;
+		else if (amount == 0) type = CombatTextIcon.NO_DAMAGE;
+		PartyEffects.number(this, color, amount, false, type);
+		FloatingText.show(x + width * 0.5f, y, this, Integer.toString(amount), color, type);
+	}
+
+	public void showRecovery(int amount, boolean mana) {
+		if (!visible || ch == null || amount <= 0 || Dungeon.rules().mode != GameplayMode.REBORN) return;
+		CombatTextIcon icon = mana ? CombatTextIcon.MANA : CombatTextIcon.HEALING;
+		int color = mana ? 0x66AAFF : POSITIVE;
+		PartyEffects.number(this, color, amount, true, icon);
+		FloatingText.show(x + width * 0.5f, y, this, "+" + amount, color, icon);
+	}
+
+	public void showAbsorbed(int amount) {
+		if (!visible || amount <= 0 || Dungeon.rules().mode != GameplayMode.REBORN) return;
+		PartyEffects.number(this, 0x9EBEFF, amount, false, CombatTextIcon.ABSORBED);
+		FloatingText.show(x + width * 0.5f, y, this, Integer.toString(amount), 0x9EBEFF, CombatTextIcon.ABSORBED);
+	}
+
 	public void showStatus(int color, Message message) {
 		if (visible) {
 			PartyEffects.status(this, color, message);
@@ -403,6 +431,17 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		startVisualMove(from, ch.pos);
 	}
 
+	public void dash(int from, int to, Callback callback) {
+		turnTo(from, to);
+		play(movementAnimation());
+		PartySession.move(ch.id(), from, to);
+		dashCallback = LocalCoop.callback(callback);
+		isMoving = true;
+		motion = new PosTweener(this, worldToCamera(to), Math.min(.3f, MOVE_INTERVAL * Level.distance(from, to)));
+		motion.listener = this;
+		parent.add(motion);
+	}
+
 	public void queueVisualMove(int from, int to, int sequence, int step) {
 		if (parent == null || ch == null || !ch.isAlive() || step <= visualStep) return;
 		visualJump = null;
@@ -428,7 +467,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		play(movementAnimation());
 		isMoving = true;
 		movementPause = 0;
-		motion = new PosTweener(this, worldToCamera(to), MOVE_INTERVAL);
+		motion = new PosTweener(this, worldToCamera(to), Math.max(MOVE_INTERVAL, Math.min(.3f, MOVE_INTERVAL * Level.distance(from, to))));
 		motion.listener = completed -> {
 			isMoving = false;
 			motion = null;
@@ -533,10 +572,20 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		play( operate );
 	}
 
+	public void operate(int cell, Callback callback) {
+		animCallback = callback;
+		operate(cell);
+	}
+
 	public void zap( int cell ) {
 		turnTo( ch.pos, cell );
 		play( zap );
 	}
+
+    public void zap(int cell, Callback callback) {
+        animCallback = callback;
+        zap(cell);
+    }
 
     public void zap(int cell, Item item) {
         zap(cell);
@@ -854,6 +903,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 			motion.killAndErase();
 			motion = null;
+			if (dashCallback != null) {
+				Callback callback = dashCallback;
+				dashCallback = null;
+				callback.call();
+			}
 		}
 	}
 

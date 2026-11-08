@@ -14,6 +14,7 @@ import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild.Property;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
@@ -28,6 +29,17 @@ public final class WndLibraryItemOptions extends WndLibrary {
     private final ArrayList<Choice> choices = new ArrayList<>();
     private final Runnable onSelect;
     private final String unknownMessage;
+
+    public WndLibraryItemOptions(LibraryItemBuild build, int slot, Runnable onSelect) {
+        this.onSelect = onSelect;
+        unknownMessage = "unknown_attribute";
+        choices.add(new Choice(null, LibraryCatalog.text("none"), true, () -> build.attribute(slot, null)));
+        for (EquipmentAttribute attribute : build.attributeOptions()) {
+            choices.add(new Choice(build.item(), "_" + attribute.rangeDescription() + "_", Lore.knownAttribute(build.entry, attribute),
+                    () -> build.attribute(slot, attribute)));
+        }
+        layoutChoices(LibraryCatalog.text("attributes"));
+    }
 
     public WndLibraryItemOptions(LibraryItemBuild build, Property property, Runnable onSelect) {
         this.onSelect = onSelect;
@@ -100,8 +112,10 @@ public final class WndLibraryItemOptions extends WndLibrary {
                             return;
                         }
                         choice.select.run();
-                        hide();
-                        onSelect.run();
+                        if (onSelect != null) {
+                            hide();
+                            onSelect.run();
+                        }
                         return;
                     }
                 }

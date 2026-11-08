@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.ui;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
@@ -129,6 +130,8 @@ public class ItemSlot extends Button {
 			label.scale.set(Math.max(1, available) / label.width());
 	}
 
+    protected Hero viewer() { return Dungeon.hero; }
+
 	public void item( Item item ) {
 		shownItem = item;
 		if (item == null) {
@@ -154,7 +157,7 @@ public class ItemSlot extends Button {
 
 					int str = isArmor ? ((Armor)item).STR : ((Weapon)item).STR();
 					topRight.text( Utils.format( TXT_STRENGTH, str ) );
-					if (str > Dungeon.hero.STR()) {
+					if (viewer() != null && str > viewer().STR()) {
 						topRight.hardlight( DEGRADED );
 					} else {
 						topRight.resetColor();

@@ -177,7 +177,7 @@ public class HuntressSkillTree extends SkillTree {
     public int hunting() {return getSkill(Hunting.class).hunting();}
 
     @Override
-    public boolean doubleShot() {return getSkill(DoubleShot.class).doubleShot();}
+    public boolean doubleShot(boolean moreArrows) {return getSkill(DoubleShot.class).doubleShot(moreArrows);}
 
     @Override
     public float rangedDamageModifier() {return getSkill(AimedShot.class).rangedDamageModifier() * getSkill(DoubleShot.class).rangedDamageModifier() * getSkill(Sniper.class).rangedDamageModifier();}

@@ -18,6 +18,9 @@ public abstract class Recovery extends Buff {
 
     public int remaining() { return remaining; }
 
+    @Override
+    public int remainingTurns() { return turns; }
+
     private int value() { return mana() ? target.MP : target.HP; }
 
     private int maximum() { return mana() ? target.MMP : target.HT; }
@@ -29,8 +32,10 @@ public abstract class Recovery extends Buff {
             return true;
         }
         int amount = (remaining + turns - 1) / turns;
+        int before = value();
         if (mana()) target.MP = Math.min(target.MMP, target.MP + amount);
         else target.HP = Math.min(target.HT, target.HP + amount);
+        target.showRecovery(value() - before, mana());
         remaining -= amount;
         turns--;
         if (remaining == 0 || turns == 0 || value() >= maximum()) detach();

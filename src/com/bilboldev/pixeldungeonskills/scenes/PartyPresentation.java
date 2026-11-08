@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.Heap;
+import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
@@ -35,6 +36,7 @@ import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
 import com.bilboldev.pixeldungeonskills.ui.HealthIndicator;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
+import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
 import com.bilboldev.utils.PointF;
 import com.bilboldev.utils.Bundle;
 
@@ -76,6 +78,7 @@ public final class PartyPresentation {
         private final Char healthTarget = HealthIndicator.instance.target();
         private final boolean hadBoss = com.bilboldev.pixeldungeonskills.DungeonMusic.hasBoss();
         private final int sequence;
+        private final List<Item> carried = ItemDropCards.carried();
 
         public Update(Bundle incoming, int sequence) {
             this.sequence = sequence;
@@ -104,6 +107,7 @@ public final class PartyPresentation {
             for (Heap heap : level.heaps.values()) {
                 if (Dungeon.level.heaps.get(heap.pos) == null && heap.sprite != null) heap.sprite.kill();
             }
+            if (scene.itemDrops != null) scene.itemDrops.rebind(carried);
             for (Plant plant : Dungeon.level.plants.values()) {
                 Plant old = level.plants.get(plant.pos);
                 if (old != null && old.getClass() == plant.getClass() && old.sprite != null && old.sprite.exists)
@@ -126,6 +130,7 @@ public final class PartyPresentation {
             boolean changed = !java.util.Arrays.equals(level.map, Dungeon.level.map);
             System.arraycopy(Dungeon.level.map, 0, level.map, 0, level.map.length);
             Dungeon.level.map = level.map;
+            if (scene.lighting != null) scene.lighting.rebind(Dungeon.level);
             FirstPersonView view = GameScene.firstPersonView();
             if (view != null) view.rebind(Dungeon.level);
             if (changed) GameScene.updateMap();
@@ -164,7 +169,7 @@ public final class PartyPresentation {
             ch.sprite = sprite;
             if (ch instanceof Hero && (((Hero)old).tier() != ((Hero)ch).tier()
                     || ((Hero)old).heroClass != ((Hero)ch).heroClass)) {
-                sprite.texture(((Hero)ch).heroClass.spritesheet());
+                sprite.texture(((Hero)ch).spritesheet());
                 ((HeroSprite)sprite).updateArmor();
             }
             state(sprite, CharSprite.State.BURNING, old.buff(Burning.class) != null, ch.buff(Burning.class) != null);

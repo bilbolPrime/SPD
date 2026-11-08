@@ -50,9 +50,9 @@ import com.bilboldev.pixeldungeonskills.ui.Slider;
 public class WndSettings extends WndScrollable {
 
 	private static final String TXT_IMMERSIVE		= "Immersive mode";
-	
+
 	private static final String TXT_MUSIC	= "Music";
-	
+
 	private static final String TXT_SOUND	= "Sound FX";
 	private static final String TXT_NO_DEGRADATION = "No Degradation";
 
@@ -60,7 +60,7 @@ public class WndSettings extends WndScrollable {
 	private static final String TXT_SWITCH_LAND	= "Switch to landscape";
 	private static final String TXT_WINDOWED		= "Windowed Mode";
 	private static final String TXT_BORDERLESS_WINDOWED = "Borderless Windowed";
-	
+
 	private static final int WIDTH		= 144;
 	private static final int BTN_HEIGHT	= 20;
 	private static final int GAP 		= 2;
@@ -73,7 +73,7 @@ public class WndSettings extends WndScrollable {
 	private ControlRow settingsRows;
 	private ScrollPane settingsPane;
 	private float settingsX, settingsY, settingsWidth, settingsTarget, settingsGap;
-	
+
 	public WndSettings(boolean inGame) {
 		super();
 		if (Presentation.reborn()) createReborn(inGame);
@@ -96,6 +96,7 @@ public class WndSettings extends WndScrollable {
 		}
 		addUiScaleSlider(inGame);
 		addQuickSlotSlider();
+		if (inGame && Dungeon.rules().hasRebornEncounters()) addDungeonEffects();
 		addAudioSliders();
 		btnLanguage = settingAction(languageText(), () -> showLanguagePicker(inGame));
 
@@ -152,6 +153,7 @@ public class WndSettings extends WndScrollable {
 		float displayTop = settingsY;
 		addUiScaleSlider(inGame);
 		addQuickSlotSlider();
+		if (!inGame || Dungeon.rules().hasRebornEncounters()) addDungeonEffects();
 		if (inGame) {
 			addDungeonZoomSlider();
 			addBrightnessControls();
@@ -208,6 +210,11 @@ public class WndSettings extends WndScrollable {
 			section("dungeon");
 			settingToggle(TXT_NO_DEGRADATION, PixelDungeon.itemDeg(), value -> PixelDungeon.itemDeg(value));
 		}
+	}
+
+	private void addDungeonEffects() {
+		settingToggle(Messages.get(WndSettings.class, "dungeon_effects"), Presentation.dungeonEffects(),
+				value -> Presentation.dungeonEffects(value));
 	}
 
 	private void addAudioSliders() {

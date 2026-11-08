@@ -27,6 +27,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -104,6 +105,8 @@ public class Item implements Bundlable {
 	public boolean cursed;
 	public boolean cursedKnown;
 
+	public transient boolean droppedByHero, droppedOnDeath;
+
 	public boolean unique = false;
 
     public WeaponEffect weaponEffect = null;
@@ -156,7 +159,9 @@ public class Item implements Bundlable {
 
 	public void doDrop( Hero hero ) {
 		hero.spendAndNext( TIME_TO_DROP );
-		Dungeon.level.drop( detachAll( hero.belongings.backpack ), hero.pos ).sprite.drop( hero.pos );
+		Item dropped = detachAll(hero.belongings.backpack);
+		dropped.droppedByHero = true;
+		Dungeon.level.drop(dropped, hero.pos).sprite.drop(hero.pos);
 	}
 
 	public void doThrow( Hero hero ) {
@@ -191,7 +196,9 @@ public class Item implements Bundlable {
 
     public void doTakeStorage( Hero hero ) {
         hero.spendAndNext( TIME_TO_DROP );
-        Dungeon.level.drop( detachAll( hero.storage.backpack ), hero.pos ).sprite.drop( hero.pos );
+        Item dropped = detachAll(hero.storage.backpack);
+        dropped.droppedByHero = true;
+        Dungeon.level.drop(dropped, hero.pos).sprite.drop(hero.pos);
     }
 
     public void doAddStorage( Hero hero ) {
@@ -254,6 +261,7 @@ public class Item implements Bundlable {
 		ArrayList<Item> items = container.items;
 
 		if (items.contains( this )) {
+			droppedByHero = droppedOnDeath = false;
 			return true;
 		}
 
@@ -270,6 +278,7 @@ public class Item implements Bundlable {
 				if (item.getClass() == c) {
 					item.quantity += quantity;
 					item.updateQuickslot();
+					droppedByHero = droppedOnDeath = false;
 					return true;
 				}
 			}
@@ -282,6 +291,7 @@ public class Item implements Bundlable {
 			}
 
 			items.add( this );
+			droppedByHero = droppedOnDeath = false;
 			QuickSlot.refresh();
 			Collections.sort( items, itemComparator );
 			return true;
@@ -561,6 +571,12 @@ public class Item implements Bundlable {
 	}
 
 	public String displayInfo() {
+		String details = localizedInfo() + LibraryItemBuild.enchantmentInfo(this);
+		String attributes = EquipmentAttribute.describe(this);
+		return attributes.isEmpty() ? details : details + "\n" + attributes;
+	}
+
+	private String localizedInfo() {
 		String info = info();
 		String translatedDesc = message( "desc" );
 		if (translatedDesc == null) {
@@ -656,6 +672,7 @@ public class Item implements Bundlable {
 	}
 
 	private static final String QUANTITY		= "quantity";
+	public EquipmentAttribute[] attributes = EquipmentAttribute.NONE;
 	private static final String LEVEL			= "level";
 	private static final String LEVEL_KNOWN		= "levelKnown";
 	private static final String CURSED			= "cursed";
@@ -665,6 +682,7 @@ public class Item implements Bundlable {
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
+		if (attributes.length != 0) bundle.put("attributes", EquipmentAttribute.pack(attributes));
 		bundle.put( QUANTITY, quantity );
 		bundle.put( LEVEL, level );
 		bundle.put( LEVEL_KNOWN, levelKnown );
@@ -679,6 +697,7 @@ public class Item implements Bundlable {
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
+		attributes = EquipmentAttribute.unpack(bundle.getIntArray("attributes"));
 		quantity	= bundle.getInt( QUANTITY );
 		levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
 
@@ -736,18 +755,7 @@ public class Item implements Bundlable {
 			reset( user.pos, cell, this, new Callback() {
 				@Override
 				public void call() {
-					Item.this.detach( user.belongings.backpack ).onThrow( cell );
-                    if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.skillTree.doubleShot())
-                    {
-                        if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
-                        {
-                            curItem.castSPD(curUser, dstFinal, Dungeon.hero.heroSkills.passiveB3.passThroughTargets(true));
-                        }
-                        else
-                            curItem.cast( curUser, dstFinal );
-                    }
-                    else
-					    user.spendAndNext( finalDelay );
+                    finishThrow(user, cell, dstFinal, finalDelay);
 				}
 			} );
 	}
@@ -817,23 +825,29 @@ public class Item implements Bundlable {
                 reset( user.pos, cell, this, new Callback() {
                     @Override
                     public void call() {
-                        Item.this.detach( user.belongings.backpack ).onThrow( cell );
-                        if(curUser instanceof Hero && curItem instanceof Arrow && Dungeon.hero.skillTree.doubleShot())
-                        {
-                            if(Dungeon.hero.heroSkills.passiveB3.passThroughTargets(false) > 0)
-                            {
-                                curItem.castSPD(curUser, dstFinal, Dungeon.hero.heroSkills.passiveB3.passThroughTargets(true));
-                            }
-                            else
-                                curItem.cast( curUser, dstFinal );
-                        }
-                        else
-                            user.spendAndNext( finalDelay );
+                        finishThrow(user, cell, dstFinal, finalDelay);
                     }
                 } );
     }
 
-	protected static Hero curUser = null;
+    private void finishThrow(Hero user, int cell, int dst, float delay) {
+        curUser = user;
+        curItem = this;
+        Item thrown = detach(user.belongings.backpack);
+        if (thrown != null) {
+            thrown.droppedByHero = true;
+            thrown.onThrow(cell);
+        }
+        if (this instanceof Arrow && user.talents() != null) user.talents().arrowLanded();
+        if (this instanceof Arrow && user.skillTree.doubleShot(user.isAlive()
+                && user.belongings.bow != null && quantity > 0 && user.belongings.backpack.contains(this))) {
+            cast(user, dst);
+        } else {
+            user.spendAndNext(delay);
+        }
+    }
+
+    protected static Hero curUser = null;
 	protected static Item curItem = null;
 	protected static CellSelector.Listener thrower = new CellSelector.Listener() {
 		@Override

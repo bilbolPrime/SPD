@@ -131,7 +131,8 @@ public class SewerLevel extends RegularLevel {
 
 	public static void addVisuals( Level level, Scene scene ) {
 		for (int i=0; i < LENGTH; i++) {
-			if (level.map[i] == Terrain.WALL_DECO) {
+			if (level.map[i] == Terrain.WALL_DECO
+                    && (!Dungeon.rules().hasRebornEncounters() || level.wallIsExposed(i))) {
 				scene.add( new Sink( i ) );
 			}
 		}

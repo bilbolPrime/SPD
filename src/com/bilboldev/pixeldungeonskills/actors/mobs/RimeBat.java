@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frostbite;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.sprites.IceSprite;
 import com.bilboldev.utils.Random;
 
@@ -24,7 +25,9 @@ public class RimeBat extends IceMob {
 
     @Override
     public int attackProc(Char enemy, int damage) {
-        if (cooldown == 0 && enemy.buff(Frostbite.class) == null) {
+        RebornChampion champion = buff(RebornChampion.class);
+        if (cooldown == 0 && enemy.buff(Frostbite.class) == null
+                && (champion == null || !champion.using(RebornChampion.Skill.FROST))) {
             Buff.affect(enemy, Frostbite.class, 2);
             cooldown = 4;
         }

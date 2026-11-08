@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -89,10 +90,10 @@ public class OldRime extends RebornBoss {
             if (Level.adjacent(pos, cells[0])) strike(cells, 28, 38);
             recover(1);
         } else if (kind == ORDER) {
-            strike(cells, 18, 27, true);
+            strike(cells, 18, 27, true, CombatTextIcon.COLD);
             recover(1);
         } else {
-            strike(cells, 12, 20, true);
+            strike(cells, 12, 20, true, CombatTextIcon.COLD);
             for (int cell : cells) {
                 if (Level.solid[cell] || !lineClear(warningOrigin, cell)) continue;
                 Char victim = Actor.findChar(cell);

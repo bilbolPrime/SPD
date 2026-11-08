@@ -131,7 +131,7 @@ public class Dungeon {
         return false;
     }
 
-    static Runnable enterGauntlet() {
+    static Runnable enterTemporaryRun() {
         final int oldSlot = saveSlot, oldDifficulty = difficulty, oldChallenges = challenges, oldDepth = depth, oldGold = gold;
         final RunRules oldRules = runRules;
         final RunSeed oldSeed = seed;
@@ -223,7 +223,7 @@ public class Dungeon {
         challengeBosses = 0;
 		playableRun = true;
 
-		challenges = runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
+		challenges = DailyRun.active() ? 0 : runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
 		Skill.skillTrack = 0;
 		Actor.clear();
 
@@ -266,6 +266,7 @@ public class Dungeon {
 
 		StartScene.curClass.initHero( hero );
 		LocalCoop.initialize();
+        HeroSkins.startRun();
 
 	}
 
@@ -375,6 +376,8 @@ public class Dungeon {
 		Lore.clearNotices();
 
         if (!GauntletRun.active()) throw new IllegalStateException("Start an isolated Gauntlet session first");
+        runRules = RunRules.newRun(GameplayMode.REBORN);
+        seed = null;
         SupporterEntitlements.resetRunAura();
 		challenges = 0;
 		Skill.skillTrack = 0;
@@ -730,6 +733,7 @@ public class Dungeon {
 	}
 
 	public static void saveGame( String fileName ) throws IOException {
+		if (DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 		if (!playableRun) throw new IOException("Archived runs are read-only");
@@ -799,6 +803,7 @@ public class Dungeon {
 	}
 
 	public static void saveLevel() throws IOException {
+        if (DailyRun.active()) return;
 		if (LocalCoop.active()) {
 			LocalCoop.rememberLevel(levelKey(), level);
 			return;
@@ -824,6 +829,7 @@ public class Dungeon {
 	}
 
 	public static void saveAll() throws IOException {
+        if (DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 		if (!playableRun || hero == null){
@@ -992,6 +998,7 @@ public class Dungeon {
 	}
 
 	public static void deleteGame(HeroClass cl, int slot, boolean deleteLevels) {
+        if (DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 

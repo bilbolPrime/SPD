@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">일일 도전</string>
+    <string-array name="daily_reminder_events">
+        <item>쥐 왕의 궁정</item>
+        <item>탈옥</item>
+        <item>마지막 근무</item>
+        <item>하얀 사냥</item>
+        <item>깨진 봉인</item>
+        <item>마지막 전초기지</item>
+        <item>왕의 보물고</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>쥐 왕이 경비병들을 모으고 있습니다. 지원군이 오기 전에 왕에게 도달하세요.</item>
+        <item>텐구가 탈출하려 합니다. 감옥을 돌파해 저지하세요.</item>
+        <item>광부 세 명이 갇혀 있습니다. 마지막 승강기가 떠나기 전에 데려오세요.</item>
+        <item>짐승 세 마리가 얼음 동굴을 배회합니다. 폭풍이 닥치기 전에 사냥하세요.</item>
+        <item>의식 장소에서 악마들이 몰려옵니다. 세 곳을 모두 봉인하세요.</item>
+        <item>전초기지가 공격받고 있습니다. 지원군이 올 때까지 버티세요.</item>
+        <item>왕의 황금은 잠긴 문 너머에 있습니다. 성문이 닫히기 전에 챙겨서 탈출하세요.</item>
+    </string-array>
+</resources>

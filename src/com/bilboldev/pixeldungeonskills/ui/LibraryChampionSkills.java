@@ -1,91 +1,75 @@
 package com.bilboldev.pixeldungeonskills.ui;
 
+import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.ColorBlock;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.ui.Component;
-import com.bilboldev.pixeldungeonskills.LibraryCatalog;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
-import com.bilboldev.pixeldungeonskills.actors.skills.*;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
+import com.bilboldev.pixeldungeonskills.windows.WndTitledMessage;
 import java.util.ArrayList;
-import java.util.Locale;
 
 public final class LibraryChampionSkills extends Component {
-    private static final int GAP = 8;
-    private final ArrayList<SkillRow> rows = new ArrayList<>();
-    private final int columns;
+    private static final int SIZE = 32;
+    private static final int GAP = 4;
+    private final ArrayList<Cell> cells = new ArrayList<>();
 
-    public LibraryChampionSkills(float width, RebornChampion.Skill[] skills) {
+    public LibraryChampionSkills(float width, RebornChampion champion) {
         this.width = width;
-        columns = width >= 320 ? Math.min(3, skills.length) : 1;
-        float rowWidth = (width - GAP * (columns - 1)) / columns;
-        for (RebornChampion.Skill skill : skills) {
-            SkillRow row = new SkillRow(rowWidth, skill);
-            rows.add(row);
-            add(row);
+        for (RebornChampion.Skill skill : champion.learnedSkills()) {
+            Cell cell = new Cell(skill, champion.rank(skill));
+            cells.add(cell);
+            add(cell);
         }
         layout();
     }
 
     @Override
     protected void layout() {
-        float top = y;
-        for (int i = 0; i < rows.size(); i += columns) {
-            float bottom = top;
-            for (int column = 0; column < columns && i + column < rows.size(); column++) {
-                SkillRow row = rows.get(i + column);
-                row.setPos(x + column * (row.width() + GAP), top);
-                bottom = Math.max(bottom, row.bottom());
-            }
-            top = bottom + GAP;
+        int columns = Math.max(1, ((int)width + GAP) / (SIZE + GAP));
+        for (int i = 0; i < cells.size(); i++) {
+            cells.get(i).setRect(x + i % columns * (SIZE + GAP), y + i / columns * (SIZE + GAP), SIZE, SIZE);
         }
-        height = Math.max(0, top - y - GAP);
+        height = cells.isEmpty() ? 0 : cells.get(cells.size() - 1).bottom() - y;
     }
 
-    static Skill heroSkill(RebornChampion.Skill skill) {
-        switch (skill) {
-            case SMASH: return new Smash();
-            case SMITE: return new Smite();
-            case KNOCKBACK: return new KnockBack();
-            case VENOM: return new Venom();
-            case DOUBLE_STRIKE: return new DoubleStab();
-            case DOUBLE_SHOT: return new DoubleShot();
-            case KNEE_SHOT: return new KneeShot();
-            case CURSE: return new CurseSkill();
-            case SLOW: return new Slow();
-            default: throw new IllegalArgumentException("Unknown champion skill: " + skill);
+    public void onClick(float x, float y) {
+        for (Cell cell : cells) {
+            if (!cell.inside(x, y)) continue;
+            Game.scene().add(new WndTitledMessage(new SkillSprite(cell.skill.icon), cell.skill.title(),
+                    Messages.get("skills4.rank_row", cell.rank, cell.skill.description(cell.rank))));
+            return;
         }
     }
 
-    static String description(RebornChampion.Skill skill) {
-        return LibraryCatalog.text("champion_" + skill.name().toLowerCase(Locale.ROOT));
-    }
+    private static final class Cell extends Component {
+        final RebornChampion.Skill skill;
+        final int rank;
+        final ColorBlock well;
+        final SkillSprite icon;
+        final BitmapText level;
 
-    private static final class SkillRow extends Component {
-        private final SkillSprite icon;
-        private final HighlightedText name, description;
-
-        SkillRow(float width, RebornChampion.Skill skill) {
-            Skill ability = heroSkill(skill);
-            icon = new SkillSprite(ability.image);
+        Cell(RebornChampion.Skill skill, int rank) {
+            this.skill = skill;
+            this.rank = rank;
+            add(well = RebornSlot.create(SIZE, SIZE, 0xFF46404D));
+            add(icon = new SkillSprite(skill.icon));
             icon.scale.set(1.5f);
-            add(icon);
-            name = new HighlightedText(8);
-            name.setColor(0xECD095, 0xECD095);
-            name.text(Messages.capitalize(Messages.maybeTranslate(ability.name)), (int)width - 32, false);
-            add(name);
-            description = new HighlightedText(8);
-            description.setColor(0xDDD4C5, 0xECD095);
-            description.text(LibraryChampionSkills.description(skill), (int)width - 32, false);
-            add(description);
-            setSize(width, Math.max(icon.height(), name.height() + 3 + description.height()));
+            add(level = PixelScene.createText(Integer.toString(rank), 6));
+            level.measure();
+            level.hardlight(0xECD095);
         }
 
         @Override
         protected void layout() {
-            icon.x = x;
-            icon.y = y;
-            name.setPos(x + 32, y);
-            description.setPos(name.left(), name.bottom() + 3);
+            well.x = x;
+            well.y = y;
+            icon.x = PixelScene.align(x + (width - icon.width()) / 2);
+            icon.y = PixelScene.align(y + (height - icon.height()) / 2);
+            level.x = PixelScene.align(right() - level.width() - 3);
+            level.y = PixelScene.align(y + 2);
         }
     }
 }

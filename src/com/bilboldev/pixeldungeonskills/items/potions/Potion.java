@@ -102,8 +102,8 @@ public class Potion extends Item {
 
 	public Potion() {
 		super();
-		image = handler.image( this );
-		color = handler.label( this );
+		image = handler == null ? ItemSpriteSheet.POTION_TURQUOISE : handler.image(this);
+		color = handler == null ? "turquoise" : handler.label(this);
 	}
 
 	protected Potion(int image) {
@@ -196,7 +196,7 @@ public class Potion extends Item {
 	}
 
 	public boolean isKnown() {
-		return handler.isKnown( this );
+		return handler != null && handler.isKnown(this);
 	}
 
 	public void setKnown() {

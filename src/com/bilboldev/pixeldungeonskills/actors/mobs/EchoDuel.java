@@ -22,7 +22,7 @@ import com.bilboldev.utils.Random;
 
 public class EchoDuel extends Mob {
     public Room chamber;
-    public int power, armorTier;
+    public int power, armorTier, skin;
     private HeroClass guise = HeroClass.WARRIOR;
     {
         name = "your reflection";
@@ -38,6 +38,7 @@ public class EchoDuel extends Mob {
         power = reflection.power;
         armorTier = reflection.armorTier;
         guise = Dungeon.hero.heroClass;
+        skin = Dungeon.hero.skin;
 
         HP = HT = ((guise == HeroClass.HUNTRESS ? 15 : 20) + 5*(power-1))*3/5;
         defenseSkill = 4 + power;
@@ -50,7 +51,7 @@ public class EchoDuel extends Mob {
     @Override
     public EchoSprite sprite() {
         EchoSprite sprite = (EchoSprite)super.sprite();
-        sprite.appearance(guise, armorTier);
+        sprite.appearance(guise, armorTier, skin);
         return sprite;
     }
 
@@ -248,6 +249,7 @@ public class EchoDuel extends Mob {
         bundle.put("chamber", chamber);
         bundle.put("power", power);
         bundle.put("armor_tier", armorTier);
+        bundle.put("hero_skin", skin);
         bundle.put("guise", guise.name());
     }
 
@@ -257,6 +259,7 @@ public class EchoDuel extends Mob {
         chamber = (Room)bundle.get("chamber");
         power = bundle.getInt("power");
         armorTier = bundle.getInt("armor_tier");
+        skin = bundle.getInt("hero_skin") == 1 ? 1 : 0;
         guise = HeroClass.valueOf(bundle.getString("guise"));
         defenseSkill = 4 + power;
     }

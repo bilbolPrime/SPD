@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 
 public class Blunderbuss extends Gun {
@@ -30,7 +31,6 @@ public class Blunderbuss extends Gun {
 
     @Override
     public String desc() {
-        return "A wide-mouthed shotgun that unleashes three projectiles in a burst. "
-             + "Each pellet deals reduced damage, but together they can devastate close targets.";
+        return Messages.get("custom.generated.necro_merc.blunderbuss_desc");
     }
 }

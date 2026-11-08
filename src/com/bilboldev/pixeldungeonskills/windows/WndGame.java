@@ -17,6 +17,8 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.DailyRun;
+
 import java.io.IOException;
 
 import com.bilboldev.noosa.Game;
@@ -75,7 +77,7 @@ public class WndGame extends Window {
 			} );
 		}
 
-		if (!Dungeon.hero.isAlive() && !(Dungeon.hero instanceof Legend) && !(Dungeon.hero instanceof OnlineHero) && !(Dungeon.hero instanceof GauntletHero)) {
+		if (!DailyRun.active() && !Dungeon.hero.isAlive() && !(Dungeon.hero instanceof Legend) && !(Dungeon.hero instanceof OnlineHero) && !(Dungeon.hero instanceof GauntletHero)) {
 
 			RedButton btnStart;
 			addButton( btnStart = new RedButton( TXT_START ) {

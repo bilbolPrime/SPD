@@ -2,10 +2,21 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.ui.Button;
+import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class MenuModel {
+    public enum View { OPTIONS, BAG, ITEM, SKILLS, SKILL, OLD_SKILLS, OLD_SKILL,
+        QUICK_SLOT, QUICK_BIND, QUICK_SKILLS, STORAGE }
+
+    public View view = View.OPTIONS;
+    public Item item;
+    public Skill skill;
+    public int mode;
+    public boolean selection;
+    public Message prompt;
     public final Message title;
     public final Message description;
     public int image = -1;

@@ -75,6 +75,7 @@ abstract public class ClassArmor extends Armor {
 
 		classArmor.inscribe( armor.glyph );
 		classArmor.prefix = armor.prefix;
+        classArmor.attributes = armor.attributes.clone();
         RebornChallenges.plain(classArmor);
 
 		return classArmor;

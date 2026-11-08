@@ -135,6 +135,11 @@ public class Burning extends Buff implements Hero.Doom {
 	}
 
 	@Override
+	public int remainingTurns() {
+		return Math.max(0, (int)Math.ceil(left));
+	}
+
+	@Override
 	public String toString() {
 		return "Burning";
 	}

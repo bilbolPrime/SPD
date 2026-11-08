@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Défis quotidiens</string>
+    <string-array name="daily_reminder_events">
+        <item>La cour du Roi des rats</item>
+        <item>Évasion</item>
+        <item>La dernière relève</item>
+        <item>La chasse blanche</item>
+        <item>Le sceau brisé</item>
+        <item>Le dernier avant-poste</item>
+        <item>Le trésor du roi</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Le Roi des rats rassemble ses gardes. Atteignez-le avant l\'arrivée des renforts.</item>
+        <item>Tengu s\'échappe. Traversez la prison et arrêtez-le.</item>
+        <item>Trois mineurs sont piégés. Ramenez-les avant le départ du dernier ascenseur.</item>
+        <item>Trois bêtes rôdent dans les grottes de glace. Traquez-les avant la tempête.</item>
+        <item>Des démons arrivent par les sites rituels. Scellez-les tous les trois.</item>
+        <item>L\'avant-poste est attaqué. Tenez jusqu\'à l\'arrivée des secours.</item>
+        <item>L\'or du roi est sous clé. Emparez-vous-en et fuyez avant la fermeture des portes.</item>
+    </string-array>
+</resources>

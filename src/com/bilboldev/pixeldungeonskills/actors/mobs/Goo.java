@@ -89,6 +89,7 @@ public class Goo extends Mob {
 		if (Level.water[pos] && HP < HT) {
 			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 			HP++;
+			showRecovery(1, false);
 		}
 
 		return super.act();

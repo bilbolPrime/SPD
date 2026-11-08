@@ -1,5 +1,9 @@
 package com.bilboldev.pixeldungeonskills.network;
 
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
+
 import com.bilboldev.pixeldungeonskills.actors.mobs.OldRime;
 import com.bilboldev.pixeldungeonskills.actors.mobs.IceMob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
@@ -16,6 +20,7 @@ import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Recovery;
+import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
@@ -163,6 +168,10 @@ final class PartyState {
                     if (totalUpgrades > 20000) throw invalid();
                     integer(object, "quantity", 0, 1000000);
                 }
+                if (type == com.bilboldev.pixeldungeonskills.items.Gold.class) {
+                    int coins = integer(object, "value", 0, 1000000);
+                    if (object.has("recovered")) integer(object, "recovered", 0, coins);
+                }
                 if (type == com.bilboldev.pixeldungeonskills.items.SoulCrystalFilled.class) {
                     if (object.has("capturedname")) throw invalid();
                     PartyText.validateName(object(object, "captured_text"));
@@ -184,6 +193,22 @@ final class PartyState {
                 if (Recovery.class.isAssignableFrom(type)) {
                     integer(object, "recovery_left", 0, 1000000);
                     integer(object, "recovery_turns", 0, 10);
+                }
+                if (type == RebornChampion.class && object.has("champion_skills")) {
+                    JSONArray skills = array(object, "champion_skills", 3);
+                    JSONArray ranks = ints(object, "champion_ranks", 3, 1, 5);
+                    if (skills.length() != ranks.length()) throw invalid();
+                    Set<RebornChampion.Skill> unique = new HashSet<>();
+                    for (int i = 0; i < skills.length(); i++) {
+                        if (!(skills.get(i) instanceof String)) throw invalid();
+                        RebornChampion.Skill skill = RebornChampion.Skill.valueOf(skills.getString(i));
+                        if (skill == RebornChampion.Skill.NONE || !unique.add(skill)) throw invalid();
+                    }
+                    integer(object, "champion_recovery", 0, 2);
+                }
+                if (type == com.bilboldev.pixeldungeonskills.actors.buffs.SkillRecovery.class) {
+                    integer(object, "skill4_hp_turns", 0, 99);
+                    integer(object, "skill4_mp_turns", 0, 9);
                 }
                 if (type == Hero.class) {
                     PartyConnection.hero(string(object, "class", 24));
@@ -285,6 +310,21 @@ final class PartyState {
                     }
                 }
                 if (child.startsWith("SKILL_3.0_ ") || child.startsWith("skill_level ")) integer(object, child, 0, 100);
+                if (child.equals("hero_skin")) integer(object, child, 0, 1);
+                if (child.equals("skill_system")) integer(object, child, 3, 4);
+                if (child.equals("skill4_ranks")) ints(object, child, 24, 0, 5);
+                if (child.equals("skill4_cooldowns")) ints(object, child, 24, 0, 1000000);
+                if (child.equals("skill4_active")) integer(object, child, 0, 0xFFFFFF);
+                if (child.equals("sticky_skill")) integer(object, child, -1, 63);
+                if (child.equals("quick_skills")) ints(object, child, QuickSlot.MAX_SLOTS, -1, 63);
+                if (child.equals("attributes")) {
+                    JSONArray data = ints(object, child, 9, 0, 500);
+                    int[] attributes = new int[data.length()];
+                    for (int i = 0; i < attributes.length; i++) attributes[i] = data.getInt(i);
+                    if (!EquipmentAttribute.valid(attributes)) throw invalid();
+                }
+                if (child.equals("talent")) integer(object, child, 0, Talent.values().length - 1);
+                if (child.equals("talent_power")) integer(object, child, 0, 500);
                 if (child.equals("buff_count")) integer(object, child, 0, 256);
                 if (child.equals("rival_shield") || child.equals("rival_shield_spent") || child.equals("rival_healed"))
                     integer(object, child, 0, 1000000);

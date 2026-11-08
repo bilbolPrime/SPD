@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -33,18 +34,18 @@ public class Acidic extends Scorpio {
         HT *= Dungeon.currentDifficulty.mobHPModifier();
         HP = HT;
 	}
-	
+
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
-		
+
 		int dmg = Random.IntRange( 0, damage );
 		if (dmg > 0) {
-			enemy.damage( dmg, this );
+			enemy.damage( dmg, this, CombatTextIcon.ACID );
 		}
-		
+
 		return super.defenseProc( enemy, damage );
 	}
-	
+
 	@Override
 	public void die( Object cause ) {
 		super.die( cause );

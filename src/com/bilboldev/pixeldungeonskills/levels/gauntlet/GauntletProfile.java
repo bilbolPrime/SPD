@@ -4,6 +4,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.*;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfEnchantment;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfUpgrade;
@@ -228,6 +229,7 @@ public enum GauntletProfile {
         result.add(new ScrollOfUpgrade().identify());
         result.add(new ScrollOfEnchantment().identify());
         if (this == HUNTRESS) result.add(new Arrow(12 + 2 * wave).identify());
+        for (Item item : result) EquipmentAttribute.roll(item);
         return result;
     }
 

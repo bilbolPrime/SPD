@@ -19,6 +19,8 @@ package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
+import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
@@ -27,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.utils.SparseArray;
 
 public class BuffIndicator extends Component {
@@ -76,6 +79,7 @@ public class BuffIndicator extends Component {
 	private TextureFilm film;
 
 	private SparseArray<Image> icons = new SparseArray<Image>();
+	private Counter counter;
 
 	private Char ch;
 
@@ -91,6 +95,7 @@ public class BuffIndicator extends Component {
 	@Override
 	public void destroy() {
 		super.destroy();
+		if (counter != null) counter.destroy();
 
 		if (this == heroInstance) {
 			heroInstance = null;
@@ -111,7 +116,7 @@ public class BuffIndicator extends Component {
 
 		for (Buff buff : ch.buffs()) {
 			int icon = buff.icon();
-			if (icon != NONE) {
+			if (icon != NONE && newIcons.get(icon) == null) {
 				Image img = new Image( texture );
 				img.frame( film.get( icon ) );
 				img.x = x + members.size() * (SIZE + 2);
@@ -138,6 +143,66 @@ public class BuffIndicator extends Component {
 		}
 
 		icons = newIcons;
+	}
+
+	@Override
+	public void draw() {
+		super.draw();
+		if (counter == null) counter = new Counter();
+		for (int i = 0; i < icons.size(); i++) {
+			Image icon = icons.valueAt(i);
+			counter.draw(turns(ch, icons.keyAt(i)), camera(), icon.x + SIZE / 2f,
+					icon.y + SIZE + 1, SIZE + 1, 1, 1);
+		}
+	}
+
+	static int turns(Char ch, int icon) {
+		int turns = -1;
+		for (Buff buff : ch.buffs()) {
+			if (buff.icon() != icon) continue;
+			int remaining = buff.remainingTurns();
+			if (remaining < 0) return -1;
+			turns = Math.max(turns, remaining);
+		}
+		return turns;
+	}
+
+	static final class Counter {
+		static final int HEIGHT = 6;
+		private final BitmapText[] digits = new BitmapText[10];
+
+		Counter() {
+			for (int i = 0; i < digits.length; i++) {
+				digits[i] = new BitmapText(Integer.toString(i), PixelScene.font1x, false);
+				digits[i].measure();
+				digits[i].hardlight(0xEEEEDE);
+			}
+		}
+
+		void draw(int turns, Camera camera, float centerX, float y, float width, float scaleX, float scaleY) {
+			if (turns < 0) return;
+			turns = Math.min(turns, 99);
+			int divisor = turns >= 10 ? 10 : 1;
+			float textWidth = 1;
+			for (int place = divisor; place > 0; place /= 10) {
+				textWidth += digits[turns / place % 10].width - 1;
+			}
+			float fit = Math.min((float)HEIGHT / digits[0].height, width / textWidth);
+			float x = centerX - textWidth * fit * scaleX / 2;
+			for (int place = divisor; place > 0; place /= 10) {
+				BitmapText digit = digits[turns / place % 10];
+				digit.camera = camera;
+				digit.scale.set(fit * scaleX, fit * scaleY);
+				digit.x = PixelScene.align(camera, x);
+				digit.y = PixelScene.align(camera, y);
+				digit.draw();
+				x += (digit.width - 1) * fit * scaleX;
+			}
+		}
+
+		void destroy() {
+			for (BitmapText digit : digits) digit.destroy();
+		}
 	}
 
 	public static void refreshHero() {

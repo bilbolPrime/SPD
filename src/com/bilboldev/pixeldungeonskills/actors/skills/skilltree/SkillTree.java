@@ -241,7 +241,7 @@ public abstract class SkillTree {
     public int arrowToBombDamage() {return 0;}
     public float arrowToBombParalysis() {return 0f;}
 
-    public boolean doubleShot() {return false;}
+    public boolean doubleShot(boolean moreArrows) {return false;}
     public int aimedShot() { return 0;}
 
     public boolean canLevel(Skill skill){

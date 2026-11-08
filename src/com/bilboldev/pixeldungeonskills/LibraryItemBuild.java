@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills;
 import com.bilboldev.pixeldungeonskills.LibraryCatalog.Entry;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
 import com.bilboldev.pixeldungeonskills.items.armor.glyphs.*;
 import com.bilboldev.pixeldungeonskills.items.rings.*;
@@ -77,6 +78,7 @@ public final class LibraryItemBuild {
     private final String[] weaponPrefixes;
     private int level;
     private boolean cursed;
+    private final EquipmentAttribute[] attributes = new EquipmentAttribute[3];
 
     public LibraryItemBuild(Entry entry) {
         if (entry == null || !entry.customizable()) throw new IllegalArgumentException("Choose equipment");
@@ -112,6 +114,27 @@ public final class LibraryItemBuild {
 
     public boolean canUpgrade() {
         return original.isUpgradable() || original instanceof ClassArmor || original instanceof Ring;
+    }
+
+    public List<EquipmentAttribute> attributeOptions() {
+        return EquipmentAttribute.options(original);
+    }
+
+    public EquipmentAttribute attribute(int slot) {
+        return attributes[slot];
+    }
+
+    public void attribute(int slot, EquipmentAttribute value) {
+        if (value != null) {
+            boolean allowed = false;
+            for (EquipmentAttribute option : attributeOptions()) {
+                if (option.type == value.type && option.target == value.target) allowed = true;
+            }
+            if (!allowed || !Lore.knownAttribute(entry, value) || value.amount < value.type.min || value.amount > value.type.max) {
+                throw new IllegalArgumentException("Undiscovered or invalid equipment attribute");
+            }
+        }
+        attributes[slot] = value;
     }
 
     public int minimumLevel() {
@@ -261,6 +284,17 @@ public final class LibraryItemBuild {
         return keys;
     }
 
+    public static String enchantmentInfo(Item item) {
+        if (!(item instanceof Weapon || item instanceof Armor) || !item.isIdentified()) return "";
+        StringBuilder info = new StringBuilder();
+        for (String key : modifierKeys(item)) {
+            if (key.startsWith("enchantment_") || key.startsWith("glyph_")) {
+                info.append("\n\n_").append(text(key + "_desc").replace("_", "")).append('_');
+            }
+        }
+        return info.toString();
+    }
+
     static String modifierName(String key) {
         if (key.startsWith("weapon_prefix:")) return WeaponEffect.restore(key.substring(14)).prefix();
         if (key.startsWith("armor_prefix:")) return ArmorPrefix.restore(key.substring(13)).activationName();
@@ -319,6 +353,9 @@ public final class LibraryItemBuild {
         if (original instanceof ClassArmor) item = ClassArmor.upgrade(armorClass((ClassArmor)original), (Armor)item);
         item.levelKnown = item.cursedKnown = true;
         item.cursed = cursed;
+        ArrayList<EquipmentAttribute> selected = new ArrayList<>();
+        for (EquipmentAttribute attribute : attributes) if (attribute != null) selected.add(attribute);
+        item.attributes = selected.toArray(new EquipmentAttribute[0]);
         return item;
     }
 
@@ -342,14 +379,6 @@ public final class LibraryItemBuild {
             info += "\n\n" + text("class_armor_source", options(Property.BASE_ARMOR)[choice(Property.BASE_ARMOR)], level);
         }
         if (item instanceof Wand) info += "\n\n" + wandStats((Wand)item);
-        if (choices.containsKey(Property.ENCHANTMENT) && choice(Property.ENCHANTMENT) > 0) {
-            EnchantmentChoice enchantment = EnchantmentChoice.values()[choice(Property.ENCHANTMENT) - 1];
-            info += "\n\n_" + text(enchantment.key()) + "_\n" + text(enchantment.key() + "_desc");
-        }
-        if (choices.containsKey(Property.GLYPH) && choice(Property.GLYPH) > 0) {
-            GlyphChoice glyph = GlyphChoice.values()[choice(Property.GLYPH) - 1];
-            info += "\n\n_" + text(glyph.key()) + "_\n" + text(glyph.key() + "_desc");
-        }
         return info;
     }
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Tantangan Harian</string>
+    <string-array name="daily_reminder_events">
+        <item>Istana Raja Tikus</item>
+        <item>Pelarian Penjara</item>
+        <item>Giliran Terakhir</item>
+        <item>Perburuan Putih</item>
+        <item>Segel yang Retak</item>
+        <item>Pos Terakhir</item>
+        <item>Harta Sang Raja</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Raja Tikus sedang mengumpulkan penjaga. Temui dia sebelum bala bantuan tiba.</item>
+        <item>Tengu melarikan diri. Terobos penjara dan hentikan dia.</item>
+        <item>Tiga penambang terjebak. Bawa mereka kembali sebelum lift terakhir berangkat.</item>
+        <item>Tiga makhluk buas berkeliaran di gua es. Buru mereka sebelum badai datang.</item>
+        <item>Iblis berdatangan dari tempat-tempat ritual. Segel ketiganya.</item>
+        <item>Pos pertahanan diserang. Bertahanlah sampai bantuan tiba.</item>
+        <item>Emas raja tersimpan di balik pintu terkunci. Ambil emasnya dan kabur sebelum gerbang ditutup.</item>
+    </string-array>
+</resources>

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.mobs;
 
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.audio.Sample;
@@ -135,7 +136,7 @@ public class RebornKing extends RebornBoss {
             calling = false;
             recover(1);
         } else {
-            strike(cells, abilityPhase() == 2 ? 25 : 18, abilityPhase() == 2 ? 35 : 26);
+            strike(cells, abilityPhase() == 2 ? 25 : 18, abilityPhase() == 2 ? 35 : 26, false, CombatTextIcon.MAGIC);
             if (!isAlive()) return;
             burst(cells, ShadowParticle.CURSE);
             rallyUntil = RebornBoss.heroActions() + 4;
@@ -302,7 +303,7 @@ public class RebornKing extends RebornBoss {
             }
             if (role == 3) strike(new int[]{end}, 10, 17, true);
             else {
-                strike(cells, 14, 21, true);
+                strike(cells, 14, 21, true, CombatTextIcon.MAGIC);
                 burst(cells, ShadowParticle.CURSE);
             }
             if (!isAlive()) return;

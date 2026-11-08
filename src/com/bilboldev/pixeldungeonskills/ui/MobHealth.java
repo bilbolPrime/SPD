@@ -165,6 +165,7 @@ public final class MobHealth {
             state.hp = 0;
             state.shields = 0;
             state.buffIcons.clear();
+            state.buffTurns.clear();
             seen.remove(state.key);
             return;
         }
@@ -295,6 +296,7 @@ public final class MobHealth {
         public float deathAge = -1;
         public boolean visible, selected;
         public final List<Integer> buffIcons = new ArrayList<>();
+        public final List<Integer> buffTurns = new ArrayList<>();
 
         private final long key;
         private final Memory memory;
@@ -327,12 +329,14 @@ public final class MobHealth {
 
         private void updateBuffs() {
             buffIcons.clear();
+            buffTurns.clear();
             if (deathAge >= 0 || !isVisible()) return;
             for (Buff buff : mob.buffs()) {
                 int icon = buff.icon();
                 if (icon != BuffIndicator.NONE && !buffIcons.contains(icon)) buffIcons.add(icon);
             }
             Collections.sort(buffIcons);
+            for (int icon : buffIcons) buffTurns.add(BuffIndicator.turns(mob, icon));
         }
 
         public boolean isVisible() {

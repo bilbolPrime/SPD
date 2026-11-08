@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">デイリーチャレンジ</string>
+    <string-array name="daily_reminder_events">
+        <item>ネズミ王の宮廷</item>
+        <item>脱獄</item>
+        <item>最後の勤務</item>
+        <item>白い狩り</item>
+        <item>破られた封印</item>
+        <item>最後の砦</item>
+        <item>王の宝物庫</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>ネズミ王が衛兵を集めています。援軍が来る前に王のもとへ。</item>
+        <item>天狗が逃げようとしています。牢獄を突破して阻止しましょう。</item>
+        <item>鉱夫3人が閉じ込められています。最後の昇降機が出る前に連れ戻しましょう。</item>
+        <item>氷の洞窟を3頭の獣が徘徊しています。嵐が来る前に狩りましょう。</item>
+        <item>儀式場から悪魔が現れています。3か所すべてを封じましょう。</item>
+        <item>前哨地が襲われています。救援が来るまで守り抜きましょう。</item>
+        <item>王の黄金は鍵のかかった扉の向こう。門が閉まる前に奪って脱出しましょう。</item>
+    </string-array>
+</resources>

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.items.weapon.gun;
 
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -30,7 +31,6 @@ public class Mortar extends Gun {
 
     @Override
     public String desc() {
-        return "A massive shoulder-mounted cannon. Devastating power, extremely slow reload. "
-             + "Direct hits can knock enemies off their feet.";
+        return Messages.get("custom.generated.necro_merc.mortar_desc");
     }
 }

@@ -179,7 +179,7 @@ public class Generator {
 				SoulBlade.class,
                 DualSwords.class
                 };
-		Category.WEAPON.probs = new float[]{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 10, 10, 10, 10, 0, 10, 0, 1, 1, 3, 1, 3,3, 3 };
+		Category.WEAPON.probs = new float[]{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 10, 10, 10, 10, 0, 10, 10, 1, 1, 3, 1, 3,3, 3 };
 
 		Category.ARMOR.classes = new Class<?>[]{
 			ClothArmor.class,
@@ -300,11 +300,14 @@ public class Generator {
 		int depthSet = Math.min(4, Dungeon.depth / 5);
 		float[] probs = GUN_PROBS_BY_DEPTH[depthSet];
 		int idx = Random.chances(probs);
+		Gun gun;
 		try {
-			return (Gun) GUN_TIERS[idx].newInstance();
+			gun = (Gun) GUN_TIERS[idx].newInstance();
 		} catch (Exception e) {
-			return new Handgun();
+			gun = new Handgun();
 		}
+		EquipmentAttribute.roll(gun);
+		return gun;
 	}
 
 	public static Item random() {
@@ -459,7 +462,9 @@ public class Generator {
 								case GAUNTLET:
 								case WARRIOR:
 									if (hero.HP < hero.HT) {
+										int before = hero.HP;
 										hero.HP = Math.min( hero.HP + 5, hero.HT );
+										hero.showRecovery(hero.HP - before, false);
 										hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 									}
 									break;
@@ -508,7 +513,9 @@ public class Generator {
 								case GAUNTLET:
 								case WARRIOR:
 									if (hero.HP < hero.HT) {
+										int before = hero.HP;
 										hero.HP = Math.min( hero.HP + 5, hero.HT );
+										hero.showRecovery(hero.HP - before, false);
 										hero.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 									}
 									break;

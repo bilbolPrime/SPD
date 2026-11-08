@@ -76,8 +76,10 @@ public final class PartyVisuals {
                 ParticleEffect emitter = new ParticleEffect(event.getInt("actor"));
                 emitter.pos(event.getFloat("x"), event.getFloat("y"), event.getFloat("width"), event.getFloat("height"));
                 emitter.bind();
-                emitter.start(PartyParticles.factory(event.getInt("factory"), event.getBoolean("light")),
-                        event.getFloat("interval"), event.getInt("quantity"));
+                Emitter.Factory factory = PartyParticles.factory(event.getInt("factory"), event.getBoolean("light"));
+                if (factory == com.bilboldev.pixeldungeonskills.effects.particles.BlastParticle.FACTORY)
+                    GameScene.explosionLight(emitter.x + emitter.width / 2, emitter.y + emitter.height / 2);
+                emitter.start(factory, event.getFloat("interval"), event.getInt("quantity"));
                 group.add(emitter);
                 break;
             case PartyEffects.SPLASH:
@@ -90,7 +92,8 @@ public final class PartyVisuals {
                         ? (event.getBoolean("plus") ? "+" : "") + event.getInt("number")
                         : PartyText.render(event.getBundle("text"));
                 text.resetAt(event.getFloat("x"), event.getFloat("y"), event.getInt("cell"),
-                        event.getInt("actor"), event.getFloat("height"), value, event.getInt("color"));
+                        event.getInt("actor"), event.getFloat("height"), value, event.getInt("color"),
+                        event.contains("damage") ? CombatTextIcon.fromId(event.getInt("damage")) : CombatTextIcon.NONE);
                 group.destroy();
                 display = text;
                 break;

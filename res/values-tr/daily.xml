@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_reminder_title">Günlük Mücadeleler</string>
+    <string-array name="daily_reminder_events">
+        <item>Fare Kral\'ın Sarayı</item>
+        <item>Hapishaneden Kaçış</item>
+        <item>Son Vardiya</item>
+        <item>Beyaz Av</item>
+        <item>Kırık Mühür</item>
+        <item>Son Karakol</item>
+        <item>Kralın Hazinesi</item>
+    </string-array>
+    <string-array name="daily_reminder_messages">
+        <item>Fare Kral muhafızlarını topluyor. Takviye gelmeden ona ulaş.</item>
+        <item>Tengu kaçıyor. Hapishaneyi aş ve onu durdur.</item>
+        <item>Üç madenci mahsur kaldı. Son asansör kalkmadan onları geri getir.</item>
+        <item>Buz mağaralarında üç canavar dolaşıyor. Fırtına bastırmadan onları avla.</item>
+        <item>Ayin alanlarından iblisler geliyor. Üç alanı da mühürle.</item>
+        <item>Karakol saldırı altında. Yardım gelene kadar dayan.</item>
+        <item>Kralın altınları kilit altında. Kapılar kapanmadan altınları alıp kaç.</item>
+    </string-array>
+</resources>

@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.levels.gauntlet;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
@@ -294,12 +295,16 @@ public class GauntletArena extends Level {
     }
 
     public void heroStepped() {
+        GauntletHero hero = GauntletRun.hero();
+        if (GauntletRun.arena() != this || hero == null) return;
         if (phase == Phase.PREPARING && stepsRemaining > 0 && --stepsRemaining == 0)
-            Dungeon.hero.interrupt();
+            hero.interrupt();
     }
 
     public void releaseWave() {
-        if (phase != Phase.PREPARING || stepsRemaining > 0 || !Dungeon.hero.ready) return;
+        GauntletHero hero = GauntletRun.hero();
+        if (GauntletRun.arena() != this || hero == null
+                || phase != Phase.PREPARING || stepsRemaining > 0 || !hero.ready) return;
         if (completed == wave) {
             wave++;
             reshape();
@@ -332,7 +337,7 @@ public class GauntletArena extends Level {
         }
         phase = Phase.FIGHTING;
         if (wave == 3 || wave == 6) dropHealingPotion();
-        ((GauntletHero)Dungeon.hero).ready();
+        hero.ready();
         GameScene.updateMap();
         Dungeon.observe();
         GLog.h("gauntlet.wave", wave, WAVES, Message.key("gauntlet." + THEMES[theme()]));
@@ -351,31 +356,39 @@ public class GauntletArena extends Level {
     }
 
     public void checkCompletion() {
-        if (phase != Phase.FIGHTING || !Dungeon.hero.isAlive() || wave == WAVES) return;
+        GauntletHero hero = GauntletRun.hero();
+        if (GauntletRun.arena() != this || hero == null
+                || phase != Phase.FIGHTING || !hero.isAlive() || wave == WAVES) return;
         for (Mob mob : mobs)
             if (mob.isAlive() && mob.hostile && !(mob instanceof SummonedPet) && !(mob instanceof HiredMerc)) return;
         completed = wave;
         phase = Phase.PREPARING;
         stepsRemaining = INTERVAL_STEPS;
         clearHazards();
-        Buff.detach(Dungeon.hero, Poison.class);
-        Buff.detach(Dungeon.hero, Burning.class);
-        Buff.detach(Dungeon.hero, Bleeding.class);
-        Buff.detach(Dungeon.hero, Weakness.class);
-        Buff.detach(Dungeon.hero, Cripple.class);
-        Buff.detach(Dungeon.hero, Paralysis.class);
-        Buff.detach(Dungeon.hero, Blindness.class);
-        Buff.detach(Dungeon.hero, Roots.class);
-        Dungeon.hero.interrupt();
-        GauntletPotions.applyRewards((GauntletHero)Dungeon.hero);
-        Dungeon.hero.HP = Dungeon.hero.HT;
-        Dungeon.hero.MP = Dungeon.hero.MMP;
-        ((GauntletHero)Dungeon.hero).ready();
+        Buff.detach(hero, Poison.class);
+        Buff.detach(hero, Burning.class);
+        Buff.detach(hero, Bleeding.class);
+        Buff.detach(hero, Weakness.class);
+        Buff.detach(hero, Cripple.class);
+        Buff.detach(hero, Paralysis.class);
+        Buff.detach(hero, Blindness.class);
+        Buff.detach(hero, Roots.class);
+        hero.interrupt();
+        GauntletPotions.applyRewards(hero);
+        hero.HP = hero.HT;
+        hero.MP = hero.MMP;
+        hero.ready();
         for (Item item : profile().rewards(wave)) reward(item);
         refreshFlags();
         GameScene.updateMap();
         Dungeon.observe();
         GLog.p("gauntlet.cleared", wave);
+    }
+
+    @Override
+    public Heap drop(Item item, int cell) {
+        if (item != null) item.identify();
+        return super.drop(item, cell);
     }
 
     private void reward(Item item) {
@@ -425,16 +438,19 @@ public class GauntletArena extends Level {
     }
 
     public void heroDied() {
+        if (GauntletRun.arena() != this || GauntletRun.hero() == null) return;
         phase = Phase.LOST;
     }
 
     public void kingDied() {
-        if (phase == Phase.FIGHTING && wave == WAVES && Dungeon.hero.isAlive()) {
+        GauntletHero hero = GauntletRun.hero();
+        if (GauntletRun.arena() != this || hero == null) return;
+        if (phase == Phase.FIGHTING && wave == WAVES && hero.isAlive()) {
             completed = WAVES;
             phase = Phase.VICTORY;
-            Dungeon.hero.interrupt();
-            Dungeon.hero.curAction = null;
-            Dungeon.hero.ready = false;
+            hero.interrupt();
+            hero.curAction = null;
+            hero.ready = false;
         }
     }
 }

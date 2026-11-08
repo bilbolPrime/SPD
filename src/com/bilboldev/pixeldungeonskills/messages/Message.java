@@ -1,5 +1,7 @@
 package com.bilboldev.pixeldungeonskills.messages;
 
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
+import com.bilboldev.pixeldungeonskills.actors.skills.skill4.TalentSkill;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -139,9 +141,15 @@ public abstract class Message {
     }
 
     public static Message skillName(Skill skill) {
+        if (skill instanceof TalentSkill)
+            return key(((TalentSkill)skill).talent.key() + ".name");
         return skill(skill, 0);
     }
     public static Message skillDescription(Skill skill) {
+        if (skill instanceof TalentSkill) {
+            TalentSkill talent = (TalentSkill)skill;
+            return key(talent.talent.key() + ".intro");
+        }
         return skill(skill, 1);
     }
 
@@ -307,7 +315,7 @@ public abstract class Message {
         return actor.nameMessage();
     }
 
-    public static Message heroClass(com.bilboldev.pixeldungeonskills.actors.hero.HeroClass hero) {
+    public static Message heroClass(HeroClass hero) {
         switch (hero) {
             case HATSUNE: return Message.key("custom.generated.entry_hatsune_c6857ab481");
             case DATENSHI: return Message.key("custom.generated.entry_datenshi_9d276e25b9");
@@ -320,6 +328,11 @@ public abstract class Message {
     }
 
     public static Message subclass(com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass sub, boolean description) {
+        if (description && sub != com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass.NONE
+                && com.bilboldev.pixeldungeonskills.Dungeon.hero != null
+                && com.bilboldev.pixeldungeonskills.Dungeon.hero.talents() != null) {
+            return key("skills4.subclass." + sub.name().toLowerCase(Locale.ROOT));
+        }
         switch (sub) {
             case LICH: case SPIRIT_BINDER:
                 return key("custom.generated.necro_merc." + sub.name().toLowerCase(Locale.ROOT) + (description ? "_desc" : ""));

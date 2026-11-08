@@ -2,10 +2,13 @@ package com.bilboldev.pixeldungeonskills;
 
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
+import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletArena;
 import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletProfile;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
@@ -44,10 +47,17 @@ public final class GauntletRun {
 
     public static boolean acceptsInput() {
         GauntletArena arena = arena();
-        return arena != null && arena.acceptsInput() && Dungeon.hero != null && Dungeon.hero.isAlive();
+        GauntletHero hero = hero();
+        return arena != null && arena.acceptsInput() && hero != null && hero.isAlive();
+    }
+
+    public static GauntletHero hero() {
+        Hero hero = Dungeon.hero;
+        return active && !LocalCoop.active() && hero instanceof GauntletHero ? (GauntletHero)hero : null;
     }
 
     public static void start() {
+        PartySession.cancelLobby();
         InterlevelScene.mode = InterlevelScene.Mode.GUANTLET;
         Game.switchScene(InterlevelScene.class);
     }
@@ -55,6 +65,8 @@ public final class GauntletRun {
     public static void prepare() {
         if (active) return;
         GauntletProfile.forHero(StartScene.curClass);
+
+        LocalCoop.clear();
         statistics = new Bundle();
         Statistics.storeInBundle(statistics);
 
@@ -73,7 +85,7 @@ public final class GauntletRun {
         zoomOffset = 0;
         active = true;
         restoreDifficulty = Difficulties.NORMAL.useDefaultsTemporarily();
-        restoreDungeon = Dungeon.enterGauntlet();
+        restoreDungeon = Dungeon.enterTemporaryRun();
         try {
             Difficulties.is3d = true;
             SummonedPet.summonedPets = 0;

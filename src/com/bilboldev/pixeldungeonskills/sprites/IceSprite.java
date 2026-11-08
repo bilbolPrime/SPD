@@ -4,6 +4,7 @@ import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.actors.mobs.IceMob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Iceclaw;
+import com.bilboldev.pixeldungeonskills.actors.mobs.DailyQuarry;
 import com.bilboldev.pixeldungeonskills.actors.mobs.OldRime;
 import com.bilboldev.utils.RectF;
 
@@ -35,7 +36,8 @@ public class IceSprite extends MobSprite {
         super.update();
         boolean pending = ch != null && ch.isAlive() && (ch instanceof IceMob && ((IceMob)ch).warningCells().length > 0
                 || ch instanceof OldRime && ((OldRime)ch).warningCells().length > 0
-                || ch instanceof Iceclaw && ((Iceclaw)ch).braced());
+                || ch instanceof Iceclaw && ((Iceclaw)ch).braced()
+                || ch instanceof DailyQuarry && ((DailyQuarry)ch).braced());
         if (pending && curAnim == idle) play(windup);
         else if (!pending && preparing && curAnim == windup) idle();
         preparing = pending;
