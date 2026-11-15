@@ -152,6 +152,8 @@ public abstract class SkillTree {
 
     public int getWeaponLevelBonus() { return  0; }
 
+    public int getWeaponStrengthReduction() { return 0; }
+
     public boolean MeleeAoEDamage() { return false; }
 
     public int getManaRegenerationBonus(){ return 0; };

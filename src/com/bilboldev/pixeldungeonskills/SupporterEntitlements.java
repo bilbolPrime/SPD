@@ -18,6 +18,10 @@ public final class SupporterEntitlements {
         return false;
     }
 
+    public static boolean ownsAccessories() {
+        return false;
+    }
+
     public static int tier() {
         return 0;
     }

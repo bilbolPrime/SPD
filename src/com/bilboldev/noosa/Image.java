@@ -84,6 +84,14 @@ public class Image extends Visual {
 		return new RectF( frame );
 	}
 
+	public int frameLeft() {
+		return Math.round(frame.left * texture.width);
+	}
+
+	public int frameTop() {
+		return Math.round(frame.top * texture.height);
+	}
+
 	public void copy( Image other ) {
 		texture = other.texture;
 		frame = new RectF( other.frame );

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.RebornSkillTree;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -176,7 +177,7 @@ public enum HeroClass {
 			break;
 		}
 
-		if (!DailyRun.active() && Badges.isUnlocked( masteryBadge() )) {
+		if (!DailyRun.active() && !TutorialRun.active() && Badges.isUnlocked( masteryBadge() )) {
 			new ScrollOfSkill().identify().collect();
 
 		}

@@ -19,6 +19,10 @@ public class Focus extends FlavourBuff {
     }
 
     public static void apply(Hero hero) {
+        apply(hero, DURATION);
+    }
+
+    public static void apply(Hero hero, float duration) {
         if (hero.buff(Focus.class) == null) {
             Set<Skill> skills = new HashSet<>();
             Collections.addAll(skills, hero.heroSkills.active1, hero.heroSkills.active2, hero.heroSkills.active3);
@@ -30,7 +34,7 @@ public class Focus extends FlavourBuff {
                 }
             }
         }
-        Buff.prolong(hero, Focus.class, DURATION);
+        Buff.prolong(hero, Focus.class, duration);
     }
 
     @Override

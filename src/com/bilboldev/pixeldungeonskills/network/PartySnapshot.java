@@ -37,6 +37,7 @@ final class PartySnapshot {
         PartySession.storeDeaths(state);
         state.put("actor_time", Actor.partyTime());
         state.put("night_mode", Dungeon.nightMode);
+        state.put("accessory_cosmetics", 1);
         Actor respawner = Dungeon.level.respawner();
         if (respawner != null) {
             for (Actor actor : Actor.all()) {

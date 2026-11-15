@@ -18,6 +18,8 @@
 package com.bilboldev.pixeldungeonskills.sprites;
 
 import com.bilboldev.pixeldungeonskills.effects.CosmeticPet;
+import com.bilboldev.pixeldungeonskills.effects.CosmeticAccessory;
+import com.bilboldev.pixeldungeonskills.CosmeticAccessories;
 import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
@@ -56,7 +58,18 @@ public class HeroSprite extends CharSprite {
     private boolean equippedWeaponAnimation;
     private SupporterAura supporterAura;
     private CosmeticPet cosmeticPet;
+    private CosmeticAccessory cosmeticAccessory;
     public CosmeticPet petImage() { return cosmeticPet == null ? null : cosmeticPet.image(); }
+    public CosmeticAccessory accessoryImage() {
+        Hero hero = (Hero)ch;
+        int style = hero.tutorial ? 0 : CosmeticAccessories.selection(hero);
+        if (cosmeticAccessory == null && style > 0) cosmeticAccessory = new CosmeticAccessory(this, hero.heroClass);
+        if (cosmeticAccessory == null) return null;
+        cosmeticAccessory.heroClass(hero.heroClass);
+        cosmeticAccessory.style(style);
+        cosmeticAccessory.pose();
+        return cosmeticAccessory.visible ? cosmeticAccessory : null;
+    }
     private Emitter healing, manaRecovery;
     private static final Emitter.Factory MANA_PARTICLES = new Emitter.Factory() {
         @Override
@@ -179,6 +192,9 @@ public class HeroSprite extends CharSprite {
 
 		super.update();
 
+        accessoryImage();
+        if (cosmeticAccessory != null) cosmeticAccessory.update();
+
         if (Game.scene() instanceof GameScene && parent != null) {
             healing = recoveryEffect(healing, ch.isAlive() && ch.buff(Healing.class) != null, Speck.factory(Speck.HEALING));
             manaRecovery = recoveryEffect(manaRecovery, ch.isAlive() && ch.buff(ManaRecovery.class) != null, MANA_PARTICLES);
@@ -222,6 +238,10 @@ public class HeroSprite extends CharSprite {
     public void destroy() {
         healing = recoveryEffect(healing, false, null);
         manaRecovery = recoveryEffect(manaRecovery, false, null);
+        if (cosmeticAccessory != null) {
+            cosmeticAccessory.destroy();
+            cosmeticAccessory = null;
+        }
         super.destroy();
     }
 
@@ -237,15 +257,15 @@ public class HeroSprite extends CharSprite {
 
     @Override
     public void draw() {
-        if (!partyTint()) {
-            super.draw();
-            return;
-        }
         float red = rm, green = gm;
-        rm *= 0.72f;
-        gm *= 0.86f;
+        if (partyTint()) {
+            rm *= 0.72f;
+            gm *= 0.86f;
+        }
         try {
             super.draw();
+            CosmeticAccessory accessory = accessoryImage();
+            if (accessory != null) accessory.draw();
         } finally {
             rm = red;
             gm = green;

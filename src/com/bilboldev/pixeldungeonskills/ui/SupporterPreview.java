@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.pixeldungeonskills.CosmeticPets;
+import com.bilboldev.pixeldungeonskills.CosmeticAccessories;
 import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.Game;
@@ -11,12 +12,14 @@ import com.bilboldev.pixeldungeonskills.LibraryCatalog;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
+import com.bilboldev.pixeldungeonskills.effects.CosmeticAccessory;
 
 public final class SupporterPreview extends Component {
     private static final HeroClass[] HEROES = {HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE,
             HeroClass.HUNTRESS, HeroClass.NECROMANCER, HeroClass.MERCENARY};
     private final MovieClip hero;
     private final SupporterAura aura;
+    private final CosmeticAccessory accessory;
     private Image pet;
     private boolean showcase;
     private float elapsed;
@@ -31,17 +34,26 @@ public final class SupporterPreview extends Component {
     }
 
     public SupporterPreview(int style, Hero current, int skin, int companion) {
+        this(style, current, skin, companion, 0);
+    }
+
+    public SupporterPreview(int style, Hero current, int skin, int companion, int headwear) {
         hero = LibraryCatalog.heroImage(current == null ? HeroSkins.sheet(HeroClass.WARRIOR, skin) : current.spritesheet(),
                 current == null ? 6 : current.tier());
         hero.scale.set(3);
         aura = new SupporterAura(hero);
         aura.style(style);
+        accessory = new CosmeticAccessory(hero, current == null ? HeroClass.WARRIOR : current.heroClass);
+        accessory.style(headwear);
         add(hero);
+        add(accessory);
         add(aura);
         pet(companion);
     }
 
     public void style(int style) { aura.style(style); }
+
+    public void accessory(int headwear) { accessory.style(headwear); }
 
     public void pet(int companion) {
         if (pet != null) {
@@ -62,12 +74,15 @@ public final class SupporterPreview extends Component {
     }
 
     private void showAppearance() {
-        hero.texture(HeroSkins.sheet(HEROES[appearance % HEROES.length], 1));
+        HeroClass heroClass = HEROES[appearance % HEROES.length];
+        hero.texture(HeroSkins.sheet(heroClass, 1));
+        accessory.heroClass(heroClass);
         TextureFilm tiers = new TextureFilm(hero.texture, hero.texture.width, 15);
         TextureFilm frames = new TextureFilm(tiers, 6, 12, 15);
         hero.play(new MovieClip.Animation(1, true).frames(frames, 0, 0, 0, 1, 0, 0, 1, 1));
         style(appearance % 5 + 1);
         pet(appearance % CosmeticPets.COUNT + 1);
+        accessory(appearance % CosmeticAccessories.COUNT + 1);
     }
 
     @Override public void update() {
@@ -88,7 +103,9 @@ public final class SupporterPreview extends Component {
     @Override protected void layout() {
         float groupWidth = hero.width() + (pet == null ? 0 : pet.width() + 8);
         hero.x = x + (width - groupWidth) / 2;
-        hero.y = y + (height - hero.height()) / 2;
+        float headroom = 9 * hero.scale.y;
+        hero.y = y + (height - hero.height() - headroom) / 2 + headroom;
+        accessory.pose();
         aura.update();
         if (pet != null) {
             pet.x = hero.x + hero.width() + 8;

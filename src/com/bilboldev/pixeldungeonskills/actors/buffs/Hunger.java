@@ -23,6 +23,7 @@ import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.items.rings.RingOfSatiety;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -77,7 +78,11 @@ public class Hunger extends Buff implements Hero.Doom {
 					bonus += ((RingOfSatiety.Satiety)buff).level;
 				}
 
-				float newLevel = level + STEP - bonus;
+				float increase = STEP - bonus;
+				if (Dungeon.rules().hasRebornEncounters()) {
+					increase *= 1 - Math.min(50, hero.essenceBonus(Essence.Type.HARVEST)) / 100f;
+				}
+				float newLevel = level + increase;
 				boolean statusUpdated = false;
 				if (newLevel >= STARVING) {
 

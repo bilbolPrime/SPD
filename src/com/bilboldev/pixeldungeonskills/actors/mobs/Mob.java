@@ -62,6 +62,7 @@ import com.bilboldev.utils.Random;
 
 public abstract class Mob extends Char {
     public int rebornPack;
+    public transient int helperCardRun;
 
 	private static final String	TXT_DIED	= "custom.generated.entry_you_hear_something_died_in_the_distance_c8daadf6e5";
 

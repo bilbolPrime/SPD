@@ -64,7 +64,6 @@ public class MissionStatusPane extends Component {
 
 	private DangerIndicator danger;
 	private LootIndicator loot;
-	private ResumeButton resume;
 	private BuffIndicator buffs;
 
 	private MenuButton btnMenu;
@@ -121,9 +120,6 @@ public class MissionStatusPane extends Component {
 		loot = new LootIndicator();
 		add( loot );
 
-		resume = new ResumeButton();
-		add( resume );
-
 		buffs = new BuffIndicator( Dungeon.hero );
 		add( buffs );
 
@@ -169,28 +165,21 @@ public class MissionStatusPane extends Component {
 
 		if (tagLoot) {
 			loot.setPos( width - loot.width(), pos );
-			pos = loot.bottom() + 1;
-		}
-
-		if (tagResume) {
-			resume.setPos( width - resume.width(), pos );
 		}
 	}
 
 	private boolean tagDanger	= false;
 	private boolean tagLoot		= false;
-	private boolean tagResume	= false;
 
 	@Override
 	public void update() {
 		super.update();
         visible = !MissionScene.scenePause;
 
-		if (tagDanger != danger.visible || tagLoot != loot.visible || tagResume != resume.visible) {
+		if (tagDanger != danger.visible || tagLoot != loot.visible) {
 
 			tagDanger = danger.visible;
 			tagLoot = loot.visible;
-			tagResume = resume.visible;
 
 			layoutTags();
 		}

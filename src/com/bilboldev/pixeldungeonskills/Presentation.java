@@ -10,6 +10,7 @@ import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.Toolbar;
 
 public final class Presentation {
+    public static final int HELPER_CARDS_OFF = 0, HELPER_CARDS_AUTO = 1, HELPER_CARDS_ON = 2;
     private static final String KEY_REBORN = "reborn_presentation";
     private static MusicFade musicFade;
 
@@ -53,6 +54,16 @@ public final class Presentation {
     public static void dungeonEffects(boolean enabled) {
         Preferences.INSTANCE.put("reborn_effects", enabled);
         GameScene.updateDungeonEffects();
+    }
+
+    public static int helperCards() {
+        return Math.max(HELPER_CARDS_OFF, Math.min(HELPER_CARDS_ON,
+                Preferences.INSTANCE.getInt("helper_cards", HELPER_CARDS_AUTO)));
+    }
+
+    public static void helperCards(int mode) {
+        Preferences.INSTANCE.put("helper_cards", Math.max(HELPER_CARDS_OFF, Math.min(HELPER_CARDS_ON, mode)));
+        GameScene.updateHelperCards();
     }
 
     public static void quickSlots(int count) {

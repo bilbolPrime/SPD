@@ -168,6 +168,7 @@ public class Assets {
     public static final String HERO_SKILL = "hero_skills.png";
 	public static final String DAMAGE_ICONS = "damage_icons.png";
 	public static final String DAILY_CHALLENGES = "daily-challenges.png";
+    public static final String TUTORIAL = "tutorial.png";
 	public static final String FONTS1X	= "font1x.png";
 	public static final String FONTS15X	= "font15x.png";
 	public static final String FONTS2X	= "font2x.png";

@@ -4,6 +4,7 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndDaily;
 import com.bilboldev.pixeldungeonskills.windows.WndDailyReminders;
+import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
 import java.io.IOException;
 
 public final class DailyReminders {
@@ -24,6 +25,7 @@ public final class DailyReminders {
     private DailyReminders() {}
 
     public static void showRequested(boolean inRun) {
+        if (TutorialRun.active()) return;
         if (configureRequested && settings != null) {
             configureRequested = false;
             if (!(Window.topWindow() instanceof WndDailyReminders))
@@ -31,12 +33,14 @@ public final class DailyReminders {
         }
         if (!requested || Window.topWindow() != null) return;
         if (GauntletRun.active() || DailyRun.active()) return;
+        if (Game.scene() instanceof TitleScene && ((TitleScene)Game.scene()).transitioning()) return;
         if (inRun && (Dungeon.hero == null || !Dungeon.hero.ready || LocalCoop.active())) return;
         requested = false;
         if (inRun) {
             try { Dungeon.saveAll(); }
             catch (IOException failure) { failure.printStackTrace(); return; }
         }
-        Game.scene().add(new WndDaily());
+        if (Game.scene() instanceof TitleScene) ((TitleScene)Game.scene()).navigate(TitleScene.Page.DAILY);
+        else Game.scene().add(new WndDaily());
     }
 }

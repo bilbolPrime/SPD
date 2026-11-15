@@ -70,6 +70,7 @@ public class WndSettings extends WndScrollable {
 	private RedButton btnBrightness;
 	private RedButton btnLanguage;
 	private CheckBox classicMusic, rebornMusic;
+	private RedButton helperCardsOff, helperCardsAuto, helperCardsOn;
 	private ControlRow settingsRows;
 	private ScrollPane settingsPane;
 	private float settingsX, settingsY, settingsWidth, settingsTarget, settingsGap;
@@ -153,7 +154,10 @@ public class WndSettings extends WndScrollable {
 		float displayTop = settingsY;
 		addUiScaleSlider(inGame);
 		addQuickSlotSlider();
-		if (!inGame || Dungeon.rules().hasRebornEncounters()) addDungeonEffects();
+		if (!inGame || Dungeon.rules().hasRebornEncounters()) {
+			addDungeonEffects();
+			addHelperCardChoice();
+		}
 		if (inGame) {
 			addDungeonZoomSlider();
 			addBrightnessControls();
@@ -274,6 +278,48 @@ public class WndSettings extends WndScrollable {
 		classicMusic.checked(!reborn);
 		rebornMusic.checked(reborn);
 		Presentation.rebornMusic(reborn);
+	}
+
+	private void addHelperCardChoice() {
+		BitmapTextMultiline label = PixelScene.createMultiline(Messages.get(WndSettings.class, "helper_cards"), 8);
+		label.maxWidth = (int)settingsWidth - 4;
+		label.measure();
+		label.hardlight(Presentation.reborn() ? 0xECE2D4 : 0xFFFFFF);
+		label.x = settingsX + 2;
+		label.y = settingsY + 1;
+		settingsRows.add(label);
+		settingsY += label.height() + 4;
+
+		helperCardsOff = new SettingsButton(Messages.get(WndSettings.class, "helper_cards_off"),
+				() -> chooseHelperCards(Presentation.HELPER_CARDS_OFF));
+		helperCardsAuto = new SettingsButton(Messages.get(WndSettings.class, "helper_cards_auto"),
+				() -> chooseHelperCards(Presentation.HELPER_CARDS_AUTO));
+		helperCardsOn = new SettingsButton(Messages.get(WndSettings.class, "helper_cards_on"),
+				() -> chooseHelperCards(Presentation.HELPER_CARDS_ON));
+		float width = (settingsWidth - 4) / 3;
+		helperCardsOff.setRect(settingsX, settingsY, width, settingsTarget);
+		helperCardsAuto.setRect(settingsX + width + 2, settingsY, width, settingsTarget);
+		helperCardsOn.setRect(settingsX + 2 * (width + 2), settingsY, width, settingsTarget);
+		float height = Math.max(settingsTarget, Math.max(helperCardsOff.reqHeight(),
+				Math.max(helperCardsAuto.reqHeight(), helperCardsOn.reqHeight())));
+		helperCardsOff.setSize(width, height);
+		helperCardsAuto.setSize(width, height);
+		helperCardsOn.setSize(width, height);
+		int mode = Presentation.helperCards();
+		helperCardsOff.textColor(mode == Presentation.HELPER_CARDS_OFF ? titleColor() : 0xECE2D4);
+		helperCardsAuto.textColor(mode == Presentation.HELPER_CARDS_AUTO ? titleColor() : 0xECE2D4);
+		helperCardsOn.textColor(mode == Presentation.HELPER_CARDS_ON ? titleColor() : 0xECE2D4);
+		settingsRows.add(helperCardsOff);
+		settingsRows.add(helperCardsAuto);
+		settingsRows.add(helperCardsOn);
+		settingsY += height + settingsGap;
+	}
+
+	private void chooseHelperCards(int mode) {
+		helperCardsOff.textColor(mode == Presentation.HELPER_CARDS_OFF ? titleColor() : 0xECE2D4);
+		helperCardsAuto.textColor(mode == Presentation.HELPER_CARDS_AUTO ? titleColor() : 0xECE2D4);
+		helperCardsOn.textColor(mode == Presentation.HELPER_CARDS_ON ? titleColor() : 0xECE2D4);
+		Presentation.helperCards(mode);
 	}
 
 	private void addUiScaleSlider(final boolean inGame) {

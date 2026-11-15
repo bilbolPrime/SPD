@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.levels.gauntlet;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -39,6 +40,7 @@ public class GauntletArena extends Level {
     public static final int FIRST_WAVE_STEPS = 3, INTERVAL_STEPS = 25;
     private static final int[] DEPTHS = {1, 3, 6, 8, 11, 13, 16, 18, 22, 24};
     private static final String[] TILES = {Assets.TILES_SEWERS_3D, Assets.TILES_PRISON_3D, Assets.TILES_CAVES_3D, Assets.TILES_CITY_3D, Assets.TILES_HALLS_3D};
+    private static final String[] FLAT_TILES = {Assets.TILES_SEWERS, Assets.TILES_PRISON, Assets.TILES_CAVES, Assets.TILES_CITY, Assets.TILES_HALLS};
     private static final String[] WATER = {Assets.WATER_SEWERS, Assets.WATER_PRISON, Assets.WATER_CAVES, Assets.WATER_CITY, Assets.WATER_HALLS};
     private static final String[] THEMES = {"sewers", "prison", "caves", "city", "halls"};
     private int wave = 1, completed, stepsRemaining = FIRST_WAVE_STEPS;
@@ -118,7 +120,7 @@ public class GauntletArena extends Level {
 
     @Override
     public String tilesTex() {
-        return TILES[theme()];
+        return (Difficulties.is3d ? TILES : FLAT_TILES)[theme()];
     }
 
     @Override

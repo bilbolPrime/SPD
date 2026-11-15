@@ -43,6 +43,7 @@ import com.bilboldev.pixeldungeonskills.levels.features.Chasm;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.sprites.LegendSprite;
 import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
+import com.bilboldev.pixeldungeonskills.ui.ResumeButton;
 import com.bilboldev.pixeldungeonskills.ui.BusyIndicator;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
 import com.bilboldev.pixeldungeonskills.ui.HealthIndicator;
@@ -171,6 +172,11 @@ public class OnlineScene extends MissionScene {
                 uiCamera.width - attack.width(),
                 toolbar.top() - attack.height() );
         add( attack );
+
+        ResumeButton resume = new ResumeButton();
+        resume.camera = uiCamera;
+        resume.setPos(attack.right() - resume.width(), attack.top() - resume.height() - 2);
+        sb.add(resume);
 
         log = new GameLog();
         log.camera = uiCamera;

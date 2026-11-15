@@ -76,6 +76,7 @@ public class Bow extends MissileWeapon {
         if (hero.belongings.bow == null ) {
 
             hero.belongings.bow = this;
+            hero.refreshBonuses();
             hero.spendAndNext(TIME_TO_EQUIP);
             detach( hero.belongings.backpack );
             updateQuickslot();
@@ -102,6 +103,7 @@ public class Bow extends MissileWeapon {
 
         if ( collect( hero.belongings.backpack )) {
             hero.belongings.bow = null;
+            hero.refreshBonuses();
             updateQuickslot();
             return true;
         } else {

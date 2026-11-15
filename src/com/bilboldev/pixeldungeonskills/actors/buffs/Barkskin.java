@@ -18,10 +18,23 @@
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
+import com.bilboldev.utils.Bundle;
 
 public class Barkskin extends Buff {
 
 	private int level = 0;
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put("barkskin_level", level);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        level = Math.max(0, bundle.getInt("barkskin_level"));
+    }
 
 	@Override
 	public boolean act() {

@@ -3,16 +3,14 @@ package com.bilboldev.pixeldungeonskills.scenes;
 import com.bilboldev.noosa.*;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletArena;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
-import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
-import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
-import com.bilboldev.pixeldungeonskills.thetiles.DungeonWallsTilemap;
-import com.bilboldev.pixeldungeonskills.thetiles.RaisedTerrainTilemap;
+import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.Window;
@@ -72,7 +70,7 @@ public class GauntletScene extends GameScene {
         add(rewardOverlay);
 
         members.remove(rewardOverlay);
-        members.add(members.indexOf(fogNew) + 1, rewardOverlay);
+        members.add(members.indexOf(fogNew != null ? fogNew : fog) + 1, rewardOverlay);
         heckle = new GauntletHeckle();
         heckle.camera = uiCamera;
         int heckleWidth = Math.min(150, uiCamera.width - 70);
@@ -102,8 +100,8 @@ public class GauntletScene extends GameScene {
     private void refreshTheme(Group group) {
         for (int i = 0; i < group.length; i++) {
             Gizmo member = group.memberAt(i);
-            if (member instanceof DungeonTerrainTilemap || member instanceof DungeonWallsTilemap || member instanceof RaisedTerrainTilemap)
-                ((DungeonTilemap)member).refreshTexture();
+            if (member instanceof DungeonTilemapOld)
+                ((DungeonTilemapOld)member).refreshTexture();
             else if (member instanceof Group) refreshTheme((Group)member);
         }
     }
@@ -192,7 +190,7 @@ public class GauntletScene extends GameScene {
 
     private void frameArena() {
 
-        setViewMode(2);
+        setViewMode(Difficulties.is3d ? 2 : 3);
         Camera.main.target = null;
         float span = (GauntletArena.STANDS_RADIUS * 2 + 3) * 16f;
         float uiZoom = uiCamera.zoom;

@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills.skill4;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.skills.ActiveSkill;
@@ -44,8 +45,12 @@ public final class TalentSkill extends ActiveSkill {
         else if (talent.toggle() && rank() > 0 && (AC_ACTIVATE.equals(action) || AC_DEACTIVATE.equals(action))) {
             if (AC_ACTIVATE.equals(action)) QuickSlot.remember(hero, this);
             active = AC_ACTIVATE.equals(action);
+            if (active) TutorialRun.skillActivated(hero, this);
             QuickSlot.refresh();
-        } else if (AC_CAST.equals(action)) tree.use(this);
+        } else if (AC_CAST.equals(action)) {
+            TutorialRun.skillActivated(hero, this);
+            tree.use(this);
+        }
     }
 
     @Override
@@ -55,25 +60,21 @@ public final class TalentSkill extends ActiveSkill {
 
     public String info(int freePoints, boolean preview) {
         int rank = rank();
+        HeroSubClass subclass = tree.hero.subClass;
         StringBuilder text = new StringBuilder(Messages.get(talent.key() + ".intro"));
         if (rank > 0) {
             text.append("\n\n_").append(Messages.get("skills4.current", rank)).append("_\n")
-                    .append(talent.rankDescription(rank));
+                    .append(talent.rankDescription(rank, subclass));
             if (rank > level) text.append('\n').append(Messages.get("skills4.ranks", level, rank - level));
         } else if (EquipmentAttribute.bonus(tree.hero, EquipmentAttribute.Type.SKILL, talent.ordinal()) > 0) {
             text.append("\n\n").append(Messages.get("skills4.equipment_locked"));
         }
         if (level < talent.maxRank()) {
-            if (rank == talent.maxRank()) {
-                text.append("\n\n").append(Messages.get("skills4.at_cap"));
-            } else {
-                int next = tree.nextRank(talent);
-                text.append("\n\n_").append(Messages.get("skills4.next", next)).append("_\n")
-                        .append(talent.rankDescription(next));
-            }
+            int next = tree.nextRank(talent);
+            text.append("\n\n_").append(Messages.get("skills4.next", next)).append("_\n")
+                    .append(talent.rankDescription(next, subclass));
         }
         text.append("\n\n").append(Messages.get("skills4.max_rank", talent.maxRank()));
-        HeroSubClass subclass = tree.hero.subClass;
         if (talent == Talent.SPARK) {
             if (subclass == HeroSubClass.WARLOCK) text.append("\n\n").append(Messages.get("skills4.spark.warlock"));
             if (subclass == HeroSubClass.BATTLEMAGE) text.append("\n\n").append(Messages.get("skills4.spark.battlemage"));

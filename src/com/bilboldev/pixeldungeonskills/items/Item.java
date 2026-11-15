@@ -17,7 +17,10 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
+
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,6 +109,7 @@ public class Item implements Bundlable {
 	public boolean cursedKnown;
 
 	public transient boolean droppedByHero, droppedOnDeath;
+	public transient int helperCardRun;
 
 	public boolean unique = false;
 
@@ -219,7 +223,7 @@ public class Item implements Bundlable {
 
             @Override
             protected void onSelect(int index) {
-                if (answered) return;
+                if (answered || !TutorialRun.valid(hero)) return;
                 answered = true;
                 if (index == 0 && hero.isAlive() && (hero.belongings.backpack.contains(Item.this) || isEquipped(hero))) {
                     LocalCoop.withHero(hero, () -> {
@@ -294,6 +298,7 @@ public class Item implements Bundlable {
 			droppedByHero = droppedOnDeath = false;
 			QuickSlot.refresh();
 			Collections.sort( items, itemComparator );
+			Essence.inventoryChanged(container, this);
 			return true;
 
 		} else {
@@ -340,6 +345,7 @@ public class Item implements Bundlable {
 			if (item == this) {
 				container.items.remove( this );
 				item.onDetach( );
+				Essence.inventoryChanged(container, this);
 				QuickSlot.refresh();
 				return this;
 			} else if (item instanceof Bag) {
@@ -498,9 +504,20 @@ public class Item implements Bundlable {
 
 		levelKnown = true;
 		cursedKnown = true;
+		if (LocalCoop.active()) {
+			for (Hero hero : LocalCoop.heroes()) refreshBonuses(hero);
+		} else if (Dungeon.hero != null) {
+			refreshBonuses(Dungeon.hero);
+		}
 
 		return this;
 	}
+
+    private void refreshBonuses(Hero hero) {
+        if (isEquipped(hero)) hero.refreshBonuses();
+        HiredMerc merc = hero.hiredMerc;
+        if (merc != null && (merc.weapon == this || merc.armor == this)) merc.refreshBonuses();
+    }
 
 	public static void evoke( Hero hero ) {
 		hero.sprite.emitter().burst( Speck.factory( Speck.EVOKE ), 5 );

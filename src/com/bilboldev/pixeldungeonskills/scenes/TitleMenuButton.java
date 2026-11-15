@@ -43,6 +43,11 @@ abstract class TitleMenuButton extends Button {
         add(icon = image);
     }
 
+    boolean fitsWidth(float buttonWidth) {
+        float textWidth = buttonWidth - (buttonWidth < 120 ? 43 : 53);
+        return label.width * labelScaleX * 0.85f <= textWidth;
+    }
+
     @Override
     protected void layout() {
         super.layout();

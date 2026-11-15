@@ -18,14 +18,11 @@
 package com.bilboldev.pixeldungeonskills.thetiles;
 
 import com.bilboldev.noosa.Image;
-import com.bilboldev.gltextures.TextureCache;
-import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.noosa.Tilemap;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.utils.GameMath;
-import com.bilboldev.utils.PathFinder;
 import com.bilboldev.utils.Point;
 import com.bilboldev.utils.PointF;
 
@@ -33,48 +30,16 @@ public abstract class DungeonTilemap extends DungeonTilemapOld {
 
 	public static final int SIZE = 16;
 
-	protected int[] map;
-
 	public DungeonTilemap(String tex) {
 		super();
 	}
 
 	@Override
-
-	public void map(int[] data, int cols) {
-		map = data;
-		super.map(new int[data.length], cols);
-	}
-
-	@Override
-	public synchronized void updateMap() {
-		super.updateMap();
-		for (int i = 0; i < data.length; i++)
-			data[i] = getTileVisual(i ,map[i], false);
-	}
-
-	@Override
-	public synchronized void updateMapCell(int cell) {
-
-		if (Dungeon.level.insideMap(cell)) {
-			super.updateMapCell(cell - mapWidth - 1);
-			super.updateMapCell(cell + mapWidth + 1);
-			for (int i : PathFinder.NEIGHBOURS9)
-				data[cell + i] = getTileVisual(cell + i, map[cell + i], false);
-
-		} else {
-			super.updateMapCell(cell);
-			data[cell] = getTileVisual(cell, map[cell], false);
-		}
+	protected int getTileVisual(int pos, int tile) {
+		return getTileVisual(pos, tile, false);
 	}
 
 	protected abstract int getTileVisual(int pos, int tile, boolean flat);
-
-	public void refreshTexture() {
-		texture = TextureCache.get(Dungeon.level.tilesTex());
-		tileset = new TextureFilm(texture, SIZE, SIZE);
-		updateMap();
-	}
 
 	public int screenToTile(int x, int y ){
 		return screenToTile(x, y, false);

@@ -525,6 +525,14 @@ public class DailyLevel extends Level {
         return null;
     }
 
+    public String doorCardKind(int cell) {
+        if (map[cell] != Terrain.LOCKED_DOOR) return null;
+        if (cell == rescueDoor) return "daily.rescue_" + scenario;
+        if (cell == bossEntrance && scenario == 1)
+            return bossRoomSealed ? "daily.boss_door_sealed" : "daily.boss_door_locked";
+        return null;
+    }
+
     @Override public Actor respawner() { return null; }
     @Override public Actor mercRespawner() { return null; }
     @Override public int randomRespawnCell() {

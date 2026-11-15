@@ -10,8 +10,8 @@ buildscript {
 
 ext {
     appName = 'Skillful Pixel Dungeon'
-    appVersionName = '2.3.0'
-    appVersionCode = 147
+    appVersionName = '2.4.0'
+    appVersionCode = 148
     versionTag = "v${appVersionName}"
     gdxVersion = '1.13.1'
 }

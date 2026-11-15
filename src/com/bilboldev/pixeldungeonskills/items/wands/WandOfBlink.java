@@ -43,58 +43,6 @@ public class WandOfBlink extends Wand {
 		name = "Wand of Blink";
 	}
 
-	static final String AC_AFTER_IMAGE = "CREATE AFTER IMAGE";
-	static final int AC_AFTER_IMAGE_COST = 80;
-
-	@Override
-	public ArrayList<String> actions(Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (Dungeon.hero != null && (Dungeon.hero.heroClass == HeroClass.MAGE || Dungeon.hero.heroClass == HeroClass.NECROMANCER)){
-			actions.add(AC_AFTER_IMAGE);
-		}
-		return actions;
-	}
-
-	@Override
-	public void execute( Hero hero, String action ) {
-		if (action.equals( AC_AFTER_IMAGE )) {
-
-			if(hero.MP >= AC_AFTER_IMAGE_COST){
-				curUser = hero;
-				curItem = this;
-				hero.MP -= AC_AFTER_IMAGE_COST;
-
-				ArrayList<Integer> respawnPoints = new ArrayList<Integer>();
-
-				for (int i = 0; i < Level.NEIGHBOURS8.length; i++) {
-					int p = curUser.pos + Level.NEIGHBOURS8[i];
-					if (Actor.findChar( p ) == null && (Level.passable[p] || Level.avoid[p])) {
-						respawnPoints.add( p );
-					}
-				}
-
-				int nImages = 1;
-				while (nImages > 0 && respawnPoints.size() > 0) {
-					int index = Random.index( respawnPoints );
-
-					MirrorImage mob = new MirrorImage();
-					mob.duplicate( curUser );
-					GameScene.add( mob );
-					WandOfBlink.appear( mob, respawnPoints.get( index ) );
-
-					respawnPoints.remove( index );
-					nImages--;
-				}
-			}
-			else {
-				GLog.n("custom.generated.entry_you_need_at_least_s_mana_to_use_create_after_ima_81fefec565", AC_AFTER_IMAGE_COST);
-			}
-
-		} else {
-			super.execute( hero, action );
-		}
-	}
-
 	@Override
 	protected void onZap( int cell ) {
 

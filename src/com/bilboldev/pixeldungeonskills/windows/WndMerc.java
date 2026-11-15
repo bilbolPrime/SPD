@@ -432,30 +432,39 @@ public class WndMerc extends WndTabbed {
 		}
 
         @Override
+        public boolean onBeforeSelect(Item item) {
+            if (holdOnly || !(item instanceof Weapon || item instanceof Armor)
+                    || Dungeon.hero.hiredMerc.canEquip(item)) return true;
+            GameScene.show(new WndMessage(Message.key(item instanceof Weapon
+                    ? "windows.wndmerc.weapon_too_heavy" : "windows.wndmerc.armor_too_heavy")));
+            return false;
+        }
+
+        @Override
         public void onSelect( Item item ) {
-            if (item != null) {
-                if (item instanceof Weapon && holdOnly == false) {
-                    if (Dungeon.hero.belongings.weapon == item) {
-                        Dungeon.hero.belongings.weapon = null;
-                    } else {
-                        item.detach(Dungeon.hero.belongings.backpack);
-                    }
-                    Dungeon.hero.hiredMerc.equipWeapon(item);
-                } else if (item instanceof Armor && holdOnly == false) {
-                    if (Dungeon.hero.belongings.armor == item) {
-                        Dungeon.hero.belongings.armor = null;
-                    } else {
-                        item.detach(Dungeon.hero.belongings.backpack);
-                    }
-                    Dungeon.hero.hiredMerc.equipArmor(item);
-                }  else if(item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation) {
-                    Dungeon.hero.hiredMerc.equipItem(item.detach(Dungeon.hero.belongings.backpack));
+            if (item == null) return;
+            if (item instanceof Weapon && holdOnly == false) {
+                if (Dungeon.hero.belongings.weapon == item) {
+                    Dungeon.hero.belongings.weapon = null;
+                } else {
+                    item.detach(Dungeon.hero.belongings.backpack);
                 }
-                else
-                {
-                    Dungeon.hero.hiredMerc.equipItem(item.detachAll(Dungeon.hero.belongings.backpack ));
+                Dungeon.hero.hiredMerc.equipWeapon(item);
+            } else if (item instanceof Armor && holdOnly == false) {
+                if (Dungeon.hero.belongings.armor == item) {
+                    Dungeon.hero.belongings.armor = null;
+                } else {
+                    item.detach(Dungeon.hero.belongings.backpack);
                 }
+                Dungeon.hero.hiredMerc.equipArmor(item);
+            }  else if(item instanceof PotionOfHealing || item instanceof PotionOfRejuvenation) {
+                Dungeon.hero.hiredMerc.equipItem(item.detach(Dungeon.hero.belongings.backpack));
             }
+            else
+            {
+                Dungeon.hero.hiredMerc.equipItem(item.detachAll(Dungeon.hero.belongings.backpack ));
+            }
+            Dungeon.hero.refreshBonuses();
             ((HeroSprite)Dungeon.hero.sprite).updateArmor();
             try
 			{

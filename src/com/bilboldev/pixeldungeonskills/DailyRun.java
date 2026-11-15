@@ -17,7 +17,6 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.DailyQuarry;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.network.PartyConnection;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
-import com.bilboldev.pixeldungeonskills.scenes.DailyScene;
 import com.bilboldev.pixeldungeonskills.scenes.InterlevelScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.utils.Bundle;
@@ -120,7 +119,8 @@ public final class DailyRun {
         PartySession.cancelLobby();
         requestedDay = date;
         startRequested = true;
-        Game.switchScene(DailyScene.class);
+        InterlevelScene.mode = InterlevelScene.Mode.DAILY;
+        Game.switchScene(InterlevelScene.class);
     }
 
     public static boolean prepare() throws IOException {
@@ -136,6 +136,8 @@ public final class DailyRun {
 
     private static void begin() throws IOException {
         if (active) leave();
+        TutorialRun.finish();
+        GauntletRun.finish();
         startRequested = false;
         day = requestedDay;
         LocalCoop.clear();
@@ -160,7 +162,6 @@ public final class DailyRun {
         finished = won = timedOut = started = false;
         failure = null;
         turns = 0;
-        InterlevelScene.mode = InterlevelScene.Mode.NONE;
         Dungeon.prepareNewRun(SaveSlots.FIRST, GameplayMode.REBORN, Difficulties.NORMAL.ordinal());
         Dungeon.seed = seed(day);
         StartScene.curClass = hero(day);

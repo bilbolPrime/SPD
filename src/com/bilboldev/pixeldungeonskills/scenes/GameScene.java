@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.DailyReminders;
 
 import com.bilboldev.pixeldungeonskills.DailyRun;
@@ -93,6 +94,7 @@ import com.bilboldev.pixeldungeonskills.thetiles.RaisedTerrainTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.TerrainFeaturesTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.WallBlockingTilemap;
 import com.bilboldev.pixeldungeonskills.ui.AttackIndicator;
+import com.bilboldev.pixeldungeonskills.ui.ResumeButton;
 import com.bilboldev.pixeldungeonskills.ui.Banner;
 import com.bilboldev.pixeldungeonskills.ui.BusyIndicator;
 import com.bilboldev.pixeldungeonskills.ui.GameLog;
@@ -170,11 +172,14 @@ public class GameScene extends PixelScene {
     protected Toast prompt;
 
     private static WeakReference<Hero> perspectiveHero = new WeakReference<>(null);
+    private static WeakReference<Level> terrainLevel = new WeakReference<>(null);
+    private static long terrainSeed;
     private static int sessionViewMode = 2;
     private FirstPersonView firstPersonView;
     com.bilboldev.pixeldungeonskills.effects.TenguWarnings tenguWarnings;
     com.bilboldev.pixeldungeonskills.effects.BossWarnings bossWarnings;
     private FirstPersonButton firstPersonButton;
+    private ResumeButton resume;
     private boolean partyStateReady = true;
     ItemDropCards itemDrops;
     private final RectF dropObstacle = new RectF();
@@ -188,9 +193,19 @@ public class GameScene extends PixelScene {
 	public void create() {
 		partyStateReady = PartySession.prepareScene();
         if (!partyStateReady) return;
+        if (perspectiveHero.get() != Dungeon.hero) {
+            perspectiveHero = new WeakReference<>(Dungeon.hero);
+            if (!PartySession.client()) {
+                sessionViewMode = GauntletRun.active() || PixelDungeon.enabled3d() ? 2 : 3;
+            }
+        }
+        if (PartySession.splitControls() && sessionViewMode < 2) {
+            sessionViewMode = PixelDungeon.enabled3d() ? 2 : 3;
+        }
+        Difficulties.is3d = sessionViewMode != 3;
         com.bilboldev.pixeldungeonskills.DungeonMusic.enter();
 
-		if (!com.bilboldev.pixeldungeonskills.GauntletRun.active() && !DailyRun.active())
+		if (!com.bilboldev.pixeldungeonskills.GauntletRun.active() && !DailyRun.active() && !TutorialRun.active())
 			PixelDungeon.lastClass( Dungeon.hero.heroClass.ordinal() );
 
 		super.create();
@@ -210,9 +225,12 @@ public class GameScene extends PixelScene {
 		ripples = new Group();
 		terrain.add( ripples );
 
-		long tileSeed = Dungeon.rules().hasRebornEncounters()
-				? 31L * Dungeon.rebornEncounterSeed + Dungeon.depth : Random.Int(1000);
-		DungeonTileSheet.setupVariance(Dungeon.level.map.length, tileSeed);
+		if (terrainLevel.get() != Dungeon.level) {
+			terrainLevel = new WeakReference<>(Dungeon.level);
+			terrainSeed = Dungeon.rules().hasRebornEncounters()
+					? 31L * Dungeon.rebornEncounterSeed + Dungeon.depth : Random.Int(1000);
+		}
+		DungeonTileSheet.setupVariance(Dungeon.level.map.length, terrainSeed);
 
 		if(Difficulties.is3d)
 			tiles = new DungeonTerrainTilemap();
@@ -384,6 +402,11 @@ public class GameScene extends PixelScene {
 			toolbar.top() - attack.height() );
 		add( attack );
 
+		resume = new ResumeButton();
+		resume.camera = uiCamera;
+		resume.setPos(attack.right() - resume.width(), attack.top() - resume.height() - 2);
+		sb.add(resume);
+
 		log = new GameLog();
 		log.camera = uiCamera;
 		log.setRect( 0, toolbar.top(), attack.left(),  0 );
@@ -395,7 +418,7 @@ public class GameScene extends PixelScene {
 		busy.y = sb.bottom() + 1;
 		add( busy );
 
-        if (!(Dungeon.level instanceof MovieLevel) && !PartySession.splitControls()) {
+        if (!(Dungeon.level instanceof MovieLevel)) {
             firstPersonButton = new FirstPersonButton();
             firstPersonButton.camera = uiCamera;
             toolbar.layoutViewButton(firstPersonButton);
@@ -498,11 +521,7 @@ public class GameScene extends PixelScene {
 		}
 
 		restoreGameplayInput();
-        if (perspectiveHero.get() != Dungeon.hero) {
-            perspectiveHero = new WeakReference<>(Dungeon.hero);
-            if (!PartySession.client()) sessionViewMode = 2;
-        }
-        if (firstPersonButton != null && sessionViewMode != 2) setViewMode(sessionViewMode);
+        if (firstPersonButton != null) setViewMode(sessionViewMode);
         PartySession.sceneReady();
 	}
 
@@ -595,6 +614,8 @@ public class GameScene extends PixelScene {
 
     public boolean itemDropObstructed(RectF bounds) {
         if (bounds.left < 25 && bounds.top < 102) return true;
+        if (resume != null && resume.visible && bounds.left < resume.right() && bounds.right > resume.left()
+                && bounds.top < resume.bottom() && bounds.bottom > resume.top()) return true;
         if (firstPersonView != null) return firstPersonView.itemCardObstructed(bounds);
         if (hero != null) {
             screenBounds(hero, dropObstacle);
@@ -616,6 +637,12 @@ public class GameScene extends PixelScene {
 
     public static boolean isPerspectiveView() {
         return scene != null && scene == Game.scene() && scene.firstPersonView != null;
+    }
+
+    public static int viewMode() {
+        if (isFirstPerson()) return 0;
+        if (isThirdPerson()) return 1;
+        return Difficulties.is3d ? 2 : 3;
     }
 
     static FirstPersonView firstPersonView() {
@@ -666,10 +693,9 @@ public class GameScene extends PixelScene {
     }
 
     public static void cycleView() {
-        if (PartySession.splitControls()) return;
         if (scene == null || scene != Game.scene() || scene.firstPersonButton == null || Window.topWindow() != null) return;
         if (scene instanceof GauntletScene && !com.bilboldev.pixeldungeonskills.GauntletRun.acceptsInput()) return;
-        scene.setViewMode(scene.firstPersonView == null ? 0 : scene.firstPersonView.isThirdPerson() ? 2 : 1);
+        scene.setViewMode(PartySession.splitControls() ? (viewMode() == 2 ? 3 : 2) : (viewMode() + 1) % 4);
         if (cellSelector != null) cellSelector.resetViewGesture();
     }
 
@@ -678,15 +704,28 @@ public class GameScene extends PixelScene {
     }
 
     protected void setViewMode(int mode) {
-        if (PartySession.splitControls()) mode = 2;
+        if (PartySession.splitControls() && mode < 2) mode = PixelDungeon.enabled3d() ? 2 : 3;
+        sessionViewMode = mode;
+        if (mode >= 2 && !GauntletRun.active() && PixelDungeon.enabled3d() != (mode == 2))
+            PixelDungeon.enabled3d(mode == 2);
+        if (Difficulties.is3d != (mode != 3)) {
+            Hero hero = Dungeon.hero;
+            Level level = Dungeon.level;
+            CellSelector.Listener listener = cellSelector.listener;
+            PixelScene.noFade = true;
+            Game.resetScene(() -> {
+                if (Dungeon.hero == hero && Dungeon.level == level && listener != null)
+                    selectCell(listener);
+            });
+            return;
+        }
         try {
-            if (mode == 2) closeFirstPerson();
+            if (mode >= 2) closeFirstPerson();
             else {
                 if (firstPersonView == null) firstPersonView = new FirstPersonView(this, uiCamera);
                 if (mode == 1) firstPersonView.thirdPerson();
-                firstPersonButton.viewMode(mode);
             }
-            sessionViewMode = mode;
+            if (firstPersonButton != null) firstPersonButton.viewMode(mode);
         } catch (RuntimeException | LinkageError failure) {
             firstPersonFailed(failure);
         }
@@ -695,7 +734,7 @@ public class GameScene extends PixelScene {
     private void closeFirstPerson() {
         FirstPersonView old = firstPersonView;
         firstPersonView = null;
-        if (firstPersonButton != null) firstPersonButton.viewMode(2);
+        if (firstPersonButton != null) firstPersonButton.viewMode(Difficulties.is3d ? 2 : 3);
         if (old != null) {
             try {
                 old.destroy();
@@ -800,6 +839,8 @@ public class GameScene extends PixelScene {
 				&& !PartyWindows.busy()
 				&& (!LocalCoop.active() || Window.topWindow() == null)
 				&& (!GauntletRun.active() || GauntletRun.acceptsInput())
+                && (!TutorialRun.active()
+                    || (TutorialRun.acceptsInput() && Window.topWindow() == null))
                 && (!DailyRun.active()
                     || (!DailyRun.finished() && Window.topWindow() == null))) {
 			LocalCoop.updateFollowing();
@@ -1027,6 +1068,10 @@ public class GameScene extends PixelScene {
         if (scene != null && scene.lighting != null) scene.lighting.enabled(Presentation.dungeonEffects());
     }
 
+    public static void updateHelperCards() {
+        if (scene != null && scene.itemDrops != null) scene.itemDrops.settingsChanged();
+    }
+
     public static void explosionLight(float x, float y) {
         if (scene == null || scene.lighting == null || !Presentation.dungeonEffects()) return;
         int cx = (int)(x / 16), cy = (int)(y / 16);
@@ -1189,6 +1234,8 @@ public class GameScene extends PixelScene {
 				!Game.scene().isVisible()) return false;
 		if (com.bilboldev.pixeldungeonskills.GauntletRun.active())
 			return Game.scene() instanceof GauntletScene && com.bilboldev.pixeldungeonskills.GauntletRun.acceptsInput();
+        if (TutorialRun.active())
+            return Game.scene() instanceof TutorialScene && TutorialRun.acceptsInput();
 		if (Dungeon.level instanceof MovieLevel) return false;
 		return !(Game.scene() instanceof MissionScene || Game.scene() instanceof GauntletScene ||
 				Game.scene() instanceof OnlineScene) || !MissionScene.scenePause;
@@ -1251,7 +1298,7 @@ public class GameScene extends PixelScene {
 		return wnd;
 	}
 
-	static boolean cancel() {
+	public static boolean cancel() {
     	try {
             if (LocalCoop.wantsToFollow(Dungeon.hero)) {
                 if (!PartySession.input(Dungeon.hero, "unfollow", 0)) LocalCoop.stopFollowing(Dungeon.hero);

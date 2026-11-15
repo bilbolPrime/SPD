@@ -25,12 +25,14 @@ import com.bilboldev.pixeldungeonskills.Rankings;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.sprites.RatKingSprite;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.windows.WndBadge;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndWelcome;
 import com.bilboldev.utils.PointF;
 
@@ -49,6 +51,8 @@ abstract class TitleHubPanel extends TitleLayer {
             case BADGES: return new Gallery(host);
             case ABOUT: return new Archive(host);
             case LIBRARY: return new LibraryPanel(host);
+            case TUTORIAL: return new TutorialPanel(host);
+            case DAILY: return new DailyPanel(host);
             default: throw new IllegalArgumentException("No panel for " + page);
         }
     }
@@ -196,9 +200,14 @@ abstract class TitleHubPanel extends TitleLayer {
                     () -> StartScene.beginStartFlow(host, TitleScene.selectedHero));
             play.setRect(cardX + 10, top, half, row);
             HubButton gauntlet = button(details, msg("gauntlet"), false, () -> {
-                StartScene.curClass = TitleScene.selectedHero;
-                TitleScene.leavingForRun();
-                GauntletRun.start();
+                host.add(new WndOptions(new RatKingSprite(), Messages.get("gauntlet.title"),
+                        Messages.get("gauntlet.intro"), Messages.get("gauntlet.start")) {
+                    @Override protected void onSelect(int index) {
+                        StartScene.curClass = TitleScene.selectedHero;
+                        TitleScene.leavingForRun();
+                        GauntletRun.start();
+                    }
+                });
             });
             gauntlet.setRect(cardX + 14 + half, top, half, row);
             button(details, Messages.get(StartScene.class, "party_mode"), false,

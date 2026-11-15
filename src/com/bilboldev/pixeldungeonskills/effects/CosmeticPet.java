@@ -48,7 +48,7 @@ public final class CosmeticPet extends MovieClip {
             return;
         }
         Hero hero = (Hero)owner.ch;
-        int selected = PartySession.pet(hero);
+        int selected = hero.tutorial ? 0 : PartySession.pet(hero);
         if (style != selected) {
             style = selected;
             floor = null;

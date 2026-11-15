@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
@@ -24,23 +25,24 @@ import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.PlantSprite;
 
 public class WndInfoPlant extends WndScrollable {
-	
+
 	private static final float GAP	= 2;
-	
+
 	private static final int WIDTH = 120;
-	
+
 	public WndInfoPlant( Plant plant ) {
-		
+
 		super();
+        TutorialRun.inspect(plant);
 		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
-		
+
 		Component titlebar = InspectionTitle.create(new PlantSprite(plant.image), plant.displayName());
 		titlebar.setRect( 0, 0, windowWidth, 0 );
 		add( titlebar );
-		
+
 		BitmapTextMultiline info = PixelScene.createMultiline( 6 );
 		add( info );
-		
+
 		info.text( plant.displayDesc() );
 		info.maxWidth = textWidth(windowWidth);
 		info.measure();

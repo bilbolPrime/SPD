@@ -18,11 +18,13 @@
 package com.bilboldev.pixeldungeonskills.thetiles;
 
 import com.bilboldev.noosa.Image;
+import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.noosa.TextureFilm;
 import com.bilboldev.noosa.Tilemap;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.utils.Point;
 import com.bilboldev.utils.PointF;
 
@@ -31,6 +33,7 @@ public class DungeonTilemapOld extends Tilemap {
 	public static final int SIZE = 16;
 
 	private static DungeonTilemapOld instance;
+	protected int[] map;
 
 	public DungeonTilemapOld() {
 		super(
@@ -39,6 +42,60 @@ public class DungeonTilemapOld extends Tilemap {
 		map( Dungeon.level.map, Level.WIDTH );
 
 		instance = this;
+	}
+
+	@Override
+	public void map(int[] data, int cols) {
+
+		map = data;
+		super.map(new int[data.length], cols);
+	}
+
+	@Override
+	public synchronized void updateMap() {
+		super.updateMap();
+		for (int cell = 0; cell < data.length; cell++) data[cell] = getTileVisual(cell, map[cell]);
+	}
+
+	@Override
+	public synchronized void updateMapCell(int cell) {
+		int x = cell % mapWidth, y = cell / mapWidth;
+		for (int row = Math.max(0, y - 1); row <= Math.min(mapHeight - 1, y + 1); row++) {
+			for (int col = Math.max(0, x - 1); col <= Math.min(mapWidth - 1, x + 1); col++) {
+				int pos = row * mapWidth + col;
+				data[pos] = getTileVisual(pos, map[pos]);
+				super.updateMapCell(pos);
+			}
+		}
+	}
+
+	public void refreshTexture() {
+		texture = TextureCache.get(Dungeon.level.tilesTex());
+		tileset = new TextureFilm(texture, SIZE, SIZE);
+		updateMap();
+	}
+
+	protected int getTileVisual(int cell, int tile) {
+		if ((Terrain.flags[tile] & Terrain.LIQUID) != 0) {
+			if (cell < mapWidth || cell >= size - mapWidth || cell % mapWidth == 0 || (cell + 1) % mapWidth == 0)
+				return Terrain.WATER;
+			int visual = Terrain.WATER_TILES;
+			for (int i = 0; i < Level.NEIGHBOURS4.length; i++) {
+				if ((Terrain.flags[map[cell + Level.NEIGHBOURS4[i]]] & Terrain.UNSTITCHABLE) != 0)
+					visual += 1 << i;
+			}
+			return visual;
+		}
+		if ((Terrain.flags[tile] & Terrain.PIT) != 0) {
+			if (cell < mapWidth || (Terrain.flags[map[cell - mapWidth]] & Terrain.PIT) != 0)
+				return Terrain.CHASM;
+			int above = map[cell - mapWidth];
+			if (above == Terrain.EMPTY_SP || above == Terrain.STATUE_SP) return Terrain.CHASM_FLOOR_SP;
+			if ((Terrain.flags[above] & Terrain.LIQUID) != 0) return Terrain.CHASM_WATER;
+			if ((Terrain.flags[above] & Terrain.UNSTITCHABLE) != 0) return Terrain.CHASM_WALL;
+			return Terrain.CHASM_FLOOR;
+		}
+		return tile;
 	}
 
 	public int screenToTile( int x, int y ) {

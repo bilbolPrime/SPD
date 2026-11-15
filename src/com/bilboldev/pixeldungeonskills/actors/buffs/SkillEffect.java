@@ -66,7 +66,7 @@ public class SkillEffect extends FlavourBuff {
         int id = bundle.getInt("talent");
         if (id < 0 || id >= Talent.values().length) throw new IllegalArgumentException("Unknown talent");
         talent = Talent.values()[id];
-        power = Math.max(0, Math.min(500, bundle.getInt("talent_power")));
+        power = Math.max(0, bundle.getInt("talent_power"));
         enemy = bundle.getInt("talent_enemy");
     }
 }

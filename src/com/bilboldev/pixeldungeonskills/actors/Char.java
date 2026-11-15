@@ -67,6 +67,7 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.PoisonParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.WeaponEffects.WeaponEffect;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.RimePick;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.DualSwords;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.NecroBlade;
@@ -530,7 +531,8 @@ public abstract class Char extends Actor {
 			RebornChampion attackerChampion = attacker.buff(RebornChampion.class);
 			RebornChampion defenderChampion = defender.buff(RebornChampion.class);
 			float acuRoll = Random.Float((attacker.attackSkill(defender) + bonusAttackSkill)
-					* (attackerChampion == null ? 1f : attackerChampion.accuracy()));
+					* (attackerChampion == null ? 1f : attackerChampion.accuracy())
+					* (attacker instanceof Hero ? 1 + ((Hero)attacker).essenceBonus(Essence.Type.SIGHT) / 100f : 1));
 			float defRoll = Random.Float(defender.defenseSkill(attacker)
 					* (defenderChampion == null ? 1f : defenderChampion.evasion()));
 
@@ -681,13 +683,19 @@ public abstract class Char extends Actor {
             }
         }
 
+		CombatTextIcon damageIcon = type == null ? CombatTextIcon.of(src) : type;
 		RebornChampion champion = buff(RebornChampion.class);
-		if (champion != null) dmg = champion.reduceDamage(dmg, type == null ? CombatTextIcon.of(src) : type);
+		if (champion != null) dmg = champion.reduceDamage(dmg, damageIcon);
+		dmg = Essence.reduceDamage(this, dmg, damageIcon);
+		int health = HP;
 		HP -= dmg;
+		if (damageAttacker instanceof Hero && damageIcon == CombatTextIcon.PHYSICAL) {
+			Essence.lifeSteal((Hero)damageAttacker, this, Math.min(Math.max(0, health), Math.max(0, dmg)));
+		}
 		if (dmg > 0 || src instanceof Char) {
 			sprite.showDamage( damageColor != -1 ? damageColor :
 				(HP > HT / 2 ? CharSprite.WARNING : CharSprite.NEGATIVE),
-				dmg, type == null ? CombatTextIcon.of(src) : type );
+				dmg, damageIcon );
 		}
 		if (HP <= 0) {
 			die( src );

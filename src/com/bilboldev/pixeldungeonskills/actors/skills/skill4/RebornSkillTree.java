@@ -1,5 +1,6 @@
 package com.bilboldev.pixeldungeonskills.actors.skills.skill4;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -93,20 +94,24 @@ public final class RebornSkillTree extends SkillTree {
     public int rank(Talent talent) {
         TalentSkill skill = skill(talent);
         if (skill == null || !branchAvailable(talent)) return 0;
+        if (talent.maxRank() == 1) return skill.level;
         if (skill.level == 0 && (EquipmentAttribute.bonus(hero, EquipmentAttribute.Type.SKILL, talent.ordinal()) == 0
+                && hero.essenceSkillBonus(talent.ordinal()) == 0
                 || !requirementsMet(talent))) return 0;
         return rank(talent, skill.level);
     }
 
     private int rank(Talent talent, int learned) {
-        int bonus = EquipmentAttribute.bonus(hero, EquipmentAttribute.Type.SKILL, talent.ordinal());
+        if (talent.maxRank() == 1) return learned;
+        long bonus = (long)EquipmentAttribute.bonus(hero, EquipmentAttribute.Type.SKILL, talent.ordinal())
+                + hero.essenceSkillBonus(talent.ordinal());
         if (learned > 0) {
             bonus += EquipmentAttribute.bonus(hero, EquipmentAttribute.Type.CLASS_SKILLS, hero.heroClass.ordinal());
             if (talent.subclass != HeroSubClass.NONE) {
                 bonus += EquipmentAttribute.bonus(hero, EquipmentAttribute.Type.TREE_SKILLS, talent.subclass.ordinal());
             }
         }
-        return Math.min(talent.maxRank(), learned + Math.min(3, bonus));
+        return (int)Math.min(Integer.MAX_VALUE, learned + bonus);
     }
 
     private boolean requirementsMet(Talent talent) {
@@ -121,13 +126,13 @@ public final class RebornSkillTree extends SkillTree {
     }
 
     public int nextRank(Talent talent) {
-        return rank(talent, skill(talent).level + 1);
+        return rank(talent, Math.min(talent.maxRank(), skill(talent).level + 1));
     }
 
     public int bonus(Talent.Effect effect) {
-        int value = 0;
+        long value = 0;
         for (TalentSkill skill : talents) if (skill.talent.effect == effect) value += skill.talent.amount(rank(skill.talent));
-        return value;
+        return (int)Math.min(Integer.MAX_VALUE, value);
     }
 
     private boolean branchAvailable(Talent talent) {
@@ -376,10 +381,10 @@ public final class RebornSkillTree extends SkillTree {
                 if (hero.HP <= 5) return false;
                 break;
             case SUMMON_RAT: case SUMMON_SKELETON: case SUMMON_ARCHER: case SUMMON_GHOST:
-                if (!summon(talent, power, hero.pos)) return false;
+                if (!summon(talent, hero.pos)) return false;
                 break;
             case RAISE_SKELETON: case RAISE_ARCHER:
-                if (!summon(talent, power, cell)) return false;
+                if (!summon(talent, cell)) return false;
                 consumeCorpse(cell);
                 break;
             case CORPSE_EXPLOSION:
@@ -453,9 +458,11 @@ public final class RebornSkillTree extends SkillTree {
         if (!casting) return;
         try {
             if (Dungeon.level != floor || !hero.isAlive()) return;
+            int targetHealth = target == null ? 0 : target.HP;
             if (talent.effect == CORPSE_EXPLOSION) explodeCorpse(cell, power);
             else if (target == null || target == hero || target.isAlive() && floor.mobs.contains(target))
                 apply(talent, power, target);
+            TutorialRun.skillHit(hero, talent, target, targetHealth);
             if (!hero.isAlive()) return;
             Buff.detach(hero, Invisibility.class);
             if (talent.effect == SHADOW) Buff.prolong(hero, Invisibility.class, power);
@@ -502,13 +509,13 @@ public final class RebornSkillTree extends SkillTree {
         switch (talent.effect) {
             case DOUBLE_STRIKE:
                 for (int i = 0; i < 2 && target.isAlive(); i++) {
-                    hit(target, Math.max(0, hero.damageRoll() * power / 100 - Random.IntRange(0, Math.max(0, target.dr()))), CombatTextIcon.PHYSICAL);
+                    hit(target, saturate((long)hero.damageRoll() * power / 100 - Random.IntRange(0, Math.max(0, target.dr()))), CombatTextIcon.PHYSICAL);
                 }
                 break;
             case STRIKE: case PIERCING_STRIKE: case PUSH: case DISARM: case ROOT_STRIKE: case SLOW_STRIKE: case CHARGE:
                 int armor = Random.IntRange(0, Math.max(0, target.dr()));
                 if (talent.effect == PIERCING_STRIKE) armor /= 2;
-                hit(target, Math.max(0, hero.damageRoll() * power / 100 - armor), CombatTextIcon.PHYSICAL);
+                hit(target, saturate((long)hero.damageRoll() * power / 100 - armor), CombatTextIcon.PHYSICAL);
                 if (!target.isAlive()) break;
                 if (talent.effect == PUSH) push(target);
                 if (talent.effect == DISARM) Buff.prolong(target, NecroWeakened.class, 3).setLevel(5);
@@ -517,7 +524,7 @@ public final class RebornSkillTree extends SkillTree {
                 if (talent.effect == CHARGE && bonus(BLEED) > 0) Buff.affect(target, Bleeding.class).set(bonus(BLEED));
                 break;
             case BOLT: case HEAVY_BOLT:
-                hit(target, power + (talent == Talent.SPARK && hero.subClass == HeroSubClass.WARLOCK ? 5 : 0));
+                hit(target, saturate((long)power + (talent == Talent.SPARK && hero.subClass == HeroSubClass.WARLOCK ? 5 : 0)));
                 if (target.isAlive() && talent == Talent.SPARK && hero.subClass == HeroSubClass.BATTLEMAGE && Random.Int(2) == 0)
                     Buff.prolong(target, Blindness.class, 3);
                 break;
@@ -530,7 +537,7 @@ public final class RebornSkillTree extends SkillTree {
             case RESTORE_MANA: recover(hero, power, true); break;
             case PACT: hero.damage(5, this); recover(hero, power, true); break;
             case LAW:
-                int extraHealth = Math.max(1, Math.min(500, hero.HT * power / 100));
+                int extraHealth = Math.max(1, saturate((long)hero.HT * power / 100));
                 SkillEffect.grant(hero, talent, extraHealth, 20);
                 hero.refreshBonuses();
                 recover(hero, extraHealth, false);
@@ -568,7 +575,7 @@ public final class RebornSkillTree extends SkillTree {
                             || Level.distance(hero.pos, mob.pos) > (talent.effect == WAR_CRY ? 2 : 1)) continue;
                     if (talent.effect == WAR_CRY) Buff.prolong(mob, NecroWeakened.class, power).setLevel(5);
                     else {
-                        hit(mob, talent.effect == SWEEP ? Math.max(0, hero.damageRoll() * power / 100 - Random.IntRange(0, mob.dr())) : power,
+                        hit(mob, talent.effect == SWEEP ? saturate((long)hero.damageRoll() * power / 100 - Random.IntRange(0, mob.dr())) : power,
                                 talent.effect == SWEEP ? CombatTextIcon.PHYSICAL : talent.effect == CHILL_BURST ? CombatTextIcon.COLD : CombatTextIcon.MAGIC);
                         if (mob.isAlive() && talent.effect == CHILL_BURST) Buff.prolong(mob, Slow.class, 3);
                         if (mob.isAlive() && talent.effect == SWEEP && bonus(BLEED) > 0) Buff.affect(mob, Bleeding.class).set(bonus(BLEED));
@@ -603,9 +610,13 @@ public final class RebornSkillTree extends SkillTree {
     public static void recover(Char target, int amount, boolean mana) {
         if (!target.isAlive() || amount <= 0) return;
         int before = mana ? target.MP : target.HP;
-        if (mana) target.MP = Math.min(target.MMP, target.MP + amount);
-        else target.HP = Math.min(target.HT, target.HP + amount);
+        if (mana) target.MP = (int)Math.min(target.MMP, (long)target.MP + amount);
+        else target.HP = (int)Math.min(target.HT, (long)target.HP + amount);
         target.showRecovery((mana ? target.MP : target.HP) - before, mana);
+    }
+
+    private static int saturate(long value) {
+        return (int)Math.max(0, Math.min(Integer.MAX_VALUE, value));
     }
 
     private int rushDestination(int cell, boolean attack) {
@@ -624,7 +635,7 @@ public final class RebornSkillTree extends SkillTree {
         return destination;
     }
 
-    private boolean summon(Talent talent, int power, int origin) {
+    private boolean summon(Talent talent, int origin) {
         int count = 0;
         for (Mob mob : Dungeon.level.mobs) if (mob instanceof SummonedPet && ((SummonedPet)mob).owner() == hero && mob.isAlive()) count++;
         if (count >= SummonedPet.SUMMONED_PETS_LIMIT + summoningLimitBonus()) return false;
@@ -642,8 +653,8 @@ public final class RebornSkillTree extends SkillTree {
                 : talent.effect == SUMMON_ARCHER || talent.effect == RAISE_ARCHER ? SummonedPet.PET_TYPES.SKELETON_ARCHER : SummonedPet.PET_TYPES.SKELETON;
         SummonedPet pet = talent.effect == SUMMON_GHOST ? new GhostSummonedPet() : new SummonedPet(type);
         pet.partyOwner(hero);
-        pet.spawn(hero.subClass == HeroSubClass.LICH && (talent.effect == RAISE_SKELETON || talent.effect == RAISE_ARCHER) ? power * 2 : power);
-        if (talent.effect == RAISE_SKELETON && hero.subClass == HeroSubClass.SPIRIT_BINDER) pet.setLifetimeMultiplier(2);
+        pet.spawn(1);
+        pet.bindTalent(talent, 1);
         pet.pos = cell;
         GameScene.add(pet);
         return true;
@@ -667,9 +678,9 @@ public final class RebornSkillTree extends SkillTree {
 
     public void moved() { moved = true; }
     public int armorBonus() { return bonus(ARMOR); }
-    public int healthBonus() { return bonus(HEALTH) + SkillEffect.power(hero, LAW); }
+    public int healthBonus() { return saturate((long)bonus(HEALTH) + SkillEffect.power(hero, LAW)); }
     public int manaBonus() { return bonus(MANA); }
-    public float movement() { return 1 + (bonus(MOVE_SPEED) + SkillEffect.power(hero, HASTE)) / 100f; }
+    public float movement() { return 1 + (bonus(MOVE_SPEED) + (long)SkillEffect.power(hero, HASTE)) / 100f; }
     public float missileSpeed() { return 1 + bonus(RANGED_SPEED) / 100f; }
     public int evasion(Char enemy) { return enemy != null && Level.distance(hero.pos, enemy.pos) > 1 ? bonus(RANGED_EVASION) : 0; }
 
@@ -677,22 +688,22 @@ public final class RebornSkillTree extends SkillTree {
         if (enemy == null || !Level.adjacent(hero.pos, enemy.pos)) return damage;
         SkillEffect guard = SkillEffect.find(hero, GUARD);
         if (guard != null) {
-            damage = damage * (100 - Math.min(85, guard.power)) / 100;
+            damage = (int)((long)damage * (100 - Math.min(85, guard.power)) / 100);
             guard.detach();
             riposteUntil = Skill.skillTrack + 4;
         }
-        if (adjacentEnemies() >= 2) damage = damage * (100 - Math.min(40, bonus(CROWDED_GUARD))) / 100;
+        if (adjacentEnemies() >= 2) damage = (int)((long)damage * (100 - Math.min(40, bonus(CROWDED_GUARD))) / 100);
         if (damage > 0) counterUntil = Skill.skillTrack + 4;
         return damage;
     }
 
     public int attack(Char target, int damage, boolean ranged) {
-        int percent = 0;
+        long percent = 0;
         if (!ranged) {
             if (hero.invisible > 0) percent += bonus(UNSEEN_DAMAGE);
             if (moved) percent += bonus(AFTER_MOVE);
             if (Skill.skillTrack < riposteUntil) percent += bonus(RIPOSTE);
-            if (Skill.skillTrack - lastHit > 3 + bonus(FOOTWORK)) hits = 0;
+            if (Skill.skillTrack - lastHit > 3L + bonus(FOOTWORK)) hits = 0;
             hits = Math.min(3, hits + 1);
             lastHit = Skill.skillTrack;
             moved = false;
@@ -702,7 +713,7 @@ public final class RebornSkillTree extends SkillTree {
                 recover(hero, bonus(STAFF_CHARGE), true);
                 Wand wand = (Wand)hero.belongings.weapon;
                 if (chargedStrikeActive() && wand.curCharges > 0) {
-                    damage += wand.curCharges * bonus(WAND_MELEE);
+                    damage = saturate(damage + (long)wand.curCharges * bonus(WAND_MELEE));
                     wand.curCharges--;
                     wand.updateQuickslot();
                 }
@@ -725,7 +736,7 @@ public final class RebornSkillTree extends SkillTree {
                     case READY_PIERCE: break;
                     case READY_ROOT: Buff.prolong(target, Roots.class, effect.power); break;
                     case READY_SLOW: Buff.prolong(target, Slow.class, effect.power); break;
-                    case DOUBLE_SHOT: damage = damage * effect.power / 100; continue;
+                    case DOUBLE_SHOT: damage = saturate((long)damage * effect.power / 100); continue;
                     case READY_WEAKEN: Buff.prolong(target, NecroWeakened.class, effect.power).setLevel(5); break;
                     default: continue;
                 }
@@ -736,20 +747,20 @@ public final class RebornSkillTree extends SkillTree {
         }
         SkillEffect mark = SkillEffect.find(hero, MARK);
         if (mark != null && mark.enemy == target.id()) percent += mark.power;
-        if (target.HP < target.HT / 4) percent += bonus(WOUNDED_DAMAGE) + (ranged ? bonus(GUN_FINISH) : 0);
-        return Math.max(0, damage * (100 + percent) / 100);
+        if (target.HP < target.HT / 4) percent += bonus(WOUNDED_DAMAGE) + (long)(ranged ? bonus(GUN_FINISH) : 0);
+        return saturate((long)damage * (100L + saturate(percent)) / 100);
     }
 
     public int armorAfterPiercing(int armor, boolean ranged) {
         if (ranged && hero.subClass == HeroSubClass.SNIPER) return 0;
-        int pierce;
+        long pierce;
         if (ranged) {
-            pierce = bonus(RANGED_PIERCE) + SkillEffect.power(hero, READY_PIERCE);
+            pierce = bonus(RANGED_PIERCE) + (long)SkillEffect.power(hero, READY_PIERCE);
         } else {
-            int nextHits = Skill.skillTrack - lastHit > 3 + bonus(FOOTWORK) ? 1 : hits + 1;
-            pierce = bonus(ARMOR_PIERCE) + (nextHits >= 3 ? bonus(COMBO_PIERCE) : 0);
+            int nextHits = Skill.skillTrack - lastHit > 3L + bonus(FOOTWORK) ? 1 : hits + 1;
+            pierce = bonus(ARMOR_PIERCE) + (long)(nextHits >= 3 ? bonus(COMBO_PIERCE) : 0);
         }
-        return Math.max(0, armor - pierce);
+        return saturate(armor - pierce);
     }
 
     public void killed(Char enemy) {
@@ -767,18 +778,18 @@ public final class RebornSkillTree extends SkillTree {
         lastKill = Skill.skillTrack;
     }
 
-    @Override public int getWeaponLevelBonus() { return (bonus(MASTERY) + 1) / 2; }
-    @Override public float getMeleeModifier() { return 1 + (bonus(MELEE_DAMAGE) + (hero.subClass == HeroSubClass.BERSERKER ? 10 : 0)
+    @Override public int getWeaponStrengthReduction() { return bonus(MASTERY); }
+    @Override public float getMeleeModifier() { return 1 + (bonus(MELEE_DAMAGE) + (hero.subClass == HeroSubClass.BERSERKER ? 10f : 0)
             + bonus(LOW_HEALTH_DAMAGE) * (1 - hero.HP / (float)Math.max(1, hero.HT))) / 100f; }
     @Override public float getDamageReductionModifier() { return 1 - Math.min(50, bonus(RESISTANCE) + (hero.subClass == HeroSubClass.BERSERKER ? 10 : 0)) / 100f; }
-    @Override public int getMeleeAttackSkillBonus() { return bonus(ACCURACY) + (hero.subClass == HeroSubClass.GLADIATOR ? 3 : 0); }
-    @Override public float getMeleeSpeedBonus() { return 1 + (bonus(MELEE_SPEED) + 5 * bonus(MASTERY)
+    @Override public int getMeleeAttackSkillBonus() { return saturate((long)bonus(ACCURACY) + (hero.subClass == HeroSubClass.GLADIATOR ? 3 : 0)); }
+    @Override public float getMeleeSpeedBonus() { return 1 + (bonus(MELEE_SPEED) + 5f * bonus(MASTERY)
             + (hero.subClass == HeroSubClass.GLADIATOR ? 10 : 0) + (Skill.skillTrack < hasteUntil ? bonus(KILL_HASTE) : 0)) / 100f; }
-    @Override public int getStealthBonus() { return bonus(STEALTH) + (hero.subClass == HeroSubClass.ASSASSIN ? 1 : 0); }
-    @Override public int evasionDefenceBonus() { return bonus(EVASION) + SkillEffect.power(hero, DODGE) + SkillEffect.power(hero, CLEANSE) + (adjacentEnemies() == 1 ? bonus(DUEL_EVASION) : 0); }
+    @Override public int getStealthBonus() { return saturate((long)bonus(STEALTH) + (hero.subClass == HeroSubClass.ASSASSIN ? 1 : 0)); }
+    @Override public int evasionDefenceBonus() { return saturate((long)bonus(EVASION) + SkillEffect.power(hero, DODGE) + SkillEffect.power(hero, CLEANSE) + (adjacentEnemies() == 1 ? bonus(DUEL_EVASION) : 0)); }
     @Override public int getRangedAttackSkillBonus() { return bonus(RANGED_ACCURACY); }
-    @Override public float rangedDamageModifier() { return 1 + (bonus(RANGED_DAMAGE) + (hero.subClass == HeroSubClass.SNIPER ? 20 : 0)) / 100f; }
-    @Override public float getWandDamageModifier() { return 1 + (bonus(WAND_DAMAGE) + (Skill.skillTrack < spellUntil ? bonus(SPELLWEAVE) : 0)) / 100f; }
+    @Override public float rangedDamageModifier() { return 1 + (bonus(RANGED_DAMAGE) + (hero.subClass == HeroSubClass.SNIPER ? 20L : 0)) / 100f; }
+    @Override public float getWandDamageModifier() { return 1 + (bonus(WAND_DAMAGE) + (long)(Skill.skillTrack < spellUntil ? bonus(SPELLWEAVE) : 0)) / 100f; }
     @Override public float getWandRechargeSpeedModifier() { return 1 / (1 + bonus(WAND_RECHARGE) / 100f); }
     @Override public int SpiritArmorAbsorb(int damage) {
         TalentSkill armor = skill(Talent.SPIRIT_ARMOR);
@@ -788,10 +799,10 @@ public final class RebornSkillTree extends SkillTree {
         return absorbed;
     }
     @Override public int summoningLimitBonus() { return bonus(SUMMON_LIMIT) + (hero.subClass == HeroSubClass.WARLOCK || hero.subClass == HeroSubClass.LICH ? 1 : 0); }
-    @Override public float getMinionDamageModifier() { return 1 + (bonus(MINION_DAMAGE) + enrage()) / 100f; }
-    @Override public float getMinionIncomingDamageModifier() { return 1 + (enrage() - Math.min(50, bonus(MINION_GUARD))) / 100f; }
-    @Override public int getGunAmmoBonus() { return bonus(GUN_AMMO) + (hero.subClass == HeroSubClass.MARSHAL ? 5 : 0); }
-    @Override public int getGunAttackSkillBonus() { return bonus(GUN_ACCURACY) + (hero.subClass == HeroSubClass.MARSHAL ? 1 : 0); }
+    @Override public float getMinionDamageModifier() { return 1 + (bonus(MINION_DAMAGE) + (long)enrage()) / 100f; }
+    @Override public float getMinionIncomingDamageModifier() { return 1 + (Math.min(50, enrage()) - Math.min(50, bonus(MINION_GUARD))) / 100f; }
+    @Override public int getGunAmmoBonus() { return saturate((long)bonus(GUN_AMMO) + (hero.subClass == HeroSubClass.MARSHAL ? 5 : 0)); }
+    @Override public int getGunAttackSkillBonus() { return saturate((long)bonus(GUN_ACCURACY) + (hero.subClass == HeroSubClass.MARSHAL ? 1 : 0)); }
     @Override public float getGunDamageModifier() { return 1 + bonus(GUN_DAMAGE) / 100f; }
     @Override public float getGunAttackSpeedModifier() { return (1 + bonus(GUN_SPEED) / 100f)
             * (hero.subClass == HeroSubClass.EXECUTIONER && hero.HP < hero.HT * .4f ? 1.5f : 1); }
@@ -804,14 +815,14 @@ public final class RebornSkillTree extends SkillTree {
         if (skill != null && usable(skill)) {
             spend(skill);
             shot.damageModifier = 1 + skill.talent.amount(skill.rank()) / 100f;
-            if (skill.talent.effect == HEADSHOT) shot.attackSkillBonus += skill.rank();
+            if (skill.talent.effect == HEADSHOT) shot.attackSkillBonus = saturate((long)shot.attackSkillBonus + skill.rank());
             else shot.flee = true;
         }
         return shot;
     }
-    @Override public int getLootBonus(int gold) { return gold * bonus(GOLD) / 100; }
-    @Override public int getFletching() { return bonus(FLETCHING) == 0 ? 0 : Math.max(40, 100 - 5 * bonus(FLETCHING)); }
-    @Override public int hunting() { return 5 * bonus(HUNTING); }
+    @Override public int getLootBonus(int gold) { return saturate((long)gold * bonus(GOLD) / 100); }
+    @Override public int getFletching() { return Talent.productionInterval(bonus(FLETCHING)); }
+    @Override public int hunting() { return bonus(HUNTING) == 0 ? 0 : 100 - Talent.productionInterval(bonus(HUNTING)); }
     @Override public int getWantedGoldBonus() { return bonus(BOUNTY); }
     @Override public float getGunExecuteThreshold() { return Math.min(30, bonus(EXECUTE)) / 100f; }
     @Override public boolean rangedDodgeChance() { return Random.Int(100) < bonus(RANGED_DODGE); }
@@ -842,7 +853,7 @@ public final class RebornSkillTree extends SkillTree {
         int rank = bonus(ARROW_PENETRATION);
         TalentSkill bomb = selected(BOMB_ARROW);
         if (rank == 0 || bomb != null && usable(bomb)) return 0;
-        return Random.Int(rank + 1) > 0 ? rank : 0;
+        return Random.Double() * (rank + 1L) >= 1 ? rank : 0;
     }
 
     private TalentSkill selected(Talent.Effect effect) {
@@ -872,7 +883,7 @@ public final class RebornSkillTree extends SkillTree {
     }
     @Override public boolean rangedSlow() { return SkillEffect.find(hero, READY_SLEEP) != null; }
 
-    @Override public int aimedShot() { return SkillEffect.find(hero, READY_SHOT) == null ? 0 : 2 * rank(Talent.AIMED_SHOT); }
+    @Override public int aimedShot() { return SkillEffect.find(hero, READY_SHOT) == null ? 0 : saturate(2L * rank(Talent.AIMED_SHOT)); }
 
     @Override public boolean arrowToBomb() {
         TalentSkill skill = selected(BOMB_ARROW);
@@ -905,7 +916,8 @@ public final class RebornSkillTree extends SkillTree {
             int next = cell + offset;
             if (next < 0 || next >= Level.LENGTH || Level.distance(cell, next) > 1) continue;
             Char target = Actor.findChar(next);
-            if (target != null) hit(target, Math.max(0, power - Random.IntRange(0, Math.max(0, target.dr()))), CombatTextIcon.PHYSICAL);
+            if (target != null) hit(target, saturate((long)power + EssenceEffect.attackBonus(hero)
+                    - Random.IntRange(0, Math.max(0, target.dr()))), CombatTextIcon.PHYSICAL);
         }
     }
 
@@ -924,14 +936,11 @@ public final class RebornSkillTree extends SkillTree {
         for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
             if (mob instanceof SummonedPet && ((SummonedPet)mob).owner() == hero && mob.spriteClass == MirrorSprite.class) mob.die(this);
         }
-        int rank = skill.rank();
         for (int i = 0; i < count; i++) {
             SummonedPet clone = new SummonedPet(MirrorSprite.class);
             clone.partyOwner(hero);
             clone.nameText(Message.key(count == 1 ? "actors.hero.abilities.rogue.shadowclone.name" : "custom.generated.entry_weak_shadow_clone_1c63622f3a"));
-            clone.level = rank;
-            clone.HP = clone.HT = Math.max(1, (7 + 14 * rank) / count);
-            clone.defenseSkill = Math.max(1, (5 + 4 * rank) / count);
+            clone.bindTalent(skill.talent, count);
             clone.pos = cells.get(i);
             clone.screams = false;
             GameScene.add(clone);

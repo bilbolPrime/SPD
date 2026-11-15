@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.items.wands;
 
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
@@ -513,6 +514,7 @@ public abstract class Wand extends KindOfWeapon {
 					curUser.spendAndNext( TIME_TO_ZAP );
 					GLog.w(Wand.class, "fizzles");
 					curWand.levelKnown = true;
+					if (curWand.isEquipped(curUser)) curUser.refreshBonuses();
 
 					curWand.updateQuickslot();
 				}
@@ -552,14 +554,20 @@ public abstract class Wand extends KindOfWeapon {
 		}
 
 		protected void delay() {
-			float time2charge = (((Hero)target).heroClass == HeroClass.MAGE || ((Hero)target).heroClass == HeroClass.NECROMANCER) ?
+			Hero hero = (Hero)target;
+			float base = (hero.heroClass == HeroClass.MAGE || hero.heroClass == HeroClass.NECROMANCER) ?
 				TIME_TO_CHARGE / (float)Math.sqrt( 1 + effectiveLevel() ) :
 				TIME_TO_CHARGE;
+			float time2charge = base;
 
-			if(((Hero)target).skillTree != null){
-				time2charge *= ((Hero)target).skillTree.getWandRechargeSpeedModifier();
+			if (hero.skillTree != null) {
+				time2charge *= hero.skillTree.getWandRechargeSpeedModifier();
 			}
 
+			if (Dungeon.rules().hasRebornEncounters()) {
+				float rate = base / Math.max(.001f, time2charge) + hero.essenceBonus(Essence.Type.STORM) / 100f;
+				time2charge = Math.max(.001f, base / rate);
+			}
 			spend( time2charge );
 		}
 	}

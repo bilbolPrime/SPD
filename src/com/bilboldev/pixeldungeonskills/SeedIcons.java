@@ -173,7 +173,22 @@ public final class SeedIcons {
         "ENEMIES:actors.mobs.rimehorn.name",
         "BOSSES:actors.mobs.oldrime.name",
         "PEOPLE:actors.mobs.npcs.prospector.name",
-        "POTIONS:items.potions.potionofrejuvenation.name"
+        "POTIONS:items.potions.potionofrejuvenation.name",
+        "MISC:essences.vital.name",
+        "MISC:essences.arcane.name",
+        "MISC:essences.stone.name",
+        "MISC:essences.shade.name",
+        "MISC:essences.wind.name",
+        "MISC:essences.memory.name",
+        "MISC:essences.ember.name",
+        "MISC:essences.rime.name",
+        "MISC:essences.venom.name",
+        "MISC:essences.storm.name",
+        "MISC:essences.blood.name",
+        "MISC:essences.iron.name",
+        "MISC:essences.sight.name",
+        "MISC:essences.ward.name",
+        "MISC:essences.harvest.name"
     };
     public static final int COUNT = entries.length;
 

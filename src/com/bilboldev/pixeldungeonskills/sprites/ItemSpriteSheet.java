@@ -290,7 +290,23 @@ public class ItemSpriteSheet {
 	public static final int POTION_MANA_IDENTIFIED = 289;
 	public static final int RECIPE_HEALING = 290;
 	public static final int POTION_REJUVENATION = 297;
-	public static final int MAX_IMAGE = POTION_REJUVENATION;
+
+    public static final int ESSENCE_VITAL = 304;
+    public static final int ESSENCE_ARCANE = 305;
+    public static final int ESSENCE_STONE = 306;
+    public static final int ESSENCE_SHADE = 307;
+    public static final int ESSENCE_WIND = 308;
+    public static final int ESSENCE_MEMORY = 309;
+    public static final int ESSENCE_EMBER = 310;
+    public static final int ESSENCE_RIME = 311;
+    public static final int ESSENCE_VENOM = 312;
+    public static final int ESSENCE_STORM = 313;
+    public static final int ESSENCE_BLOOD = 314;
+    public static final int ESSENCE_IRON = 315;
+    public static final int ESSENCE_SIGHT = 316;
+    public static final int ESSENCE_WARD = 317;
+    public static final int ESSENCE_HARVEST = 318;
+	public static final int MAX_IMAGE = ESSENCE_HARVEST;
 
 	private static final Map<Class<? extends Item>, Integer> identifiedImages = new HashMap<>();
 

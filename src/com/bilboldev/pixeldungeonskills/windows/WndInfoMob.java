@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.ColorBlock;
@@ -28,13 +29,18 @@ import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ForgottenOffering;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RoomProp;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.WatchRemains;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.ui.HealthBar;
 import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.LibraryChampionSkills;
+import com.bilboldev.pixeldungeonskills.ui.MobCardText;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.utils.Utils;
@@ -43,13 +49,21 @@ public class WndInfoMob extends WndScrollable {
 	private LibraryChampionSkills championSkills;
 
 	public WndInfoMob( Mob mob ) {
+        TutorialRun.inspect(mob);
 
-		int width = boundedWidth(InspectionTitle.windowWidth(0));
-		Component heading = Presentation.reborn() ? new RebornMobTitle(mob) : new MobTitle(mob);
+		int width = boundedWidth(InspectionTitle.windowWidth(120));
+		boolean roomObject = mob instanceof WatchRemains || mob instanceof ForgottenOffering;
+		Component heading;
+		if (roomObject) {
+			heading = InspectionTitle.create(new ItemSprite(((RoomProp)mob).image(), null),
+					Utils.capitalize(mob.displayName()));
+		} else {
+			heading = Presentation.reborn() ? new RebornMobTitle(mob) : new MobTitle(mob);
+		}
 		heading.setRect(0, 0, width, 0);
 		Component body = new Component();
 		HighlightedText description = new HighlightedText(6);
-		description.text(desc(mob), textWidth(width));
+		description.text(roomObject ? mob.displayDescription() : desc(mob), textWidth(width), false);
 		body.add(description);
 		float bottom = description.bottom();
 		RebornChampion champion = mob.buff(RebornChampion.class);
@@ -79,9 +93,9 @@ public class WndInfoMob extends WndScrollable {
 	}
 
 	private static String desc( Mob mob ) {
-		if (Presentation.reborn()) return mob.displayDescription();
+		if (Presentation.reborn()) return MobCardText.inspection(mob);
 
-		StringBuilder builder = new StringBuilder( mob.displayDescription() );
+		StringBuilder builder = new StringBuilder( MobCardText.inspection(mob) );
 
 		builder.append( "\n\n" + mob.state.status() + "." );
 

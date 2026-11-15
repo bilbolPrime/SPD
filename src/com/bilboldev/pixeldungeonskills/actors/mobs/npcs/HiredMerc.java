@@ -18,6 +18,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.MercWizardSkillA;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.ClothArmor;
 import com.bilboldev.pixeldungeonskills.items.armor.LeatherArmor;
@@ -199,7 +200,7 @@ public class HiredMerc extends NPC {
         {
             switch (this)
             {
-                case Brute: return 13 + (int) (level / 3);
+                case Brute: return 14 + (int) (level / 3);
                 case Wizard: return 10 + (int) (level / 5);
                 case Thief: return 13 + (int) (level / 4);
                 case Archer: return 11 + (int) (level / 4);
@@ -241,6 +242,8 @@ public class HiredMerc extends NPC {
 
     public Item carrying = null;
 
+    private transient boolean meleeAttack;
+
     public boolean hackFix = false;
 
     public static final String MERC_TYPE = "merctype";
@@ -278,47 +281,45 @@ public class HiredMerc extends NPC {
 
     public void equipWeapon(Item item)
     {
-        unEquipWeapon();
-        weapon = item;
-
-        if(canEquip(weapon) == false)
-        {
-            unEquipWeapon();
-            sprite.showStatus( CharSprite.NEGATIVE, Message.key("custom.generated.entry_too_heavy_for_me_sir_f11bfd2153"));
-        }
+        if (!canEquip(item)) return;
+        replaceWeapon(item);
     }
 
     public void unEquipWeapon()
+    {
+        replaceWeapon(null);
+    }
+
+    private void replaceWeapon(Item item)
     {
         if(weapon != null)
         {
             Dungeon.level.drop( weapon, pos, this ).sprite.drop();
         }
-        weapon = null;
+        weapon = item;
+        refreshBonuses();
     }
 
     public void equipArmor(Item item)
     {
-        unEquipArmor();
-        armor = item;
-        if(canEquip(armor) == false)
-        {
-            unEquipArmor();
-            sprite.showStatus( CharSprite.NEGATIVE, Message.key("custom.generated.entry_too_heavy_for_me_sir_f11bfd2153"));
-        }
-        else
-            ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
+        if (!canEquip(item)) return;
+        replaceArmor(item);
     }
 
     public void unEquipArmor()
     {
+        replaceArmor(null);
+    }
+
+    private void replaceArmor(Item item)
+    {
         if(armor != null)
         {
             Dungeon.level.drop( armor, pos, this ).sprite.drop();
-            armor = null;
-            if(HP > 0)
-                ((MercSprite)Dungeon.hero.hiredMerc.sprite).updateArmor();
         }
+        armor = item;
+        refreshBonuses();
+        if (HP > 0 && sprite instanceof MercSprite) ((MercSprite)sprite).updateArmor();
     }
 
     public void equipItem(Item item)
@@ -352,6 +353,17 @@ public class HiredMerc extends NPC {
         return false;
     }
 
+    public int attribute(EquipmentAttribute.Type type) {
+        return EquipmentAttribute.bonus(this, type);
+    }
+
+    public void refreshBonuses() {
+        if (!Dungeon.rules().hasRebornEncounters()) return;
+        HT = (int)Math.min(Integer.MAX_VALUE, (long)mercType.getHealth(level)
+                + attribute(EquipmentAttribute.Type.HEALTH));
+        HP = Math.min(HP, HT);
+    }
+
     @Override
     public int defenseProc( Char enemy, int damage ) {
         try {
@@ -364,11 +376,12 @@ public class HiredMerc extends NPC {
         {
 
         }
+        refreshBonuses();
 
         standGuard = false;
         if (owner().talents() != null) {
-            damage = damage * (100 - Math.min(40, owner().talents().bonus(
-                    Talent.Effect.MERC_GUARD))) / 100;
+            damage = (int)((long)damage * (100 - Math.min(40, owner().talents().bonus(
+                    Talent.Effect.MERC_GUARD))) / 100);
         }
         return damage;
     }
@@ -396,6 +409,7 @@ public class HiredMerc extends NPC {
         {
 
         }
+        refreshBonuses();
 
         try
         {
@@ -415,6 +429,7 @@ public class HiredMerc extends NPC {
 
     @Override
     public void storeInBundle( Bundle bundle ) {
+        refreshBonuses();
         super.storeInBundle( bundle );
         bundle.put( LEVEL, level );
         bundle.put( MERC_TYPE, mercType);
@@ -446,12 +461,14 @@ public class HiredMerc extends NPC {
         standGuard = bundle.getBoolean("stand_guard");
         skillCounter = bundle.getInt("skill_counter");
         rangedAttackCooldown = bundle.getInt("ranged_cooldown");
+        refreshBonuses();
     }
 
     public void spawn( int level ) {
         this.level = level;
 
         HT = mercType.getHealth(level);
+        refreshBonuses();
         HP = HT;
         defenseSkill = mercType.getDefence(level);
 
@@ -463,6 +480,7 @@ public class HiredMerc extends NPC {
 
         HT = mercType.getHealth(level);
         HP = maintainHP;
+        refreshBonuses();
         name =  mercType.getName();
         defenseSkill = mercType.getDefence(level);
 
@@ -478,6 +496,7 @@ public class HiredMerc extends NPC {
     {
         level++;
         HT = mercType.getHealth(level);
+        refreshBonuses();
         HP = HT;
         try
         {
@@ -504,7 +523,29 @@ public class HiredMerc extends NPC {
 
     @Override
     public int attackSkill( Char target ) {
-        return defenseSkill;
+        return defenseSkill + attribute(EquipmentAttribute.Type.ACCURACY);
+    }
+
+    @Override
+    public int defenseSkill(Char enemy) {
+        return enemySeen && !paralysed ? defenseSkill + attribute(EquipmentAttribute.Type.EVASION) : 0;
+    }
+
+    @Override
+    public int dr() {
+        return super.dr() + attribute(EquipmentAttribute.Type.ARMOR);
+    }
+
+    @Override
+    public boolean attack(Char enemy) {
+        if (enemy == null) return false;
+        boolean previous = meleeAttack;
+        meleeAttack = Level.adjacent(pos, enemy.pos);
+        try {
+            return super.attack(enemy);
+        } finally {
+            meleeAttack = previous;
+        }
     }
 
     @Override
@@ -514,7 +555,10 @@ public class HiredMerc extends NPC {
         if (weapon == null) damage = mercType.getDamage(level);
         else if (weapon instanceof Bow) damage = (int)(mercType.getDamage(level) * 1.2f);
         else damage = ((Weapon)weapon).damageRoll(this);
-        if (owner().talents() != null) damage = damage * (100 + owner().talents().bonus(Talent.Effect.MERC_DAMAGE)) / 100;
+        boolean ranged = !meleeAttack && (mercType == MERC_TYPES.Archer || mercType == MERC_TYPES.ArcherMaiden);
+        damage *= 1 + attribute(ranged ? EquipmentAttribute.Type.RANGED : EquipmentAttribute.Type.MELEE) / 100f;
+        if (owner().talents() != null) damage = (int)Math.min(Integer.MAX_VALUE,
+                (long)damage * (100L + owner().talents().bonus(Talent.Effect.MERC_DAMAGE)) / 100);
         return damage;
     }
 

@@ -168,7 +168,7 @@ public final class PartyPresentation {
             sprite.ch = ch;
             ch.sprite = sprite;
             if (ch instanceof Hero && (((Hero)old).tier() != ((Hero)ch).tier()
-                    || ((Hero)old).heroClass != ((Hero)ch).heroClass)) {
+                    || ((Hero)old).heroClass != ((Hero)ch).heroClass || ((Hero)old).skin != ((Hero)ch).skin)) {
                 sprite.texture(((Hero)ch).spritesheet());
                 ((HeroSprite)sprite).updateArmor();
             }

@@ -37,10 +37,12 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
+import com.bilboldev.pixeldungeonskills.sprites.RatKingSprite;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.RedButton;
 import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 
 public class ClassicStartScene extends PixelScene {
     private final EnumMap<HeroClass, ClassShield> shields = new EnumMap<>(HeroClass.class);
@@ -75,7 +77,14 @@ public class ClassicStartScene extends PixelScene {
         play.setRect(left, top + height - 76, width, 24);
         add(play);
         gauntlet = new RedButton(Messages.get("gauntlet.title")) {
-            @Override protected void onClick() { GauntletRun.start(); }
+            @Override protected void onClick() {
+                ClassicStartScene.this.add(new WndOptions(new RatKingSprite(), Messages.get("gauntlet.title"),
+                        Messages.get("gauntlet.intro"), Messages.get("gauntlet.start")) {
+                    @Override protected void onSelect(int index) {
+                        GauntletRun.start();
+                    }
+                });
+            }
         };
         gauntlet.setRect(left, play.bottom() + 2, width, 24);
         add(gauntlet);

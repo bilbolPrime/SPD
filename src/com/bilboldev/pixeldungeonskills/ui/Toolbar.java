@@ -28,6 +28,7 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.levels.DailyOutpostLevel;
@@ -39,6 +40,7 @@ import com.bilboldev.pixeldungeonskills.windows.WndDailyChallenge;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
 import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -92,6 +94,9 @@ public class Toolbar extends Component {
 	private Tool[] quickSlots;
 
 	private PickedUpItem pickedUp;
+	private ColorBlock tutorialGlow;
+	private RebornChrome tutorialGuide;
+	private float guideTime;
 
 	private boolean lastEnabled = true;
 
@@ -214,6 +219,14 @@ public class Toolbar extends Component {
 		}
 
 		add( pickedUp = new PickedUpItem() );
+		if (TutorialRun.active()) {
+			add(tutorialGlow = new ColorBlock(1, 1, 0xFFE6C57E));
+			tutorialGlow.visible = false;
+			add(tutorialGuide = new RebornChrome(Chrome.Type.BUTTON).outlineOnly());
+			tutorialGuide.highlight(true);
+			tutorialGuide.brightness(1.6f);
+			tutorialGuide.visible = false;
+		}
 
 		btnWait.bindAction(GameAction.WAIT);
 		btnWait.bindAlternateAction(GameAction.REST);
@@ -282,6 +295,41 @@ public class Toolbar extends Component {
 			btnInventory.enable( true );
 		}
 		updateModeTools();
+		updateTutorialGuide();
+	}
+
+	private void updateTutorialGuide() {
+		if (tutorialGuide == null) return;
+		tutorialGlow.visible = false;
+		tutorialGuide.visible = false;
+		if (Window.topWindow() != null || !TutorialRun.acceptsInput()) return;
+		Tool target;
+		switch (TutorialRun.guideAction()) {
+			case WAIT: target = btnWait; break;
+			case INSPECT:
+			case SEARCH: target = btnInfoSearch; break;
+			case INVENTORY: target = btnInventory; break;
+			case SKILLS: target = btnSkill; break;
+			case QUICKSLOT:
+				int slot = TutorialRun.guideQuickslot();
+				if (slot < 0 || slot >= quickSlots.length) return;
+				target = quickSlots[slot];
+				break;
+			default: return;
+		}
+		if (!target.visible || !target.active) return;
+		guideTime = (guideTime + Game.elapsed) % 2;
+		float pulse = .5f - .5f * (float)Math.cos(guideTime * Math.PI);
+		tutorialGlow.x = target.left() + 2;
+		tutorialGlow.y = target.top() + 2;
+		tutorialGlow.size(target.width() - 4, target.height() - 4);
+		tutorialGlow.alpha(.18f * pulse);
+		tutorialGlow.visible = true;
+		tutorialGuide.x = target.left();
+		tutorialGuide.y = target.top();
+		tutorialGuide.size(target.width(), target.height());
+		tutorialGuide.alpha(.2f + .7f * pulse);
+		tutorialGuide.visible = true;
 	}
 
 	private void updateModeTools() {

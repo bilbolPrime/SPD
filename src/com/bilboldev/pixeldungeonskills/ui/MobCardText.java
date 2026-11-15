@@ -15,13 +15,59 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.DailyRatKing;
 import com.bilboldev.pixeldungeonskills.actors.mobs.DailyDM300;
 import com.bilboldev.pixeldungeonskills.actors.mobs.GauntletRatKing;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RatArcher;
+import com.bilboldev.pixeldungeonskills.actors.mobs.RivalServant;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ImpShopkeeper;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 
-final class MobCardText {
+public final class MobCardText {
+    private MobCardText() {}
+
     static String description(Mob mob) {
         String description = abilities(mob);
         String traits = LibraryCreatureStats.traits(mob);
         return traits.isEmpty() ? description : description + "\n" + traits;
+    }
+
+    public static String inspection(Mob mob) {
+        StringBuilder text = new StringBuilder(mob.displayDescription());
+        String hint = peopleHint(mob);
+        if (hint != null && !(mob instanceof MercenaryCamp)) {
+            text.append("\n\n").append(Messages.get("ui.itemdropcards." + hint));
+        }
+        if (mob.range > 1 && (mob instanceof RatArcher || mob instanceof RivalServant)) {
+            text.append("\n\n").append(Messages.get("ui.itemdropcards.ranged"));
+        }
+        String effect = championEffect(mob);
+        if (effect != null) text.append("\n\n").append(Messages.get("ui.itemdropcards." + effect));
+        String traits = LibraryCreatureStats.inspectionTraits(mob);
+        if (!traits.isEmpty()) text.append("\n\n").append(traits);
+        return text.toString();
+    }
+
+    static String peopleHint(Mob mob) {
+        if (mob instanceof ImpShopkeeper) return "imp_shop";
+        if (mob instanceof Shopkeeper) return "shop";
+        if (mob instanceof MercenaryCamp) return "mercenary";
+        if (mob instanceof Ghost || mob instanceof Wandmaker
+                || mob instanceof Blacksmith && !Blacksmith.Quest.rewardTaken()
+                || mob instanceof Imp && !Imp.Quest.isCompleted()
+                || mob instanceof Prospector && !((Prospector)mob).questCompleted()) return "quest";
+        return null;
+    }
+
+    private static String championEffect(Mob mob) {
+        if (mob.buff(RebornChampion.class) != null) return null;
+        return mob.champ == Champ.CHAMP_VAMPERIC ? "vampiric"
+                : mob.champ == Champ.CHAMP_CURSED ? "weakening"
+                : mob.champ == Champ.CHAMP_FOUL ? "poisonous" : null;
     }
 
     private static String abilities(Mob mob) {
@@ -50,9 +96,7 @@ final class MobCardText {
                         text.append('\n').append(Messages.get("champions.knows", (Object)skill.title(), champion.rank(skill)));
                     }
                 } else {
-                    String effect = mob.champ == Champ.CHAMP_VAMPERIC ? "vampiric"
-                            : mob.champ == Champ.CHAMP_CURSED ? "weakening"
-                            : mob.champ == Champ.CHAMP_FOUL ? "poisonous" : null;
+                    String effect = championEffect(mob);
                     if (effect != null) text.append('\n').append(Messages.get("ui.itemdropcards." + effect));
                 }
             }

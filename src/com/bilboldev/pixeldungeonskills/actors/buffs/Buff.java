@@ -32,7 +32,7 @@ public class Buff extends Actor {
 
 	public boolean attachTo( Char target ) {
 
-		if (target.immunities().contains( getClass() )) {
+		if (target.immunities().contains( getClass() ) || EssenceEffect.blocks(target, getClass())) {
 			return false;
 		}
 

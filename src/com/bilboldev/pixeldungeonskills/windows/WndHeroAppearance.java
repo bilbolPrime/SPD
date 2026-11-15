@@ -5,6 +5,7 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
+import com.bilboldev.pixeldungeonskills.CosmeticAccessories;
 import com.bilboldev.pixeldungeonskills.CosmeticPets;
 import com.bilboldev.pixeldungeonskills.SupporterEntitlements;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -25,36 +26,41 @@ public final class WndHeroAppearance extends WndScrollable {
     private static final String RUN_PHRASE = "SkillfulPixelDungeon";
     private final ControlRow content = new ControlRow();
     private final Choice[] choices = new Choice[5];
+    private final Choice[] accessoryChoices = new Choice[CosmeticAccessories.COUNT];
     private final Choice[] petChoices = new Choice[CosmeticPets.COUNT];
-    private final Choice noAura, noPet;
+    private final Choice noAura, noAccessory, noPet;
+    private final Hero hero;
     private final SupporterPreview preview;
     private final HighlightedText name;
+    private final HighlightedText accessoryName;
     private final HighlightedText petDescription;
     private final RedButton support;
     private final RatKingButton ratKing;
     private final int choiceWidth;
     private String typed = "";
-    private int selected, selectedPet;
-    private int lastActive = -1, lastPet = -1;
-    private boolean lastOwned, lastPetsOwned;
+    private int selected, selectedAccessory, selectedPet;
+    private int lastActive = -1, lastAccessory = -1, lastPet = -1;
+    private boolean lastOwned, lastAccessoriesOwned, lastPetsOwned;
 
     public WndHeroAppearance() {
         this(null);
     }
 
     public WndHeroAppearance(Hero hero) {
+        this.hero = hero;
         int width = boundedWidth(landscapeLayout() ? 320 : 184);
         int bodyWidth = textWidth(width);
         boolean wide = landscapeLayout() && bodyWidth >= 280;
         selected = SupporterEntitlements.ownsAura(1) ? SupporterEntitlements.selectedAura() : 1;
         selectedPet = SupporterEntitlements.ownsPets() ? CosmeticPets.selected() : 1;
+        selectedAccessory = CosmeticAccessories.available() ? CosmeticAccessories.selection(hero) : 1;
         Component heading = new IconTitle(Icons.SUPPORT.get(), text("appearance"));
         heading.setRect(0, 0, width, 0);
         String greeting = Game.isFreeDesktop() ? "aura_steam" : "aura_google_play";
         HighlightedText message = paragraph(text(greeting), 0, 0, bodyWidth);
         float top = message.bottom() + 6;
-        preview = new SupporterPreview(selected, hero, hero == null ? 1 : hero.skin, selectedPet);
-        preview.setRect(0, top, wide ? 100 : bodyWidth, 76);
+        preview = new SupporterPreview(selected, hero, hero == null ? 1 : hero.skin, selectedPet, selectedAccessory);
+        preview.setRect(0, top, wide ? 100 : bodyWidth, 84);
         content.add(preview);
         float left = wide ? 108 : 0;
         choiceWidth = (int)(bodyWidth - left);
@@ -74,9 +80,24 @@ public final class WndHeroAppearance extends WndScrollable {
             name.text(i == 0 ? Messages.get("library.none") : text("aura_" + i), choiceWidth, false);
             nameHeight = Math.max(nameHeight, name.height());
         }
-        HighlightedText pets = paragraph("_" + Messages.get("library.pets") + "_", left,
+        HighlightedText headwear = paragraph("_" + text("accessories") + "_", left,
                 name.top() + nameHeight + 8, choiceWidth);
         cell = (choiceWidth - 18) / 7f;
+        noAccessory = new Choice(Icons.CLOSE.get(), () -> chooseAccessory(0));
+        noAccessory.setRect(left, headwear.bottom() + 4, cell, 28);
+        for (int i = 0; i < accessoryChoices.length; i++) {
+            final int accessory = i + 1;
+            accessoryChoices[i] = new Choice(CosmeticAccessories.image(accessory), () -> chooseAccessory(accessory));
+            accessoryChoices[i].setRect(left + (i + 1) * (cell + 3), noAccessory.top(), cell, 28);
+        }
+        accessoryName = paragraph("", left, noAccessory.bottom() + 4, choiceWidth);
+        float accessoryHeight = 0;
+        for (int accessory = 0; accessory <= CosmeticAccessories.COUNT; accessory++) {
+            accessoryName.text(accessory == 0 ? Messages.get("library.none") : CosmeticAccessories.name(accessory), choiceWidth, false);
+            accessoryHeight = Math.max(accessoryHeight, accessoryName.height());
+        }
+        HighlightedText pets = paragraph("_" + Messages.get("library.pets") + "_", left,
+                accessoryName.top() + accessoryHeight + 8, choiceWidth);
         noPet = new Choice(Icons.CLOSE.get(), () -> choosePet(0));
         noPet.setRect(left, pets.bottom() + 4, cell, 28);
         for (int i = 0; i < petChoices.length; i++) {
@@ -138,6 +159,13 @@ public final class WndHeroAppearance extends WndScrollable {
         refresh();
     }
 
+    private void chooseAccessory(int accessory) {
+        selectedAccessory = accessory;
+        preview.accessory(accessory);
+        CosmeticAccessories.choose(hero, accessory);
+        refresh();
+    }
+
     private String petText(int pet) {
         return pet == 0 ? Messages.get("library.none")
                 : "_" + CosmeticPets.name(pet) + "_\n" + CosmeticPets.description(pet);
@@ -167,22 +195,31 @@ public final class WndHeroAppearance extends WndScrollable {
     @Override public void update() {
         super.update();
         if (lastActive != SupporterEntitlements.selectedAura() || lastPet != CosmeticPets.selected()
-                || lastOwned != SupporterEntitlements.ownsAura(1) || lastPetsOwned != SupporterEntitlements.ownsPets()) refresh();
+                || lastAccessory != CosmeticAccessories.selection(hero)
+                || lastOwned != SupporterEntitlements.ownsAura(1) || lastPetsOwned != SupporterEntitlements.ownsPets()
+                || lastAccessoriesOwned != CosmeticAccessories.available()) refresh();
     }
 
     private void refresh() {
         lastActive = SupporterEntitlements.selectedAura();
         lastPet = CosmeticPets.selected();
+        lastAccessory = CosmeticAccessories.selection(hero);
         lastOwned = SupporterEntitlements.ownsAura(1);
         lastPetsOwned = SupporterEntitlements.ownsPets();
+        lastAccessoriesOwned = CosmeticAccessories.available();
         name.text(selected == 0 ? Messages.get("library.none") : text("aura_" + selected), choiceWidth, false);
         name.setColor(SupporterIcon.color(selected, 0), SupporterIcon.color(selected, 0));
         petDescription.text(petText(selectedPet), choiceWidth, false);
+        accessoryName.text(selectedAccessory == 0 ? Messages.get("library.none") : CosmeticAccessories.name(selectedAccessory), choiceWidth, false);
         noAura.mark(lastActive == 0, true);
+        noAccessory.mark(lastAccessory == 0, true);
         noPet.mark(lastPet == 0, true);
         for (int i = 0; i < choices.length; i++) choices[i].mark(lastActive == i + 1, lastOwned);
         for (int i = 0; i < petChoices.length; i++) {
             petChoices[i].mark(lastPet == i + 1, lastPetsOwned && CosmeticPets.unlocked(i + 1));
+        }
+        for (int i = 0; i < accessoryChoices.length; i++) {
+            accessoryChoices[i].mark(lastAccessory == i + 1, lastAccessoriesOwned);
         }
         if (ratKing != null) ratKing.refresh();
     }

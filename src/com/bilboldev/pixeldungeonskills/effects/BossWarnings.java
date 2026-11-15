@@ -7,12 +7,14 @@ import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.actors.mobs.*;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.DailySealLevel;
 import com.bilboldev.pixeldungeonskills.levels.DailyOutpostLevel;
 import com.bilboldev.pixeldungeonskills.levels.DailyHoardLevel;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
+import com.bilboldev.pixeldungeonskills.ui.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -44,6 +46,11 @@ public class BossWarnings extends Group {
     public void refresh() {
         count = 0;
         Arrays.fill(cells, null);
+        if (Dungeon.level instanceof com.bilboldev.pixeldungeonskills.levels.TutorialLevel) {
+            for (int cell : ((com.bilboldev.pixeldungeonskills.levels.TutorialLevel)Dungeon.level).warningCells())
+                decorate(cell, cell, RebornBoss.ORDER, false, 1);
+            if (Window.topWindow() == null) tutorialGuide(TutorialRun.guideCell());
+        }
         if (Dungeon.level instanceof DailySealLevel) {
             DailySealLevel level = (DailySealLevel)Dungeon.level;
             for (int site = 0; site < level.siteCells.length; site++) {
@@ -88,6 +95,20 @@ public class BossWarnings extends Group {
 
     private boolean seen(int cell) {
         return RebornBoss.valid(cell) && Dungeon.visible[cell] && !Level.solid[cell];
+    }
+
+    private void tutorialGuide(int cell) {
+        if (!seen(cell)) return;
+        float opacity = .2f + .55f * (.5f - .5f * (float)Math.cos(time * Math.PI));
+        for (int edge = 0; edge < 4; edge++) {
+            boolean horizontal = edge < 2;
+            float offset = edge % 2 == 0 ? -7 : 7;
+            Mark mark = next(cell);
+            mark.texture(stroke);
+            mark.frame(0, 0, 1, 1);
+            mark.place(cell, horizontal ? 14 : 1, horizontal ? 1 : 14, 0, 0xE6C57E,
+                    opacity, horizontal ? 0 : offset, horizontal ? offset : 0);
+        }
     }
 
     private int rivalKind(RivalBoss rival) {

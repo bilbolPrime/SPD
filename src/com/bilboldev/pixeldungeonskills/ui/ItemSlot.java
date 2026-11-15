@@ -22,6 +22,7 @@ import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
@@ -180,7 +181,11 @@ public class ItemSlot extends Button {
 			}
 
 			int level = item.visiblyUpgraded();
-			if (level != 0 || (item.cursed && item.cursedKnown)) {
+			if (item instanceof Essence) {
+				bottomRight.text(((Essence)item).gradeLabel());
+				bottomRight.measure();
+				bottomRight.hardlight(UPGRADED);
+			} else if (level != 0 || (item.cursed && item.cursedKnown)) {
 				bottomRight.text( item.levelKnown ? Utils.format( TXT_LEVEL, level ) : TXT_CURSED );
 				bottomRight.measure();
 				bottomRight.hardlight( level > 0 ? (item.isBroken() ? WARNING : UPGRADED) : DEGRADED );

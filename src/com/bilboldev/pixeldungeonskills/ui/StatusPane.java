@@ -79,7 +79,6 @@ public class StatusPane extends Component {
 
 	private DangerIndicator danger;
 	private LootIndicator loot;
-	private ResumeButton resume;
 	private BuffIndicator buffs;
 	private Compass compass;
 
@@ -161,9 +160,6 @@ public class StatusPane extends Component {
 		loot = new LootIndicator();
 		add( loot );
 
-		resume = new ResumeButton();
-		add( resume );
-
 		buffs = new BuffIndicator( Dungeon.hero );
 		add( buffs );
 
@@ -220,17 +216,11 @@ public class StatusPane extends Component {
 
 		if (tagLoot) {
 			loot.setPos( width - loot.width(), pos );
-			pos = loot.bottom() + 1;
-		}
-
-		if (tagResume) {
-			resume.setPos( width - resume.width(), pos );
 		}
 	}
 
 	private boolean tagDanger	= false;
 	private boolean tagLoot		= false;
-	private boolean tagResume	= false;
 
 	@Override
 	public void update() {
@@ -241,17 +231,17 @@ public class StatusPane extends Component {
 		if (LocalCoop.active() && shownHero != Dungeon.hero) showHero(Dungeon.hero);
 		super.update();
 
-		if (tagDanger != danger.visible || tagLoot != loot.visible || tagResume != resume.visible) {
+		if (tagDanger != danger.visible || tagLoot != loot.visible) {
 
 			tagDanger = danger.visible;
 			tagLoot = loot.visible;
-			tagResume = resume.visible;
 
 			layoutTags();
 		}
 
 		float health = (float)(Dungeon.hero.HP) / Dungeon.hero.HT;
 
+        takingDamage = Math.max(0, Math.min(takingDamage, Dungeon.hero.HT - Dungeon.hero.HP));
         if(Dungeon.hero.HP == 0)
             takingDamage = 0;
 
@@ -261,7 +251,7 @@ public class StatusPane extends Component {
         {
             takingDamageCooldownCounter++;
             if(takingDamageCooldownCounter % TAKING_DAMAGE_COOLDOWN_INTERVAL == 0)
-                takingDamage -= 0.1f;
+                takingDamage = Math.max(0, takingDamage - 0.1f);
         }
 
         Healing healing = Dungeon.hero.buff(Healing.class);
@@ -282,13 +272,9 @@ public class StatusPane extends Component {
 		}
 
 		hp.scale.x = health;
-        hp_dropping.x = hp.x + hp.width() - 20 * health;
-        hp_dropping.scale.x = health_drop;
-        if (healing != null && Dungeon.hero.isAlive()) {
 
-            hp_dropping.x = hp.x;
-            hp_dropping.scale.x = Math.min(1, health + health_drop);
-        }
+        hp_dropping.x = hp.x;
+        hp_dropping.scale.x = Math.min(1, health + health_drop);
 
 		exp.scale.x = (width / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
 

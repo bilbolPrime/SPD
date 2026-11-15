@@ -17,6 +17,7 @@ import com.bilboldev.noosa.particles.Emitter;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
 import com.bilboldev.pixeldungeonskills.effects.Halo;
@@ -76,6 +77,8 @@ final class TitleBackdrop extends Group {
         furnishTrophyRoom();
         furnishArchive();
         furnishLibrary();
+        furnishTrainingRoom();
+        furnishExpeditionRoom();
 
         water = new SkinnedBlock(3 * TILE, 3 * TILE, Assets.WATER_PRISON);
         water.x = 18 * TILE;
@@ -140,6 +143,8 @@ final class TitleBackdrop extends Group {
         addTrophyProps();
         addArchiveProps();
         addLibraryProps();
+        addTrainingProps();
+        addExpeditionProps();
 
         add(new Walker(Assets.SKELETON, 12, 15, new int[]{4, 5, 6, 7, 8, 9}, 6.0f, 1.8f,
                 new float[][]{{17, 10}, {21, 10}, {21, 11}, {17, 11}}));
@@ -211,6 +216,53 @@ final class TitleBackdrop extends Group {
             cell(60, 10, Terrain.STATUE);
             cell(53, 14, Terrain.WELL);
         }
+    }
+
+    private void furnishTrainingRoom() {
+        room(8, 15, 13, 17);
+        room(7, 15, 9, 25);
+        room(2, 25, 13, 32);
+        room(4, 24, 11, 25);
+        cell(3, 24, Terrain.WALL_DECO);
+        cell(12, 24, Terrain.WALL_DECO);
+        cell(2, 26, Terrain.BOOKSHELF);
+        cell(2, 27, Terrain.BOOKSHELF);
+    }
+
+    private void addTrainingProps() {
+        carpet(5 * TILE, 27 * TILE, 6 * TILE, 3 * TILE).tint(0x494333, .25f);
+        prop(ItemSpriteSheet.CHEST, 3.5f * TILE, 31 * TILE, 1);
+        prop(ItemSpriteSheet.SWORD, 12 * TILE, 27 * TILE, 1);
+        prop(ItemSpriteSheet.ARMOR_CLOTH, 12 * TILE, 29 * TILE, 1);
+        HeroFigure warrior = new HeroFigure(HeroClass.WARRIOR,
+                HeroClass.WARRIOR.spritesheet(), 1, 6.5f * TILE, 29 * TILE);
+        HeroFigure instructor = new HeroFigure(HeroClass.MERCENARY,
+                HeroSkins.sheet(HeroClass.MERCENARY, 1), 6, 9.5f * TILE, 29 * TILE);
+        instructor.flipHorizontal = true;
+        warrior.select(true);
+        instructor.select(true);
+        add(warrior);
+        add(instructor);
+    }
+
+    private void furnishExpeditionRoom() {
+        room(32, 10, 34, 24);
+        room(31, 23, 44, 31);
+        room(35, 22, 41, 24);
+        for (int x = 36; x <= 40; x++) cell(x, 22, Terrain.BOOKSHELF);
+        cell(31, 22, Terrain.WALL_DECO);
+        cell(44, 22, Terrain.WALL_DECO);
+        cell(31, 31, Terrain.STATUE);
+        cell(44, 31, Terrain.STATUE);
+    }
+
+    private void addExpeditionProps() {
+        carpet(35 * TILE, 25 * TILE, 6 * TILE, 5 * TILE).tint(0x333E58, .35f);
+        pedestal(38 * TILE, 26 * TILE, 4);
+        prop(ItemSpriteSheet.MASTERY, 38 * TILE, 26 * TILE - 7, 1);
+        prop(ItemSpriteSheet.SCROLL_KAUNAN, 36.5f * TILE, 26 * TILE - 7, 1);
+        prop(ItemSpriteSheet.CHEST, 33 * TILE, 29 * TILE, 1);
+        prop(ItemSpriteSheet.CHEST, 43 * TILE, 29 * TILE, 1);
     }
 
     private void addLodgeProps() {
@@ -515,6 +567,12 @@ final class TitleBackdrop extends Group {
             case LIBRARY: cx = 84.5f * TILE;
             cy = (portrait ? 40 : 43) * TILE;
             break;
+            case TUTORIAL: cx = 8 * TILE;
+            cy = 29 * TILE;
+            break;
+            case DAILY: cx = 38 * TILE;
+            cy = 27 * TILE;
+            break;
             default: break;
         }
         fromX = originX;
@@ -574,13 +632,17 @@ final class TitleBackdrop extends Group {
         private float step;
 
         HeroFigure(HeroClass heroClass, float x, float y) {
+            this(heroClass, heroClass.spritesheet(), 1, x, y);
+        }
+
+        HeroFigure(HeroClass heroClass, String sheet, int tier, float x, float y) {
             this.heroClass = heroClass;
             feetX = x;
             feetY = y;
-            texture(heroClass.spritesheet());
+            texture(sheet);
             renderShadow = true;
             listener = null;
-            TextureFilm film = new TextureFilm(new TextureFilm(texture, texture.width, 15), 1, 12, 15);
+            TextureFilm film = new TextureFilm(new TextureFilm(texture, texture.width, 15), tier, 12, 15);
             idle = new Animation(2, true).frames(film, 0, 0, 0, 1, 0, 0, 1, 1);
             run = new Animation(10, true).frames(film, 2, 3, 4, 5, 6, 7);
             scale.set(1.5f);

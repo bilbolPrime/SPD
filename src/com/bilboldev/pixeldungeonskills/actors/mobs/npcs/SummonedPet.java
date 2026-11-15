@@ -6,11 +6,13 @@ import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Char;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Poison;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.GravefrostScythe;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.scenes.MissionScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.CrabSprite;
@@ -151,6 +153,10 @@ public class SummonedPet extends NPC {
 
     private int customDegradeRate = DEGRADE_RATE;
     private boolean reprieved;
+    private Talent summoningTalent;
+    private int cloneCount = 1;
+    private int fractionHealth, fractionMaxHealth;
+    private int scaledHealth, scaledMaxHealth;
 
     @Override public void die(Object cause) {
         if (HP <= 0 && !reprieved && owner().talents() != null && Random.Int(100) < owner().talents().bonus(
@@ -221,6 +227,15 @@ public class SummonedPet extends NPC {
 
     @Override
     public void storeInBundle( Bundle bundle ) {
+        if (summoningTalent != null) {
+            rememberHealth();
+            bundle.put("skill4_summon_talent", summoningTalent.ordinal());
+            bundle.put("skill4_clone_count", cloneCount);
+            bundle.put("skill4_fraction_hp", fractionHealth);
+            bundle.put("skill4_fraction_ht", fractionMaxHealth);
+        }
+        bundle.put("degrade_rate", customDegradeRate);
+        bundle.put("degrade_counter", degradeCounter);
         bundle.put("reprieved", reprieved);
         super.storeInBundle( bundle );
         bundle.put( LEVEL, level );
@@ -261,6 +276,63 @@ public class SummonedPet extends NPC {
         HP = bundle.getInt( HEALTH );
         HT =  bundle.getInt( MAX_HEALTH );
         range =   bundle.getInt( RANGE);
+        customDegradeRate = bundle.contains("degrade_rate") ? Math.max(1, bundle.getInt("degrade_rate")) : DEGRADE_RATE;
+        degradeCounter = bundle.contains("degrade_counter") ? bundle.getInt("degrade_counter") : 1;
+        summoningTalent = bundle.contains("skill4_summon_talent") ? Talent.values()[bundle.getInt("skill4_summon_talent")] : null;
+        cloneCount = bundle.contains("skill4_clone_count") ? bundle.getInt("skill4_clone_count") : 1;
+        fractionHealth = bundle.getInt("skill4_fraction_hp");
+        fractionMaxHealth = bundle.getInt("skill4_fraction_ht");
+        scaledHealth = HP;
+        scaledMaxHealth = HT;
+    }
+
+    public void bindTalent(Talent talent, int clones) {
+        summoningTalent = talent;
+        cloneCount = clones;
+        level = 0;
+        fractionHealth = fractionMaxHealth = 1;
+        scaledHealth = HP;
+        scaledMaxHealth = HT;
+        refreshTalent();
+    }
+
+    private void rememberHealth() {
+        if (fractionMaxHealth <= 0 || HP != scaledHealth || HT != scaledMaxHealth) {
+            fractionHealth = Math.max(0, Math.min(HP, HT));
+            fractionMaxHealth = Math.max(1, HT);
+            scaledHealth = HP;
+            scaledMaxHealth = HT;
+        }
+    }
+
+    public void refreshTalent() {
+        if (summoningTalent == null || owner() == null || owner().talents() == null || HP <= 0) return;
+        int rank = owner().talents().rank(summoningTalent);
+        if (rank == 0) {
+            destroy();
+            if (sprite != null) sprite.die();
+            PartySession.mobDied(this);
+            return;
+        }
+        boolean lich = owner().subClass == HeroSubClass.LICH;
+        int health = summoningTalent.effect == Talent.Effect.CLONE
+                ? (int)Math.min(Integer.MAX_VALUE, (7L + 14L * rank) / cloneCount)
+                : summoningTalent.summonHealth(rank, lich);
+        int accuracy = summoningTalent.effect == Talent.Effect.CLONE
+                ? (int)Math.min(Integer.MAX_VALUE, (5L + 4L * rank) / cloneCount)
+                : summoningTalent.summonAccuracy(rank);
+        if (summoningTalent.effect == Talent.Effect.RAISE_SKELETON) {
+            setLifetimeMultiplier(owner().subClass == HeroSubClass.SPIRIT_BINDER ? 2 : 1);
+        }
+        if (level == rank && HT == health && defenseSkill == accuracy) return;
+        rememberHealth();
+        level = rank;
+        HT = Math.max(1, health);
+        defenseSkill = Math.max(1, accuracy);
+
+        HP = Math.max(1, (int)(((long)fractionHealth * HT + fractionMaxHealth / 2) / fractionMaxHealth));
+        scaledHealth = HP;
+        scaledMaxHealth = HT;
     }
 
     public void spawn( int level ) {
@@ -297,11 +369,21 @@ public class SummonedPet extends NPC {
 
     @Override
     public int attackSkill( Char target ) {
+        refreshTalent();
+        if (summoningTalent != null && !isAlive()) return 0;
         return defenseSkill;
     }
 
     @Override
     public int damageRoll() {
+        refreshTalent();
+        if (summoningTalent != null && !isAlive()) return 0;
+        if (summoningTalent != null && summoningTalent.effect != Talent.Effect.CLONE) {
+            boolean lich = owner().subClass == HeroSubClass.LICH;
+            int min = summoningTalent.summonDamageMin(level, lich);
+            int max = summoningTalent.summonDamageMax(level, lich);
+            return min + (int)((Random.Double() + Random.Double()) * ((long)max - min + 1) / 2);
+        }
         if(petType != PET_TYPES.SPECIAL)
             return petType.getDamage(level);
         else
@@ -317,13 +399,24 @@ public class SummonedPet extends NPC {
         }
 
         int cold = enemy.immunities().contains(GravefrostScythe.class) ? 0 : GravefrostScythe.coldDamage(this);
-        return (int)(damage * owner().skillTree.getMinionDamageModifier()) + cold;
+        if (owner().talents() == null) return (int)(damage * owner().skillTree.getMinionDamageModifier()) + cold;
+        return (int)Math.min(Integer.MAX_VALUE, Math.max(0, damage * (double)owner().skillTree.getMinionDamageModifier()) + cold);
     }
 
     @Override
     public int defenseProc( Char enemy, int damage ) {
-        damage = ((int)(damage * owner().skillTree.getMinionIncomingDamageModifier()));
+        if (owner().talents() == null) damage = (int)(damage * owner().skillTree.getMinionIncomingDamageModifier());
         return super.defenseProc(enemy, damage);
+    }
+
+    @Override
+    public void damage(int damage, Object source) {
+        refreshTalent();
+        if (owner().talents() != null) {
+            damage = (int)Math.min(Integer.MAX_VALUE,
+                    Math.max(0, damage * (double)owner().skillTree.getMinionIncomingDamageModifier()));
+        }
+        super.damage(damage, source);
     }
 
     @Override
@@ -339,6 +432,8 @@ public class SummonedPet extends NPC {
 
     @Override
     protected boolean act() {
+        refreshTalent();
+        if (summoningTalent != null && !Dungeon.level.mobs.contains(this)) return true;
 
         if(!checkedImage){
             try {
@@ -360,7 +455,7 @@ public class SummonedPet extends NPC {
             return false;
         }
 
-        degradeCounter++;
+        degradeCounter = degradeCounter == Integer.MAX_VALUE ? 1 : degradeCounter + 1;
 
         if(petType != PET_TYPES.SPECIAL) {
             if (degradeCounter % customDegradeRate == 0)
@@ -490,7 +585,7 @@ public class SummonedPet extends NPC {
     }
 
     public void setLifetimeMultiplier(int multiplier) {
-        customDegradeRate = Math.max(1, DEGRADE_RATE * Math.max(1, multiplier));
+        customDegradeRate = (int)Math.min(Integer.MAX_VALUE, (long)DEGRADE_RATE * Math.max(1, multiplier));
     }
 
     public static void killClones(){

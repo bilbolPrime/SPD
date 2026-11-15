@@ -3,12 +3,13 @@ package com.bilboldev.pixeldungeonskills.windows;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.BitmapText;
+import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.DailyLoadout;
 import com.bilboldev.pixeldungeonskills.LibraryCatalog;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
-import com.bilboldev.noosa.Game;
+import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
 import com.bilboldev.pixeldungeonskills.SupporterEntitlements;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
 import com.bilboldev.pixeldungeonskills.messages.Message;
@@ -21,12 +22,12 @@ import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.RenderedTextMultiline;
 import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 
 public class WndDailyChallenge extends WndScrollable {
     private final long day;
     private final long lastToday = DailyRun.today();
     private final int lastTier = SupporterEntitlements.tier();
-    private final RedButton play;
     private final boolean playing;
 
     public WndDailyChallenge(long day) {
@@ -37,54 +38,107 @@ public class WndDailyChallenge extends WndScrollable {
         this.day = day;
         this.playing = playing;
         int width = boundedWidth(playing ? 165 : landscapeLayout() ? 280 : 185);
-        int bodyWidth = textWidth(width);
-        boolean future = day > lastToday;
-        Image art = future && !DailyRun.accessible(day) ? new ItemSprite(ItemSpriteSheet.SMTH, null) : WndDaily.image(day);
-        if (future && !DailyRun.accessible(day)) art.tint(0xC7B694, .8f);
-        Component heading = playing ? new IconTitle(art, DailyRun.title(day))
-                : new EventHeading(art, future && !DailyRun.accessible(day) ? "???" : DailyRun.title(day));
-        heading.setRect(0, 0, width, 0);
-        String text = "";
-        Component loadout = null;
         if (playing) {
-            text = DailyRun.objectiveDetails() + "\n\n" + DailyRun.clockText();
-            play = null;
-        } else if (DailyRun.accessible(day)) {
-            text = DailyRun.briefing(day) + "\n\n" + DailyRun.result(day);
-            loadout = new LoadoutRow(DailyRun.loadout(day));
-            loadout.setSize(width, 42);
-            play = new ActionButton(Messages.get(DailyRun.history().contains(Long.toString(day)) ? "daily.replay" : "daily.play")) {
-                @Override protected void onClick() { play(); }
-            };
-        } else if (DailyRun.requiredTier(day) < 0) {
-            text = Messages.get(future ? "daily.not_yet" : "daily.expired");
-            play = null;
-        } else if (Game.isFreeDesktop()) {
-            text = Messages.get("daily.steam_replays") + "\n\n" + Messages.get("daily.event_returns");
-            play = new SteamPageButton();
+            IconTitle heading = new IconTitle(WndDaily.image(day), DailyRun.title(day));
+            heading.setRect(0, 0, width, 0);
+            HighlightedText description = new HighlightedText(8);
+            description.setColor(0xDDD4C5, 0xECD095);
+            description.text(DailyRun.objectiveDetails() + "\n\n" + DailyRun.clockText(), textWidth(width), false);
+            layoutContent(width, heading, description, 6);
         } else {
-            text = "_" + Messages.get("daily.locked_support") + "_\n\n"
-                    + Messages.get("daily.event_returns");
-            play = new ActionButton(Messages.get("support.open_google_play")) {
-                @Override protected void onClick() {
-                    openUrl("https://play.google.com/store/apps/details?id=com.bilboldev.pixeldungeonskills");
-                }
-            };
+            Preview preview = new Preview(day, Game.scene(), this::play);
+            add(preview);
+            float needed = preview.preferredHeight(width);
+            camera.zoom = Math.min(camera.zoom, Game.height * MAX_SCREEN_FRACTION
+                    / (needed - preview.description.height() + 16 + frameHeight()));
+            resize(width, Math.min((int)Math.ceil(needed), maxFrameHeight() - frameHeight()));
+            preview.setRect(0, 0, width, height);
         }
-        HighlightedText description = new HighlightedText(8);
-        description.setColor(0xDDD4C5, 0xECD095);
-        description.text(text, bodyWidth, false);
-        if (play != null) {
-            play.setSize(width, 25);
-            layoutContent(width, heading, description, loadout, 6, play);
-        } else layoutContent(width, heading, description, 6);
     }
 
-    private class EventHeading extends Component {
+    public static class Preview extends Component {
+        private final EventHeading heading;
+        private final HighlightedText description;
+        private final ScrollPane scroll;
+        private final LoadoutRow loadout;
+        private final RedButton play;
+
+        public Preview(long day, Group overlays, Runnable start) {
+            boolean future = day > DailyRun.today() && !DailyRun.accessible(day);
+            Image art = future ? new ItemSprite(ItemSpriteSheet.SMTH, null) : WndDaily.image(day);
+            if (future) art.tint(0xC7B694, .8f);
+            add(heading = new EventHeading(day, art, future ? "???" : DailyRun.title(day)));
+            String text;
+            if (DailyRun.accessible(day)) {
+                text = DailyRun.briefing(day) + "\n\n" + DailyRun.result(day);
+                add(loadout = new LoadoutRow(DailyRun.loadout(day), overlays));
+                play = new ActionButton(Messages.get(DailyRun.history().contains(Long.toString(day)) ? "daily.replay" : "daily.play")) {
+                    @Override protected void onClick() {
+                        if (DailyRun.accessible(day)) start.run();
+                    }
+                };
+            } else {
+                loadout = null;
+                if (DailyRun.requiredTier(day) < 0) {
+                    text = Messages.get(future ? "daily.not_yet" : "daily.expired");
+                    play = null;
+                } else if (Game.isFreeDesktop()) {
+                    text = Messages.get("daily.steam_replays") + "\n\n" + Messages.get("daily.event_returns");
+                    play = new SteamPageButton();
+                } else {
+                    text = "_" + Messages.get("daily.locked_support") + "_\n\n" + Messages.get("daily.event_returns");
+                    play = new ActionButton(Messages.get("support.open_google_play")) {
+                        @Override protected void onClick() {
+                            openUrl("https://play.google.com/store/apps/details?id=com.bilboldev.pixeldungeonskills");
+                        }
+                    };
+                }
+            }
+            description = new HighlightedText(8);
+            description.setColor(0xDDD4C5, 0xECD095);
+            description.text(text, 160, false);
+            add(scroll = new ScrollPane(description));
+            if (play != null) add(play);
+        }
+
+        public float preferredHeight(float width) {
+            measure(width);
+            return heading.height() + description.height() + 6
+                    + (loadout == null ? 0 : loadout.height() + 8)
+                    + (play == null ? 0 : play.height() + 8);
+        }
+
+        private void measure(float width) {
+            heading.setRect(x, y, width, 0);
+            description.text(description.text(), Math.max(1, (int)width - 4), false);
+            if (loadout != null) loadout.setRect(x, y, width, 42);
+            if (play != null) {
+                play.setSize(width, 28);
+                play.setSize(width, Math.max(28, play.reqHeight()));
+            }
+        }
+
+        @Override protected void layout() {
+            measure(width);
+            float bottom = bottom();
+            if (play != null) {
+                play.setPos(x, bottom - play.height());
+                bottom = play.top() - 8;
+            }
+            if (loadout != null) {
+                loadout.setPos(x, bottom - loadout.height());
+                bottom = loadout.top() - 8;
+            }
+            float top = heading.bottom() + 6;
+            scroll.setRect(x, top, width, Math.max(1, bottom - top));
+        }
+    }
+
+    private static class EventHeading extends Component {
         private final IconTitle title;
         private final BitmapText date;
 
-        EventHeading(Image art, String name) {
+        EventHeading(long day, Image art, String name) {
             add(title = new IconTitle(art, name));
             add(date = PixelScene.createText(DailyRun.date(day), 7));
             date.measure();
@@ -99,12 +153,12 @@ public class WndDailyChallenge extends WndScrollable {
         }
     }
 
-    private class LoadoutRow extends Component {
+    private static class LoadoutRow extends Component {
         private final Image hero;
         private final RenderedTextMultiline label;
         private final RedButton skills, inventory;
 
-        LoadoutRow(DailyLoadout loadout) {
+        LoadoutRow(DailyLoadout loadout, Group overlays) {
             add(hero = LibraryCatalog.heroImage(loadout.hero.spritesheet(), loadout.hero.tier()));
             hero.scale.set(2);
             String role = (loadout.hero.subClass == HeroSubClass.NONE
@@ -113,13 +167,13 @@ public class WndDailyChallenge extends WndScrollable {
             label.hardlight(0xDDD4C5);
             add(skills = new IconActionButton(Messages.get("library.skill_tree")) {
                 @Override protected void onClick() {
-                    WndDailyChallenge.this.parent.add(new WndSkillsNew(loadout.hero, loadout.freePoints));
+                    overlays.add(new WndSkillsNew(loadout.hero, loadout.freePoints));
                 }
             });
             skills.icon(Icons.SKILLS.get());
             add(inventory = new IconActionButton(Messages.get("windows.wndcontrols.action_inventory")) {
                 @Override protected void onClick() {
-                    WndDailyChallenge.this.parent.add(new WndBag(loadout.hero, loadout.hero.belongings.backpack));
+                    overlays.add(new WndBag(loadout.hero, loadout.hero.belongings.backpack));
                 }
             });
             inventory.icon(Icons.BACKPACK.get());
@@ -147,6 +201,7 @@ public class WndDailyChallenge extends WndScrollable {
             return;
         }
         hide();
+        if (Game.scene() instanceof TitleScene) TitleScene.resetPresentation();
         DailyRun.start(day);
     }
 

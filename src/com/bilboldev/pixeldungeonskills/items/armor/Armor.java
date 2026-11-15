@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.armor;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
@@ -122,8 +123,10 @@ public class Armor extends EquipableItem {
 		if (hero.belongings.armor == null || hero.belongings.armor.doUnequip( hero, true, false )) {
 
 			hero.belongings.armor = this;
+            TutorialRun.equipped(hero, this);
 
 			cursedKnown = true;
+			hero.refreshBonuses();
 			if (cursed) {
 				equipCursed( hero );
 				GLog.n(Armor.class, "equip_cursed");
@@ -152,6 +155,7 @@ public class Armor extends EquipableItem {
 		if (super.doUnequip( hero, collect, single )) {
 
 			hero.belongings.armor = null;
+			hero.refreshBonuses();
 			Buff.detach(hero, ArmorEvasion.class);
 			((HeroSprite)hero.sprite).updateArmor();
 
@@ -220,6 +224,7 @@ public class Armor extends EquipableItem {
 		if (!levelKnown) {
 			if (--hitsToKnow <= 0) {
 				levelKnown = true;
+				if (defender instanceof Hero && isEquipped((Hero)defender)) ((Hero)defender).refreshBonuses();
 				GLog.w(Armor.class, "identify");
 				Badges.validateItemLevelAquired( this );
 			}

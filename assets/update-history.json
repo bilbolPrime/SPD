@@ -887,5 +887,60 @@
         ]
       }
     ]
+  },
+  {
+    "version": "2.4.0",
+    "build": 148,
+    "date": "2026-11-15",
+    "sections": [
+      {
+        "title": "New items",
+        "notes": [
+          "Find _15 types of Essence_. Carry them for a bonus, absorb them for an immediate effect, or throw them at a target."
+        ]
+      },
+      {
+        "title": "QoL Changes",
+        "notes": [
+          "Choose how often _helper cards_ appear in Reborn: _Off_, _Auto_ (default) or _On_. Auto shows each kind once, plus each champion and item with attributes.",
+          "Learn the basics in a new _Reborn tutorial_. An instructor guides a Warrior through combat, equipment, skills, healing, hazards and searching for hidden doors. Pulsing buttons and marked tiles help you find your way.",
+          "_Gauntlet_ now explains the arena before you start.",
+          "Creature descriptions now include _combat traits_ from their helper cards, such as bleeding attacks, resistances and weaknesses.",
+          "Long walks during close combat ask for confirmation. Taking damage stops your movement; the _resume button_ now sits above quick attack.",
+          "Shared-control parties can switch between _2.5D_ and _2D_ views."
+        ]
+      },
+      {
+        "title": "Balance",
+        "notes": [
+          "Monks build _Off Balance_ before disarming you, giving you time to recover your grip. This applies in Classic and Reborn.",
+          "Wands of _Blink_, _Firebolt_ and _Regrowth_ no longer offer their extra mana-powered abilities to Mages."
+        ]
+      },
+      {
+        "title": "Reborn skills",
+        "notes": [
+          "Train _summoning skills_ up to level _10_.",
+          "Gladiator's _Mastery_ reduces melee weapon strength requirements by _1 per level_ and grants _5% attack speed per level_. It no longer increases weapon levels or adds excess-strength damage in the new Reborn skill trees.",
+          "_Skill bonuses from equipment_ now stack beyond a skill's learned limit.",
+          "The _Lich_ gives raised skeletons and skeleton archers _25% more health and damage_.",
+          "Summons now reflect changes to the skill bonuses on your equipped gear."
+        ]
+      },
+      {
+        "title": "Fixes",
+        "notes": [
+          "_Hired mercenaries_ now benefit from health and combat attributes on identified gear.",
+          "Fixed progression through the _Spirit Binder_ skill tree.",
+          "Restored _2D graphics_ through the view button.",
+          "_Guardian Bond_ now protects summons from spells and ongoing damage.",
+          "Fixed the _health bar_ after a full Dew Vial prevents death.",
+          "Fixed misleading inspection details for room objects.",
+          "_Mercenaries_ keep their gun in the first quickslot when starting a Daily Challenge.",
+          "_Equipment bonuses_ update immediately when equipping or removing a bow.",
+          "The _Brute_ starts with enough strength to wield his mace. A warning now explains when gear is too heavy for a mercenary."
+        ]
+      }
+    ]
   }
 ]

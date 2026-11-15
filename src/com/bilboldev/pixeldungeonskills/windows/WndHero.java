@@ -27,6 +27,7 @@ import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.TextureFilm;
+import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
@@ -34,7 +35,10 @@ import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.actors.buffs.OffBalance;
+import com.bilboldev.pixeldungeonskills.actors.buffs.EssenceEffect;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
@@ -228,6 +232,21 @@ public class WndHero extends WndTabbed {
 				txt.x = icon.width + GAP;
 				txt.y = pos + (int)(icon.height - txt.baseLine()) / 2;
 				add( txt );
+
+				if (buff instanceof OffBalance || buff instanceof EssenceEffect) {
+					Button inspect = new Button() {
+						@Override
+						protected void onClick() {
+							Image detailIcon = new Image(icons);
+							detailIcon.frame(film.get(index));
+							GameScene.show(new WndTitledMessage(detailIcon,
+									buff instanceof EssenceEffect ? ((EssenceEffect)buff).nameMessage() : Message.key(OffBalance.class, "name"),
+									buff instanceof EssenceEffect ? ((EssenceEffect)buff).descriptionMessage() : Message.key(OffBalance.class, "desc")));
+						}
+					};
+					inspect.setRect(0, pos, WIDTH, icon.height);
+					add(inspect);
+				}
 
 				pos += GAP + icon.height;
 			}

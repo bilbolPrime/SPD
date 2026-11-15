@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.noosa.BitmapTextMultiline;
 import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.ui.Component;
@@ -43,6 +44,7 @@ public class WndInfoCell extends WndScrollable {
 	public WndInfoCell( int cell ) {
 
 		super();
+        TutorialRun.inspect(cell);
 		int windowWidth = boundedWidth(InspectionTitle.windowWidth(WIDTH));
 
 		int tile = Dungeon.level.map[cell];

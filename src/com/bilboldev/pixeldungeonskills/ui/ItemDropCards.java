@@ -11,6 +11,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.blobs.WaterOfAwareness;
 import com.bilboldev.pixeldungeonskills.actors.blobs.WaterOfHealth;
@@ -25,17 +26,10 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.DailyQuarry;
 import com.bilboldev.pixeldungeonskills.actors.mobs.DailyAlly;
 import com.bilboldev.pixeldungeonskills.actors.mobs.GauntletRatKing;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ImpShopkeeper;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
-import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Wandmaker;
 import com.bilboldev.pixeldungeonskills.items.EquipmentAttribute;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.items.Item;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.ItemStatusHandler;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.potions.Potion;
@@ -59,6 +53,7 @@ import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.utils.RectF;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -70,7 +65,12 @@ import java.util.Locale;
 public final class ItemDropCards extends Gizmo {
     private static final float OPEN = .25f, HOLD = 2f, CLOSE = .5f;
     private static final int MAX_CARDS = 3;
+    private static final HashSet<String> shownKinds = new HashSet<>();
+    private static final HashMap<Integer, HashMap<String, Integer>> shownFloorItems = new HashMap<>();
+    private static final HashMap<Integer, HashSet<Integer>> shownFloorChampions = new HashMap<>();
+    private static int run = 1;
     private final GameScene scene;
+    private final int session = run;
     private Level level;
     private int floor;
     private final LinkedHashMap<Long, Pile> piles = new LinkedHashMap<>();
@@ -82,6 +82,7 @@ public final class ItemDropCards extends Gizmo {
     private boolean[] terrainSeen;
     private Class<?>[] plantsSeen = new Class<?>[0];
     private float terrainScan;
+    private int mode = Presentation.helperCards();
 
     public ItemDropCards(GameScene scene) {
         this.scene = scene;
@@ -89,21 +90,27 @@ public final class ItemDropCards extends Gizmo {
         floor = Dungeon.levelKey();
         terrainSeen = new boolean[level == null ? 0 : level.map.length];
         camera = PixelScene.uiCamera;
+        restoreFloorHistory();
     }
 
     public void ignore(Item item, int quantity) {
+        settingsChanged();
+        if (mode == Presentation.HELPER_CARDS_OFF) return;
         Integer count = quiet.get(item);
         quiet.put(item, quantity + (count == null ? 0 : count));
     }
 
     @Override
     public void update() {
+        settingsChanged();
         if (Dungeon.level != level || Dungeon.levelKey() != floor) {
             clear();
             level = Dungeon.level;
             floor = Dungeon.levelKey();
+            restoreFloorHistory();
         }
-        if (level == null || Dungeon.rules().mode != GameplayMode.REBORN) return;
+        if (level == null || Dungeon.rules().mode != GameplayMode.REBORN
+                || mode == Presentation.HELPER_CARDS_OFF) return;
         elapsed = Math.min(.1f, Math.max(0, Game.elapsed));
         observe();
         observeMobs();
@@ -120,7 +127,7 @@ public final class ItemDropCards extends Gizmo {
             if (pile.mob != null) {
                 gone = !pile.mob.isAlive() || !level.mobs.contains(pile.mob)
                         || pile.rows.isEmpty() || (!pile.mob.hostile && !(pile.mob instanceof DailyAlly)
-                        && !(pile.mob instanceof DailyDefender) && peopleHint(pile.mob) == null)
+                        && !(pile.mob instanceof DailyDefender) && MobCardText.peopleHint(pile.mob) == null)
                         || (pile.activeRows() == 0 && !individualCard(pile.mob) && mobTypesSeen.contains(mobType(pile.mob)));
             } else if (pile.plant != null) {
                 Plant current = level.plants.get(pile.pos);
@@ -140,7 +147,8 @@ public final class ItemDropCards extends Gizmo {
             for (Iterator<Row> rows = pile.rows.iterator(); rows.hasNext();) {
                 Row row = rows.next();
                 if (row.age >= 0 && running && pile.onScreen && pile.placed) row.age += elapsed;
-                if ((row.seen != null && !pile.items.contains(row.seen)) || row.age >= OPEN + HOLD + CLOSE) {
+                if ((row.seen != null && !pile.items.contains(row.seen)) || row.age >= OPEN + HOLD + CLOSE
+                        || row.age < 0 && row.suppressed()) {
                     row.destroy();
                     rows.remove();
                 } else if (row.icon != null) {
@@ -171,6 +179,7 @@ public final class ItemDropCards extends Gizmo {
         if (Dungeon.visible == null) return;
         for (int cell = 0; cell < level.map.length && cell < Dungeon.visible.length; cell++) {
             if (!Dungeon.visible[cell] || terrainSeen[cell] || terrainHint(cell) == null
+                    || suppressed(terrainKind(cell))
                     || piles.containsKey(-1L - cell)) continue;
             piles.put(-1L - cell, new Pile(cell));
         }
@@ -182,7 +191,8 @@ public final class ItemDropCards extends Gizmo {
         for (Plant plant : level.plants.values()) {
             int cell = plant.pos;
             if (cell < 0 || cell >= plantsSeen.length || cell >= Dungeon.visible.length
-                    || !Dungeon.visible[cell] || plantsSeen[cell] == plant.getClass()) continue;
+                    || !Dungeon.visible[cell] || plantsSeen[cell] == plant.getClass()
+                    || suppressed(plantKind(plant))) continue;
             long key = Long.MIN_VALUE + cell;
             if (!piles.containsKey(key)) piles.put(key, new Pile(plant));
         }
@@ -193,7 +203,7 @@ public final class ItemDropCards extends Gizmo {
             if (!level.mobs.contains(it.next())) it.remove();
         }
         for (Mob mob : level.mobs) {
-            if (!mob.hostile && !(mob instanceof DailyAlly) && !(mob instanceof DailyDefender) && peopleHint(mob) == null) continue;
+            if (!mob.hostile && !(mob instanceof DailyAlly) && !(mob instanceof DailyDefender) && MobCardText.peopleHint(mob) == null) continue;
             int id = mob.id();
             long key = -1L - level.map.length - id;
             Pile pile = piles.get(key);
@@ -205,10 +215,15 @@ public final class ItemDropCards extends Gizmo {
             if (pile != null) {
                 pile.pos = mob.pos;
             } else if (mobsSeen.get(id) != mob && mob.isAlive()
+                    && !suppressed(mob)
                     && (individualCard(mob) || !mobTypesSeen.contains(mobType(mob)))) {
                 piles.put(key, new Pile(mob));
             }
         }
+    }
+
+    private static boolean individualCard(Item item) {
+        return item instanceof Essence || item.attributes.length > 0;
     }
 
     private static boolean individualCard(Mob mob) {
@@ -217,8 +232,12 @@ public final class ItemDropCards extends Gizmo {
                 || (mob instanceof DailyFoe && ((DailyFoe)mob).escapeCaptain());
     }
 
-    private static Class<?> mobType(Mob mob) {
-        return mob instanceof DailyDemon || mob instanceof DailyRaider ? mob.spriteClass : mob.getClass();
+    private Class<?> mobType(Mob mob) {
+        if (mob instanceof DailyDemon || mob instanceof DailyRaider
+                || (mode == Presentation.HELPER_CARDS_AUTO && mob instanceof DailyFoe)) {
+            return mob.spriteClass;
+        }
+        return mob.getClass();
     }
 
     private void observe() {
@@ -228,9 +247,11 @@ public final class ItemDropCards extends Gizmo {
             Pile pile = piles.get((long)heap.pos);
             if (pile != null && pile.chest != chest) {
                 pile.destroy();
+                piles.remove((long)heap.pos);
                 pile = null;
             }
             if (pile == null) {
+                if (chest != null && suppressed(chestKind(chest))) continue;
                 pile = new Pile(heap);
                 piles.put((long)heap.pos, pile);
             }
@@ -254,7 +275,7 @@ public final class ItemDropCards extends Gizmo {
                     increase = 0;
                 }
                 seen.quantity = item.quantity();
-                if (increase > 0) pile.rows.add(new Row(seen, increase));
+                if (increase > 0 && !suppressed(item)) pile.rows.add(new Row(seen, increase));
             }
             for (Iterator<Seen> it = pile.items.iterator(); it.hasNext();) {
                 if (!heap.items.contains(it.next().item)) it.remove();
@@ -273,7 +294,9 @@ public final class ItemDropCards extends Gizmo {
 
     @Override
     public void draw() {
+        settingsChanged();
         if (Dungeon.level != level || Dungeon.rules().mode != GameplayMode.REBORN
+                || mode == Presentation.HELPER_CARDS_OFF
                 || Dungeon.hero == null || !Dungeon.hero.isAlive() || Window.topWindow() != null) return;
         for (Pile pile : piles.values()) {
             pile.onScreen = pile.mob != null ? scene.mobCardBounds(pile.mob, pile.anchor)
@@ -301,8 +324,14 @@ public final class ItemDropCards extends Gizmo {
         }
         for (Pile pile : piles.values()) {
             if (!pile.onScreen) continue;
-            for (Row row : pile.rows) {
+            for (Iterator<Row> rows = pile.rows.iterator(); rows.hasNext();) {
+                Row row = rows.next();
                 if (row.age >= 0) continue;
+                if (row.suppressed()) {
+                    row.destroy();
+                    rows.remove();
+                    continue;
+                }
                 if (pile.mob != null && !individualCard(pile.mob) && mobTypesSeen.contains(mobType(pile.mob))) break;
                 if (pile.heap != null && pile.heap.sprite.isDropping()) break;
                 if (!pile.placed && showing >= MAX_CARDS) break;
@@ -313,6 +342,9 @@ public final class ItemDropCards extends Gizmo {
                 if (!pile.placed) showing++;
                 if (pile.activeRows() == 0) pile.shownWidth = width;
                 row.age = 0;
+                if (row.seen != null && individualCard(row.seen.item)) row.seen.item.helperCardRun = run;
+                else if (row.mob != null && row.mob.champ > 0) row.mob.helperCardRun = run;
+                else shownKinds.add(row.kind());
                 if (pile.terrain >= 0) terrainSeen[pile.pos] = true;
                 if (pile.plant != null) plantsSeen[pile.pos] = pile.plant.getClass();
                 if (pile.mob != null) {
@@ -363,7 +395,9 @@ public final class ItemDropCards extends Gizmo {
 
     public static List<Item> carried() {
         ArrayList<Item> result = new ArrayList<>();
-        for (Hero hero : LocalCoop.heroes()) {
+        Hero[] heroes = LocalCoop.active() ? LocalCoop.heroes() : new Hero[]{Dungeon.hero};
+        for (Hero hero : heroes) {
+            if (hero == null) continue;
             for (Item item : hero.belongings) result.add(item);
             for (Item item : hero.storage) result.add(item);
         }
@@ -371,16 +405,16 @@ public final class ItemDropCards extends Gizmo {
     }
 
     public void rebind(List<Item> before) {
-        if (Dungeon.levelKey() != floor) {
-            clear();
+        settingsChanged();
+        if (mode == Presentation.HELPER_CARDS_OFF) {
+            rebindHistory(before);
+            rememberFloor();
             level = Dungeon.level;
             floor = Dungeon.levelKey();
-            if (level != null) observe();
+            restoreFloorHistory();
             return;
         }
         List<Item> after = carried();
-        boolean death = false;
-        for (Hero hero : LocalCoop.heroes()) if (!hero.isAlive()) death = true;
         int[] available = new int[after.size()];
         for (int i = 0; i < available.length; i++) available[i] = after.get(i).quantity();
         int[] removed = new int[before.size()];
@@ -388,18 +422,45 @@ public final class ItemDropCards extends Gizmo {
             Item item = before.get(i);
             int remaining = item.quantity();
             for (int j = 0; j < available.length && remaining > 0; j++) {
-                if (!sameItem(item, after.get(j))) continue;
+                if (available[j] == 0 || !sameItem(item, after.get(j))) continue;
                 int amount = Math.min(remaining, available[j]);
+                if (item.helperCardRun == run) after.get(j).helperCardRun = run;
                 available[j] -= amount;
                 remaining -= amount;
             }
             removed[i] = remaining;
         }
+        if (Dungeon.levelKey() != floor) {
+            clear();
+            level = Dungeon.level;
+            floor = Dungeon.levelKey();
+            restoreFloorHistory();
+            if (level != null) observe();
+            return;
+        }
+        ArrayList<Item> markedGround = new ArrayList<>();
+        for (Pile pile : piles.values()) {
+            for (Seen seen : pile.items) if (seen.item.helperCardRun == run) markedGround.add(seen.item);
+        }
+        boolean death = false;
+        for (Hero hero : LocalCoop.heroes()) if (!hero.isAlive()) death = true;
         level = Dungeon.level;
         for (Mob mob : level.mobs) {
             int id = mob.id();
-            if (mobsSeen.containsKey(id)) mobsSeen.put(id, mob);
-            Pile pile = piles.get(-1L - level.map.length - id);
+            Mob previous = mobsSeen.get(id);
+            if (previous != null && sameMob(previous, mob)) {
+                mob.helperCardRun = previous.helperCardRun;
+                mobsSeen.put(id, mob);
+            } else {
+                mobsSeen.remove(id);
+            }
+            long key = -1L - level.map.length - id;
+            Pile pile = piles.get(key);
+            if (pile != null && !sameMob(pile.mob, mob)) {
+                pile.destroy();
+                piles.remove(key);
+                continue;
+            }
             if (pile != null) {
                 pile.mob = mob;
                 pile.pos = mob.pos;
@@ -415,6 +476,8 @@ public final class ItemDropCards extends Gizmo {
                     for (Iterator<Item> it = unmatched.iterator(); it.hasNext();) {
                         Item next = it.next();
                         if (!sameItem(seen.item, next)) continue;
+                        markedGround.remove(seen.item);
+                        next.helperCardRun = seen.item.helperCardRun;
                         seen.item = next;
                         it.remove();
                         for (Row row : pile.rows) if (row.seen == seen && row.icon != null) row.refresh();
@@ -428,6 +491,7 @@ public final class ItemDropCards extends Gizmo {
                 for (int i = 0; i < removed.length && increase > 0; i++) {
                     if (removed[i] == 0 || !sameItem(item, before.get(i))) continue;
                     int amount = Math.min(increase, removed[i]);
+                    if (before.get(i).helperCardRun == run) item.helperCardRun = run;
                     if (death) item.droppedOnDeath = true;
                     else ignore(item, amount);
                     removed[i] -= amount;
@@ -435,14 +499,59 @@ public final class ItemDropCards extends Gizmo {
                 }
             }
         }
+        for (Item old : markedGround) {
+            for (Item item : after) {
+                if (item.helperCardRun == run || !sameItem(old, item)) continue;
+                item.helperCardRun = run;
+                break;
+            }
+        }
 
         observe();
+    }
+
+    private void rebindHistory(List<Item> carriedBefore) {
+        ArrayList<Item> before = new ArrayList<>(carriedBefore);
+        ArrayList<Item> after = new ArrayList<>(carried());
+        Level next = Dungeon.level;
+        boolean sameFloor = level != null && next != null && floor == Dungeon.levelKey();
+        if (sameFloor) {
+            for (Heap heap : level.heaps.values()) before.addAll(heap.items);
+        }
+        if (next != null) {
+            for (Heap heap : next.heaps.values()) after.addAll(heap.items);
+        }
+        for (Item previous : before) {
+            if (!individualCard(previous)) continue;
+            for (Iterator<Item> items = after.iterator(); items.hasNext();) {
+                Item current = items.next();
+                if (!sameItem(previous, current)) continue;
+                if (previous.helperCardRun == run) current.helperCardRun = run;
+                items.remove();
+                break;
+            }
+        }
+        if (sameFloor) {
+            for (Mob previous : level.mobs) {
+                if (previous.champ <= 0 || previous.helperCardRun != run) continue;
+                for (Mob current : next.mobs) {
+                    if (previous.id() == current.id() && sameMob(previous, current)) {
+                        current.helperCardRun = run;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private static boolean sameItem(Item a, Item b) {
         if (a.getClass() != b.getClass() || a.level() != b.level() || a.cursed != b.cursed
                 || type(a.weaponEffect) != type(b.weaponEffect)) return false;
         if (!EquipmentAttribute.same(a, b)) return false;
+        if (a instanceof Essence) {
+            Essence first = (Essence)a, second = (Essence)b;
+            return first.grade() == second.grade() && first.bonus() == second.bonus() && first.skill() == second.skill();
+        }
         if (a instanceof Weapon && type(((Weapon)a).enchantment()) != type(((Weapon)b).enchantment())) return false;
         return !(a instanceof Armor) || ((Armor)a).prefix == ((Armor)b).prefix
                 && type(((Armor)a).glyph) == type(((Armor)b).glyph);
@@ -452,7 +561,126 @@ public final class ItemDropCards extends Gizmo {
         return value == null ? null : value.getClass();
     }
 
+    private static boolean sameMob(Mob previous, Mob current) {
+        return previous.getClass() == current.getClass() && previous.spriteClass == current.spriteClass
+                && previous.champ == current.champ;
+    }
+
+    public static void resetRun() {
+        shownKinds.clear();
+        shownFloorItems.clear();
+        shownFloorChampions.clear();
+        run++;
+    }
+
+    public void settingsChanged() {
+        int selected = Presentation.helperCards();
+        if (mode == selected) return;
+        clear();
+        mode = selected;
+        restoreFloorHistory();
+    }
+
+    private boolean suppressed(String kind) {
+        return mode == Presentation.HELPER_CARDS_AUTO && shownKinds.contains(kind);
+    }
+
+    private boolean suppressed(Item item) {
+        return mode == Presentation.HELPER_CARDS_AUTO && (individualCard(item)
+                ? item.helperCardRun == run : shownKinds.contains(itemKind(item)));
+    }
+
+    private boolean suppressed(Mob mob) {
+        return mode == Presentation.HELPER_CARDS_AUTO && (mob.champ > 0
+                ? mob.helperCardRun == run : shownKinds.contains(mobKind(mob)));
+    }
+
+    private static String itemKind(Item item) {
+        String unknown = unknownItemKind(item);
+        return unknown == null ? "item:" + item.getClass().getName() : "unknown:" + unknown + ":" + item.image();
+    }
+
+    private String mobKind(Mob mob) {
+        if (mob instanceof DailyAlly || mob instanceof DailyDefender || mob instanceof DailyFoe || mob instanceof DailyQuarry)
+            return "mob:" + mob.getClass().getName() + ":" + mob.spriteClass.getName();
+        return "mob:" + mobType(mob).getName() + ":" + MobCardText.peopleHint(mob);
+    }
+
+    private static String plantKind(Plant plant) {
+        return "plant:" + plant.getClass().getName();
+    }
+
+    private static String chestKind(Heap.Type chest) {
+        return "chest:" + chest;
+    }
+
+    private String terrainKind(int cell) {
+        if (level instanceof DailyLevel) {
+            String objective = ((DailyLevel)level).doorCardKind(cell);
+            if (objective != null) return objective;
+        }
+        String hint = terrainHint(cell);
+        return "terrain:" + hint + ("trap".equals(hint) ? ":" + level.map[cell] : "");
+    }
+
+    private static String floorItemKey(Heap heap, Item item) {
+        StringBuilder key = new StringBuilder().append(heap.pos).append(':').append(item.getClass().getName())
+                .append(':').append(item.level()).append(':').append(item.cursed)
+                .append(':').append(type(item.weaponEffect))
+                .append(':').append(Arrays.toString(EquipmentAttribute.pack(item.attributes)));
+        if (item instanceof Essence) {
+            Essence essence = (Essence)item;
+            key.append(':').append(essence.grade()).append(':').append(essence.bonus()).append(':').append(essence.skill());
+        }
+        if (item instanceof Weapon) key.append(':').append(type(((Weapon)item).enchantment()));
+        if (item instanceof Armor) key.append(':').append(((Armor)item).prefix).append(':').append(type(((Armor)item).glyph));
+        return key.toString();
+    }
+
+    private void rememberFloor() {
+        if (level == null || session != run) return;
+        HashMap<String, Integer> items = new HashMap<>();
+        for (Heap heap : level.heaps.values()) {
+            for (Item item : heap.items) {
+                if (!individualCard(item) || item.helperCardRun != run) continue;
+                String key = floorItemKey(heap, item);
+                Integer count = items.get(key);
+                items.put(key, count == null ? 1 : count + 1);
+            }
+        }
+        shownFloorItems.put(floor, items);
+        HashSet<Integer> champions = new HashSet<>();
+        for (Mob mob : level.mobs) {
+            if (mob.champ > 0 && mob.helperCardRun == run) champions.add(mob.id());
+        }
+        shownFloorChampions.put(floor, champions);
+    }
+
+    private void restoreFloorHistory() {
+        if (level == null) return;
+        HashSet<Integer> champions = shownFloorChampions.get(floor);
+        if (champions != null) {
+            for (Mob mob : level.mobs) {
+                if (mob.champ > 0 && champions.contains(mob.id())) mob.helperCardRun = run;
+            }
+        }
+        HashMap<String, Integer> remembered = shownFloorItems.get(floor);
+        if (remembered == null) return;
+        HashMap<String, Integer> remaining = new HashMap<>(remembered);
+        for (Heap heap : level.heaps.values()) {
+            for (Item item : heap.items) {
+                if (!individualCard(item)) continue;
+                String key = floorItemKey(heap, item);
+                Integer count = remaining.get(key);
+                if (count == null || count == 0) continue;
+                item.helperCardRun = run;
+                remaining.put(key, count - 1);
+            }
+        }
+    }
+
     private void clear() {
+        rememberFloor();
         for (Pile pile : piles.values()) pile.destroy();
         piles.clear();
         quiet.clear();
@@ -677,6 +905,20 @@ public final class ItemDropCards extends Gizmo {
             cell = -1;
         }
 
+        String kind() {
+            if (seen != null) return itemKind(seen.item);
+            if (chest != null) return chestKind(chest);
+            if (plant != null) return plantKind(plant);
+            if (mob != null) return mobKind(mob);
+            return terrainKind(cell);
+        }
+
+        boolean suppressed() {
+            if (seen != null) return ItemDropCards.this.suppressed(seen.item);
+            if (mob != null) return ItemDropCards.this.suppressed(mob);
+            return ItemDropCards.this.suppressed(kind());
+        }
+
         void prepare() {
             if (icon != null) return;
             if (seen != null) {
@@ -743,14 +985,12 @@ public final class ItemDropCards extends Gizmo {
     }
 
     private static String caption(Item item, int count) {
-        String unknown = item instanceof Potion && !((Potion)item).isKnown() ? "potion"
-                : item instanceof Scroll && !((Scroll)item).isKnown() ? "scroll"
-                : item instanceof Ring && !((Ring)item).isKnown() ? "ring"
-                : item instanceof Wand && !((Wand)item).isKnown() ? "wand" : null;
+        String unknown = unknownItemKind(item);
         String name = unknown == null ? Message.capitalize(Message.itemName(item)).toString()
                 : Messages.get("ui.itemdropcards." + unknown);
         if (item.levelKnown && item.level() != 0) name += (item.level() > 0 ? " +" : " ") + item.level();
         if (count > 1) name += " x " + count;
+        if (item instanceof Essence) return name + "\n" + ((Essence)item).cardInfo();
         if (item.isIdentified()) {
             if (item instanceof Weapon && !(item instanceof Bow)) {
                 Weapon weapon = (Weapon)item;
@@ -794,9 +1034,16 @@ public final class ItemDropCards extends Gizmo {
         return name;
     }
 
+    private static String unknownItemKind(Item item) {
+        return item instanceof Potion && !((Potion)item).isKnown() ? "potion"
+                : item instanceof Scroll && !((Scroll)item).isKnown() ? "scroll"
+                : item instanceof Ring && !((Ring)item).isKnown() ? "ring"
+                : item instanceof Wand && !((Wand)item).isKnown() ? "wand" : null;
+    }
+
     private static String caption(Mob mob) {
         String name = Messages.capitalize(mob.displayName());
-        String hint = peopleHint(mob);
+        String hint = MobCardText.peopleHint(mob);
         return name + "\n" + (hint == null ? MobCardText.description(mob) : Messages.get("ui.itemdropcards." + hint));
     }
 
@@ -838,17 +1085,6 @@ public final class ItemDropCards extends Gizmo {
                 return null;
             default: return null;
         }
-    }
-
-    private static String peopleHint(Mob mob) {
-        if (mob instanceof ImpShopkeeper) return "imp_shop";
-        if (mob instanceof Shopkeeper) return "shop";
-        if (mob instanceof MercenaryCamp) return "mercenary";
-        if (mob instanceof Ghost || mob instanceof Wandmaker
-                || mob instanceof Blacksmith && !Blacksmith.Quest.rewardTaken()
-                || mob instanceof Imp && !Imp.Quest.isCompleted()
-                || mob instanceof Prospector && !((Prospector)mob).questCompleted()) return "quest";
-        return null;
     }
 
     private static String wrap(String value, int width) {

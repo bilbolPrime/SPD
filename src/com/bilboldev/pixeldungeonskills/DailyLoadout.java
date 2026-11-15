@@ -16,6 +16,7 @@ import com.bilboldev.pixeldungeonskills.items.rings.*;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfRecharging;
 import com.bilboldev.pixeldungeonskills.items.scrolls.ScrollOfTeleportation;
 import com.bilboldev.pixeldungeonskills.items.wands.*;
+import com.bilboldev.pixeldungeonskills.items.weapon.gun.Gun;
 import com.bilboldev.pixeldungeonskills.items.weapon.gun.Handgun;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.*;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Arrow;
@@ -154,11 +155,12 @@ public final class DailyLoadout {
         target.HP = target.HT;
         target.MP = target.MMP;
         QuickSlot.resetSlots();
-        QuickSlot.values[0] = PotionOfHealing.class;
+        int slot = 0;
+        if (target.belongings.weapon instanceof Gun) QuickSlot.values[slot++] = target.belongings.weapon;
+        if (slot < QuickSlot.visibleSlots()) QuickSlot.values[slot++] = PotionOfHealing.class;
         ArrayList<TalentSkill> skills = target.talents().talents();
         skills.sort(java.util.Comparator.comparingInt((TalentSkill skill) -> skill.talent.subclass.ordinal())
                 .thenComparingInt(skill -> skill.talent.row).thenComparingInt(skill -> skill.talent.column));
-        int slot = 1;
         for (TalentSkill skill : skills) {
             if (slot >= QuickSlot.visibleSlots()) break;
             if (QuickSlot.canAssign(skill)) QuickSlot.bind(skill, slot++);

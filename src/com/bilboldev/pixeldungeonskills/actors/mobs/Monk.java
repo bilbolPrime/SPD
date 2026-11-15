@@ -20,23 +20,18 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.HashSet;
 import com.bilboldev.pixeldungeonskills.Dungeon;
-import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
+import com.bilboldev.pixeldungeonskills.actors.buffs.OffBalance;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Terror;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
-import com.bilboldev.pixeldungeonskills.items.KindOfWeapon;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
-import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.sprites.MonkSprite;
-import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.utils.Random;
 
 public class Monk extends Mob {
-
-	public static final String TXT_DISARM	= "%s has knocked the %s from your hands!";
 
 	{
 		name = "dwarf monk";
@@ -91,17 +86,8 @@ public class Monk extends Mob {
 	@Override
 	public int attackProc( Char enemy, int damage ) {
 
-		if (Random.Int( 6 ) == 0 && (enemy == Dungeon.hero || LocalCoop.contains(enemy))) {
-
-			Hero hero = (Hero)enemy;
-			KindOfWeapon weapon = hero.belongings.weapon;
-
-			if (weapon != null && !(weapon instanceof Knuckles) && !weapon.cursed
-                    && !RebornChallenges.equipmentBound()) {
-				hero.belongings.weapon = null;
-				Dungeon.level.drop( weapon, hero.pos ).sprite.drop();
-				GLog.w("custom.generated.entry_s_has_knocked_the_s_from_your_hands_8aaad40b97", Message.actor(this), Message.itemName(weapon));
-			}
+		if (enemy == Dungeon.hero || LocalCoop.contains(enemy)) {
+			OffBalance.hit((Hero)enemy);
 		}
 
         champEffect(enemy, damage);

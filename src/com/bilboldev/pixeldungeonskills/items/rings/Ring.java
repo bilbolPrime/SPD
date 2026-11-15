@@ -176,6 +176,7 @@ public class Ring extends EquipableItem {
 			activate( hero );
 
 			cursedKnown = true;
+			hero.refreshBonuses();
 			if (cursed) {
 				equipCursed( hero );
 				GLog.n(Ring.class, "equip_cursed");
@@ -205,6 +206,7 @@ public class Ring extends EquipableItem {
 
 			hero.remove( buff );
 			buff = null;
+			hero.refreshBonuses();
 
 			return true;
 

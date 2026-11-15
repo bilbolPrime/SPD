@@ -23,7 +23,7 @@ final class FirstPersonButton extends Button {
     protected void createChildren() {
         super.createChildren();
         SmartTexture art = artwork();
-        background = new NinePatch(art, 48, 0, 3, 3, 1);
+        background = new NinePatch(art, 64, 0, 3, 3, 1);
         add(background);
         icon = new Image(art);
         add(icon);
@@ -44,7 +44,8 @@ final class FirstPersonButton extends Button {
     }
 
     void viewMode(int mode) {
-        int next = (mode + 1) % 3;
+        int next = com.bilboldev.pixeldungeonskills.network.PartySession.splitControls()
+                ? (mode == 2 ? 3 : 2) : (mode + 1) % 4;
         icon.frame(next * 16, 0, 16, 14);
     }
 
@@ -96,9 +97,12 @@ final class FirstPersonButton extends Button {
                     },
                     {
                         "................", ".oooooooooooooo.", ".oSSSoddddoSSSo.", ".oSSSoddddoSSSo.", ".oooooooooooooo.", ".odddoGGGGodddo.", ".odddoGGGGodddo.", ".odddoGGGGodddo.", ".oooooooooooooo.", ".oSSSoddddoSSSo.", ".oSSSoddddoSSSo.", ".oooooooooooooo.", "................", "................"
+                    },
+                    {
+                        "................", "................", "...ooo...oooo...", "..oSSSo.oSSSSo..", ".oSoddSooSdddSo.", "..od.oSdoSd.oSd.", "....oSodoSd.oSd.", "...oSod.oSd.oSd.", "..oSodo.oSdooSd.", ".oSSSSSooSSSSod.", "..oddddd.odddd..", "................", "................", "................"
                     }
             };
-            Bitmap bitmap = Bitmap.createBitmap(51, 14, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = Bitmap.createBitmap(67, 14, Bitmap.Config.ARGB_8888);
             for (int mode = 0; mode < glyphs.length; mode++) {
                 for (int y = 0; y < 14; y++) for (int x = 0; x < 16; x++) {
                     char pixel = glyphs[mode][y].charAt(x);
@@ -110,7 +114,7 @@ final class FirstPersonButton extends Button {
 
             Bitmap toolbar = TextureCache.get(Assets.TOOLBAR).bitmap;
             for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++)
-                bitmap.setPixel(48 + x, y, toolbar.getPixel(107 + (x == 2 ? 19 : x), 8 + (y == 2 ? 23 : y)));
+                bitmap.setPixel(64 + x, y, toolbar.getPixel(107 + (x == 2 ? 19 : x), 8 + (y == 2 ? 23 : y)));
             TextureCache.add(FirstPersonButton.class, new SmartTexture(bitmap));
         }
         return RebornHud.texture(FirstPersonButton.class);

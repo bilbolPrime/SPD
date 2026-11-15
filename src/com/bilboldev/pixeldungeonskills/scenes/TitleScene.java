@@ -20,6 +20,8 @@ package com.bilboldev.pixeldungeonskills.scenes;
 import com.bilboldev.pixeldungeonskills.DailyReminders;
 
 import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
+import com.bilboldev.pixeldungeonskills.Assets;
 
 import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ import com.bilboldev.utils.PointF;
 
 public class TitleScene extends PixelScene {
     public enum Page {
-        HOME, HEROES, RANKINGS, BADGES, ABOUT, LIBRARY
+        HOME, HEROES, RANKINGS, BADGES, ABOUT, LIBRARY, TUTORIAL, DAILY
     }
     static final HeroClass[] HERO_CLASSES = {HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE,
             HeroClass.HUNTRESS, HeroClass.NECROMANCER, HeroClass.MERCENARY};
@@ -88,6 +90,7 @@ public class TitleScene extends PixelScene {
         Lore.clearNotices();
         GauntletRun.finish();
         DailyRun.leave();
+        TutorialRun.finish();
         SupporterEntitlements.resetRunAura();
         super.create();
         Badges.loadGlobal();
@@ -122,11 +125,20 @@ public class TitleScene extends PixelScene {
         }
 
         addAction(Messages.get(TitleScene.class, "play"), 0, true, Page.HEROES);
+        TitleMenuButton tutorial = new TitleMenuButton(Messages.get("tutorial.menu"), 0, false) {
+            { icon(new Image(Assets.TUTORIAL)); }
+
+            @Override protected void onClick() {
+                navigate(Page.TUTORIAL);
+            }
+        };
+        home.add(tutorial);
+        buttons.add(tutorial);
         TitleMenuButton daily = new TitleMenuButton(Messages.get("daily.menu"), 0, false) {
             private long date = DailyRun.today();
             { icon(WndDaily.image(date)); }
 
-            @Override protected void onClick() { TitleScene.this.add(new WndDaily()); }
+            @Override protected void onClick() { navigate(Page.DAILY); }
 
             @Override public void update() {
                 super.update();
@@ -139,6 +151,7 @@ public class TitleScene extends PixelScene {
         };
         home.add(daily);
         buttons.add(daily);
+        int secondaryStart = buttons.size();
         addAction(Messages.get(TitleScene.class, "rankings"), 2, false, Page.RANKINGS);
         addAction(Messages.maybeTranslate("Badges"), 3, false, Page.BADGES);
         TitleMenuButton library = addAction(Messages.get(TitleScene.class, "library"), 1, false, Page.LIBRARY);
@@ -148,9 +161,19 @@ public class TitleScene extends PixelScene {
         float gap = 4;
         float available = h - (portrait ? 124 : 48) - (buttons.size() - 1) * gap;
         float targetHeight = Math.max(34, 48 * Game.density / zoom);
-        boolean paired = !portrait && available / buttons.size() < targetHeight;
+        boolean paired = portrait || Game.height < 600 * Game.density
+                || available / buttons.size() < targetHeight;
+        if (paired) {
+            float pairedWidth = Math.min(240, portrait ? w - 32 : w * .46f);
+            for (int i = secondaryStart; i < secondaryStart + 4; i++) {
+                if (!buttons.get(i).fitsWidth((pairedWidth - gap) / 2)) {
+                    paired = false;
+                    break;
+                }
+            }
+            if (paired) menuWidth = pairedWidth;
+        }
         int rows = buttons.size() - (paired ? 2 : 0);
-        if (paired) menuWidth = Math.min(240, w * .46f);
         available = h - (portrait ? 124 : 48) - (rows - 1) * gap;
         float buttonHeight = Math.min(targetHeight, available / rows);
         float menuHeight = rows * buttonHeight + (rows - 1) * gap;
@@ -179,10 +202,11 @@ public class TitleScene extends PixelScene {
         runes.alpha(0.32f);
         home.add(runes);
         for (int i = 0; i < buttons.size(); i++) {
-            boolean sharedRow = paired && i >= 2 && i < 6;
-            int row = sharedRow ? 2 + (i - 2) / 2 : paired && i >= 6 ? i - 2 : i;
+            boolean sharedRow = paired && i >= secondaryStart && i < secondaryStart + 4;
+            int row = sharedRow ? secondaryStart + (i - secondaryStart) / 2
+                    : paired && i >= secondaryStart + 4 ? i - 2 : i;
             float buttonWidth = sharedRow ? (menuWidth - gap) / 2 : menuWidth;
-            float x = menuX + (sharedRow && i % 2 == 1 ? buttonWidth + gap : 0);
+            float x = menuX + (sharedRow && (i - secondaryStart) % 2 == 1 ? buttonWidth + gap : 0);
             buttons.get(i).setRect(align(x), align(menuY + row * (buttonHeight + gap)), buttonWidth, buttonHeight);
         }
         utilities(w, h);

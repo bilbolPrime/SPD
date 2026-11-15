@@ -31,7 +31,6 @@ import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
-import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
@@ -512,6 +511,7 @@ public abstract class Level implements Bundlable {
                                 tmp.HP = Dungeon.hero.hiredMerc.HP;
                                 tmp.skill.level = Dungeon.hero.hiredMerc.skill.level;
                                 tmp.carrying = Dungeon.hero.hiredMerc.carrying;
+                                tmp.refreshBonuses();
                                 ((MercSprite) tmp.sprite).updateArmor();
                                 Dungeon.hero.hiredMerc = tmp;
                                 Dungeon.hero.checkMerc = false;
@@ -627,28 +627,6 @@ public abstract class Level implements Bundlable {
 		for (int i=WIDTH; i < lastRow; i += WIDTH) {
 			passable[i] = avoid[i] = false;
 			passable[i + WIDTH-1] = avoid[i + WIDTH-1] = false;
-		}
-
-		for (int i=WIDTH; i < LENGTH - WIDTH; i++) {
-
-			if (water[i] && !Difficulties.is3d) {
-				map[i] = getWaterTile( i );
-			}
-
-			if (pit[i] && !Difficulties.is3d) {
-				if (!pit[i - WIDTH]) {
-					int c = map[i - WIDTH];
-					if (c == Terrain.EMPTY_SP || c == Terrain.STATUE_SP) {
-						map[i] = Terrain.CHASM_FLOOR_SP;
-					} else if (water[i - WIDTH]) {
-						map[i] = Terrain.CHASM_WATER;
-					} else if ((Terrain.flags[c] & Terrain.UNSTITCHABLE) != 0) {
-						map[i] = Terrain.CHASM_WALL;
-					} else {
-						map[i] = Terrain.CHASM_FLOOR;
-					}
-				}
-			}
 		}
 	}
 

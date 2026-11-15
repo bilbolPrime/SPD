@@ -106,6 +106,12 @@ public class FogOfWar extends Image {
 		texture.pixels( width2, height2, pixels );
 	}
 
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (texture != null) TextureCache.remove(FogOfWar.class);
+	}
+
 	private class FogTexture extends SmartTexture {
 
 		public FogTexture() {

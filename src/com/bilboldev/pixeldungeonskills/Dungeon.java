@@ -77,6 +77,7 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
 import com.bilboldev.pixeldungeonskills.utils.BArray;
 import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
 import com.bilboldev.utils.Bundlable;
@@ -186,6 +187,7 @@ public class Dungeon {
     }
 
     private static void useSpecialRunRules() {
+        ItemDropCards.resetRun();
         SupporterEntitlements.resetRunAura();
         seed = null;
         LocalCoop.clear();
@@ -207,6 +209,7 @@ public class Dungeon {
 
 	public static void init() {
 		Lore.clearNotices();
+        ItemDropCards.resetRun();
         SupporterEntitlements.resetRunAura();
         if (runRules.hasSeed()) {
             if (seed == null) seed = RunSeed.random();
@@ -223,7 +226,7 @@ public class Dungeon {
         challengeBosses = 0;
 		playableRun = true;
 
-		challenges = DailyRun.active() ? 0 : runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
+		challenges = TutorialRun.active() || DailyRun.active() ? 0 : runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
 		Skill.skillTrack = 0;
 		Actor.clear();
 
@@ -267,6 +270,7 @@ public class Dungeon {
 		StartScene.curClass.initHero( hero );
 		LocalCoop.initialize();
         HeroSkins.startRun();
+        CosmeticAccessories.startRun();
 
 	}
 
@@ -374,6 +378,7 @@ public class Dungeon {
 
 	public static void initGauntlet() {
 		Lore.clearNotices();
+        ItemDropCards.resetRun();
 
         if (!GauntletRun.active()) throw new IllegalStateException("Start an isolated Gauntlet session first");
         runRules = RunRules.newRun(GameplayMode.REBORN);
@@ -422,6 +427,7 @@ public class Dungeon {
 
 		StartScene.curClass.initHero( hero );
 		new PotionOfHealing().identify().collect();
+        hero.accessory = CosmeticAccessories.selected();
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -569,6 +575,11 @@ public class Dungeon {
         }
 
         if (runRules.hasRebornEncounters()) nightMode = false;
+		if (Dungeon.level != level) {
+			for (Hero member : LocalCoop.active() ? LocalCoop.heroes() : new Hero[]{hero}) {
+				member.curAction = member.lastAction = null;
+			}
+		}
 		Dungeon.level = level;
 		if (LocalCoop.active()) LocalCoop.placeParty(level, pos != -1 ? pos : level.exit);
 		Actor.init();
@@ -733,7 +744,7 @@ public class Dungeon {
 	}
 
 	public static void saveGame( String fileName ) throws IOException {
-		if (DailyRun.active()) return;
+		if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 		if (!playableRun) throw new IOException("Archived runs are read-only");
@@ -803,7 +814,7 @@ public class Dungeon {
 	}
 
 	public static void saveLevel() throws IOException {
-        if (DailyRun.active()) return;
+        if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) {
 			LocalCoop.rememberLevel(levelKey(), level);
 			return;
@@ -829,7 +840,7 @@ public class Dungeon {
 	}
 
 	public static void saveAll() throws IOException {
-        if (DailyRun.active()) return;
+        if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 		if (!playableRun || hero == null){
@@ -881,6 +892,7 @@ public class Dungeon {
 
 	private static void loadGame(Bundle bundle, boolean fullLoad, RunRules restored) throws IOException {
 		Lore.clearNotices();
+		ItemDropCards.resetRun();
 		SupporterEntitlements.resetRunAura();
 		LocalCoop.clear();
 		runRules = restored;
@@ -998,7 +1010,7 @@ public class Dungeon {
 	}
 
 	public static void deleteGame(HeroClass cl, int slot, boolean deleteLevels) {
-        if (DailyRun.active()) return;
+        if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
 
@@ -1050,7 +1062,7 @@ public class Dungeon {
 
 	public static void fail( String desc, Object cause ) {
 		if (LocalCoop.active()) return;
-		if (GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active()) return;
 		resultDescription = desc;
 		resultCauseClassName = resultCauseClassName( cause );
 		if (hero.belongings.getItem( Ankh.class ) == null || Dungeon.depth == ColdGirl.FROST_DEPTH) {
@@ -1063,7 +1075,7 @@ public class Dungeon {
 
 	public static void win( String desc ) {
 		if (LocalCoop.active()) return;
-		if (GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active()) return;
 
 		hero.belongings.identify();
 

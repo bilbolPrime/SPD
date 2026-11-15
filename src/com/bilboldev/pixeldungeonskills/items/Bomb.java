@@ -29,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.effects.CellEmitter;
 import com.bilboldev.pixeldungeonskills.effects.particles.BlastParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.SmokeParticle;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -114,7 +115,6 @@ public class Bomb extends Item {
 
 	@Override
 	public String info() {
-		return
-			"This is a relatively small bomb, filled with black powder. Conveniently, its fuse is lit automatically when the bomb is thrown.";
+		return Messages.get(this, "desc");
 	}
 }

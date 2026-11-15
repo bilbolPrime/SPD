@@ -125,7 +125,7 @@ public final class Lore {
     }
 
     private static boolean solo() {
-        return !GauntletRun.active() && !RunSeed.customRun() && !LocalCoop.active()
+        return !TutorialRun.active() && !GauntletRun.active() && !RunSeed.customRun() && !LocalCoop.active()
                 && !PartySession.network() && !LocalCoop.isRestoring()
                 && Dungeon.hero != null && Dungeon.hero.isAlive() && Dungeon.level != null
                 && Game.instance != null && Game.scene() instanceof GameScene;

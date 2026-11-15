@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
@@ -118,6 +119,9 @@ public class Burning extends Buff implements Hero.Doom {
 		if (left <= 0 ||
 			Random.Float() > (2 + (float)target.HP / target.HT) / 3 ||
 			(Level.water[target.pos] && !target.flying)) {
+            if (target instanceof Hero && Level.water[target.pos] && !target.flying
+                    && TutorialRun.level() != null)
+                TutorialRun.level().extinguished((Hero)target);
 
 			detach();
 		}
@@ -126,8 +130,13 @@ public class Burning extends Buff implements Hero.Doom {
 	}
 
 	public void reignite( Char ch ) {
-		left = duration( ch );
+		left = duration(ch);
 	}
+
+    public void reignite(Char target, float duration) {
+        Resistance resistance = target.buff(Resistance.class);
+        left = duration * (resistance == null ? 1 : resistance.durationFactor());
+    }
 
 	@Override
 	public int icon() {

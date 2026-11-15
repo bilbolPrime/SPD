@@ -253,7 +253,7 @@ public class Badges {
 	}
 
 	public static void saveGlobal() {
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Bundle bundle = null;
 
@@ -274,6 +274,7 @@ public class Badges {
 	}
 
 	public static void ensureGlobalFile() {
+        if (TutorialRun.active()) return;
 		loadGlobal();
 
 		try {
@@ -639,7 +640,7 @@ public class Badges {
 
 	public static void validateBossSlain() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 		Badge badge = null;
 		switch (Dungeon.depth) {
 		case 5:
@@ -775,7 +776,7 @@ public class Badges {
 
 	public static void validateMastery() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		switch (Dungeon.hero.heroClass) {
@@ -834,7 +835,7 @@ public class Badges {
 
 	public static void validateRare( Mob mob ) {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		if (mob instanceof Albino) {
@@ -866,7 +867,7 @@ public class Badges {
 
 	public static void validateVictory() {
 		if (RunSeed.customRun()) return;
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = Badge.VICTORY;
 		displayBadge( badge );
@@ -966,7 +967,7 @@ public class Badges {
 	}
 
 	public static void validateLore() {
-		if (GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active()) return;
 		restoreGlobalIfNeeded();
 		if (!global.contains(Badge.KNOW_IT_ALL) && Lore.complete()) displayBadge(Badge.KNOW_IT_ALL);
 	}
@@ -977,7 +978,7 @@ public class Badges {
 	}
 
 	private static void displayBadge( Badge badge ) {
-		if (GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
 
 		if (badge == null) {
 			return;

@@ -27,12 +27,14 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.levels.CavesBossLevel;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Statistics;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
@@ -73,7 +75,7 @@ public class InterlevelScene extends PixelScene {
 	private static final String ERR_GENERIC			= "Something went wrong..."	;
 
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT, FROST
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT, FROST, DAILY, TUTORIAL
 	};
 	public static Mode mode;
 
@@ -96,6 +98,8 @@ public class InterlevelScene extends PixelScene {
 	private BitmapText message;
 
 	private Thread thread;
+	private Mode transitionMode;
+	private boolean freshRun;
 	private String error = null;
 
 	public static int missionChosen = 0;
@@ -103,10 +107,11 @@ public class InterlevelScene extends PixelScene {
 	@Override
 	public void create() {
 		super.create();
-		if (mode != Mode.FALL) fallingHero = null;
+		transitionMode = mode;
+		if (transitionMode != Mode.FALL) fallingHero = null;
 
 		String text = "";
-		switch (mode) {
+		switch (transitionMode) {
 		case DESCEND:
 			text = Messages.get( Mode.class, "descend" );
 			break;
@@ -114,6 +119,8 @@ public class InterlevelScene extends PixelScene {
 			text = Messages.get( Mode.class, "ascend" );
 			break;
 		case CONTINUE:
+		case DAILY:
+		case TUTORIAL:
 			text = Messages.get( Mode.class, "continue" );
 			break;
 		case RESURRECT:
@@ -162,7 +169,7 @@ public class InterlevelScene extends PixelScene {
 		phase = Phase.FADE_IN;
 		timeLeft = TIME_TO_FADE;
 
-        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT || mode == Mode.MISSION)
+        if(transitionMode == Mode.MOVIE || transitionMode == Mode.MOVIE_OUT || transitionMode == Mode.MISSION)
             timeLeft = 10 * TIME_TO_FADE;
 
 		thread = new Thread() {
@@ -171,9 +178,16 @@ public class InterlevelScene extends PixelScene {
 
 				try {
 
-					if (mode != Mode.GUANTLET && mode != Mode.GUANTLET_NEXT) Generator.reset();
+					if (transitionMode != Mode.GUANTLET && transitionMode != Mode.GUANTLET_NEXT
+							&& transitionMode != Mode.DAILY && transitionMode != Mode.TUTORIAL) Generator.reset();
 
-					switch (mode) {
+					switch (transitionMode) {
+					case DAILY:
+						freshRun = DailyRun.prepare();
+						break;
+					case TUTORIAL:
+						freshRun = TutorialRun.prepare();
+						break;
                     case MISSION:
                         runMission(missionChosen);
                          break;
@@ -231,7 +245,8 @@ public class InterlevelScene extends PixelScene {
 
 				} catch (Exception e ) {
 
-					error = ERR_GENERIC + " in " + mode + "\n" + e;
+					error = ERR_GENERIC + " in " + transitionMode + "\n" + e;
+					if (transitionMode == Mode.DAILY || transitionMode == Mode.TUTORIAL) e.printStackTrace();
 
 				}
 
@@ -245,7 +260,7 @@ public class InterlevelScene extends PixelScene {
 		super.update();
 
 		float p = timeLeft / TIME_TO_FADE;
-        if(mode == Mode.MOVIE || mode == Mode.MOVIE_OUT || mode == Mode.MISSION)
+        if(transitionMode == Mode.MOVIE || transitionMode == Mode.MOVIE_OUT || transitionMode == Mode.MISSION)
             p /= 10;
 
 		switch (phase) {
@@ -265,22 +280,28 @@ public class InterlevelScene extends PixelScene {
 		case FADE_OUT:
              message.alpha( p );
 
-			if (mode == Mode.CONTINUE || (mode == Mode.DESCEND && Dungeon.depth == 1)) {
+			if (transitionMode == Mode.CONTINUE || (transitionMode == Mode.DESCEND && Dungeon.depth == 1)) {
 				Music.INSTANCE.volume( p );
 			}
 			if ((timeLeft -= Game.elapsed) <= 0) {
-                if(mode == Mode.MOVIE || mode == Mode.MISSION)
+                if (transitionMode == Mode.DAILY) {
+                    mode = freshRun ? Mode.DAILY : Mode.NONE;
+                    Game.switchScene(DailyScene.class);
+                } else if (transitionMode == Mode.TUTORIAL) {
+                    mode = freshRun ? Mode.TUTORIAL : Mode.NONE;
+                    Game.switchScene(TutorialScene.class);
+                } else if(transitionMode == Mode.MOVIE || transitionMode == Mode.MISSION)
 
                     Game.switchScene( MissionScene.class );
-                else if(mode == Mode.PLAY_ONLINE)
+                else if(transitionMode == Mode.PLAY_ONLINE)
                     Game.switchScene( OnlineScene.class );
-                else if(mode == Mode.MOVIE_OUT)
+                else if(transitionMode == Mode.MOVIE_OUT)
                     Game.switchScene(TitleScene.class);
-                else if (mode == Mode.GUANTLET){
+                else if (transitionMode == Mode.GUANTLET){
 					GauntletScene.level = 1;
 					Game.switchScene(GauntletScene.class);
 				}
-				else if (mode == Mode.GUANTLET_NEXT){
+				else if (transitionMode == Mode.GUANTLET_NEXT){
 					Game.switchScene(GauntletScene.class);
 				}
                 else
@@ -291,13 +312,24 @@ public class InterlevelScene extends PixelScene {
 		case STATIC:
 			if (thread == null || thread.isAlive()) break;
 			thread = null;
+			if (error != null && transitionMode == Mode.DAILY) {
+				mode = Mode.NONE;
+				DailyScene.startFailed();
+				return;
+			}
+			if (error != null && transitionMode == Mode.TUTORIAL) {
+				TutorialRun.finish();
+				mode = Mode.NONE;
+				Game.switchScene(TitleScene.class);
+				return;
+			}
 			if (error == null) {
 				phase = Phase.FADE_OUT;
 				timeLeft = TIME_TO_FADE;
 				break;
 			}
 			if (error != null) {
-                if (mode != Mode.MOVIE && mode != Mode.MOVIE_OUT) {
+                if (transitionMode != Mode.MOVIE && transitionMode != Mode.MOVIE_OUT) {
                     add(new WndError(error) {
                         public void onBackPressed() {
                             super.onBackPressed();

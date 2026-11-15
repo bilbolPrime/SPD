@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.scrolls;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.effects.Identification;
@@ -38,6 +39,7 @@ public class ScrollOfIdentify extends InventoryScroll {
 		curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
 
 		item.identify();
+        TutorialRun.identified(curUser, item, curItem);
 		GLog.i("custom.generated.entry_it_is_s_e179ddef39", Message.item(item));
 
 		Badges.validateItemLevelAquired( item );

@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import java.util.ArrayList;
 
 import com.bilboldev.noosa.audio.Sample;
@@ -114,10 +115,7 @@ public class TomeOfMastery extends Item {
 
 	@Override
 	public String info() {
-		return
-			"This worn leather book is not that thick, but you feel somehow, " +
-			"that you can gather a lot from it. Remember though that reading " +
-			"this tome may require some time.";
+		return Messages.get(this, "desc");
 	}
 
 	private void read( Hero hero, HeroSubClass sc1, HeroSubClass sc2 ) {

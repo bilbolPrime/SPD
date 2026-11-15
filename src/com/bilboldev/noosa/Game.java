@@ -292,12 +292,15 @@ public void BindSignarlR()
 
 	@Override
 	public void onSurfaceChanged( GL10 gl, int width, int height ) {
-
+		boolean resized = Game.width != width || Game.height != height;
 		GLES20.glViewport( 0, 0, width, height );
 
 		Game.width = width;
 		Game.height = height;
-
+		if (resized) {
+			Touchscreen.cancelAllTouches();
+			requestedReset = true;
+		}
 	}
 
     @Override

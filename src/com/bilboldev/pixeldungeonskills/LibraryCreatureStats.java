@@ -91,7 +91,11 @@ public final class LibraryCreatureStats {
     }
 
     public static String traits(Mob mob) {
-        return traits(mob.getClass(), effects(mob.immunities()), effects(mob.resistances()));
+        return traits(mob.getClass(), effects(mob.immunities()), effects(mob.resistances()), false);
+    }
+
+    public static String inspectionTraits(Mob mob) {
+        return traits(mob.getClass(), effects(mob.immunities()), effects(mob.resistances()), true);
     }
 
     public static String traits(Class<?> type) {
@@ -102,7 +106,7 @@ public final class LibraryCreatureStats {
         else if (type == Yog.class) type = RebornYog.class;
         else if (type == Yog.RottingFist.class) type = RebornYog.Rotting.class;
         else if (type == Yog.BurningFist.class) type = RebornYog.BurningHand.class;
-        return traits(type, immunityEffects(type), resistanceEffects(type));
+        return traits(type, immunityEffects(type), resistanceEffects(type), false);
     }
 
     private static EnumSet<Effect> resistanceEffects(Class<?> type) {
@@ -123,15 +127,20 @@ public final class LibraryCreatureStats {
         return effects;
     }
 
-    private static String traits(Class<?> type, EnumSet<Effect> immune, EnumSet<Effect> resistant) {
+    private static String traits(Class<?> type, EnumSet<Effect> immune, EnumSet<Effect> resistant, boolean inspection) {
         resistant.removeAll(immune);
+        if (inspection && (type == RimeBat.class || type == Iceclaw.class || type == Frostback.class
+                || type == Shardling.class || type == HollowMiner.class || type == Rimehorn.class || type == OldRime.class)) {
+            immune.remove(Effect.ICE);
+            immune.remove(Effect.FREEZING);
+        }
         String text = effectText(immune, "immune_");
         String resistances = effectText(resistant, "resist_");
         if (!resistances.isEmpty()) text += (text.isEmpty() ? "" : "\n") + resistances;
         if (type == Elemental.class) {
             text += "\n_" + Messages.get("ui.itemdropcards.hurt_by_freezing") + "_";
             text += "\n_" + Messages.get("ui.itemdropcards.burning_heals") + "_";
-        } else if (type == Iceclaw.class) {
+        } else if (type == Iceclaw.class && !inspection) {
             text += "\n_" + Messages.get("ui.itemdropcards.fire_breaks_guard") + "_";
         }
         return text;

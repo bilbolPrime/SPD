@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.network;
 
 import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.CosmeticPets;
+import com.bilboldev.pixeldungeonskills.CosmeticAccessories;
 import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import android.util.Log;
@@ -29,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.scenes.SurfaceScene;
 import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
@@ -108,6 +110,8 @@ public final class PartySession {
     private static int partnerAura;
     private static int sentPet = -1, partnerPet, confirmedPet;
     private static int sentSkin = -1, partnerSkin;
+    private static int sentAccessory = -1, localAccessory = -1;
+    private static boolean accessoryCosmetics;
     private static boolean ending, surfaceEnding;
     private static int localIndex;
     private static int followToken, followRequester = -1, followDepth;
@@ -287,6 +291,8 @@ public final class PartySession {
         sentAura = -1;
         partnerAura = partnerPet = partnerSkin = confirmedPet = 0;
         sentPet = sentSkin = -1;
+        sentAccessory = localAccessory = -1;
+        accessoryCosmetics = false;
         ending = surfaceEnding = false;
         localIndex = 0;
         remoteTarget = null;
@@ -341,8 +347,9 @@ public final class PartySession {
     }
 
     public static Hero localHero() {
-        Hero[] party = LocalCoop.heroes();
-        return party.length == 2 ? party[localIndex] : Dungeon.hero;
+        Hero first = LocalCoop.primary();
+        Hero second = LocalCoop.partner(first);
+        return second == null ? Dungeon.hero : localIndex == 0 ? first : second;
     }
 
     public static Hero partner() {
@@ -350,6 +357,17 @@ public final class PartySession {
     }
 
     public static int partnerSkin() { return partnerSkin; }
+
+    public static int accessory(Hero hero) {
+        if (client() && hero == localHero() && accessoryCosmetics && localAccessory >= 0) return localAccessory;
+        return hero.accessory;
+    }
+
+    public static void accessoryChanged(Hero hero) {
+        if (!network()) return;
+        if (client() && hero == localHero()) localAccessory = hero.accessory;
+        else if (hosting) snapshotDelay = 0;
+    }
 
     public static int pet(Hero hero) {
         if (network() && hero != localHero()) return partnerPet;
@@ -462,16 +480,22 @@ public final class PartySession {
         int aura = SupporterEntitlements.selectedAura();
         int pet = CosmeticPets.selected();
         int skin = started && localHero() != null ? localHero().skin : HeroSkins.localChoice;
-        if ((aura != sentAura || pet != sentPet || skin != sentSkin) && connection != null && connection.connected()) {
+        if (client() && localAccessory < 0) localAccessory = CosmeticAccessories.selected();
+        boolean sendAccessory = client() && accessoryCosmetics;
+        if ((aura != sentAura || pet != sentPet || skin != sentSkin || sendAccessory && localAccessory != sentAccessory)
+                && connection != null && connection.connected()) {
             Bundle appearance = new Bundle();
             appearance.put("kind", "cosmetics");
             appearance.put("aura", aura);
             appearance.put("pet", pet);
             appearance.put("hero_skin", skin);
+
+            if (sendAccessory) appearance.put("hero_accessory", localAccessory);
             send(appearance);
             sentAura = aura;
             sentPet = pet;
             sentSkin = skin;
+            if (sendAccessory) sentAccessory = localAccessory;
         }
         if (awaitingState && client()) requestFullState();
         if (LocalCoop.active() && Game.scene() instanceof GameScene) started = true;
@@ -580,6 +604,7 @@ public final class PartySession {
 
             if (!started) {
                 Generator.reset();
+                ItemDropCards.resetRun();
                 SupporterEntitlements.resetRunAura();
             }
             PartySnapshot.restore(pendingState, 1);
@@ -820,7 +845,7 @@ public final class PartySession {
         followDepth = Dungeon.levelKey();
         followExpires = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
         followToken++;
-        if (followRequester == 0) {
+        if (network() && followRequester == 0) {
             Bundle message = new Bundle();
             message.put("kind", "follow_request");
             message.put("token", followToken);
@@ -831,8 +856,10 @@ public final class PartySession {
 
     private static void updateFollowRequest() {
         if (followRequester == -1) return;
+        Hero first = LocalCoop.primary();
+        Hero second = LocalCoop.partner(first);
         if (Dungeon.levelKey() != followDepth || System.nanoTime() >= followExpires
-                || !localHero().isAlive() || partner() == null || !partner().isAlive()) {
+                || first == null || second == null || !first.isAlive() || !second.isAlive()) {
             clearFollowRequest();
             return;
         }
@@ -1164,6 +1191,10 @@ public final class PartySession {
             if (kind.equals("cosmetics")) {
                 partnerAura = message.getInt("aura");
                 partnerPet = message.getInt("pet");
+                if (hosting && message.contains("hero_accessory") && partner() != null) {
+                    partner().accessory = message.getInt("hero_accessory");
+                    snapshotDelay = 0;
+                }
                 if (hosting) {
                     Bundle accepted = new Bundle();
                     accepted.put("kind", "pet_selected");
@@ -1334,6 +1365,7 @@ public final class PartySession {
         try {
             Bundle state = updates.decode(encoded, revision);
             if (state != null) {
+                accessoryCosmetics = state.getInt("accessory_cosmetics") == 1;
                 receivedSequence = updates.revision();
                 awaitingState = false;
             }

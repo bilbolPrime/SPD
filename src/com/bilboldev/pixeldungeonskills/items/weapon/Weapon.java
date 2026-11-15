@@ -74,6 +74,7 @@ abstract public class Weapon extends KindOfWeapon {
 		if (!levelKnown) {
 			if (--hitsToKnow <= 0) {
 				levelKnown = true;
+				if (attacker instanceof Hero && isEquipped((Hero)attacker)) ((Hero)attacker).refreshBonuses();
 				GLog.i(Weapon.class, "identify");
 				Badges.validateItemLevelAquired( this );
 			}
@@ -88,9 +89,12 @@ abstract public class Weapon extends KindOfWeapon {
 
     public int STR()
     {
-
-		if(Dungeon.hero != null && Dungeon.hero.skillTree != null && this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this)
-			return STR -  Dungeon.hero.skillTree.getWeaponLevelBonus();
+		if (Dungeon.hero != null && Dungeon.hero.skillTree != null
+				&& this instanceof MeleeWeapon && Dungeon.hero.belongings.weapon == this) {
+			int requirement = STR - Dungeon.hero.skillTree.getWeaponLevelBonus();
+			int reduction = Dungeon.hero.skillTree.getWeaponStrengthReduction();
+			return reduction > 0 ? (int)Math.max(0L, (long)requirement - reduction) : requirement;
+		}
 
 		return STR;
     }
@@ -162,8 +166,13 @@ abstract public class Weapon extends KindOfWeapon {
 	}
 
 	public int excessStrengthDamage(Hero hero) {
+
+		int requirement = STR();
+		if (this instanceof MeleeWeapon && hero.belongings.weapon == this && hero.talents() != null) {
+			requirement = STR;
+		}
 		return (hero.rangedWeapon != null) == (hero.heroClass == HeroClass.HUNTRESS)
-				? Math.max(0, hero.STR() - STR()) : 0;
+				? Math.max(0, hero.STR() - requirement) : 0;
 	}
 
     @Override

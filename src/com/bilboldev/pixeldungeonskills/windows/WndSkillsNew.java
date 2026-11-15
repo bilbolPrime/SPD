@@ -329,6 +329,8 @@ public class WndSkillsNew extends WndTabbed {
             well.y = y;
             icon.x = x + 4;
             icon.y = y + 3;
+            rank.scale.set(1);
+            if (rank.width() > width - 4) rank.scale.set((width - 4) / rank.width());
             rank.x = x + width - rank.width() - 2;
             rank.y = y + height - rank.height() - 1;
         }

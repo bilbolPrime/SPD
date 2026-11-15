@@ -22,7 +22,11 @@ import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.OffBalance;
+import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.items.weapon.ice.IceWeapon;
+import com.bilboldev.pixeldungeonskills.items.weapon.melee.Knuckles;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -59,6 +63,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			QuickSlot.refresh();
 
 			cursedKnown = true;
+			hero.refreshBonuses();
 			if (cursed) {
 				equipCursed( hero );
 				GLog.n(TXT_EQUIP_CURSED, Message.itemName(this));
@@ -79,6 +84,8 @@ abstract public class KindOfWeapon extends EquipableItem {
 		if (super.doUnequip( hero, collect, single )) {
 
 			hero.belongings.weapon = null;
+			hero.refreshBonuses();
+			Buff.detach(hero, OffBalance.class);
 			return true;
 
 		} else {
@@ -86,6 +93,21 @@ abstract public class KindOfWeapon extends EquipableItem {
 			return false;
 
 		}
+	}
+
+	public boolean canDisarm(Hero hero) {
+		return isEquipped(hero) && !(this instanceof Knuckles) && !cursed
+				&& !RebornChallenges.equipmentBound();
+	}
+
+	public boolean disarm(Hero hero) {
+		if (!canDisarm(hero)) return false;
+		hero.belongings.weapon = null;
+		onDetach();
+		hero.refreshBonuses();
+		Buff.detach(hero, OffBalance.class);
+		QuickSlot.refresh();
+		return true;
 	}
 
 	public void activate( Hero hero ) {

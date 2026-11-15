@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */package com.bilboldev.pixeldungeonskills.items.potions;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
@@ -153,6 +154,7 @@ public class Potion extends Item {
 		hero.spend( TIME_TO_DRINK );
 		hero.busy();
 		onThrow( hero.pos );
+        TutorialRun.healing(hero, this);
 
 		Sample.INSTANCE.play( Assets.SND_DRINK );
 

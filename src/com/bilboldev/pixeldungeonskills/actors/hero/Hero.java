@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.actors.hero;
 
 import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 
 import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
@@ -27,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.skill4.RebornSkillTree;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import com.bilboldev.noosa.Camera;
@@ -74,6 +76,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.actors.skills.CurrentSkills;
 import com.bilboldev.pixeldungeonskills.actors.skills.Skill;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.HuntressSkillTree;
@@ -148,6 +151,7 @@ import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
 import com.bilboldev.pixeldungeonskills.windows.WndStorage;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
@@ -155,15 +159,55 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Callback;
 import com.bilboldev.utils.Random;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
+import com.bilboldev.pixeldungeonskills.actors.buffs.EssenceEffect;
 public class Hero extends Char {
+    public transient boolean tutorial;
     public int skillSystem = 3;
     public int skin;
+    public int accessory;
 
     public String spritesheet() {
         return HeroSkins.sheet(heroClass, skin);
     }
     private int bonusHealth;
     private int bonusMana;
+    private boolean restoringInventory;
+    private final int[] essenceBonuses = new int[Essence.Type.values().length];
+    private final int[] essenceSkills = new int[Talent.values().length];
+    private int essenceBloodFraction;
+
+    public int essenceBonus(Essence.Type type) {
+        return Dungeon.rules().hasRebornEncounters() && isAlive() ? essenceBonuses[type.ordinal()] : 0;
+    }
+
+    public int essenceSkillBonus(int skill) {
+        return Dungeon.rules().hasRebornEncounters() && isAlive() && skillSystem == 4 ? essenceSkills[skill] : 0;
+    }
+
+    public void essenceLifeSteal(int damage, int percent) {
+        long earned = (long)damage * percent + essenceBloodFraction;
+        int amount = (int)Math.min(Math.max(0L, (long)HT - HP), earned / 100);
+        essenceBloodFraction = (int)(earned % 100);
+        HP += amount;
+        if (amount > 0) showRecovery(amount, false);
+    }
+
+    private void refreshEssences() {
+        Arrays.fill(essenceBonuses, 0);
+        Arrays.fill(essenceSkills, 0);
+        if (!Dungeon.rules().hasRebornEncounters() || !isAlive()) return;
+        for (Item item : belongings.backpack) {
+            if (!(item instanceof Essence)) continue;
+            Essence essence = (Essence)item;
+            int index = essence.type.ordinal();
+            essenceBonuses[index] = (int)Math.min(Integer.MAX_VALUE, (long)essenceBonuses[index] + essence.bonus());
+            if (essence.type == Essence.Type.MEMORY && essence.skill() >= 0 && skillSystem == 4) {
+                int skill = essence.skill();
+                essenceSkills[skill] = (int)Math.min(Integer.MAX_VALUE, (long)essenceSkills[skill] + essence.bonus());
+            }
+        }
+    }
 
     public RebornSkillTree talents() {
         return skillTree instanceof RebornSkillTree
@@ -171,14 +215,23 @@ public class Hero extends Char {
     }
 
     public void refreshBonuses() {
-        int health = (talents() == null ? 0 : talents().healthBonus()) + attribute(EquipmentAttribute.Type.HEALTH);
-        int mana = (talents() == null ? 0 : talents().manaBonus()) + attribute(EquipmentAttribute.Type.MANA);
-        HT = Math.max(1, HT + health - bonusHealth);
-        MMP = Math.max(0, MMP + mana - bonusMana);
+        if (restoringInventory) return;
+        refreshEssences();
+        int health = (int)Math.min(Integer.MAX_VALUE, (talents() == null ? 0L : talents().healthBonus()) + attribute(EquipmentAttribute.Type.HEALTH) + essenceBonus(Essence.Type.VITAL));
+        int mana = (int)Math.min(Integer.MAX_VALUE, (talents() == null ? 0L : talents().manaBonus()) + attribute(EquipmentAttribute.Type.MANA) + essenceBonus(Essence.Type.ARCANE));
+        HT = (int)Math.max(1, Math.min(Integer.MAX_VALUE, (long)HT + health - bonusHealth));
+        MMP = (int)Math.max(0, Math.min(Integer.MAX_VALUE, (long)MMP + mana - bonusMana));
         HP = Math.min(HP, HT);
         MP = Math.min(MP, MMP);
         bonusHealth = health;
         bonusMana = mana;
+        if (talents() != null && Dungeon.level != null) {
+            for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
+                if (mob instanceof SummonedPet && ((SummonedPet)mob).owner() == this) {
+                    ((SummonedPet)mob).refreshTalent();
+                }
+            }
+        }
     }
 
     public int attribute(EquipmentAttribute.Type type) {
@@ -316,7 +369,9 @@ public class Hero extends Char {
 	public void storeInBundle( Bundle bundle ) {
         bundle.put("skill_system", skillSystem);
         bundle.put("hero_skin", skin);
+        bundle.put("hero_accessory", accessory);
         bundle.put("bonus_health", bonusHealth);
+        if (essenceBloodFraction > 0) bundle.put("essence_blood_fraction", essenceBloodFraction);
         bundle.put("bonus_mana", bonusMana);
         if (Dungeon.rules().hasRebornEncounters()) bundle.put("reborn_actions", rebornActions);
 
@@ -362,6 +417,9 @@ public class Hero extends Char {
 	public void restoreFromBundle( Bundle bundle ) {
         skillSystem = bundle.getInt("skill_system") == 4 ? 4 : 3;
         skin = bundle.getInt("hero_skin") == 1 ? 1 : 0;
+        accessory = com.bilboldev.pixeldungeonskills.CosmeticAccessories.valid(bundle.getInt("hero_accessory"));
+        restoringInventory = true;
+        essenceBloodFraction = Math.max(0, Math.min(99, bundle.getInt("essence_blood_fraction")));
         bonusHealth = bundle.getInt("bonus_health");
         bonusMana = bundle.getInt("bonus_mana");
         rebornActions = bundle.getInt("reborn_actions");
@@ -463,6 +521,8 @@ public class Hero extends Char {
         Skill[] skills = LocalCoop.skills(this);
         int sticky = bundle.contains("sticky_skill") ? bundle.getInt("sticky_skill") : -1;
         heroSkills.lastUsed = sticky >= 0 && sticky < skills.length ? skills[sticky] : null;
+        restoringInventory = false;
+        if (Dungeon.rules().hasRebornEncounters()) refreshBonuses();
 	}
 
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
@@ -561,8 +621,9 @@ public class Hero extends Char {
 
 		int aEnc = belongings.armor != null ? belongings.armor.STR - STR() : 0;
 
-		int calculatedDefenseSkill = defenseSkill + skillTree.evasionDefenceBonus() + attribute(EquipmentAttribute.Type.EVASION)
-                + (talents() == null ? 0 : talents().evasion(enemy));
+		int calculatedDefenseSkill = (int)Math.min(Integer.MAX_VALUE, (long)defenseSkill + skillTree.evasionDefenceBonus()
+				+ attribute(EquipmentAttribute.Type.EVASION) + essenceBonus(Essence.Type.WIND)
+				+ (talents() == null ? 0 : talents().evasion(enemy)));
 		if (belongings.armor != null && belongings.armor.prefix == ArmorPrefix.ELUSIVE
 				&& buff(ArmorEvasion.class) != null) {
 			calculatedDefenseSkill += ArmorEvasion.BONUS;
@@ -587,12 +648,13 @@ public class Hero extends Char {
 
 	@Override
 	public int dr() {
-		int dr = belongings.armor != null ? Math.max( belongings.armor.DR(), 0 ) : 0;
+		long dr = belongings.armor != null ? Math.max( belongings.armor.DR(), 0 ) : 0;
 		Barkskin barkskin = buff( Barkskin.class );
 		if (barkskin != null) {
 			dr += barkskin.level();
 		}
-		return dr + (talents() == null ? 0 : talents().armorBonus()) + attribute(EquipmentAttribute.Type.ARMOR);
+		return (int)Math.min(Integer.MAX_VALUE, dr + (talents() == null ? 0 : talents().armorBonus())
+				+ attribute(EquipmentAttribute.Type.ARMOR) + essenceBonus(Essence.Type.STONE));
 	}
 
 	@Override
@@ -610,6 +672,8 @@ public class Hero extends Char {
 		}
 
 		dmg *= 1 + attribute(rangedWeapon == null ? EquipmentAttribute.Type.MELEE : EquipmentAttribute.Type.RANGED) / 100f;
+		dmg = (int)Math.min(Integer.MAX_VALUE, (long)dmg + EssenceEffect.attackBonus(this)
+				+ (rangedWeapon == null ? essenceBonus(Essence.Type.IRON) : 0));
 		return buff( Fury.class ) != null ? (int)(dmg * 1.5f) : dmg;
 	}
 
@@ -619,11 +683,11 @@ public class Hero extends Char {
 		int aEnc = belongings.armor != null ? belongings.armor.STR - STR() : 0;
 		if (aEnc > 0) {
 
-			return armorSpeed(super.speed());
+			return armorSpeed(super.speed() * EssenceEffect.movement(this));
 
 		} else {
 
-			float speed = super.speed() * (talents() == null ? 1 : talents().movement());
+			float speed = super.speed() * EssenceEffect.movement(this) * (talents() == null ? 1 : talents().movement());
 			return ((HeroSprite)sprite).sprint( subClass == HeroSubClass.FREERUNNER && !isStarving() ) ? 1.6f * speed : speed;
 
 		}
@@ -651,6 +715,7 @@ public class Hero extends Char {
 
 	@Override
 	public void spend( float time ) {
+        if (!TutorialRun.valid(this)) return;
         if (Dungeon.rules().hasRebornEncounters() && time > 0 && !paralysed) rebornActions++;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			final float spent = time;
@@ -681,6 +746,7 @@ public class Hero extends Char {
 
 	@Override
 	public boolean act() {
+        if (!TutorialRun.valid(this)) return false;
         if (DailyRun.checkTime()) return false;
         if (Dungeon.level instanceof DailySealLevel) ((DailySealLevel)Dungeon.level).updateRitual();
         else if (Dungeon.level instanceof DailyOutpostLevel) ((DailyOutpostLevel)Dungeon.level).updateSiege();
@@ -1121,6 +1187,11 @@ public class Hero extends Char {
 	protected boolean actDescend( HeroAction.Descend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.exit) {
+            if (TutorialRun.active()) {
+                ready();
+                TutorialRun.update();
+                return false;
+            }
 			if (Dungeon.level instanceof DailyHoardLevel) {
 				ready();
 				((DailyHoardLevel)Dungeon.level).depart(this);
@@ -1291,8 +1362,10 @@ public class Hero extends Char {
 	}
 
 	public void rest( boolean tillHealthy ) {
+        if (!TutorialRun.valid(this)) return;
 		if (PartySession.input(this, "rest", tillHealthy ? 1 : 0)) return;
 		if (LocalCoop.defer(this, () -> rest(tillHealthy))) return;
+        TutorialRun.waited(this);
 		spendAndNext( TIME_TO_REST );
 		if (!tillHealthy) {
 			sprite.showStatus( CharSprite.DEFAULT, Message.key(Hero.class, "wait") );
@@ -1420,6 +1493,7 @@ public class Hero extends Char {
 
 	@Override
 	public void damage( int dmg, Object src ) {
+        if (!TutorialRun.valid(this)) return;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			final int incoming = dmg;
 			LocalCoop.withHero(this, () -> damage(incoming, src));
@@ -1442,10 +1516,10 @@ public class Hero extends Char {
 		if (prefix != null) dmg = prefix.reduceDamage(attacker, this, dmg);
 		int health = HP;
 		super.damage( dmg, src );
-		if (HP < health) LocalCoop.pauseFollowing(this);
+		if (HP < health) interrupt();
 		if (prefix != null && isAlive() && HP < health) prefix.afterHit(attacker, this);
 
-		StatusPane.takingDamage += dmg;
+		StatusPane.takingDamage = Math.max(0, StatusPane.takingDamage + health - HP);
 
 		if ((subClass == HeroSubClass.BERSERKER || subClass == HeroSubClass.EXECUTIONER) && 0 < HP && HP <= HT * Fury.LEVEL) {
 			Buff.affect( this, Fury.class );
@@ -1559,6 +1633,12 @@ public class Hero extends Char {
 	}
 
 	public boolean handle( int cell ) {
+        return handle(cell, false);
+    }
+
+    private boolean handle(int cell, boolean confirmed) {
+        if (!TutorialRun.valid(this)) return false;
+		if (!isAlive()) return false;
 		if (PartySession.input(this, "move", cell)) return false;
 
 		if (cell == -1) {
@@ -1617,6 +1697,10 @@ public class Hero extends Char {
             curAction = new HeroAction.Storage( cell );
 
         }else  {
+			if (!confirmed && cell != pos && !Level.adjacent(pos, cell) && hasAdjacentEnemy()) {
+				confirmMove(cell);
+				return false;
+			}
 
 			curAction = new HeroAction.Move( cell );
 			lastAction = null;
@@ -1635,6 +1719,30 @@ public class Hero extends Char {
 		}
 		return act();
 	}
+
+    private boolean hasAdjacentEnemy() {
+        for (Mob mob : Dungeon.level.mobs) {
+            if (mob.hostile && mob.isAlive() && Level.fieldOfView[mob.pos] && Level.adjacent(pos, mob.pos)) return true;
+        }
+        return false;
+    }
+
+    private void confirmMove(final int cell) {
+        final Level level = Dungeon.level;
+        final int from = pos;
+        GameScene.show(new WndOptions(Message.key(Hero.class, "move_title"), Message.key(Hero.class, "move_warning"),
+                Message.key(Hero.class, "move_confirm"), Message.key(Hero.class, "move_cancel")) {
+            @Override
+            protected void onSelect(int index) {
+                if (index != 0 || Dungeon.level != level || pos != from || !isAlive()
+                        || !TutorialRun.valid(Hero.this)
+                        || Dungeon.hero != Hero.this && !LocalCoop.contains(Hero.this)) return;
+                LocalCoop.withHero(Hero.this, () -> {
+                    if (handle(cell, true)) next();
+                });
+            }
+        });
+    }
 
     public void startAtLevel(int level) {
         if (lvl != 1 || level < 1 || level > 30) throw new IllegalArgumentException("Invalid starting level");
@@ -1781,13 +1889,17 @@ public class Hero extends Char {
 			stealth += ((RingOfShadows.Shadows)buff).level;
 		}
 
-        stealth += skillTree.getStealthBonus();
+		stealth = (int)Math.min(Integer.MAX_VALUE, (long)stealth + skillTree.getStealthBonus() + essenceBonus(Essence.Type.SHADE));
 		return stealth;
 	}
 
 	@Override
 	public void die( Object cause  ) {
-		lastAction = null;
+        lastAction = null;
+        if (tutorial) {
+            if (TutorialRun.valid(this)) TutorialRun.died(this);
+            return;
+        }
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, () -> die(cause));
 			return;
@@ -1840,6 +1952,10 @@ public class Hero extends Char {
 	}
 
 	public static void reallyDie( Object cause ) {
+        if (TutorialRun.active()) {
+            TutorialRun.died(Dungeon.hero);
+            return;
+        }
         if (DailyRun.active()) {
             DailyRun.finish(false);
             return;
@@ -1917,6 +2033,8 @@ public class Hero extends Char {
 
 	@Override
 	public void move( int step ) {
+        if (!TutorialRun.valid(this)) return;
+        int previousPosition = pos;
         if (talents() != null && step != pos) talents().moved();
 		super.move( step );
 
@@ -1929,10 +2047,12 @@ public class Hero extends Char {
 			}
 			Dungeon.level.press( pos, this );
 		}
+        TutorialRun.moved(this, previousPosition);
 	}
 
 	@Override
 	public void onMotionComplete() {
+        if (!TutorialRun.valid(this)) return;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, this::onMotionComplete);
 			return;
@@ -1948,6 +2068,7 @@ public class Hero extends Char {
 	}
 
     public void onAttackCompleteKeepAction() {
+        if (!TutorialRun.valid(this)) return;
         if (LocalCoop.contains(this) && Dungeon.hero != this) {
             LocalCoop.withHero(this, this::onAttackCompleteKeepAction);
             return;
@@ -1972,6 +2093,7 @@ public class Hero extends Char {
 
 	@Override
 	public void onAttackComplete() {
+        if (!TutorialRun.valid(this)) return;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, this::onAttackComplete);
 			return;
@@ -1989,6 +2111,7 @@ public class Hero extends Char {
 
 	@Override
 	public void onOperateComplete() {
+        if (!TutorialRun.valid(this)) return;
 		if (LocalCoop.contains(this) && Dungeon.hero != this) {
 			LocalCoop.withHero(this, this::onOperateComplete);
 			return;
@@ -2105,6 +2228,7 @@ public class Hero extends Char {
 		}
 
 		if (intentional) {
+			TutorialRun.searched(this);
 			sprite.showStatus( CharSprite.DEFAULT, Message.key(Hero.class, "search") );
 			sprite.operate( pos );
 			if (smthFound) {

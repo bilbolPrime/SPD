@@ -29,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.OffBalance;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.utils.SparseArray;
 
@@ -70,6 +71,12 @@ public class BuffIndicator extends Component {
 	public static final int SACRIFICE	= 31;
 	public static final int FOCUS = 32;
 	public static final int MANA_RECOVERY = 33;
+	public static final int OFF_BALANCE = 34;
+    public static final int ESSENCE_FIRE = 35;
+    public static final int ESSENCE_COLD = 36;
+    public static final int ESSENCE_POISON = 37;
+    public static final int ESSENCE_IRON = 38;
+    public static final int ESSENCE_WARD = 39;
 
 	public static final int SIZE	= 7;
 
@@ -151,7 +158,7 @@ public class BuffIndicator extends Component {
 		if (counter == null) counter = new Counter();
 		for (int i = 0; i < icons.size(); i++) {
 			Image icon = icons.valueAt(i);
-			counter.draw(turns(ch, icons.keyAt(i)), camera(), icon.x + SIZE / 2f,
+			counter.draw(turns(ch, icons.keyAt(i)), icons.keyAt(i), camera(), icon.x + SIZE / 2f,
 					icon.y + SIZE + 1, SIZE + 1, 1, 1);
 		}
 	}
@@ -175,11 +182,10 @@ public class BuffIndicator extends Component {
 			for (int i = 0; i < digits.length; i++) {
 				digits[i] = new BitmapText(Integer.toString(i), PixelScene.font1x, false);
 				digits[i].measure();
-				digits[i].hardlight(0xEEEEDE);
 			}
 		}
 
-		void draw(int turns, Camera camera, float centerX, float y, float width, float scaleX, float scaleY) {
+		void draw(int turns, int icon, Camera camera, float centerX, float y, float width, float scaleX, float scaleY) {
 			if (turns < 0) return;
 			turns = Math.min(turns, 99);
 			int divisor = turns >= 10 ? 10 : 1;
@@ -191,6 +197,7 @@ public class BuffIndicator extends Component {
 			float x = centerX - textWidth * fit * scaleX / 2;
 			for (int place = divisor; place > 0; place /= 10) {
 				BitmapText digit = digits[turns / place % 10];
+				digit.hardlight(icon == OFF_BALANCE && turns >= OffBalance.WARNING_STACKS ? 0xFF4444 : 0xEEEEDE);
 				digit.camera = camera;
 				digit.scale.set(fit * scaleX, fit * scaleY);
 				digit.x = PixelScene.align(camera, x);

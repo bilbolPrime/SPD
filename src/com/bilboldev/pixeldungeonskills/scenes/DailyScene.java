@@ -16,7 +16,6 @@ import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndDailyResult;
 import com.bilboldev.pixeldungeonskills.ui.DailyNotice;
-import java.io.IOException;
 
 public class DailyScene extends GameScene {
     private static final float NOTICE_TIME = 5;
@@ -34,15 +33,8 @@ public class DailyScene extends GameScene {
     }
 
     @Override public void create() {
-        boolean fresh;
-        try { fresh = DailyRun.prepare(); }
-        catch (IOException | RuntimeException failure) {
-            failure.printStackTrace();
-            error = Messages.get("daily.start_failed");
-            DailyRun.leave();
-            Game.switchScene(TitleScene.class);
-            return;
-        }
+        boolean fresh = InterlevelScene.mode == InterlevelScene.Mode.DAILY;
+        InterlevelScene.mode = InterlevelScene.Mode.NONE;
         if (fresh) GameLog.wipe();
         super.create();
         ready = true;
@@ -116,6 +108,12 @@ public class DailyScene extends GameScene {
         noticeTime = Math.max(0, noticeTime - Game.elapsed);
         notice.visible = unobstructed && noticeTime > 0;
         notice.opacity(Math.min(1, Math.min((NOTICE_TIME - noticeTime) / .25f, noticeTime / .5f)));
+    }
+
+    public static void startFailed() {
+        error = Messages.get("daily.start_failed");
+        DailyRun.leave();
+        Game.switchScene(TitleScene.class);
     }
 
     public static void showError() {

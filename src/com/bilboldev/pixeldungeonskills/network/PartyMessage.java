@@ -17,10 +17,11 @@ final class PartyMessage {
     static void validate(JSONObject message, boolean host, int sequence) throws IOException, JSONException {
         String kind = string(message, "kind", 16);
         if (kind.equals("cosmetics")) {
-            fields(message, "kind", "aura", "?pet", "?hero_skin");
+            fields(message, "kind", "aura", "?pet", "?hero_skin", "?hero_accessory");
             integer(message, "aura", 0, 5);
             if (message.has("pet")) integer(message, "pet", 0, 6);
             if (message.has("hero_skin")) integer(message, "hero_skin", 0, 1);
+            if (message.has("hero_accessory")) integer(message, "hero_accessory", 0, 6);
             return;
         }
         if (host) {

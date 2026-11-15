@@ -1,9 +1,11 @@
 package com.bilboldev.pixeldungeonskills.items;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroSubClass;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.quest.Pickaxe;
@@ -38,9 +40,9 @@ public final class EquipmentAttribute {
         MELEE(4, 10, 35, ItemSpriteSheet.SHORT_SWORD),
         RANGED(4, 10, 35, ItemSpriteSheet.Bow),
         WANDS(4, 10, 35, ItemSpriteSheet.WAND_MAGIC_MISSILE),
-        CLASS_SKILLS(1, 2, 3, ItemSpriteSheet.SCROLL_SKILLPOINT),
-        SKILL(1, 2, 3, ItemSpriteSheet.SCROLL_SKILLPOINT),
-        TREE_SKILLS(1, 2, 3, ItemSpriteSheet.SCROLL_SKILLPOINT);
+        CLASS_SKILLS(1, 2, Integer.MAX_VALUE, ItemSpriteSheet.SCROLL_SKILLPOINT),
+        SKILL(1, 2, Integer.MAX_VALUE, ItemSpriteSheet.SCROLL_SKILLPOINT),
+        TREE_SKILLS(1, 2, Integer.MAX_VALUE, ItemSpriteSheet.SCROLL_SKILLPOINT);
 
         public final int min, max, cap, image;
 
@@ -105,12 +107,14 @@ public final class EquipmentAttribute {
                 || item.attributes.length != 0 || Random.Int(100) >= 80) return;
         int depth = Math.max(1, Dungeon.depth);
         int count = Random.IntRange(1, 3);
-        boolean skills = Dungeon.hero != null && Dungeon.hero.skillSystem == 4;
+        Hero[] heroes = LocalCoop.heroes();
+        if (heroes.length == 0 && Dungeon.hero != null) heroes = new Hero[]{Dungeon.hero};
         ArrayList<EquipmentAttribute> eligible = new ArrayList<>();
         for (EquipmentAttribute option : options(item)) {
-            if (option.type == Type.CLASS_SKILLS && (!skills || depth < 11)) continue;
-            if (option.type == Type.TREE_SKILLS && (!skills || depth < 6)) continue;
-            if (option.type == Type.SKILL && (!skills || TALENTS[option.target].requiredLevel() > depth)) continue;
+            if (option.type == Type.CLASS_SKILLS && depth < 11) continue;
+            if (option.type == Type.TREE_SKILLS && depth < 6) continue;
+            if (option.type == Type.SKILL && TALENTS[option.target].requiredLevel() > depth) continue;
+            if (!relevant(option, heroes)) continue;
             eligible.add(option);
         }
         float[] weights = new float[TYPES.length];
@@ -120,18 +124,40 @@ public final class EquipmentAttribute {
             Type type = TYPES[Random.chances(weights)];
             ArrayList<EquipmentAttribute> targets = new ArrayList<>();
             for (EquipmentAttribute option : eligible) if (option.type == type) targets.add(option);
-            EquipmentAttribute chosen = targets.get(Random.Int(targets.size()));
+            float[] targetWeights = new float[targets.size()];
+            for (int t = 0; t < targetWeights.length; t++) {
+                targetWeights[t] = type == Type.SKILL ? TALENTS[targets.get(t).target].attributeWeight() : 1;
+            }
+            EquipmentAttribute chosen = targets.get(Random.chances(targetWeights));
             int progress = Math.min(24, depth - 1);
             int upper = type.min + ((type.max - type.min) * progress + 23) / 24;
             item.attributes[i] = new EquipmentAttribute(type, Random.IntRange(type.min, upper), chosen.target);
         }
     }
 
+    private static boolean relevant(EquipmentAttribute option, Hero[] heroes) {
+        if (option.type != Type.SKILL && option.type != Type.CLASS_SKILLS && option.type != Type.TREE_SKILLS) return true;
+        for (Hero hero : heroes) {
+            if (hero.skillSystem != 4) continue;
+            if (option.type == Type.CLASS_SKILLS) {
+                if (option.target == hero.heroClass.ordinal()) return true;
+                continue;
+            }
+            for (Talent talent : TALENTS) {
+                if (option.type == Type.SKILL && talent.ordinal() != option.target
+                        || option.type == Type.TREE_SKILLS && talent.subclass.ordinal() != option.target) continue;
+                if (talent.heroClass == hero.heroClass && (talent.subclass == HeroSubClass.NONE
+                        || hero.subClass == HeroSubClass.NONE || talent.subclass == hero.subClass)) return true;
+            }
+        }
+        return false;
+    }
+
     private static int weight(Type type) {
         switch (type) {
             case CLASS_SKILLS: return 2;
             case TREE_SKILLS: return 4;
-            case SKILL: return 8;
+            case SKILL: return 12;
             default: return 12;
         }
     }
@@ -154,7 +180,7 @@ public final class EquipmentAttribute {
         EnumSet<HeroClass> classes = EnumSet.noneOf(HeroClass.class);
         EnumSet<HeroSubClass> branches = EnumSet.noneOf(HeroSubClass.class);
         for (Talent talent : TALENTS) {
-            if (!talent.available() || talent.maxRank() == 1 || !suits(item, talent)) continue;
+            if (talent.attributeWeight() == 0 || !suits(item, talent)) continue;
             result.add(new EquipmentAttribute(Type.SKILL, Type.SKILL.min, talent.ordinal()));
             classes.add(talent.heroClass);
             if (talent.subclass != HeroSubClass.NONE) branches.add(talent.subclass);
@@ -197,16 +223,27 @@ public final class EquipmentAttribute {
         return total(hero, type, -1, true);
     }
 
-    private static int total(Hero hero, Type type, int target, boolean preview) {
-        int total = value(hero.belongings.weapon, type, target, preview) + value(hero.belongings.armor, type, target, preview)
-                + value(hero.belongings.bow, type, target, preview) + value(hero.belongings.ring1, type, target, preview)
-                + value(hero.belongings.ring2, type, target, preview);
-        return Math.min(type.cap, total);
+    public static int bonus(HiredMerc merc, Type type) {
+        if (merc == null || !Dungeon.rules().hasRebornEncounters()) return 0;
+        switch (type) {
+            case CLASS_SKILLS: case TREE_SKILLS: case SKILL: case MANA: case WANDS:
+                return 0;
+            default:
+                return (int)Math.min(type.cap, value(merc.weapon, type, -1, false)
+                        + value(merc.armor, type, -1, false));
+        }
     }
 
-    private static int value(Item item, Type type, int target, boolean preview) {
+    private static int total(Hero hero, Type type, int target, boolean preview) {
+        long total = value(hero.belongings.weapon, type, target, preview) + value(hero.belongings.armor, type, target, preview)
+                + value(hero.belongings.bow, type, target, preview) + value(hero.belongings.ring1, type, target, preview)
+                + value(hero.belongings.ring2, type, target, preview);
+        return (int)Math.min(type.cap, total);
+    }
+
+    private static long value(Item item, Type type, int target, boolean preview) {
         if (item == null || item.attributes.length == 0 || !preview && !item.isIdentified()) return 0;
-        int value = 0;
+        long value = 0;
         for (EquipmentAttribute attribute : item.attributes) {
             if (attribute.type == type && (target < 0 || target == attribute.target)) value += attribute.amount;
         }

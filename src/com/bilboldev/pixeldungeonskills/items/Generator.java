@@ -30,6 +30,7 @@ import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.effects.SpellSprite;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.bags.Bag;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
@@ -67,7 +68,8 @@ public class Generator {
 		FOOD	( 0,	Food.class ),
 		GOLD	( 50,	Gold.class ),
 		MISC	( 5,	Item.class ),
-		MELEE_WEAPON	( 15,	Weapon.class );
+		MELEE_WEAPON	( 15,	Weapon.class ),
+		ESSENCE(8, Essence.class);
 
 		public Class<?>[] classes;
 		public float[] probs;
@@ -81,6 +83,7 @@ public class Generator {
 		}
 
 		public static int order( Item item ) {
+			if (item instanceof Essence) return ESSENCE.ordinal();
 			for (int i=0; i < values().length; i++) {
 				if (values()[i].superClass.isInstance( item )) {
 					return i;
@@ -241,6 +244,11 @@ public class Generator {
 		};
 
 		Category.MELEE_WEAPON.probs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		Category.ESSENCE.classes = new Class<?>[]{
+				Essence.Vital.class, Essence.Arcane.class, Essence.Stone.class, Essence.Shade.class, Essence.Wind.class,
+				Essence.Memory.class, Essence.Ember.class, Essence.Rime.class, Essence.Venom.class, Essence.Storm.class,
+				Essence.Blood.class, Essence.Iron.class, Essence.Sight.class, Essence.Ward.class, Essence.Harvest.class};
+		Category.ESSENCE.probs = new float[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 		reset();
 	}
 
@@ -263,7 +271,8 @@ public class Generator {
 
 	public static void reset() {
 		for (Category cat : Category.values()) {
-			categoryProbs.put( cat, cat.prob );
+			if (cat != Category.ESSENCE || Dungeon.rules().hasRebornEncounters()) categoryProbs.put(cat, cat.prob);
+			else categoryProbs.remove(cat);
 		}
 	}
 
@@ -314,7 +323,7 @@ public class Generator {
         if (Random.seeded()) {
             Category[] categories = Category.values();
             float[] weights = new float[categories.length];
-            for (int i = 0; i < categories.length; i++) weights[i] = categoryProbs.get(categories[i]);
+            for (int i = 0; i < categories.length; i++) weights[i] = categoryProbs.containsKey(categories[i]) ? categoryProbs.get(categories[i]) : 0;
             Category category = categories[Random.chances(weights)];
 
             try (Random.Scope item = Random.use(Random.Long())) {
@@ -563,11 +572,16 @@ public class Generator {
 	}
 
 	public static Item random( Category cat ) {
+		if (cat == Category.ESSENCE && !Dungeon.rules().hasRebornEncounters()) return null;
 		try {
 
 			categoryProbs.put( cat, categoryProbs.get( cat ) / 2 );
 
 			switch (cat) {
+			case ESSENCE:
+				float[] weights = cat.probs.clone();
+				if (!Essence.memoryAvailable()) weights[Essence.Type.MEMORY.ordinal()] = 0;
+				return ((Item)cat.classes[Random.chances(weights)].newInstance()).random();
 			case ARMOR:
 				return randomArmor();
 			case WEAPON:

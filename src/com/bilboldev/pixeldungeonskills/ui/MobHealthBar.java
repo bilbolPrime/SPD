@@ -114,7 +114,7 @@ public final class MobHealthBar {
                 buffIcon.x = PixelScene.align(camera, x + column * step * scaleX);
                 buffIcon.y = PixelScene.align(camera, y + counterHeight * scaleY);
                 buffIcon.draw();
-                counter.draw(state.buffTurns.get(first + column), camera,
+                counter.draw(state.buffTurns.get(first + column), state.buffIcons.get(first + column), camera,
                         buffIcon.x + BuffIndicator.SIZE * scaleX / 2, y, step, scaleX, scaleY);
             }
             y += (step + counterHeight) * scaleY;

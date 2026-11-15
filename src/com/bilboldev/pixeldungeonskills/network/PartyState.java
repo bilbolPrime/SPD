@@ -7,6 +7,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
 import com.bilboldev.pixeldungeonskills.actors.mobs.OldRime;
 import com.bilboldev.pixeldungeonskills.actors.mobs.IceMob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet;
 import com.bilboldev.pixeldungeonskills.IceCaves;
 import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
@@ -19,9 +20,13 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
+import com.bilboldev.pixeldungeonskills.actors.buffs.OffBalance;
+import com.bilboldev.pixeldungeonskills.actors.buffs.EssenceEffect;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Recovery;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalBoss;
 import com.bilboldev.pixeldungeonskills.actors.mobs.RivalServant;
@@ -135,6 +140,7 @@ final class PartyState {
             ints(state, "enemies_" + i, 256, 0, Integer.MAX_VALUE - 1);
         }
         integer(state, "clock_owner", 0, 1);
+        if (state.has("accessory_cosmetics")) integer(state, "accessory_cosmetics", 0, 1);
         if (state.has("turn_hero")) integer(state, "turn_hero", -1, 1);
         if (state.has("dead_mobs") || state.has("dead_cells")) {
             ints(state, "dead_mobs", PartySession.MAX_DEATHS, 0, Integer.MAX_VALUE - 1);
@@ -176,9 +182,21 @@ final class PartyState {
                     if (object.has("capturedname")) throw invalid();
                     PartyText.validateName(object(object, "captured_text"));
                 }
-                if (type == com.bilboldev.pixeldungeonskills.actors.mobs.npcs.SummonedPet.class) {
+                if (SummonedPet.class.isAssignableFrom(type)) {
                     if (object.has("name")) throw invalid();
                     PartyText.validateName(object(object, "name_text"));
+                    if (object.has("degrade_rate")) integer(object, "degrade_rate", 1, Integer.MAX_VALUE);
+                    if (object.has("degrade_counter")) integer(object, "degrade_counter", 0, Integer.MAX_VALUE);
+                    if (object.has("skill4_summon_talent")) {
+                        Talent talent = Talent.values()[integer(object, "skill4_summon_talent", 0, Talent.values().length - 1)];
+                        if (!talent.summonsCreature() && talent.effect != Talent.Effect.CLONE) throw invalid();
+                        int clones = integer(object, "skill4_clone_count", 1, 3);
+                        if (clones != 1 && (clones != 3 || talent.effect != Talent.Effect.CLONE)) throw invalid();
+                        int health = integer(object, "skill4_fraction_hp", 0, Integer.MAX_VALUE);
+                        if (health > integer(object, "skill4_fraction_ht", 1, Integer.MAX_VALUE)) throw invalid();
+                    } else if (object.has("skill4_clone_count") || object.has("skill4_fraction_hp") || object.has("skill4_fraction_ht")) {
+                        throw invalid();
+                    }
                 }
                 if (type == DeathBomb.class) {
                     integer(object, "pos", 0, Level.LENGTH - 1);
@@ -193,6 +211,33 @@ final class PartyState {
                 if (Recovery.class.isAssignableFrom(type)) {
                     integer(object, "recovery_left", 0, 1000000);
                     integer(object, "recovery_turns", 0, 10);
+                }
+                if (Essence.class.isAssignableFrom(type)) {
+                    int grade = integer(object, "essence_grade", 1, Essence.MAX_GRADE);
+                    Essence.Type essence = Essence.Type.forItem(type);
+                    integer(object, "quantity", 1, 1);
+                    integer(object, "level", 0, 0);
+                    integer(object, "essence_bonus", essence.min * grade, essence.max * grade);
+                    int skill = integer(object, "essence_skill", -1, Talent.values().length - 1);
+                    if (essence != Essence.Type.MEMORY && skill != -1 || skill >= 0
+                            && (Talent.values()[skill].attributeWeight() <= 0 || Talent.values()[skill].maxRank() == 1)) throw invalid();
+                    if (bool(object, "cursed")) throw invalid();
+                    if (object.has("attributes") && object.getJSONArray("attributes").length() != 0) throw invalid();
+                    if (!string(object, "effect", 32).isEmpty()) throw invalid();
+                    if (!bool(object, "levelKnown") || !bool(object, "cursedKnown")) throw invalid();
+                }
+                if (type == EssenceEffect.class) {
+                    int kind = integer(object, "essence_effect", 0, EssenceEffect.Kind.values().length - 1);
+                    EssenceEffect.Kind effect = EssenceEffect.Kind.values()[kind];
+                    integer(object, "essence_amount", effect == EssenceEffect.Kind.IRON || effect == EssenceEffect.Kind.WARD ? 1 : 0,
+                            effect == EssenceEffect.Kind.IRON ? 20 : effect == EssenceEffect.Kind.WARD ? 250 : 0);
+                    integer(object, "essence_turns", 1, effect == EssenceEffect.Kind.IRON ? 10 : effect == EssenceEffect.Kind.WARD ? 15 : effect == EssenceEffect.Kind.WIND ? 40 : 100);
+                }
+                if (type == com.bilboldev.pixeldungeonskills.actors.buffs.Barkskin.class && object.has("barkskin_level")) {
+                    integer(object, "barkskin_level", 0, Integer.MAX_VALUE);
+                }
+                if (type == OffBalance.class) {
+                    integer(object, "stacks", 1, OffBalance.DISARM_STACKS - 1);
                 }
                 if (type == RebornChampion.class && object.has("champion_skills")) {
                     JSONArray skills = array(object, "champion_skills", 3);
@@ -310,9 +355,21 @@ final class PartyState {
                     }
                 }
                 if (child.startsWith("SKILL_3.0_ ") || child.startsWith("skill_level ")) integer(object, child, 0, 100);
+                if (child.equals("essence_blood_fraction")) integer(object, child, 0, 99);
                 if (child.equals("hero_skin")) integer(object, child, 0, 1);
+                if (child.equals("hero_accessory")) integer(object, child, 0, 6);
                 if (child.equals("skill_system")) integer(object, child, 3, 4);
-                if (child.equals("skill4_ranks")) ints(object, child, 24, 0, 5);
+                if (child.equals("skill4_ranks")) {
+                    if (type != Hero.class) throw invalid();
+                    JSONArray ranks = ints(object, child, 24, 0, Integer.MAX_VALUE);
+                    HeroClass heroClass = PartyConnection.hero(string(object, "class", 24));
+                    int index = 0;
+                    for (Talent talent : Talent.values()) {
+                        if (talent.heroClass != heroClass) continue;
+                        if (index >= ranks.length() || ranks.getInt(index++) > talent.maxRank()) throw invalid();
+                    }
+                    if (index != ranks.length()) throw invalid();
+                }
                 if (child.equals("skill4_cooldowns")) ints(object, child, 24, 0, 1000000);
                 if (child.equals("skill4_active")) integer(object, child, 0, 0xFFFFFF);
                 if (child.equals("sticky_skill")) integer(object, child, -1, 63);
@@ -324,7 +381,7 @@ final class PartyState {
                     if (!EquipmentAttribute.valid(attributes)) throw invalid();
                 }
                 if (child.equals("talent")) integer(object, child, 0, Talent.values().length - 1);
-                if (child.equals("talent_power")) integer(object, child, 0, 500);
+                if (child.equals("talent_power")) integer(object, child, 0, Integer.MAX_VALUE);
                 if (child.equals("buff_count")) integer(object, child, 0, 256);
                 if (child.equals("rival_shield") || child.equals("rival_shield_spent") || child.equals("rival_healed"))
                     integer(object, child, 0, 1000000);

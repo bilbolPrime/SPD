@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.ui;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.input.GameAction;
@@ -489,6 +490,7 @@ public class QuickSlot extends Button implements WndBag.Listener {
         if (!hero.isAlive() || !canAssign(skill)) return;
         remember(hero, skill);
         if (toggle(skill, hero)) {
+            TutorialRun.quickslot(hero, skill);
             skill.execute(hero, skill.active ? Skill.AC_DEACTIVATE : Skill.AC_ACTIVATE);
             refresh();
             return;
@@ -503,6 +505,7 @@ public class QuickSlot extends Button implements WndBag.Listener {
         }
         for (String action : skill.actions(hero)) {
             if (!Skill.AC_ADVANCE.equals(action)) {
+                TutorialRun.quickslot(hero, skill);
                 skill.execute(hero, action);
                 return;
             }

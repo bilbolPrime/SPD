@@ -50,7 +50,7 @@ public final class PartyConnection implements Closeable {
     public static final int DEFAULT_PORT = 47864;
     public static final int DISCOVERY_PORT = 47865;
 
-    public static final int PROTOCOL = 3;
+    public static final int PROTOCOL = 4;
 
     public static final String FORK_ID = "00000000-0000-0000-0000-000000000000";
     public static final int MAX_MESSAGE_BYTES = 4 * 1024 * 1024;

@@ -21,6 +21,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.Item;
@@ -58,7 +59,7 @@ public abstract class InventoryScroll extends Scroll {
     }
 
     private final WndBag.Listener itemSelector = item -> {
-        if (finished) return;
+        if (finished || !TutorialRun.valid(reader)) return;
         LocalCoop.withHero(reader, () -> {
             curUser = reader;
             curItem = this;
@@ -101,7 +102,7 @@ public abstract class InventoryScroll extends Scroll {
     }
 
     private void applyTo(Item item) {
-        if (finished) return;
+        if (finished || !TutorialRun.valid(reader)) return;
         if (!reader.isAlive() || !(reader.belongings.backpack.contains(item) || item.isEquipped(reader))) {
             refund();
             return;
@@ -116,7 +117,7 @@ public abstract class InventoryScroll extends Scroll {
     }
 
     private void refund() {
-        if (finished) return;
+        if (finished || !TutorialRun.valid(reader)) return;
         finished = true;
         if (!collect(reader.belongings.backpack)) Dungeon.level.drop(this, reader.pos).sprite.drop();
     }
@@ -129,7 +130,7 @@ public abstract class InventoryScroll extends Scroll {
 
             @Override
             protected void onSelect(int index) {
-                if (answered || finished) return;
+                if (answered || finished || !TutorialRun.valid(reader)) return;
                 answered = true;
                 LocalCoop.withHero(reader, () -> {
                     if (index == 0) {

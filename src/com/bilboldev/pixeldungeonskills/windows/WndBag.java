@@ -529,7 +529,7 @@ public class WndBag extends WndTabbed {
             }
 			if (PartyWindows.select(this)) return;
 			if (listener != null) {
-
+				if (!listener.onBeforeSelect(item)) return;
 				hide();
 				listener.onSelect( item );
 
@@ -560,6 +560,7 @@ public class WndBag extends WndTabbed {
 	}
 
 	public interface Listener {
+		default boolean onBeforeSelect(Item item) { return true; }
 		void onSelect( Item item );
 	}
 }

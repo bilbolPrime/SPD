@@ -53,18 +53,6 @@ public class WandOfFirebolt extends Wand {
 		name = "Wand of Firebolt";
 	}
 
-	static final String AC_SUMMON = "SUMMON THE FLAMES";
-	static final int AC_SUMMON_COST = 40;
-
-	@Override
-	public ArrayList<String> actions(Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (Dungeon.hero != null && (Dungeon.hero.heroClass == HeroClass.MAGE || Dungeon.hero.heroClass == HeroClass.NECROMANCER)){
-			actions.add(AC_SUMMON);
-		}
-		return actions;
-	}
-
 	@Override
 	protected void onZap( int cell ) {
 
@@ -104,59 +92,4 @@ public class WandOfFirebolt extends Wand {
 		return super.desc();
 	}
 
-	@Override
-	public void execute( Hero hero, String action ) {
-		if (action.equals( AC_SUMMON )) {
-
-			if(hero.MP >= AC_SUMMON_COST){
-				curUser = hero;
-				curItem = this;
-
-				boolean spawned = false;
-				for (int nu = 0; nu < 1 ; nu++) {
-					int newPos = hero.pos;
-					if (Actor.findChar(newPos) != null) {
-						ArrayList<Integer> candidates = new ArrayList<Integer>();
-						boolean[] passable = Level.passable;
-
-						for (int n : Level.NEIGHBOURS4) {
-							int c = hero.pos + n;
-							if(c < 0 || c >= Level.passable.length)
-								continue;
-							if (passable[c] && Actor.findChar(c) == null) {
-								candidates.add(c);
-							}
-						}
-						newPos = candidates.size() > 0 ? Random.element(candidates) : -1;
-						if (newPos != -1) {
-							spawned = true;
-							SummonedPet crab = new SummonedPet(SummonedPet.PET_TYPES.FIRE_ELEMENTAL);
-							crab.spawn(1 + (hero.MP - AC_SUMMON_COST) / 30);
-							crab.pos = newPos;
-							GameScene.add(crab);
-							Actor.addDelayed(new Pushing(crab, hero.pos, newPos), -1);
-							crab.sprite.alpha(0);
-							crab.sprite.parent.add(new AlphaTweener(crab.sprite, 1, 0.15f));
-						}
-					}
-				}
-
-				int managUsed = hero.MP;
-				if(spawned == true) {
-					hero.MP = 0;
-					StatusPane.manaDropping += managUsed;
-					Dungeon.hero.sprite.showStatus(CharSprite.NEUTRAL, Message.key("custom.generated.entry_the_flames_obey_662d0a496b"));
-					hero.spend( 1f );
-					hero.busy();
-					hero.sprite.operate( hero.pos );
-				}
-			}
-			else {
-				GLog.n("custom.generated.entry_you_need_at_least_s_mana_to_use_summon_the_flame_ed58a4d22e", AC_SUMMON_COST);
-			}
-
-		} else {
-			super.execute( hero, action );
-		}
-	}
 }

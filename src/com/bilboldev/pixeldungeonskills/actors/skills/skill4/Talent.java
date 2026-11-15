@@ -111,9 +111,9 @@ public enum Talent {
     NECRO_DRAIN_LIFE(HeroClass.NECROMANCER, HeroSubClass.NONE, 6, 0, 1, 0, Effect.DRAIN, 434, 8, 3, 10, 10),
     MASTER_OF_DEATH(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 7, 1, 3, 6, Effect.REVIVE, 181, 900, -100, 0, 0),
     SPIRIT_BOLT(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 0, 0, 0, -1, Effect.BOLT, 392, 8, 3, 8, 5),
-    SPIRIT_ARMY(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 1, 2, 0, -1, Effect.SUMMON_LIMIT, 435, 1, 0, 0, 0),
+    SPIRIT_ARMY(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 3, 2, 1, 1, Effect.SUMMON_LIMIT, 435, 1, 0, 0, 0),
     MEND_BONES(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 2, 1, 1, 1, Effect.MEND_SUMMONS, 394, 5, 3, 10, 16),
-    GUARDIAN_BOND(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 3, 2, 1, 1, Effect.MINION_GUARD, 395, 4, 4, 0, 0),
+    GUARDIAN_BOND(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 1, 2, 0, -1, Effect.MINION_GUARD, 395, 4, 4, 0, 0),
     CORPSE_EXPLOSION(HeroClass.NECROMANCER, HeroSubClass.LICH, 8, 2, 2, -1, Effect.CORPSE_EXPLOSION, 184, 18, 6, 12, 12),
     RAISE_SKELETON_ARCHER(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 5, 2, 2, 3, Effect.RAISE_ARCHER, 183, 1, 1, 14, 20),
     LAST_RITES(HeroClass.NECROMANCER, HeroSubClass.SPIRIT_BINDER, 6, 1, 2, 2, Effect.MINION_REPRIEVE, 398, 12, 12, 0, 0),
@@ -174,8 +174,88 @@ public enum Talent {
         this.cooldown = cooldown;
     }
 
-    public int amount(int rank) { return rank <= 0 ? 0 : base + step * (rank - 1); }
-    public int maxRank() { return step == 0 ? 1 : 5; }
+    public int amount(int rank) {
+        if (rank <= 0) return 0;
+        if (rank > 5) {
+            switch (effect) {
+                case REVIVE: return Math.max(1, (int)Math.ceil(2500.0 / rank));
+                case GUARD: return diminishingAmount(rank, 85);
+                case CROWDED_GUARD: case MERC_GUARD: case COOLDOWN: return diminishingAmount(rank, 40);
+                case MINION_GUARD: case RESISTANCE: case TENACITY: return diminishingAmount(rank, 50);
+                case POISON_RESISTANCE: return diminishingAmount(rank, 60);
+                case RANGED_DODGE: return diminishingAmount(rank, 75);
+                case MINION_REPRIEVE: case SILENT_KILL: return diminishingAmount(rank, 95);
+                case CRIPPLE_CHANCE: case PUSH_CHANCE: case POISON_CHANCE:
+                case VENOM: case READY_SLEEP: case DISABLE_TRAP: return diminishingAmount(rank, 100);
+                case EXECUTE: return diminishingAmount(rank, 30);
+                default: break;
+            }
+        }
+        return (int)Math.max(0, Math.min(Integer.MAX_VALUE, base + (long)step * (rank - 1)));
+    }
+
+    private int diminishingAmount(int rank, int limit) {
+        int trained = base + 4 * step;
+        return limit - (int)Math.ceil((limit - trained) * 5.0 / rank);
+    }
+
+    public int maxRank() {
+        if (step == 0) return 1;
+        switch (effect) {
+            case SUMMON_RAT: case SUMMON_SKELETON: case SUMMON_ARCHER:
+            case SUMMON_GHOST: case RAISE_SKELETON: case RAISE_ARCHER: return 10;
+            default: return 5;
+        }
+    }
+
+    public int attributeWeight() {
+        if (!available() || maxRank() == 1) return 0;
+        switch (effect) {
+            case SUMMON_RAT: case SUMMON_SKELETON: case SUMMON_ARCHER:
+            case SUMMON_GHOST: case RAISE_SKELETON: case RAISE_ARCHER: return 4;
+            case REVIVE: case SILENT_KILL: case MINION_REPRIEVE: case MASTERY: return 1;
+            default: return 2;
+        }
+    }
+
+    public boolean summonsCreature() {
+        switch (effect) {
+            case SUMMON_RAT: case SUMMON_SKELETON: case SUMMON_ARCHER:
+            case SUMMON_GHOST: case RAISE_SKELETON: case RAISE_ARCHER: return true;
+            default: return false;
+        }
+    }
+
+    public int summonHealth(int rank, boolean lich) {
+        if (rank <= 0) return 0;
+        long health = effect == Effect.SUMMON_RAT
+                ? 6 + 3L * rank + Math.max(0, rank - 5)
+                : 12 + 4L * rank + Math.max(0, rank - 5);
+        if (effect == Effect.SUMMON_GHOST || effect == Effect.RAISE_ARCHER || effect == Effect.SUMMON_ARCHER)
+            health = health * 3 / 4;
+        return summonValue(health, lich);
+    }
+
+    public int summonDamageMin(int rank, boolean lich) {
+        if (rank <= 0) return 0;
+        return summonValue(effect == Effect.SUMMON_RAT ? 1 + (rank + 1L) / 2 : 2L + rank, lich);
+    }
+
+    public int summonDamageMax(int rank, boolean lich) {
+        if (rank <= 0) return 0;
+        return summonValue(effect == Effect.SUMMON_RAT ? 3L + rank : 5 + 2L * rank, lich);
+    }
+
+    public int summonAccuracy(int rank) {
+        if (rank <= 0) return 0;
+        int base = effect == Effect.SUMMON_RAT ? 2 : effect == Effect.SUMMON_GHOST ? 7 : 3;
+        return (int)Math.min(Integer.MAX_VALUE, base + 2L * rank);
+    }
+
+    private int summonValue(long value, boolean lich) {
+        if (lich && (effect == Effect.RAISE_SKELETON || effect == Effect.RAISE_ARCHER)) value = value * 5 / 4;
+        return (int)Math.min(Integer.MAX_VALUE, value);
+    }
     public int requiredLevel() { return 1 + 4 * row; }
     public int requiredPoints() { return 2 * row; }
 
@@ -233,29 +313,45 @@ public enum Talent {
     public String key() { return "skills4." + name().toLowerCase(Locale.ROOT); }
     public String title() { return Messages.get(key() + ".name"); }
     public String rankDescription(int rank) {
-        if (effect == Effect.MASTERY) return Messages.get("skills4.rank.mastery", (amount(rank) + 1) / 2, 5 * amount(rank));
-        if (effect == Effect.CLONE) return Messages.get("skills4.rank.clone", 7 + 14 * rank, 5 + 4 * rank);
+        return rankDescription(rank, HeroSubClass.NONE);
+    }
+
+    public String rankDescription(int rank, HeroSubClass subclass) {
+        if (summonsCreature()) return Messages.get("skills4.rank.summon_stats",
+                summonHealth(rank, subclass == HeroSubClass.LICH),
+                summonDamageMin(rank, subclass == HeroSubClass.LICH),
+                summonDamageMax(rank, subclass == HeroSubClass.LICH), summonAccuracy(rank));
+        if (effect == Effect.MASTERY) return Messages.get("skills4.rank.mastery", amount(rank), 5L * amount(rank));
+        if (effect == Effect.CLONE) return Messages.get("skills4.rank.clone",
+                Math.min(Integer.MAX_VALUE, 7 + 14L * rank), Math.min(Integer.MAX_VALUE, 5 + 4L * rank));
+        if (effect == Effect.ENRAGE) return Messages.get("skills4.rank.enrage", amount(rank), Math.min(50, amount(rank)));
         if (effect == Effect.ARROW_PENETRATION)
             return Messages.get(rank == 1 ? "skills4.rank.arrow_penetration_one" : "skills4.rank.arrow_penetration",
-                    100 * rank / (rank + 1), rank);
+                    100L * rank / (rank + 1L), rank);
         return Messages.get("skills4.rank." + effect.name().toLowerCase(Locale.ROOT), displayAmount(rank));
     }
     private int displayAmount(int rank) {
         int value = amount(rank);
         if (effect == Effect.REGENERATION) return healthRecoveryInterval(rank);
         if (effect == Effect.MANA_REGENERATION) return manaRecoveryInterval(rank);
-        if (effect == Effect.CURSE) return 5 * value;
-        if (effect == Effect.FLETCHING || effect == Effect.HUNTING) value = Math.max(40, 100 - 5 * value);
+        if (effect == Effect.CURSE) return (int)Math.min(80, 5L * value);
+        if (effect == Effect.FLETCHING || effect == Effect.HUNTING) value = productionInterval(rank);
         return value;
     }
 
     public static int healthRecoveryInterval(int rank) {
-        return rank <= 0 ? 0 : Math.max(20, 120 - 20 * rank);
+        if (rank <= 0) return 0;
+        return rank <= 5 ? 120 - 20 * rank : Math.max(1, (int)Math.ceil(100.0 / rank));
     }
 
     public static int manaRecoveryInterval(int rank) {
         if (rank <= 0) return 0;
         if (rank <= 3) return 11 - rank;
-        return rank == 4 ? 6 : 5;
+        return rank == 4 ? 6 : Math.max(1, (int)Math.ceil(25.0 / rank));
+    }
+
+    public static int productionInterval(int rank) {
+        if (rank <= 0) return 0;
+        return rank <= 5 ? 100 - 5 * rank : Math.max(1, (int)Math.ceil(375.0 / rank));
     }
 }

@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items.food;
 
+import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import java.util.ArrayList;
 
@@ -58,6 +59,7 @@ public class Food extends Item {
 	@Override
 	public void execute( Hero hero, String action ) {
 		if (action.equals( AC_EAT )) {
+            TutorialRun.ate(hero, this);
 
 			detach( hero.belongings.backpack );
 

@@ -19,6 +19,7 @@ import com.bilboldev.noosa.Gizmo;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.CosmeticPet;
+import com.bilboldev.pixeldungeonskills.effects.CosmeticAccessory;
 import com.bilboldev.pixeldungeonskills.effects.Ripple;
 import com.bilboldev.pixeldungeonskills.effects.SupporterAura;
 import com.bilboldev.pixeldungeonskills.effects.TenguWarnings;
@@ -904,7 +905,10 @@ final class FirstPersonView {
         if (LocalCoop.active()) for (Hero hero : LocalCoop.heroes()) if (hero != viewHero) addCosmeticPet(hero);
         effects.collect();
 
-        for (int i = sprites.size(); i < billboardPool.size(); i++) billboardPool.get(i).sprite = null;
+        for (int i = sprites.size(); i < billboardPool.size(); i++) {
+            billboardPool.get(i).sprite = null;
+            billboardPool.get(i).accessory = null;
+        }
         for (Billboard b : sprites) b.projectedDepth = cameraDepth(b.distance, b.z);
         Collections.sort(sprites, FAR_FIRST);
         for (Billboard b : sprites) {
@@ -917,6 +921,10 @@ final class FirstPersonView {
             boolean aura = s instanceof SupporterAura.Light;
             Pixels source = source(s.texture);
             RectF frame = s.frame();
+            CosmeticAccessory accessory = b.accessory;
+            Pixels attachment = accessory == null ? null : source(accessory.texture);
+            int attachmentX = accessory == null ? 0 : accessory.frameLeft();
+            int attachmentY = accessory == null ? 0 : accessory.frameTop();
             double size = focal * b.size / b.projectedDepth;
             double spriteWidth = size * b.aspect;
             double cx = width * 0.5 + b.side * focal / b.projectedDepth;
@@ -942,6 +950,7 @@ final class FirstPersonView {
             int fx = Math.round(frame.left * source.width), fy = Math.round(frame.top * source.height);
             int fw = Math.max(1, Math.round(frame.width() * source.width));
             int fh = Math.max(1, Math.round(frame.height() * source.height));
+            if (attachment != null) fw = fh = CosmeticAccessory.SIZE;
             for (int x = Math.max(0, (int)left); x < Math.min(width, right); x++) {
                 if (!thirdPerson && b.distance >= depth[x]) continue;
                 for (int y = Math.max(0, (int)top); y < Math.min(height, bottom); y++) {
@@ -960,10 +969,20 @@ final class FirstPersonView {
                     if (u < 0 || v < 0 || u >= 1 || v >= 1) continue;
                     int tx = Math.min(fw - 1, (int)((s.flipHorizontal ? 1 - u : u) * fw));
                     int ty = Math.min(fh - 1, (int)((s.flipVertical ? 1 - v : v) * fh));
+                    int bodyColor = 0;
+                    if (attachment != null) {
+                        int bodyX = tx - CosmeticAccessory.ANCHOR_X, bodyY = ty - CosmeticAccessory.ANCHOR_Y;
+                        if (bodyX >= 0 && bodyX < 12 && bodyY >= 0 && bodyY < 15) bodyColor = source.at(fx + bodyX, fy + bodyY);
+                    }
+                    boolean bodyPixel = attachment == null || bodyColor >>> 24 != 0;
 
                     int color = aura ? source.softAlpha(fx, fy, fw, fh,
                             s.flipHorizontal ? 1 - u : u, s.flipVertical ? 1 - v : v) << 24 | 0xFFFFFF
-                            : source.at(fx + tx, fy + ty);
+                            : attachment == null ? source.at(fx + tx, fy + ty)
+                            : attachment.at(attachmentX + tx, attachmentY + ty);
+                    if (attachment != null && color >>> 24 == 0) {
+                        color = bodyColor;
+                    }
                     double alpha = Math.min(1, (color >>> 24) / 255.0 * s.am + s.aa) * b.opacity;
                     if (alpha <= 0.01) continue;
                     if (card) {
@@ -976,6 +995,7 @@ final class FirstPersonView {
                         }
                     }
                     b.visiblePixels = true;
+                    if (bodyPixel) b.visibleBodyPixels = true;
                     color = litColor(color, s, b.tint);
                     color = shade(color, light);
                     if (b.terrainCell >= 0) {
@@ -991,7 +1011,7 @@ final class FirstPersonView {
                         indicatorPixels[index] = 0;
                     }
 
-                    if (b.cell >= 0 && (creature || alpha > 0.3) && pixelDepth < pickDepth[index]) {
+                    if (b.cell >= 0 && bodyPixel && (creature || alpha > 0.3) && pixelDepth < pickDepth[index]) {
                         cells[index] = s == terrainSprites[Terrain.BARRICADE] ? -2 - b.cell : b.cell;
                         pickDepth[index] = pixelDepth;
                     }
@@ -999,7 +1019,7 @@ final class FirstPersonView {
             }
         }
 
-        for (Billboard b : sprites) if (b.cell >= 0 && b.visiblePixels && b.sprite instanceof CharSprite) pickBody(b);
+        for (Billboard b : sprites) if (b.cell >= 0 && b.visibleBodyPixels && b.sprite instanceof CharSprite) pickBody(b);
         for (Iterator<CharSprite> it = pickBodies.keySet().iterator(); it.hasNext();) {
             CharSprite s = it.next();
             if (!s.exists || s.ch == null || !s.ch.isAlive()) it.remove();
@@ -1149,8 +1169,17 @@ final class FirstPersonView {
         }
         double jump = sprite instanceof CharSprite ? ((CharSprite)sprite).jumpHeight() : 0;
         double rotation = sprite instanceof PartyPresentation.Death ? Math.toRadians(sprite.angle) : 0;
-        Billboard b = billboard().set(sprite, target, distance, -x * dy + y * dx, size, size * 0.5 + jump,
-                sprite.width / Math.max(1, sprite.height), rotation, opacity, -1, false, true);
+        CosmeticAccessory accessory = sprite instanceof HeroSprite ? ((HeroSprite)sprite).accessoryImage() : null;
+        double center = size * .5 + jump;
+        double aspect = sprite.width / Math.max(1, sprite.height);
+        if (accessory != null) {
+            center += size * CosmeticAccessory.ANCHOR_Y / (2 * sprite.height);
+            size *= CosmeticAccessory.SIZE / sprite.height;
+            aspect = 1;
+        }
+        Billboard b = billboard().set(sprite, target, distance, -x * dy + y * dx, size, center,
+                aspect, rotation, opacity, -1, false, true);
+        b.accessory = accessory;
         if (terrain) b.terrainCell = cell;
         sprites.add(b);
     }
@@ -1637,6 +1666,7 @@ final class FirstPersonView {
 
     private static final class Billboard {
         Image sprite;
+        CosmeticAccessory accessory;
         int cell;
         int terrainCell;
         double distance, side, size, z, aspect, rotation, opacity;
@@ -1644,10 +1674,12 @@ final class FirstPersonView {
         boolean emissive, upright, additive;
         double projectedDepth;
         boolean visiblePixels;
+        boolean visibleBodyPixels;
         final RectF itemBounds = new RectF();
         Billboard set(Image sprite, int cell, double distance, double side, double size, double z,
                   double aspect, double rotation, double opacity, int tint, boolean emissive, boolean upright) {
             this.sprite = sprite;
+            accessory = null;
             this.cell = cell;
             terrainCell = -1;
             this.distance = distance;
@@ -1662,6 +1694,7 @@ final class FirstPersonView {
             this.upright = upright;
             projectedDepth = 0;
             visiblePixels = false;
+            visibleBodyPixels = false;
             additive = false;
             return this;
         }

@@ -12,12 +12,15 @@ import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.actors.buffs.EssenceEffect;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Invisibility;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.particles.SmokeParticle;
+import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
 import com.bilboldev.pixeldungeonskills.items.weapon.melee.MeleeWeapon;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.weapon.missiles.Bullet;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
@@ -183,13 +186,15 @@ public abstract class Gun extends MeleeWeapon {
 
                                     int dmg = Math.max(1, (int)(Random.NormalIntRange(min(), max())
                                             * tree.getGunDamageModifier() * shotData.damageModifier * damageMult
-                                            * (1 + hero.attribute(EquipmentAttribute.Type.RANGED) / 100f)));
+                                            * (1 + hero.attribute(EquipmentAttribute.Type.RANGED) / 100f)
+                                            + EssenceEffect.attackBonus(hero) * damageMult));
 
                                     float attackSkill = hero.attackSkill(target)
                                             + tree.getRangedAttackSkillBonus()
                                             + shotData.attackSkillBonus;
 
-                                    float attackRoll = Random.Float(Math.max(0f, attackSkill));
+                                    float attackRoll = Random.Float(Math.max(0f, attackSkill)
+                                            * (1 + hero.essenceBonus(Essence.Type.SIGHT) / 100f));
                                     float defenseRoll = Random.Float(Math.max(0f, target.defenseSkill(hero)));
 
                                     if (attackRoll >= defenseRoll) {
@@ -204,9 +209,9 @@ public abstract class Gun extends MeleeWeapon {
                                         int healthBefore = target.HP;
                                         float executeThreshold = tree.getGunExecuteThreshold();
                                         if (executeThreshold > 0f && target.HP <= Math.max(1, (int)(target.HT * executeThreshold))) {
-                                            target.damage(target.HP, Gun.this);
+                                            damage(target, target.HP, hero);
                                         } else {
-                                            target.damage(dmg, Gun.this);
+                                            damage(target, dmg, hero);
                                         }
                                         if (hero.talents() != null && healthBefore > 0 && !target.isAlive()) hero.talents().killed(target);
                                         onHit(target);
@@ -251,6 +256,11 @@ public abstract class Gun extends MeleeWeapon {
         }
     };
 
+    private void damage(Char target, int damage, Hero hero) {
+        if (Dungeon.rules().hasRebornEncounters()) target.damageFrom(damage, this, hero, CombatTextIcon.PHYSICAL);
+        else target.damage(damage, this);
+    }
+
     protected void onHit(Char target) { }
 
     private int spreadCell( int base ) {
@@ -267,11 +277,16 @@ public abstract class Gun extends MeleeWeapon {
 
     @Override
     public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+        onDetach();
+        return super.doUnequip(hero, collect, single);
+    }
+
+    @Override
+    protected void onDetach() {
         if (charger != null) {
             charger.detach();
             charger = null;
         }
-        return super.doUnequip(hero, collect, single);
     }
 
     public class Charger extends Buff {

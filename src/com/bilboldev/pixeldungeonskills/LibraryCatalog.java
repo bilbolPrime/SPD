@@ -35,6 +35,7 @@ import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.*;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.items.*;
+import com.bilboldev.pixeldungeonskills.items.essences.Essence;
 import com.bilboldev.pixeldungeonskills.items.armor.*;
 import com.bilboldev.pixeldungeonskills.items.bags.*;
 import com.bilboldev.pixeldungeonskills.items.food.*;
@@ -415,6 +416,18 @@ public final class LibraryCatalog {
         throw new IllegalArgumentException("Unknown Library ring");
     }
 
+    private static void essence(List<Entry> list, Class<? extends Essence> type, int image, String key) {
+        Entry entry = new Entry(key + ".name", Shelf.MISC, () -> Messages.get(key + ".name"), () -> {
+            try {
+                return type.newInstance().loreInfo();
+            } catch (ReflectiveOperationException failure) {
+                throw new IllegalStateException(failure);
+            }
+        }, () -> new ItemSprite(image, null), false, null, null, null);
+        entry.type = type;
+        list.add(entry);
+    }
+
     private static void item(List<Entry> list, Shelf shelf, Class<? extends Item> type,
                              int image, String name, String description) {
         item(list, shelf, type, image, name, description, null);
@@ -590,6 +603,21 @@ public final class LibraryCatalog {
         quest(list, Region.CITY, 17, "imp_golems", "imp", "I", () -> idleImage(new ImpSprite()));
         quest(list, Region.CITY, 17, "imp_monks", "imp", "II", () -> idleImage(new ImpSprite()));
 
+        essence(list, Essence.Vital.class, ItemSpriteSheet.ESSENCE_VITAL, "essences.vital");
+        essence(list, Essence.Arcane.class, ItemSpriteSheet.ESSENCE_ARCANE, "essences.arcane");
+        essence(list, Essence.Stone.class, ItemSpriteSheet.ESSENCE_STONE, "essences.stone");
+        essence(list, Essence.Shade.class, ItemSpriteSheet.ESSENCE_SHADE, "essences.shade");
+        essence(list, Essence.Wind.class, ItemSpriteSheet.ESSENCE_WIND, "essences.wind");
+        essence(list, Essence.Memory.class, ItemSpriteSheet.ESSENCE_MEMORY, "essences.memory");
+        essence(list, Essence.Ember.class, ItemSpriteSheet.ESSENCE_EMBER, "essences.ember");
+        essence(list, Essence.Rime.class, ItemSpriteSheet.ESSENCE_RIME, "essences.rime");
+        essence(list, Essence.Venom.class, ItemSpriteSheet.ESSENCE_VENOM, "essences.venom");
+        essence(list, Essence.Storm.class, ItemSpriteSheet.ESSENCE_STORM, "essences.storm");
+        essence(list, Essence.Blood.class, ItemSpriteSheet.ESSENCE_BLOOD, "essences.blood");
+        essence(list, Essence.Iron.class, ItemSpriteSheet.ESSENCE_IRON, "essences.iron");
+        essence(list, Essence.Sight.class, ItemSpriteSheet.ESSENCE_SIGHT, "essences.sight");
+        essence(list, Essence.Ward.class, ItemSpriteSheet.ESSENCE_WARD, "essences.ward");
+        essence(list, Essence.Harvest.class, ItemSpriteSheet.ESSENCE_HARVEST, "essences.harvest");
         item(list, Shelf.MISC, Amulet.class, ItemSpriteSheet.AMULET, "items.amulet.name", "items.amulet.desc");
         item(list, Shelf.MISC, Ankh.class, ItemSpriteSheet.ANKH, "items.ankh.name", "items.ankh.desc");
         item(list, Shelf.MISC, ArmorKit.class, ItemSpriteSheet.KIT, "custom.generated.entry_armor_kit_93e26fc37c", "items.armorkit.desc");

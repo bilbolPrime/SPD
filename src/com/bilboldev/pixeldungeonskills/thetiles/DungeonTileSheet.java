@@ -82,7 +82,7 @@ public class DungeonTileSheet {
 	}
 
 	public static boolean floorTile(int tile){
-		return tile == Terrain.WATER || directVisuals.get(tile, CHASM) < CHASM;
+		return (Terrain.flags[tile] & Terrain.LIQUID) != 0 || directVisuals.get(tile, CHASM) < CHASM;
 	}
 
 	public static final int CHASM                   =                       xy(1, 4);
@@ -117,6 +117,7 @@ public class DungeonTileSheet {
 	}
 
 	public static int stitchChasmTile(int above){
+		if (above >= 0 && (Terrain.flags[above] & Terrain.LIQUID) != 0) above = Terrain.WATER;
 		int tile = chasmStitcheable.get(above, CHASM);
 
 		return tile == CHASM_WALL ? CHASM : tile;
