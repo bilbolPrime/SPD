@@ -26,6 +26,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -73,6 +74,10 @@ public class Chasm {
 
 		jumpConfirmed = false;
 
+        if (JourneyRun.active()) {
+            JourneyRun.fall(pos);
+            return;
+        }
 		Sample.INSTANCE.play( Assets.SND_FALLING );
 
 		if (Dungeon.hero.isAlive()) {

@@ -51,13 +51,14 @@ public class MercSprite extends MobSprite {
         }
     }
 
-    public void updateArmor(HiredMerc.MERC_TYPES type) {
+    public void updateArmor(HiredMerc.MERC_TYPES type, int tier) {
         this.type = type;
-        updateArmor(5);
+        updateArmor(tier);
     }
 
     public void updateArmor() {
-        updateArmor(((HiredMerc)ch).getArmorTier());
+        HiredMerc merc = (HiredMerc)ch;
+        updateArmor(merc.mercType, merc.getArmorTier());
     }
 
     private void updateArmor(int tier) {

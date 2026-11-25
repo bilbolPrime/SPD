@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
@@ -19,11 +20,11 @@ public final class MercenaryRecruitment {
     private MercenaryRecruitment() {}
 
     public static boolean campFloor(int depth) {
-        return depth >= 1 && depth <= 24 && !Dungeon.bossLevel(depth);
+        return !JourneyRun.active() && depth >= 1 && depth <= 24 && !Dungeon.bossLevel(depth);
     }
 
     public static void finishCamp(Level level) {
-        if (!Dungeon.rules().hasRebornEncounters() || LocalCoop.active()
+        if (JourneyRun.active() || !Dungeon.rules().hasRebornEncounters() || LocalCoop.active()
                 || Dungeon.hero.hiredMerc == null || !Dungeon.hero.hiredMerc.isAlive()) return;
         for (Iterator<Mob> mobs = level.mobs.iterator(); mobs.hasNext();) {
             Mob mob = mobs.next();
@@ -76,7 +77,7 @@ public final class MercenaryRecruitment {
     }
 
     public static boolean atRecruiter(MercenaryCamp camp) {
-        return Dungeon.rules().hasRebornEncounters() && camp != null && Dungeon.level != null
+        return !JourneyRun.active() && Dungeon.rules().hasRebornEncounters() && camp != null && Dungeon.level != null
                 && Dungeon.hero != null && camp.isAlive() && Dungeon.level.mobs.contains(camp)
                 && Level.adjacent(Dungeon.hero.pos, camp.pos);
     }
@@ -86,6 +87,7 @@ public final class MercenaryRecruitment {
     }
 
     public static Message hire(MERC_TYPES type, MercenaryCamp camp, HiredMerc confirmedReplacement) {
+        if (JourneyRun.active()) return Message.key(MercenaryRecruitment.class, "no_merc");
         if (Dungeon.hero == null) return Message.key(MercenaryRecruitment.class, "no_hero");
         HiredMerc previous = Dungeon.hero.hiredMerc;
         if (previous != confirmedReplacement) return Message.key(MercenaryRecruitment.class, "changed");

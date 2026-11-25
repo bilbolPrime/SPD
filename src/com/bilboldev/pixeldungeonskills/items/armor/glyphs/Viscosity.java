@@ -26,6 +26,7 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor.Glyph;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
@@ -36,8 +37,6 @@ import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
 
 public class Viscosity extends Glyph {
-
-	private static final String TXT_VISCOSITY	= "%s of viscosity";
 
 	private static ItemSprite.Glowing PURPLE = new ItemSprite.Glowing( 0x8844CC );
 
@@ -70,7 +69,7 @@ public class Viscosity extends Glyph {
 
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_VISCOSITY, weaponName );
+		return Messages.get( "items.armor.glyphs.viscosity.name", (Object)weaponName );
 	}
 
 	@Override

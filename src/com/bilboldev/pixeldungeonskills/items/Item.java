@@ -32,6 +32,7 @@ import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LibraryItemBuild;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -43,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.effects.Degradation;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.bags.Bag;
+import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.rings.Ring;
 import com.bilboldev.pixeldungeonskills.items.wands.Wand;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
@@ -103,13 +105,13 @@ public class Item implements Bundlable {
 
 	public int level = 0;
 	private int durability = maxDurability();
-	public boolean levelKnown = false;
+	public boolean levelKnown = JourneyRun.active();
 
 	public boolean cursed;
-	public boolean cursedKnown;
+	public boolean cursedKnown = JourneyRun.active();
 
 	public transient boolean droppedByHero, droppedOnDeath;
-	public transient int helperCardRun;
+    public boolean journeyRemains;
 
 	public boolean unique = false;
 
@@ -126,39 +128,30 @@ public class Item implements Bundlable {
 		ArrayList<String> actions = new ArrayList<String>();
 		actions.add( AC_DROP );
 		actions.add( AC_THROW );
-        if(hero.pos == Dungeon.level.storage && this != hero.belongings.weapon && this != hero.belongings.armor && this != hero.belongings.ring1 && this != hero.belongings.ring2  && this != hero.belongings.bow)
+        if (Dungeon.level != null && hero.pos == Dungeon.level.storage
+                && this != hero.belongings.weapon && this != hero.belongings.armor
+                && this != hero.belongings.ring1 && this != hero.belongings.ring2 && this != hero.belongings.bow)
             actions.add( AC_STORE );
 		return actions;
 	}
 
 	public boolean doPickUp( Hero hero ) {
-		if(hero instanceof GauntletHero){
-			return guantletPickup(hero);
-		}
-
 		if (collect( hero.belongings.backpack )) {
-
-			GameScene.pickUp( this );
-			Sample.INSTANCE.play( Assets.SND_ITEM );
-			hero.spendAndNext( TIME_TO_PICK_UP );
+			finishPickUp( hero );
 			return true;
-
 		} else {
 			return false;
 		}
 	}
 
-	private boolean guantletPickup(Hero hero){
-		if (collect( hero.belongings.backpack )) {
-
+	protected void finishPickUp( Hero hero ) {
+		if (hero instanceof GauntletHero) {
 			GauntletScene.pickUp( this );
-			Sample.INSTANCE.play( Assets.SND_ITEM );
-			hero.spendAndNext( TIME_TO_PICK_UP );
-			return true;
-
 		} else {
-			return false;
+			GameScene.pickUp( this );
 		}
+		Sample.INSTANCE.play( Assets.SND_ITEM );
+		hero.spendAndNext( TIME_TO_PICK_UP );
 	}
 
 	public void doDrop( Hero hero ) {
@@ -260,17 +253,20 @@ public class Item implements Bundlable {
     }
 
 	public boolean collect( Bag container ) {
+        if (JourneyRun.active() && (this instanceof Food || this instanceof DewVial)) return false;
         RebornChallenges.plain(this);
 
 		ArrayList<Item> items = container.items;
 
 		if (items.contains( this )) {
 			droppedByHero = droppedOnDeath = false;
+            journeyRemains = false;
 			return true;
 		}
 
 		for (Item item:items) {
-			if (item instanceof Bag && ((Bag)item).grab( this )) {
+			if (item instanceof Bag && ((Bag)item).grab( this )
+                    && ((Bag)item).canHold(this)) {
 				return collect( (Bag)item );
 			}
 		}
@@ -280,15 +276,17 @@ public class Item implements Bundlable {
 			Class<?>c = getClass();
 			for (Item item:items) {
 				if (item.getClass() == c) {
+                    if ((long)item.quantity + quantity > Integer.MAX_VALUE) continue;
 					item.quantity += quantity;
 					item.updateQuickslot();
 					droppedByHero = droppedOnDeath = false;
+                    journeyRemains = false;
 					return true;
 				}
 			}
 		}
 
-		if (items.size() < container.size) {
+		if (container.canHold(this)) {
 
 			if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
 				Badges.validateItemLevelAquired( this );
@@ -296,6 +294,7 @@ public class Item implements Bundlable {
 
 			items.add( this );
 			droppedByHero = droppedOnDeath = false;
+            journeyRemains = false;
 			QuickSlot.refresh();
 			Collections.sort( items, itemComparator );
 			Essence.inventoryChanged(container, this);
@@ -699,6 +698,7 @@ public class Item implements Bundlable {
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
+		if (journeyRemains) bundle.put("journey_remains", true);
 		if (attributes.length != 0) bundle.put("attributes", EquipmentAttribute.pack(attributes));
 		bundle.put( QUANTITY, quantity );
 		bundle.put( LEVEL, level );
@@ -714,9 +714,10 @@ public class Item implements Bundlable {
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
+		journeyRemains = bundle.getBoolean("journey_remains");
 		attributes = EquipmentAttribute.unpack(bundle.getIntArray("attributes"));
 		quantity	= bundle.getInt( QUANTITY );
-		levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
+		levelKnown	= JourneyRun.active() || bundle.getBoolean( LEVEL_KNOWN );
 
 		if (bundle.contains(EFFECT)) {
 			weaponEffect = WeaponEffect.restore(bundle.getString(EFFECT));
@@ -731,13 +732,13 @@ public class Item implements Bundlable {
 		}
 
 		cursed	= bundle.getBoolean( CURSED );
-		cursedKnown	= bundle.getBoolean( CURSED_KNOWN );
+		cursedKnown	= JourneyRun.active() || bundle.getBoolean( CURSED_KNOWN );
 
 		if (isUpgradable()) {
 			durability = bundle.getInt( DURABILITY );
 		}
 
-		QuickSlot.restore( bundle, this );
+		if (!(JourneyRun.active() && this instanceof DewVial)) QuickSlot.restore( bundle, this );
 	}
 
 	public void cast( final Hero user, int dst ) {

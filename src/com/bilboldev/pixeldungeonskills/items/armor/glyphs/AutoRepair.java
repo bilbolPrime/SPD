@@ -22,14 +22,13 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor.Glyph;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 
 public class AutoRepair extends Glyph {
 
-	private static final String TXT_AUTO_REPAIR	= "%s of auto-repair";
-
 	private static Glowing GRAY = new Glowing( 0xCC8888 );
-	
+
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage) {
 		if (defender instanceof Hero && Dungeon.gold >= armor.tier) {
@@ -38,12 +37,12 @@ public class AutoRepair extends Glyph {
 		}
 		return damage;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_AUTO_REPAIR, weaponName );
+		return Messages.get( "custom.generated.entry_s_of_auto_repair_5d774ca9d2", (Object)weaponName );
 	}
-	
+
 	@Override
 	public Glowing glowing() {
 		return GRAY;

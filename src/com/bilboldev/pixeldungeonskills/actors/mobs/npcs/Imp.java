@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -212,6 +213,7 @@ public class Imp extends NPC {
 		}
 
 		public static void spawn( CityLevel level, Room room ) {
+			if (JourneyRun.active()) return;
 			if (!spawned && Dungeon.depth > 16 && Random.Int( 20 - Dungeon.depth ) == 0) {
 
 				Imp npc = new Imp();

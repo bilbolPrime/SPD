@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 
 import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.TutorialRun;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 
 import com.bilboldev.pixeldungeonskills.HeroSkins;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.Talent;
@@ -440,7 +441,7 @@ public class Hero extends Char {
         difficulty = Dungeon.difficulty;
 
         String tmp = bundle.getString(MERC_TYPE);
-        if(tmp != null && tmp != "")
+        if(!JourneyRun.active() && tmp != null && tmp != "")
         {
             try
             {
@@ -569,35 +570,42 @@ public class Hero extends Char {
 
 	@Override
 	public int attackSkill( Char target ) {
-		int meleeBonus = rangedWeapon == null && belongings.weapon != null
-				? Dungeon.hero.heroSkills.passiveB1.toHitBonus() : 0;
-		return attackSkill(target, meleeBonus);
+		return attackSkill(target, rangedWeapon != null ? rangedWeapon : belongings.weapon);
 	}
 
 	public int attackSkill(Char target, int meleeBonus) {
+		return attackSkill(target, meleeBonus, rangedWeapon != null ? rangedWeapon : belongings.weapon);
+	}
+
+	public int attackSkill(Char target, KindOfWeapon wep) {
+		int meleeBonus = wep != null && wep != rangedWeapon ? heroSkills.passiveB1.toHitBonus() : 0;
+		return attackSkill(target, meleeBonus, wep);
+	}
+
+	private int attackSkill(Char target, int meleeBonus, KindOfWeapon wep) {
 
 		int bonus = 0;
 		for (Buff buff : buffs( RingOfAccuracy.Accuracy.class )) {
 			bonus += ((RingOfAccuracy.Accuracy)buff).level;
 		}
 		float accuracy = (bonus == 0) ? 1 : (float)Math.pow( 1.4, bonus );
-		if (rangedWeapon != null && Level.distance( pos, target.pos ) == 1) {
+		boolean ranged = rangedWeapon != null && wep == rangedWeapon;
+		if (ranged && Level.distance( pos, target.pos ) == 1) {
 			accuracy *= 0.5f;
 		}
 
-		KindOfWeapon wep = rangedWeapon != null ? rangedWeapon : belongings.weapon;
         int attackSkillTmp = attackSkill + attribute(EquipmentAttribute.Type.ACCURACY);
 
         if(wep instanceof MeleeWeapon){
         	attackSkillTmp += skillTree.getMeleeAttackSkillBonus();
 		}
 
-		if (rangedWeapon != null && Level.distance( pos, target.pos ) > 1) {
+		if (ranged && Level.distance( pos, target.pos ) > 1) {
 			attackSkillTmp += skillTree.getRangedAttackSkillBonus();
 		}
 
 		if (wep != null) {
-            if(rangedWeapon == null)
+            if(!ranged)
             {
                 return (int)((attackSkillTmp + meleeBonus) * accuracy * wep.acuracyFactor( this ));
             }
@@ -1023,8 +1031,14 @@ public class Hero extends Char {
 
 			Heap heap = Dungeon.level.heaps.get( pos );
 			if (heap != null) {
-				Item item = heap.pickUp();
+                Item remains = JourneyRun.remains(heap);
+				Item item = remains == null ? heap.pickUp() : remains;
 				if (item.doPickUp( this )) {
+                    if (remains != null) {
+                        heap.items.remove(item);
+                        if (heap.isEmpty()) heap.destroy();
+                        else if (heap.sprite != null) heap.sprite.view(heap.image(), heap.glowing());
+                    }
 
 					if (item instanceof Dewdrop) {
 
@@ -1044,7 +1058,7 @@ public class Hero extends Char {
 					}
 					curAction = null;
 				} else {
-					Dungeon.level.drop( item, pos ).sprite.drop();
+					if (remains == null) Dungeon.level.drop( item, pos ).sprite.drop();
 					ready();
 				}
 			} else {
@@ -1069,6 +1083,11 @@ public class Hero extends Char {
 
 			Heap heap = Dungeon.level.heaps.get( dst );
 			if (heap != null && (heap.type != Type.HEAP && heap.type != Type.FOR_SALE)) {
+                if (JourneyRun.isCache(heap) && JourneyRun.guardsRemaining() > 0) {
+                    ready();
+                    GameScene.show(new WndMessage(Message.key("journey.guards_blocked")));
+                    return false;
+                }
 
 				theKey = null;
 
@@ -1187,6 +1206,13 @@ public class Hero extends Char {
 	protected boolean actDescend( HeroAction.Descend action ) {
 		int stairs = action.dst;
 		if (pos == stairs && pos == Dungeon.level.exit) {
+            if (JourneyRun.active()) {
+                if (!JourneyRun.descend()) {
+                    ready();
+                    GameScene.show(new WndMessage(Message.key(JourneyRun.objectiveExitHint())));
+                }
+                return false;
+            }
             if (TutorialRun.active()) {
                 ready();
                 TutorialRun.update();
@@ -1245,7 +1271,14 @@ public class Hero extends Char {
 
 	protected boolean actAscend( HeroAction.Ascend action ) {
 		int stairs = action.dst;
-		if (pos == stairs && pos == Dungeon.level.entrance) {
+		if (pos == stairs && (pos == Dungeon.level.entrance || JourneyRun.recovering() && pos == JourneyRun.entrance())) {
+            if (JourneyRun.active()) {
+                if (!JourneyRun.ascend()) {
+                    ready();
+                    GameScene.show(new WndMessage(Message.key("journey.entrance_hint")));
+                }
+                return false;
+            }
 			if (Dungeon.level instanceof DailyHoardLevel) {
 				ready();
 				GameScene.show(new WndMessage(Messages.get("daily.hoard_entrance_desc")));
@@ -1665,9 +1698,11 @@ public class Hero extends Char {
                 curAction = new HeroAction.Attack( ch );
             }
 
-		} else if (Level.fieldOfView[cell] && (heap = Dungeon.level.heaps.get( cell )) != null && heap.type != Heap.Type.HIDDEN) {
+		} else if (Level.fieldOfView[cell] && (heap = Dungeon.level.heaps.get( cell )) != null
+                && (heap.type != Heap.Type.HIDDEN || JourneyRun.remains(heap) != null)) {
 
-			switch (heap.type) {
+            if (JourneyRun.remains(heap) != null) curAction = new HeroAction.PickUp(cell);
+			else switch (heap.type) {
 			case HEAP:
 				curAction = new HeroAction.PickUp( cell );
 				break;
@@ -1688,7 +1723,8 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.Descend( cell );
 
-		} else if (cell == Dungeon.level.entrance && Dungeon.level.map[cell] == Terrain.ENTRANCE) {
+		} else if (cell == Dungeon.level.entrance && Dungeon.level.map[cell] == Terrain.ENTRANCE
+                || JourneyRun.recovering() && cell == JourneyRun.entrance()) {
 
 			curAction = new HeroAction.Ascend( cell );
 
@@ -1757,11 +1793,17 @@ public class Hero extends Char {
 			LocalCoop.withHero(this, () -> earnExp(exp));
 			return;
 		}
+		if (JourneyRun.shareExperience(this, exp)) return;
+		gainExperience(exp, true);
+	}
 
-		this.exp += exp;
+	public void gainExperience(int exp, boolean feedback) {
+		int levelCap = JourneyRun.levelCap();
+		if (JourneyRun.active()) this.exp = (int)Math.min(Integer.MAX_VALUE, (long)this.exp + exp);
+		else this.exp += exp;
 
 		boolean levelUp = false;
-		while (this.exp >= maxExp()) {
+		while (lvl < levelCap && this.exp >= maxExp()) {
 			this.exp -= maxExp();
 			lvl++;
 
@@ -1770,7 +1812,7 @@ public class Hero extends Char {
             MP += 5;
             MMP += 5;
             Skill.availableSkill += 1;
-            GLog.p("custom.generated.entry_gained_1_skill_point_33d2cd1256");
+            if (feedback) GLog.p("custom.generated.entry_gained_1_skill_point_33d2cd1256");
 			attackSkill++;
 			defenseSkill++;
 
@@ -1780,11 +1822,12 @@ public class Hero extends Char {
 
 			levelUp = true;
 		}
+		if (lvl >= levelCap) this.exp = 0;
 
-		if (levelUp) {
+		if (levelUp && feedback) {
 
 			GLog.p(Hero.class, "new_level");
-			sprite.showStatus( CharSprite.POSITIVE, Message.key(Hero.class, "level_up") );
+			if (sprite != null) sprite.showStatus( CharSprite.POSITIVE, Message.key(Hero.class, "level_up") );
 			Sample.INSTANCE.play( Assets.SND_LEVELUP );
 
             if(hiredMerc != null)
@@ -1795,7 +1838,7 @@ public class Hero extends Char {
 			Badges.validateLevelReached();
 		}
 
-		if (subClass == HeroSubClass.WARLOCK || subClass == HeroSubClass.LICH) {
+		if (feedback && (subClass == HeroSubClass.WARLOCK || subClass == HeroSubClass.LICH)) {
 
 			int value = Math.min( HT - HP, 1 + (Dungeon.depth - 1) / 5 );
 			if (value > 0) {
@@ -1804,7 +1847,8 @@ public class Hero extends Char {
 				sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
 			}
 
-			((Hunger)buff( Hunger.class )).satisfy( 10 );
+			Hunger hunger = buff(Hunger.class);
+			if (hunger != null) hunger.satisfy(10);
 		}
 	}
 
@@ -1931,6 +1975,11 @@ public class Hero extends Char {
 
 		super.die( cause );
 
+        if (JourneyRun.active()) {
+            reallyDie(cause);
+            return;
+        }
+
 		Ankh ankh = (Ankh)belongings.getItem( Ankh.class );
 		if (ankh == null) {
 
@@ -1952,6 +2001,10 @@ public class Hero extends Char {
 	}
 
 	public static void reallyDie( Object cause ) {
+        if (JourneyRun.active()) {
+            JourneyRun.died();
+            return;
+        }
         if (TutorialRun.active()) {
             TutorialRun.died(Dungeon.hero);
             return;
@@ -2035,6 +2088,7 @@ public class Hero extends Char {
 	public void move( int step ) {
         if (!TutorialRun.valid(this)) return;
         int previousPosition = pos;
+        JourneyRun.rememberPosition(previousPosition);
         if (talents() != null && step != pos) talents().moved();
 		super.move( step );
 

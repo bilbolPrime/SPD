@@ -3,11 +3,14 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
+import com.bilboldev.pixeldungeonskills.actors.blobs.Fire;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Amok;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
 import com.bilboldev.pixeldungeonskills.actors.buffs.NecroWeakened;
@@ -271,7 +274,9 @@ public class RebornTengu extends Tengu {
     private boolean relocate(int target, boolean animate, boolean flank) {
         if (rooted) return false;
         ArrayList<Integer> choices = new ArrayList<>();
+        Fire fire = JourneyRun.bossArea() ? (Fire)Dungeon.level.blobs.get(Fire.class) : null;
         for (int cell = 0; cell < Level.LENGTH; cell++) {
+            if (fire != null && fire.cur[cell] > 0) continue;
             int distance = Level.distance(pos, cell), targetDistance = Level.distance(target, cell);
             if (flank) {
                 int ax = pos % Level.WIDTH - target % Level.WIDTH, ay = pos / Level.WIDTH - target / Level.WIDTH;
@@ -289,6 +294,7 @@ public class RebornTengu extends Tengu {
         move(Random.element(choices));
         Actor.freeCell(previous);
         Actor.occupyCell(this);
+        if (JourneyRun.bossArea()) GameScene.add(Blob.seed(previous, 5, Fire.class));
         if (Dungeon.level instanceof PrisonBossLevel)
             ((PrisonBossLevel)Dungeon.level).shuffleRebornTraps();
         if (animate && sprite != null) sprite.move(previous, pos);

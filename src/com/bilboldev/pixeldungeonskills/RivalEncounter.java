@@ -15,7 +15,8 @@ public final class RivalEncounter {
     }
 
     public static Mob boss(int depth) {
-        if (RebornChallenges.doubleBoss() || !Dungeon.rules().hasRebornBosses() || depth < 5 || depth > 20 || depth % 5 != 0)
+        if (JourneyRun.active() || RebornChallenges.doubleBoss() || !Dungeon.rules().hasRebornBosses()
+                || depth < 5 || depth > 20 || depth % 5 != 0)
             return Bestiary.mob(depth);
         if (PartySession.client()) throw new IllegalStateException("Only the host chooses a boss");
         int bit = 1 << (depth / 5 - 1);

@@ -310,7 +310,7 @@ public final class RebornSkillTree extends SkillTree {
                 || skill.talent.effect == DOUBLE_SHOT || skill.talent.effect == BOMB_ARROW
                 || skill.talent.effect == HEADSHOT || skill.talent.effect == NO_WITNESSES) return;
         if (gun != (skill.talent.heroClass == HeroClass.MERCENARY)) return;
-        if (gun ? !(hero.belongings.weapon instanceof Gun) : hero.belongings.bow == null) return;
+        if (gun ? hero.belongings.getItem(Gun.class) == null : hero.belongings.bow == null) return;
         if (SkillEffect.find(hero, skill.talent.effect) != null) return;
         spend(skill);
         apply(skill.talent, skill.talent.amount(skill.rank()), hero);
@@ -400,7 +400,7 @@ public final class RebornSkillTree extends SkillTree {
                 break;
             case READY_SHOT: case READY_ROOT: case READY_SLOW: case READY_PIERCE: case READY_EXECUTE: case READY_WEAKEN: case READY_SLEEP:
                 if (hero.heroClass == HeroClass.MERCENARY) {
-                    if (!(hero.belongings.weapon instanceof Gun)) return false;
+                    if (hero.belongings.getItem(Gun.class) == null) return false;
                 } else if (hero.belongings.bow == null) return false;
                 break;
             default: break;

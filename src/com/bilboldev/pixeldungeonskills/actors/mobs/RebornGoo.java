@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs;
 
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Ooze;
@@ -10,6 +11,8 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.LloydsBeacon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.SewerBossLevel;
+import com.bilboldev.pixeldungeonskills.levels.Terrain;
+import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.GooSprite;
 import com.bilboldev.utils.Bundle;
 import com.bilboldev.utils.Random;
@@ -89,6 +92,15 @@ public class RebornGoo extends RebornBoss {
             if (Dungeon.hero.isAlive() && Dungeon.hero.pos == heroCell && contains(cells, heroCell)) {
                 Pushing.knockBack(gooCell, Dungeon.hero, 3);
                 if (isAlive() && pos == gooCell) Pushing.knockBack(heroCell, this, 1);
+            }
+            if (JourneyRun.bossArea()) {
+                for (int cell = 0; cell < Level.LENGTH; cell++) {
+                    if (Level.distance(gooCell, cell) <= 2 && Level.water[cell] && lineClear(gooCell, cell)) {
+                        Level.set(cell, Terrain.EMPTY);
+                        GameScene.updateMap(cell);
+                    }
+                }
+                Dungeon.observe();
             }
         } else if (abilityPhase() > 0) leaveResidue(cells, SLIME, 3, 5);
         recover(2);

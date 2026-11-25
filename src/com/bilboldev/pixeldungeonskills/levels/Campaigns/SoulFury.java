@@ -614,7 +614,6 @@ public class SoulFury extends Level {
         {
             mercType = MERC_TYPES.Brute;
             spriteClass = SoldierWarriorSprite.class;
-            hackFix = true;
             screams = false;
         }
 
@@ -728,7 +727,6 @@ public class SoulFury extends Level {
         {
             mercType = MERC_TYPES.ArcherMaiden;
             spriteClass = SoldierArcherSprite.class;
-            hackFix = true;
             screams = false;
         }
 
@@ -788,7 +786,6 @@ public class SoulFury extends Level {
         {
             mercType = MERC_TYPES.Brute;
             spriteClass = VanguardWarriorSprite.class;
-            hackFix = true;
             screams = false;
         }
 

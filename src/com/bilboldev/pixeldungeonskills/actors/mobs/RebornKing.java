@@ -7,6 +7,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -53,6 +54,27 @@ public class RebornKing extends RebornBoss {
     @Override
     public int dr() {
         return opening() ? 0 : 12;
+    }
+
+    @Override
+    public void damage(int damage, Object source) {
+        if (JourneyRun.bossArea() && damage > 1 && isAlive()) {
+            Retainer guard = null;
+            for (Retainer retainer : court()) {
+                int distance = Level.distance(pos, retainer.pos);
+                if (retainer.role == 0 && distance <= 2 && lineClear(pos, retainer.pos) && (guard == null
+                        || distance < Level.distance(pos, guard.pos)
+                        || distance == Level.distance(pos, guard.pos) && retainer.pos < guard.pos)) guard = retainer;
+            }
+            if (guard != null) {
+                int shared = damage / 2;
+                damage -= shared;
+                if (sprite != null) sprite.centerEmitter().burst(Speck.factory(Speck.LIGHT), 3);
+                if (guard.sprite != null) guard.sprite.centerEmitter().burst(Speck.factory(Speck.LIGHT), 3);
+                guard.damage(shared, source);
+            }
+        }
+        super.damage(damage, source);
     }
 
     @Override

@@ -26,12 +26,11 @@ import com.bilboldev.pixeldungeonskills.effects.Lightning;
 import com.bilboldev.pixeldungeonskills.effects.particles.SparkParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.levels.traps.LightningTrap;
 import com.bilboldev.utils.Random;
 
 public class Shock extends Weapon.Enchantment {
-
-	private static final String TXT_SHOCKING	= "shocking %s";
 
 	@Override
 	public boolean proc( Weapon weapon, Char attacker, Char defender, int damage ) {
@@ -61,7 +60,7 @@ public class Shock extends Weapon.Enchantment {
 
 	@Override
 	public String name( String weaponName ) {
-		return String.format( TXT_SHOCKING, weaponName );
+		return Messages.get( "items.weapon.enchantments.shocking.name", (Object)weaponName );
 	}
 
 	private ArrayList<Char> affected = new ArrayList<Char>();

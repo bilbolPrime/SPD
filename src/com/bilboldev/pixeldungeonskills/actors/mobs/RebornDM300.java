@@ -90,6 +90,7 @@ public class RebornDM300 extends RebornBoss {
             int before = HP;
             HP += Random.Int(1, HT - HP);
             showRecovery(HP - before, false);
+            if (Dungeon.level instanceof CavesBossLevel) ((CavesBossLevel)Dungeon.level).breakRepairPad(pos);
             if (sprite != null) sprite.emitter().burst(ElmoParticle.FACTORY, 5);
             if (Dungeon.visible[pos] && Dungeon.hero.isAlive()) GLog.n(this.getClass(), "repair");
         }

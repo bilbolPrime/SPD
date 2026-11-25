@@ -194,6 +194,13 @@ public class Ring extends EquipableItem {
 		buff.attachTo( ch );
 	}
 
+    public void deactivate() {
+        if (buff != null) {
+            buff.detach();
+            buff = null;
+        }
+    }
+
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {

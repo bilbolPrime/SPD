@@ -30,6 +30,10 @@ public class WndRunSeed extends WndScrollable {
     private int selected;
 
     public WndRunSeed(int[] symbols, Consumer<RunSeed> onStart) {
+        this(symbols, onStart, true);
+    }
+
+    public WndRunSeed(int[] symbols, Consumer<RunSeed> onStart, boolean showNotice) {
         this.symbols = symbols;
         int width = boundedWidth(landscapeLayout() ? 280 : 160);
         Component heading = new Component();
@@ -59,8 +63,8 @@ public class WndRunSeed extends WndScrollable {
             choices.add(choice);
         }
         content.setSize(textWidth(width), ((choices.size() + columns - 1) / columns) * (cell + GAP) - GAP);
-        HighlightedText notice = new HighlightedText(7);
-        notice.text(Messages.get(RunSeed.class, "custom_notice"), width, false);
+        HighlightedText notice = showNotice ? new HighlightedText(7) : null;
+        if (notice != null) notice.text(Messages.get(RunSeed.class, "custom_notice"), width, false);
         start = new RedButton(Messages.get("windows.wndcontrols.done")) {
             @Override protected void onClick() {
                 RunSeed seed = RunSeed.fromSymbols(symbols, true);

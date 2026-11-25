@@ -10,7 +10,8 @@ import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.Toolbar;
 
 public final class Presentation {
-    public static final int HELPER_CARDS_OFF = 0, HELPER_CARDS_AUTO = 1, HELPER_CARDS_ON = 2;
+
+    public static final int HELPER_CARDS_OFF = 0, HELPER_CARDS_ON = 2;
     private static final String KEY_REBORN = "reborn_presentation";
     private static MusicFade musicFade;
 
@@ -22,7 +23,6 @@ public final class Presentation {
 
     public static void reborn(boolean enabled) {
         Preferences.INSTANCE.put(KEY_REBORN, enabled);
-        applyAudio();
     }
 
     public static boolean rebornMusic() {
@@ -47,6 +47,15 @@ public final class Presentation {
         return Math.max(1, Math.min(QuickSlot.MAX_SLOTS, Preferences.INSTANCE.getInt("quick_slot_count", 2)));
     }
 
+    public static boolean compactButtons() {
+        return Preferences.INSTANCE.getBoolean("compact_buttons", true);
+    }
+
+    public static void compactButtons(boolean compact) {
+        Preferences.INSTANCE.put("compact_buttons", compact);
+        Toolbar.refreshButtonLayout();
+    }
+
     public static boolean dungeonEffects() {
         return Preferences.INSTANCE.getBoolean("reborn_effects", true);
     }
@@ -57,12 +66,12 @@ public final class Presentation {
     }
 
     public static int helperCards() {
-        return Math.max(HELPER_CARDS_OFF, Math.min(HELPER_CARDS_ON,
-                Preferences.INSTANCE.getInt("helper_cards", HELPER_CARDS_AUTO)));
+        return Preferences.INSTANCE.getInt("helper_cards", HELPER_CARDS_OFF) == HELPER_CARDS_ON
+                ? HELPER_CARDS_ON : HELPER_CARDS_OFF;
     }
 
     public static void helperCards(int mode) {
-        Preferences.INSTANCE.put("helper_cards", Math.max(HELPER_CARDS_OFF, Math.min(HELPER_CARDS_ON, mode)));
+        Preferences.INSTANCE.put("helper_cards", mode == HELPER_CARDS_ON ? HELPER_CARDS_ON : HELPER_CARDS_OFF);
         GameScene.updateHelperCards();
     }
 
@@ -115,6 +124,7 @@ public final class Presentation {
 
     public static void switchTo(boolean reborn) {
         reborn(reborn);
+        Preferences.INSTANCE.put("reborn_music", reborn);
         VersionNewsInfo.presentationChanged();
         TitleScene.resetPresentation();
         PixelDungeon.switchNoFade(TitleScene.class);

@@ -5,6 +5,7 @@ public final class ControlSettings {
     private ControlSettings() {}
 
     public static Backend backend;
+    public static boolean keyboardHints;
 
     public interface Backend {
         String bindingName(GameAction action, boolean controller);

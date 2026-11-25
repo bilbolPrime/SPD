@@ -171,29 +171,38 @@ public class HiredMerc extends NPC {
             }
         }
 
+        public Armor startingArmor()
+        {
+            switch (this)
+            {
+                case Brute: return new LeatherArmor();
+                case Wizard: case Thief: case Archer: return new ClothArmor();
+                case ArcherMaiden: return null;
+                default: throw new IllegalArgumentException("Unknown mercenary");
+            }
+        }
+
         public void setEquipment(HiredMerc merc)
         {
             switch (this)
             {
                 case Brute:
                     merc.weapon = new Mace().identify();
-                    merc.armor = new LeatherArmor().identify();
                     merc.carrying = new ChargrilledMeat();
                     break;
                 case Wizard:
                 merc.weapon = new Knuckles().identify();
-                merc.armor = new ClothArmor().identify();
                 merc.carrying = new PotionOfHealing();
                     break;
                 case Thief:    merc.weapon = new Dagger().identify();
-                    merc.armor = new ClothArmor().identify();
                     merc.carrying = new PotionOfHealing();
                     break;
                 case Archer:   merc.weapon = new Bow(1);
-                    merc.armor = new ClothArmor().identify();
                     merc.carrying = new PotionOfHealing();break;
                 case ArcherMaiden: merc.weapon = new FrostBow(1);  merc.carrying = new PotionOfHealing().identify(); break;
             }
+            Armor armor = startingArmor();
+            merc.armor = armor == null ? null : armor.identify();
         }
 
         public int getStrength(int level)
@@ -243,8 +252,6 @@ public class HiredMerc extends NPC {
     public Item carrying = null;
 
     private transient boolean meleeAttack;
-
-    public boolean hackFix = false;
 
     public static final String MERC_TYPE = "merctype";
 
@@ -517,7 +524,7 @@ public class HiredMerc extends NPC {
     public CharSprite sprite() {
         CharSprite s = super.sprite();
         if(s instanceof MercSprite)
-            ((MercSprite)s).updateArmor( mercType );
+            ((MercSprite)s).updateArmor(mercType, getArmorTier());
         return s;
     }
 
@@ -611,12 +618,6 @@ public class HiredMerc extends NPC {
         skillCounter++;
 
         rangedAttackCooldown++;
-
-        if(hackFix == false)
-        {
-            ((MercSprite)super.sprite).updateArmor();
-            hackFix = true;
-        }
 
         if(mercType.getSpecialSkillTime() != -1 && skillCounter % mercType.getSpecialSkillTime() == 0)
             skill.mercSummon();

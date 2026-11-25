@@ -44,6 +44,7 @@ import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.ui.Archs;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+import com.bilboldev.pixeldungeonskills.ui.PresentationButton;
 import com.bilboldev.pixeldungeonskills.ui.UpdateButton;
 
 public class ClassicTitleScene extends PixelScene {
@@ -196,6 +197,10 @@ public class ClassicTitleScene extends PixelScene {
 		PrefsButton btnPrefs = new PrefsButton();
 		btnPrefs.setPos( 0, 0 );
 		add( btnPrefs );
+
+        PresentationButton mode = new PresentationButton();
+        mode.setPos(btnPrefs.right() + 4, btnPrefs.top());
+        add(mode);
 
 		ExitButton btnExit = new ExitButton();
 		btnExit.setPos( w - btnExit.width(), 0 );

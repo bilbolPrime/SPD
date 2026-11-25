@@ -262,7 +262,7 @@ public class ItemSprite extends MovieClip {
 			}
 		}
 
-		visible = (heap == null || Dungeon.visible[heap.pos]);
+		visible = (heap == null || heap.revealed || Dungeon.visible[heap.pos]);
 
 		if (dropInterval > 0 && (dropInterval -= Game.elapsed) <= 0) {
 
@@ -270,7 +270,7 @@ public class ItemSprite extends MovieClip {
 			acc.set( 0 );
 			place( heap.pos );
 
-			if (visible) {
+			if (Dungeon.visible[heap.pos]) {
 				boolean water = Level.water[heap.pos];
 
 				if (water) {

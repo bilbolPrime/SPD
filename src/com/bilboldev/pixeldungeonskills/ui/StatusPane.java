@@ -33,6 +33,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Lore;
+import com.bilboldev.pixeldungeonskills.Presentation;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Healing;
 import com.bilboldev.pixeldungeonskills.actors.buffs.ManaRecovery;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -194,15 +195,20 @@ public class StatusPane extends Component {
 
 		keys.y = 6;
 		supporter.setRect(depth.x - 18, depth.y - 5, 16, 16);
-        supporter.visible = supporter.active = Game.width >= Game.height;
-		lore.setRect(width < 190 ? width - 18 : supporter.left() - 18,
-				width < 190 ? 18 : supporter.top(), 16, 16);
+		refreshButtonLayout();
+		lore.setRect(width < 190 ? width - 18 : depth.x - 36,
+				width < 190 ? 18 : depth.y - 5, 16, 16);
 
 		layoutTags();
 
 		buffs.setPos( 36, 16 );
 
 		btnMenu.setPos( width - btnMenu.width(), 1 );
+	}
+
+	public void refreshButtonLayout() {
+		supporter.visible = supporter.active = (Window.isDesktopRuntime() || !Presentation.compactButtons())
+				&& Game.width >= Game.height;
 	}
 
 	private void layoutTags() {

@@ -162,7 +162,7 @@ public class ScrollPane extends Component {
 		return Math.max( 0f, height - thumb.height() );
 	}
 
-	private boolean scrollByMouseWheel( float amountY ) {
+	protected boolean scrollByMouseWheel( float amountY ) {
 		if (!canScrollVertically()) {
 			return false;
 		}

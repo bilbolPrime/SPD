@@ -26,6 +26,7 @@ import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -41,6 +42,7 @@ import com.bilboldev.pixeldungeonskills.effects.particles.ElmoParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlameParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
 import com.bilboldev.pixeldungeonskills.items.food.ChargrilledMeat;
+import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.food.FrozenCarpaccio;
 import com.bilboldev.pixeldungeonskills.items.food.MysteryMeat;
 import com.bilboldev.pixeldungeonskills.items.scrolls.Scroll;
@@ -75,6 +77,7 @@ public class Heap implements Bundlable {
 	public Type type = Type.HEAP;
 
 	public int pos = 0;
+	public boolean revealed;
 
 	public ItemSprite sprite;
 
@@ -108,6 +111,14 @@ public class Heap implements Bundlable {
 	}
 
 	public void open( Hero hero ) {
+        if (JourneyRun.isCache(this)) {
+            try {
+                JourneyRun.secureCache(this, hero);
+            } catch (java.io.IOException failure) {
+                GLog.w("journey.save_failed");
+            }
+            return;
+        }
 		switch (type) {
 		case MIMIC:
 			if (Mimic.spawnAt( pos, items ) != null) {
@@ -171,11 +182,12 @@ public class Heap implements Bundlable {
 		int added = item.quantity();
 		boolean quiet = item.droppedByHero;
 		boolean afterDeath = item.droppedOnDeath;
+        boolean remains = JourneyRun.active() && item.journeyRemains;
 		if (item.stackable) {
 
 			Class<?> c = item.getClass();
 			for (Item i : items) {
-				if (i.getClass() == c) {
+				if (i.getClass() == c && (!JourneyRun.active() || (long)i.quantity + item.quantity <= Integer.MAX_VALUE)) {
 					i.quantity += item.quantity;
 					if (i instanceof Gold) ((Gold)i).recovered += ((Gold)item).recovered;
 					item = i;
@@ -187,6 +199,7 @@ public class Heap implements Bundlable {
 		}
 
 		if (afterDeath) item.droppedOnDeath = true;
+        if (remains) item.journeyRemains = true;
 
 		if (item instanceof Dewdrop) {
 			items.add( item );
@@ -205,7 +218,7 @@ public class Heap implements Bundlable {
 		int index = items.indexOf( a );
 		if (index != -1) {
 			items.remove( index );
-			items.add( index, b );
+			if (!(JourneyRun.active() && b instanceof Food)) items.add( index, b );
 		}
 	}
 
@@ -391,18 +404,21 @@ public class Heap implements Bundlable {
 	private static final String POS		= "pos";
 	private static final String TYPE	= "type";
 	private static final String ITEMS	= "items";
+	private static final String REVEALED = "revealed";
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		pos = bundle.getInt( POS );
 		type = Type.valueOf( bundle.getString( TYPE ) );
+		revealed = bundle.getBoolean(REVEALED);
 
         Collection<Bundlable> tmp =  bundle.getCollection( ITEMS );
 
         items = new LinkedList<Item>();
 
         for (Bundlable item : tmp) {
+            if (JourneyRun.active() && (item instanceof Food || item instanceof DewVial)) continue;
             items.add((Item)item);
         }
 	}
@@ -412,6 +428,7 @@ public class Heap implements Bundlable {
 		bundle.put( POS, pos );
 		bundle.put( TYPE, type.toString() );
 		bundle.put( ITEMS, items );
+		if (revealed) bundle.put(REVEALED, true);
 	}
 
 }

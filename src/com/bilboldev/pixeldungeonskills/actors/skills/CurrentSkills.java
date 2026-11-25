@@ -263,7 +263,7 @@ public enum CurrentSkills{
     }
 
     public void showLastUsed() {
-        QuickSlot.useSticky();
+        QuickSlot.useLastSkill();
     }
 
     public void storeInBundle( Bundle bundle )

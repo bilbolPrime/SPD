@@ -19,24 +19,23 @@ package com.bilboldev.pixeldungeonskills.items.weapon.enchantments;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 
 public class Luck extends Weapon.Enchantment {
 
-	private static final String TXT_LUCKY	= "lucky %s";
-	
 	private static ItemSprite.Glowing GREEN = new ItemSprite.Glowing( 0x00FF00 );
-	
+
 	@Override
 	public boolean proc( Weapon weapon, Char attacker, Char defender, int damage ) {
 		int level = Math.max( 0, weapon.effectiveLevel() );
-		
+
 		int dmg = damage;
 		for (int i=1; i <= level+1; i++) {
 			dmg = Math.max( dmg, attacker.damageRoll() - i );
 		}
-		
+
 		if (dmg > damage) {
 			defender.damage( dmg - damage, this );
 			return true;
@@ -44,10 +43,10 @@ public class Luck extends Weapon.Enchantment {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_LUCKY, weaponName );
+		return Messages.get( "items.weapon.enchantments.lucky.name", (Object)weaponName );
 	}
 
 	@Override

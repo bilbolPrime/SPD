@@ -113,20 +113,6 @@ public class WndQuickSlot extends WndScrollable {
             menuModel.add(button, slotName(slot));
         }
         top += ((count + columns - 1) / columns) * 30;
-        if (skill != null) {
-            RedButton sticky = new ActionButton(Messages.get("skills4.sticky")) {
-                @Override protected void onClick() {
-                    if (PartyWindows.select(this)) return;
-                    hide();
-                    LocalCoop.withHero(owner, () -> QuickSlot.bind(skill, -1));
-                }
-            };
-            sticky.setRect(0, top, width, 22);
-            sticky.setSize(width, Math.max(22, sticky.reqHeight()));
-            add(sticky);
-            menuModel.add(sticky, Message.key("skills4.sticky"));
-            top = sticky.bottom();
-        }
         resize(width, (int)Math.ceil(top));
     }
 

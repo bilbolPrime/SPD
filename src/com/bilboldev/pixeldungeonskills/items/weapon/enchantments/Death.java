@@ -22,49 +22,46 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.particles.ShadowParticle;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 import com.bilboldev.utils.Random;
 
 public class Death extends Weapon.Enchantment {
 
-	private static final String TXT_GRIM	= "grim %s";
-	
 	private static ItemSprite.Glowing BLACK = new ItemSprite.Glowing( 0x000000 );
-	
+
 	@Override
 	public boolean proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		// lvl 0 - 8%
-		// lvl 1 ~ 9%
-		// lvl 2 ~ 10%
+
 		int level = Math.max( 0, weapon.effectiveLevel() );
-		
+
 		if (Random.Int( level + 100 ) >= 92) {
-			
+
 			defender.damage( defender.HP, this );
 			defender.sprite.emitter().burst( ShadowParticle.UP, 5 );
-			
+
 			if (!defender.isAlive() && attacker instanceof Hero) {
 				Badges.validateGrimWeapon();
 			}
-			
+
 			return true;
-			
+
 		} else {
-			
+
 			return false;
-			
+
 		}
 	}
-	
+
 	@Override
 	public Glowing glowing() {
 		return BLACK;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_GRIM, weaponName );
+		return Messages.get( "items.weapon.enchantments.grim.name", (Object)weaponName );
 	}
 
 }

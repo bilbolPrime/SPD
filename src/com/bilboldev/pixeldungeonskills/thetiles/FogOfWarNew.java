@@ -27,6 +27,7 @@ import com.bilboldev.noosa.Image;
 import com.bilboldev.noosa.NoosaScript;
 import com.bilboldev.noosa.NoosaScriptNoLighting;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.utils.Rect;
@@ -191,10 +192,10 @@ public class FogOfWarNew extends Image {
 
 					if (cell >= Dungeon.level.length()) continue;
 
-					if (!Dungeon.level.discoverable[cell]
+					if ((!Dungeon.level.discoverable[cell] && !(Level.pit[cell] && visible[cell]))
 							|| (!visible[cell] && !visited[cell] && !mapped[cell])) {
 
-						if (fullUpdate)
+						if (fullUpdate || Level.pit[cell])
 							fillCell(fog, j, i, FOG_COLORS[INVISIBLE][brightness]);
 						cell++;
 						continue;

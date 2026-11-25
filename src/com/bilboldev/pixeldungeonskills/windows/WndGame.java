@@ -24,7 +24,7 @@ import java.io.IOException;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
-import com.bilboldev.pixeldungeonskills.PixelDungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Online.OnlineHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.GauntletHero;
 import com.bilboldev.pixeldungeonskills.actors.hero.Legend;
@@ -113,6 +113,15 @@ public class WndGame extends Window {
 			}, new RedButton( TXT_EXIT ) {
 				@Override
 				protected void onClick() {
+					if (JourneyRun.active()) {
+						try {
+							Dungeon.saveAll();
+						} catch (IOException failure) {
+							hide();
+							GameScene.show(new WndError(Messages.get("journey.save_failed")));
+							return;
+						}
+					}
 					Game.instance.finish();
 				}
 			}

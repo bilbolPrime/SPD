@@ -20,42 +20,39 @@ package com.bilboldev.pixeldungeonskills.items.weapon.enchantments;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 import com.bilboldev.utils.Random;
 
 public class Poison extends Weapon.Enchantment {
 
-	private static final String TXT_VENOMOUS	= "venomous %s";
-	
 	private static ItemSprite.Glowing PURPLE = new ItemSprite.Glowing( 0x4400AA );
-	
+
 	@Override
 	public boolean proc( Weapon weapon, Char attacker, Char defender, int damage ) {
-		// lvl 0 - 33%
-		// lvl 1 - 50%
-		// lvl 2 - 60%
+
 		int level = Math.max( 0, weapon.effectiveLevel() );
-		
+
 		if (Random.Int( level + 3 ) >= 2) {
-			
+
 			Buff.affect( defender, com.bilboldev.pixeldungeonskills.actors.buffs.Poison.class ).
 				set( com.bilboldev.pixeldungeonskills.actors.buffs.Poison.durationFactor( defender ) * (level + 1) );
-			
+
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public Glowing glowing() {
 		return PURPLE;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_VENOMOUS, weaponName );
+		return Messages.get( "custom.generated.entry_venomous_s_ba8d32997a", (Object)weaponName );
 	}
 
 }

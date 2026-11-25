@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.effects;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Visual;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
@@ -67,6 +68,7 @@ public class Pushing extends Actor {
             int next = knockbackCell(target, dx, dy);
             if (next == -1) break;
             int previous = target.pos;
+            if (target == Dungeon.hero) JourneyRun.rememberPosition(previous);
             Actor.freeCell(previous);
             target.pos = destination = next;
             Actor.occupyCell(target);

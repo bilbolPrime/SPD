@@ -24,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
@@ -31,8 +32,6 @@ import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 import com.bilboldev.utils.Random;
 
 public class Leech extends Weapon.Enchantment {
-
-	private static final String TXT_VAMPIRIC	= "vampiric %s";
 
 	private static ItemSprite.Glowing RED = new ItemSprite.Glowing( 0x660022 );
 
@@ -67,7 +66,7 @@ public class Leech extends Weapon.Enchantment {
 
 	@Override
 	public String name( String weaponName ) {
-		return String.format( TXT_VAMPIRIC, weaponName );
+		return Messages.get( "items.weapon.enchantments.vampiric.name", (Object)weaponName );
 	}
 
 }

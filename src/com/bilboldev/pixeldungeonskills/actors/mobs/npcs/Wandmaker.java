@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.Journal;
@@ -190,6 +191,7 @@ public class Wandmaker extends NPC {
 		}
 
 		public static void spawn( PrisonLevel level, Room room ) {
+			if (JourneyRun.active()) return;
 			if (!spawned && Dungeon.depth > 6 && Random.Int( 10 - Dungeon.depth ) == 0) {
 
 				Wandmaker npc = new Wandmaker();

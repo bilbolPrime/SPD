@@ -44,7 +44,8 @@ public class Messages {
         "messages/ice_caves",
         "messages/skills4",
         "messages/champions",
-        "messages/daily"
+        "messages/daily",
+        "messages/journey"
 	};
 
 	public static final String NO_TEXT_FOUND = "!!!NO TEXT FOUND!!!";

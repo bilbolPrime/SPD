@@ -78,7 +78,9 @@ final class TitleBackdrop extends Group {
         furnishArchive();
         furnishLibrary();
         furnishTrainingRoom();
+        furnishCrossroads();
         furnishExpeditionRoom();
+        furnishJourneyRoom();
 
         water = new SkinnedBlock(3 * TILE, 3 * TILE, Assets.WATER_PRISON);
         water.x = 18 * TILE;
@@ -144,7 +146,9 @@ final class TitleBackdrop extends Group {
         addArchiveProps();
         addLibraryProps();
         addTrainingProps();
+        addCrossroadsProps();
         addExpeditionProps();
+        addJourneyProps();
 
         add(new Walker(Assets.SKELETON, 12, 15, new int[]{4, 5, 6, 7, 8, 9}, 6.0f, 1.8f,
                 new float[][]{{17, 10}, {21, 10}, {21, 11}, {17, 11}}));
@@ -245,6 +249,25 @@ final class TitleBackdrop extends Group {
         add(instructor);
     }
 
+    private void furnishCrossroads() {
+        room(37, 10, 39, 14);
+        room(32, 14, 43, 20);
+        room(35, 13, 40, 14);
+        cell(32, 13, Terrain.WALL_DECO);
+        cell(43, 13, Terrain.WALL_DECO);
+        cell(35, 13, Terrain.STATUE);
+        cell(40, 13, Terrain.STATUE);
+        cell(37, 18, Terrain.PEDESTAL);
+        cell(38, 18, Terrain.PEDESTAL);
+    }
+
+    private void addCrossroadsProps() {
+        carpet(35 * TILE, 15 * TILE, 6 * TILE, 4 * TILE).tint(0x464050, .25f);
+        prop(ItemSpriteSheet.CHEST, 42 * TILE, 19 * TILE, 1);
+        prop(ItemSpriteSheet.SWORD, 35.5f * TILE, 17 * TILE, 1);
+        prop(ItemSpriteSheet.MASTERY, 39 * TILE, 17 * TILE, 1);
+    }
+
     private void furnishExpeditionRoom() {
         room(32, 10, 34, 24);
         room(31, 23, 44, 31);
@@ -263,6 +286,29 @@ final class TitleBackdrop extends Group {
         prop(ItemSpriteSheet.SCROLL_KAUNAN, 36.5f * TILE, 26 * TILE - 7, 1);
         prop(ItemSpriteSheet.CHEST, 33 * TILE, 29 * TILE, 1);
         prop(ItemSpriteSheet.CHEST, 43 * TILE, 29 * TILE, 1);
+    }
+
+    private void furnishJourneyRoom() {
+        room(7, 32, 9, 38);
+        room(2, 38, 13, 46);
+        room(4, 37, 11, 38);
+        cell(3, 37, Terrain.WALL_DECO);
+        cell(12, 37, Terrain.WALL_DECO);
+        cell(2, 39, Terrain.BOOKSHELF);
+        cell(2, 40, Terrain.BOOKSHELF);
+    }
+
+    private void addJourneyProps() {
+        carpet(4 * TILE, 39 * TILE, 7 * TILE, 6 * TILE).tint(0x463A30, .3f);
+        prop(ItemSpriteSheet.CHEST, 12 * TILE, 45 * TILE, 1);
+        prop(ItemSpriteSheet.ARMOR_CLOTH, 3 * TILE, 45 * TILE, 1);
+        for (int i = 0; i < TitleScene.HERO_CLASSES.length; i++) {
+            HeroFigure hero = new HeroFigure(TitleScene.HERO_CLASSES[i],
+                    (4.5f + i % 3 * 3) * TILE, (40 + i / 3 * 3) * TILE);
+            hero.flipHorizontal = i % 3 == 2;
+            hero.select(true);
+            add(hero);
+        }
     }
 
     private void addLodgeProps() {
@@ -552,7 +598,10 @@ final class TitleBackdrop extends Group {
     void visit(TitleScene.Page page, boolean immediate) {
         float cx = 300, cy = 166;
         switch (page) {
-            case HEROES: cx = portrait ? 856 : 864;
+            case PLAY: cx = 38 * TILE;
+            cy = 17 * TILE;
+            break;
+            case HEROES: case GAUNTLET: cx = portrait ? 856 : 864;
             cy = portrait ? 208 : 224;
             break;
             case RANKINGS: cx = 360;
@@ -573,12 +622,16 @@ final class TitleBackdrop extends Group {
             case DAILY: cx = 38 * TILE;
             cy = 27 * TILE;
             break;
+            case JOURNEY: cx = 7.5f * TILE;
+            cy = 42 * TILE;
+            break;
             default: break;
         }
         fromX = originX;
         fromY = originY;
         targetX = cx - view.width * (portrait ? .5f : .70f);
-        targetY = cy - view.height * (portrait ? (page == TitleScene.Page.HEROES ? .32f : .27f) : .52f);
+        boolean heroesPage = page == TitleScene.Page.HEROES || page == TitleScene.Page.GAUNTLET;
+        targetY = cy - view.height * (portrait ? (heroesPage ? .32f : .27f) : .52f);
         if (page == TitleScene.Page.HOME) targetY = 166 - view.height * (portrait ? .30f : .50f);
         travel = immediate || !PixelDungeon.titleAnimation() ? 1 : 0;
         if (travel == 1) {

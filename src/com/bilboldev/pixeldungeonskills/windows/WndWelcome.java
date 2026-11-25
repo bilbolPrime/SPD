@@ -31,7 +31,8 @@ public class WndWelcome extends WndScrollable {
         int width = boundedWidth(176);
         IconTitle title = new IconTitle(Icons.SKILLS.get(), Messages.get(WndWelcome.class, "title"));
         title.setRect(0, 0, width, 0);
-        String text = message + "\n\n" + Messages.get(WndWelcome.class, "classic");
+        String text = message + "\n\n" + Messages.get(WndWelcome.class, "classic")
+                + "\n\n" + Messages.get(WndWelcome.class, "switch_hint");
         if (Game.isFreeDesktop()) text += "\n\n" + Messages.get(WndWelcome.class, "free_desktop");
         if (GameUpdates.available()) {
             text += "\n\n" + Messages.get(VersionNewsInfo.class, "update_available");

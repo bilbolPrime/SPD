@@ -624,7 +624,6 @@ public class FirstWave extends Level {
         {
             mercType = MERC_TYPES.Brute;
             spriteClass = SoldierWarriorSprite.class;
-            hackFix = true;
             screams = false;
         }
 
@@ -681,7 +680,6 @@ public class FirstWave extends Level {
         {
             mercType = MERC_TYPES.Brute;
             spriteClass = VanguardWarriorSprite.class;
-            hackFix = true;
             screams = false;
         }
 

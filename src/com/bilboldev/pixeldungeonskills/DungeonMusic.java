@@ -11,6 +11,7 @@ public final class DungeonMusic {
             "music/action/sewers/blackwater-rising-boss-layer.ogg", 8131765, 384);
 
     public static boolean hasBoss() {
+        if (JourneyRun.active() && (!JourneyRun.bossArea() || JourneyRun.bossDefeated(JourneyRun.deployedNode().id))) return false;
         if (!Dungeon.bossLevel() || Dungeon.level == null) return false;
         for (Mob mob : Dungeon.level.mobs) {
             if (mob.isAlive() && (mob instanceof RebornBoss || mob instanceof Goo || mob instanceof Tengu

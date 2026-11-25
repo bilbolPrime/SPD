@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.RivalEncounter;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -54,6 +55,7 @@ public class PrisonBossLevel extends RegularLevel {
 
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
+    private boolean journeyReentry;
 
     private int[] rebornTrapPads = new int[0];
 
@@ -82,6 +84,7 @@ public class PrisonBossLevel extends RegularLevel {
 		bundle.put( DOOR, arenaDoor );
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
+        if (journeyReentry) bundle.put("journey_reentry", true);
         if (rebornTrapPads.length > 0) bundle.put("reborn_trap_pads", rebornTrapPads);
 	}
 
@@ -92,6 +95,7 @@ public class PrisonBossLevel extends RegularLevel {
 		arenaDoor = bundle.getInt( DOOR );
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
+        journeyReentry = bundle.getBoolean("journey_reentry");
         rebornTrapPads = bundle.getIntArray("reborn_trap_pads");
         if (rebornTrapPads == null) rebornTrapPads = new int[0];
 	}
@@ -387,10 +391,23 @@ public class PrisonBossLevel extends RegularLevel {
 		}
 	}
 
+    public void reenterJourney() {
+        if (!JourneyRun.active() || !enteredArena || keyDropped) return;
+        journeyReentry = true;
+        set(arenaDoor, Terrain.DOOR);
+        GameScene.updateMap(arenaDoor);
+    }
+
 	@Override
 	public void press( int cell, Char ch ) {
 
 		super.press( cell, ch );
+        if (journeyReentry && ch == Dungeon.hero && roomExit.inside(cell) && !keyDropped) {
+            journeyReentry = false;
+            set(arenaDoor, Terrain.LOCKED_DOOR);
+            GameScene.updateMap(arenaDoor);
+            Dungeon.observe();
+        }
 
 		if ((ch == Dungeon.hero || LocalCoop.contains(ch)) && !enteredArena && roomExit.inside( cell )) {
 			if (!gatherParty(ch, cell, arenaDoor)) return;
@@ -434,6 +451,7 @@ public class PrisonBossLevel extends RegularLevel {
 		if (!keyDropped && item instanceof SkeletonKey) {
 
 			keyDropped = true;
+            journeyReentry = false;
 
 			set( arenaDoor, Terrain.DOOR );
 			GameScene.updateMap( arenaDoor );

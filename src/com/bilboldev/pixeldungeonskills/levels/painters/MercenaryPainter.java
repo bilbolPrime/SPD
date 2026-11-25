@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.levels.painters;
 
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.Room;
@@ -14,6 +15,6 @@ public class MercenaryPainter extends Painter {
         MercenaryCamp merc = new MercenaryCamp();
         merc.chooseOffer();
         merc.pos = (room.left + room.right)/2 + ((room.top + room.bottom)/2)*Level.WIDTH;
-        if (!LocalCoop.active()) level.mobs.add(merc);
+        if (!LocalCoop.active() && !JourneyRun.active()) level.mobs.add(merc);
     }
 }

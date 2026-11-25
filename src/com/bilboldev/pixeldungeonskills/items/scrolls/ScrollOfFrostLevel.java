@@ -23,6 +23,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Frost;
@@ -74,7 +75,7 @@ public class ScrollOfFrostLevel extends Scroll {
 
     @Override
     protected boolean canRead(Hero hero) {
-        if (Dungeon.rules().mode != GameplayMode.REBORN || IceCaves.active()
+        if (JourneyRun.active() || Dungeon.rules().mode != GameplayMode.REBORN || IceCaves.active()
                 || Dungeon.depth < 6 || Dungeon.depth > 10) {
             GLog.w(ScrollOfFrostLevel.class, "wrong_place");
             return false;

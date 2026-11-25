@@ -19,29 +19,28 @@ package com.bilboldev.pixeldungeonskills.items.weapon.enchantments;
 
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.items.weapon.Weapon;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 
 public class Tempering extends Weapon.Enchantment {
 
-	private static final String TXT_TEMPERED	= "tempered %s";
-	
 	private static ItemSprite.Glowing GRAY = new ItemSprite.Glowing( 0xCC8888 );
-	
+
 	@Override
 	public boolean proc( Weapon weapon, Char attacker, Char defender, int damage ) {
 		weapon.polish();
 		return true;
 	}
-	
+
 	@Override
 	public Glowing glowing() {
 		return GRAY;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_TEMPERED, weaponName );
+		return Messages.get( "custom.generated.entry_tempered_s_f1afdbfe57", (Object)weaponName );
 	}
 
 }

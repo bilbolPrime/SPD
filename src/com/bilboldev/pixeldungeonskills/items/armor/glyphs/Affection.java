@@ -24,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor.Glyph;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 import com.bilboldev.utils.GameMath;
@@ -31,34 +32,32 @@ import com.bilboldev.utils.Random;
 
 public class Affection extends Glyph {
 
-	private static final String TXT_AFFECTION	= "%s of affection";
-	
 	private static ItemSprite.Glowing PINK = new ItemSprite.Glowing( 0xFF4488 );
-	
+
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage) {
 
 		int level = (int)GameMath.gate( 0, armor.effectiveLevel(), 6 );
-		
+
 		if (Level.adjacent( attacker.pos, defender.pos ) && Random.Int( level / 2 + 5 ) >= 4) {
-			
+
 			int duration = Random.IntRange( 3, 7 );
-			
+
 			Buff.affect( attacker, Charm.class, Charm.durationFactor( attacker ) * duration ).object = defender.id();
 			attacker.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
-			
+
 			duration *= Random.Float( 0.5f, 1 );
-			
+
 			Buff.affect( defender, Charm.class, Charm.durationFactor( defender ) * duration ).object = attacker.id();
 			defender.sprite.centerEmitter().start( Speck.factory( Speck.HEART ), 0.2f, 5 );
 		}
-		
+
 		return damage;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_AFFECTION, weaponName );
+		return Messages.get( "items.armor.glyphs.affection.name", (Object)weaponName );
 	}
 
 	@Override

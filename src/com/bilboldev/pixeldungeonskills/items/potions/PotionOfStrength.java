@@ -20,6 +20,7 @@ package com.bilboldev.pixeldungeonskills.items.potions;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 
 import com.bilboldev.pixeldungeonskills.Badges;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -35,6 +36,11 @@ public class PotionOfStrength extends Potion {
 		setKnown();
 
 		hero.STR++;
+		if (JourneyRun.active()) {
+			for (Hero survivor : JourneyRun.livingHeroes()) {
+				if (survivor != hero) survivor.STR++;
+			}
+		}
 		hero.sprite.showStatus( CharSprite.POSITIVE, Message.key("custom.generated.entry_1_str_8c608e5279") );
 		GLog.p("custom.generated.entry_newfound_strength_surges_through_your_body_193442f0c3");
 

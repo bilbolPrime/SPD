@@ -4,6 +4,7 @@ import com.bilboldev.pixeldungeonskills.effects.CombatTextIcon;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.DeathBomb;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -27,6 +28,9 @@ import java.util.HashSet;
 public class RebornYog extends RebornBoss {
     private int inherited, cadence, firstInherited;
     private boolean spawned;
+    private int[] echo = new int[0];
+    private int echoOrigin;
+    private boolean echoing;
     {
         name = "Yog-Dzewa";
         spriteClass = YogSprite.class;
@@ -101,7 +105,21 @@ public class RebornYog extends RebornBoss {
     }
 
     @Override
+    protected boolean act() {
+        if (JourneyRun.bossArea() && echo.length > 0 && warning.length == 0 && !controlled()) warnEcho();
+        return super.act();
+    }
+
+    private boolean warnEcho() {
+        if (!warn(RIFT, echoOrigin, echo)) return false;
+        echoing = true;
+        echo = new int[0];
+        return true;
+    }
+
+    @Override
     protected boolean prepareSkill() {
+        if (JourneyRun.bossArea() && echo.length > 0) return warnEcho();
         int kind = RIFT;
         int first = firstInherited == 2 ? EMBER : ROT, second = firstInherited == 2 ? ROT : EMBER;
         int choice = cadence % 3 == 1 ? first : cadence % 3 == 2 ? second : RIFT;
@@ -124,14 +142,25 @@ public class RebornYog extends RebornBoss {
 
     @Override
     protected void resolveSkill(int kind, int[] cells) {
+        boolean repeated = echoing;
+        echoing = false;
         strike(cells, kind == RIFT ? 22 : 15, kind == RIFT ? 32 : 23, kind == RIFT,
                 kind == EMBER ? CombatTextIcon.FIRE : kind == ROT ? CombatTextIcon.ACID : CombatTextIcon.MAGIC);
         if (!isAlive()) return;
         if (kind == ROT) splash(cells, 0xFF718C46);
         else if (kind == RIFT) burst(cells, PurpleParticle.BURST);
         else burst(cells, Speck.LIGHT);
-        cadence++;
-        if (cadence % 2 == 0) hatch();
+        if (!repeated) {
+            cadence++;
+            if (cadence % 2 == 0) hatch();
+            if (kind == RIFT && JourneyRun.bossArea()) {
+                echo = cells.clone();
+                echoOrigin = warningOrigin;
+                cooldown = 0;
+                warnEcho();
+                return;
+            }
+        }
         recover(fists().isEmpty() ? 1 : 2);
         cooldown = fists().isEmpty() ? 1 : 3;
     }
@@ -158,8 +187,17 @@ public class RebornYog extends RebornBoss {
         if (firstInherited == 0) firstInherited = kind == ROT ? 1 : 2;
         inherited |= kind == ROT ? 1 : 2;
         warning = new int[0];
+        echo = new int[0];
+        echoing = false;
         recover(2);
         yell(Message.of(this, kind == ROT ? "inherit_rot" : "inherit_fire"));
+    }
+
+    @Override
+    public void interruptSkill() {
+        echo = new int[0];
+        echoing = false;
+        super.interruptSkill();
     }
 
     @Override
@@ -173,6 +211,8 @@ public class RebornYog extends RebornBoss {
 
     @Override
     protected void clearSummons() {
+        echo = new int[0];
+        echoing = false;
         for (Fist fist : fists()) fist.dismiss();
         for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) if (mob instanceof Brood && ((Brood)mob).ownerId == id()) mob.die(null);
     }
@@ -184,6 +224,11 @@ public class RebornYog extends RebornBoss {
         b.put("cadence", cadence);
         b.put("spawned", spawned);
         b.put("first_inherited", firstInherited);
+        if (echo.length > 0 || echoing) {
+            b.put("journey_echo", echo);
+            b.put("journey_echo_origin", echoOrigin);
+            b.put("journey_echoing", echoing);
+        }
     }
 
     @Override
@@ -193,6 +238,10 @@ public class RebornYog extends RebornBoss {
         cadence = b.getInt("cadence");
         spawned = b.getBoolean("spawned");
         firstInherited = b.getInt("first_inherited");
+        echo = b.getIntArray("journey_echo");
+        if (echo == null) echo = new int[0];
+        echoOrigin = b.getInt("journey_echo_origin");
+        echoing = b.getBoolean("journey_echoing");
     }
 
     public abstract static class Fist extends RebornBoss {

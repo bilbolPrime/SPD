@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
 import com.bilboldev.pixeldungeonskills.levels.painters.RebornRoomPainter;
 import com.bilboldev.utils.Random;
@@ -38,7 +39,7 @@ public final class RebornDungeonBuilder {
         level.roomExit = plan.exit;
         level.assignRoomType();
 
-        boolean islands = level instanceof HallsLevel && !Dungeon.bossLevel(Dungeon.depth + 1);
+        boolean islands = !JourneyRun.active() && level instanceof HallsLevel && !Dungeon.bossLevel(Dungeon.depth + 1);
         Arrays.fill(level.map, islands || level.feeling == Level.Feeling.CHASM ? Terrain.CHASM : Terrain.WALL);
         for (Room room : level.rooms) {
             if (room.type == Room.Type.STANDARD)

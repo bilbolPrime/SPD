@@ -23,6 +23,8 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.RivalEncounter;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -54,6 +56,7 @@ public class CityBossLevel extends Level {
 	private int arenaDoor;
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
+    private boolean journeyReentry;
 
 	@Override
 	public String tilesTex() {
@@ -78,6 +81,7 @@ public class CityBossLevel extends Level {
 		bundle.put( DOOR, arenaDoor );
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
+        if (journeyReentry) bundle.put("journey_reentry", true);
 	}
 
 	@Override
@@ -86,6 +90,7 @@ public class CityBossLevel extends Level {
 		arenaDoor = bundle.getInt( DOOR );
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
+        journeyReentry = bundle.getBoolean("journey_reentry");
 	}
 
 	@Override
@@ -197,10 +202,23 @@ public class CityBossLevel extends Level {
 		return -1;
 	}
 
+    public void reenterJourney() {
+        if (!JourneyRun.active() || !enteredArena || keyDropped) return;
+        journeyReentry = true;
+        set(arenaDoor, Terrain.DOOR);
+        GameScene.updateMap(arenaDoor);
+    }
+
 	@Override
 	public void press( int cell, Char hero ) {
 
 		super.press( cell, hero );
+        if (journeyReentry && hero == Dungeon.hero && outsideEntraceRoom(cell) && !keyDropped) {
+            journeyReentry = false;
+            set(arenaDoor, Terrain.LOCKED_DOOR);
+            GameScene.updateMap(arenaDoor);
+            Dungeon.observe();
+        }
 
 		if (!enteredArena && outsideEntraceRoom( cell ) && (hero == Dungeon.hero || LocalCoop.contains(hero))) {
 			if (!gatherParty(hero, cell, arenaDoor)) return;
@@ -241,6 +259,7 @@ public class CityBossLevel extends Level {
 		if (!keyDropped && item instanceof SkeletonKey) {
 
 			keyDropped = true;
+            journeyReentry = false;
 
 			set( arenaDoor, Terrain.DOOR );
 			GameScene.updateMap( arenaDoor );
@@ -270,6 +289,7 @@ public class CityBossLevel extends Level {
 	public String tileDesc(int tile) {
 		switch (tile) {
 		case Terrain.ENTRANCE:
+            if (JourneyRun.recovering()) return Messages.get("journey.recovery_objective");
 			return "A ramp leads up to the upper depth.";
 		case Terrain.EXIT:
 			return "A ramp leads down to the lower depth.";

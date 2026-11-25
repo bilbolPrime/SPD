@@ -25,6 +25,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -317,6 +318,7 @@ public class Blacksmith extends NPC {
 		}
 
 		public static void spawn( Collection<Room> rooms ) {
+			if (JourneyRun.active()) return;
 			int lastFloor = IceCaves.active() ? 14 : 15;
 			if (!spawned && Dungeon.depth > 11 && Random.Int(lastFloor - Dungeon.depth) == 0) {
 

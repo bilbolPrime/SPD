@@ -2,7 +2,6 @@ package com.bilboldev.pixeldungeonskills.actors.skills;
 
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.skills.skilltree.SkillTree;
-import com.bilboldev.pixeldungeonskills.items.weapon.gun.Gun;
 import com.bilboldev.pixeldungeonskills.ui.StatusPane;
 
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ public class NoWitnessesSkill extends PassiveSkillB2{
 
     @Override
     public void applyToGunShot(Hero hero, SkillTree.GunShotData shotData) {
-        if (!active || level == 0 || !(hero.belongings.weapon instanceof Gun) || !hero.canUseSkill(getManaCost())) {
+        if (!active || level == 0 || !hero.canUseSkill(getManaCost())) {
             return;
         }
 

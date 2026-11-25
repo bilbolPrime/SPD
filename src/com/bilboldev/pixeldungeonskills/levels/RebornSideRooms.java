@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.levels;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -24,7 +25,7 @@ public final class RebornSideRooms {
     public static Room.Type scheduled(int depth) {
         if (Dungeon.rules().hasThemedDungeons())
             for (Room.Type type : new Room.Type[]{Room.Type.BARBECUE, Room.Type.ECHO, Room.Type.OFFERING, Room.Type.LAST_WATCH})
-                if (floor(type) == depth) return type;
+                if (!(JourneyRun.active() && type == Room.Type.BARBECUE) && floor(type) == depth) return type;
         return null;
     }
 

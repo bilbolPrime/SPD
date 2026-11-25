@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.hero;
 
 import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.RebornSkillTree;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
@@ -197,7 +198,7 @@ public enum HeroClass {
 
 	private static void initCommon( Hero hero ) {
 		(hero.belongings.armor = new ClothArmor()).identify();
-		new Food().identify().collect();
+		if (!JourneyRun.active()) new Food().identify().collect();
 		new Keyring().collect();
 		new PotionHolder().collect();
 

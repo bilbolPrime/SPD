@@ -4,6 +4,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -44,16 +45,16 @@ public abstract class Essence extends Item {
     public enum Type {
         VITAL(Vital.class, 2, 5),
         ARCANE(Arcane.class, 2, 5),
-        STONE(Stone.class, 1, 2),
-        SHADE(Shade.class, 1, 2),
-        WIND(Wind.class, 1, 3),
+        STONE(Stone.class, 1, 1),
+        SHADE(Shade.class, 1, 1),
+        WIND(Wind.class, 1, 1),
         MEMORY(Memory.class, 1, 2),
         EMBER(Ember.class, 2, 4),
         RIME(Rime.class, 2, 4),
         VENOM(Venom.class, 2, 4),
         STORM(Storm.class, 2, 4),
         BLOOD(Blood.class, 1, 2),
-        IRON(Iron.class, 1, 2),
+        IRON(Iron.class, 1, 1),
         SIGHT(Sight.class, 2, 4),
         WARD(Ward.class, 2, 4),
         HARVEST(Harvest.class, 2, 4);
@@ -96,6 +97,14 @@ public abstract class Essence extends Item {
     public int bonus() { return bonus; }
     public int skill() { return skill; }
 
+    public Essence maximumRoll(int grade) {
+        if (grade < 1 || grade > MAX_GRADE) throw new IllegalArgumentException("Invalid Essence grade");
+        this.grade = grade;
+        bonus = type.max * grade;
+        if (type == Type.MEMORY) skill = rollSkill(eligibleHeroes());
+        return this;
+    }
+
     @Override
     public Item random() {
         if (Dungeon.rules().hasRebornEncounters()) {
@@ -106,6 +115,7 @@ public abstract class Essence extends Item {
     }
 
     private static Hero[] eligibleHeroes() {
+        if (JourneyRun.active()) return JourneyRun.livingHeroes();
         Hero[] heroes = LocalCoop.heroes();
         return heroes.length == 0 && Dungeon.hero != null ? new Hero[]{Dungeon.hero} : heroes;
     }
@@ -160,7 +170,7 @@ public abstract class Essence extends Item {
         if (!carriedBy(hero)) return actions;
         actions.addAll(super.actions(hero));
         actions.add(AC_ABSORB);
-        if (grade < MAX_GRADE) actions.add(AC_MERGE);
+        actions.add(AC_MERGE);
         return actions;
     }
 
@@ -244,13 +254,9 @@ public abstract class Essence extends Item {
     }
 
     private void chooseMerge(Hero hero) {
-        if (grade >= MAX_GRADE) {
-            GLog.w("essences.over_cap");
-            return;
-        }
         boolean found = false;
         for (Item item : hero.belongings.backpack) {
-            if (item != this && item.getClass() == getClass() && grade + ((Essence)item).grade <= MAX_GRADE) {
+            if (item != this && item instanceof Essence && !((Essence)item).throwing) {
                 found = true;
                 break;
             }
@@ -270,10 +276,19 @@ public abstract class Essence extends Item {
                 LocalCoop.withHero(hero, () -> {
                     if (!canMerge(hero, item)) return;
                     Essence other = (Essence)item;
-                    if (type == Type.MEMORY) {
-                        confirmAction(hero, Message.key("essences.memory_confirm"), Message.key("essences.confirm"),
-                                Message.key("essences.cancel"), () -> merge(hero, other));
-                    } else merge(hero, other);
+                    int resultGrade = Math.min(MAX_GRADE, grade + other.grade);
+                    Message warning = type == other.type
+                            ? Message.key("essences.merge_same_confirm", Message.key(type.key() + ".name"), resultGrade)
+                            : Message.key("essences.merge_confirm", Message.key(type.key() + ".name"),
+                                    Message.key(other.type.key() + ".name"), resultGrade);
+                    if (type == Type.MEMORY || other.type == Type.MEMORY) {
+                        warning = Message.paragraphs(warning, Message.key("essences.memory_confirm"));
+                        if (skills(new Hero[]{hero}).isEmpty()) {
+                            warning = Message.paragraphs(warning, Message.key("essences.memory_inactive"));
+                        }
+                    }
+                    confirmAction(hero, warning, Message.key("essences.confirm"), Message.key("essences.cancel"),
+                            () -> merge(hero, other));
                 });
             }
         }, WndBag.Mode.ALL, Message.key("essences.merge_prompt"));
@@ -284,16 +299,8 @@ public abstract class Essence extends Item {
             GLog.w("essences.stale");
             return false;
         }
-        if (other == this || other.getClass() != getClass() || ((Essence)other).throwing) {
+        if (other == this || !(other instanceof Essence) || ((Essence)other).throwing) {
             GLog.w("essences.incompatible");
-            return false;
-        }
-        if (grade + ((Essence)other).grade > MAX_GRADE) {
-            GLog.w("essences.over_cap");
-            return false;
-        }
-        if (type == Type.MEMORY && skills(new Hero[]{hero}).isEmpty()) {
-            GLog.w("essences.memory_inactive");
             return false;
         }
         return true;
@@ -301,16 +308,27 @@ public abstract class Essence extends Item {
 
     public boolean merge(Hero hero, Essence other) {
         if (!canMerge(hero, other)) return false;
-        grade += other.grade;
-        bonus += other.bonus;
-        if (type == Type.MEMORY) skill = rollSkill(new Hero[]{hero});
+        return LocalCoop.withHero(hero, () -> {
+            Essence result = type == other.type || Random.Int(2) == 0 ? this : other;
+            int resultGrade = Math.min(MAX_GRADE, grade + other.grade);
+            int resultBonus = type == other.type ? Math.min(result.type.max * resultGrade, bonus + other.bonus)
+                    : Random.IntRange(result.type.min * resultGrade, result.type.max * resultGrade);
+            result.grade = resultGrade;
+            result.bonus = resultBonus;
+            result.skill = result.type == Type.MEMORY ? rollSkill(new Hero[]{hero}) : -1;
+            for (int i = 0; i < QuickSlot.values.length; i++) {
+                if (QuickSlot.values[i] == this || QuickSlot.values[i] == other) QuickSlot.values[i] = result;
+            }
 
-        other.detachAll(hero.belongings.backpack);
-        hero.refreshBonuses();
-        updateQuickslot();
-        useAnimation(hero);
-        hero.spendAndNext(1);
-        return true;
+            (result == this ? other : this).detachAll(hero.belongings.backpack);
+            hero.refreshBonuses();
+            curUser = hero;
+            curItem = result;
+            result.updateQuickslot();
+            result.useAnimation(hero);
+            hero.spendAndNext(1);
+            return true;
+        });
     }
 
     @Override
@@ -483,7 +501,7 @@ public abstract class Essence extends Item {
     }
 
     public String loreInfo() {
-        String range = type.min + "\u2013" + type.max;
+        String range = type.min == type.max ? Integer.toString(type.min) : type.min + "\u2013" + type.max;
         String passive = type == Type.MEMORY ? Messages.get(type.key() + ".passive", (Object)range, Messages.get("essences.memory_skill"))
                 : Messages.get(type.key() + ".passive", (Object)range);
         return passive + "\n\n" + effects() + "\n\n" + Messages.get("essences.rules");

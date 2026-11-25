@@ -17,6 +17,7 @@ import com.bilboldev.pixeldungeonskills.actors.blobs.ToxicGas;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Burning;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.DeathRay;
+import com.bilboldev.pixeldungeonskills.effects.DeathDrops;
 import com.bilboldev.pixeldungeonskills.effects.ChampRedHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampYellowHalo;
 import com.bilboldev.pixeldungeonskills.effects.ChampBlackHalo;
@@ -41,6 +42,7 @@ import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.SewerLevel;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.MissileSprite;
+import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ShopkeeperSprite;
 
 final class FirstPersonEffects {
@@ -208,6 +210,16 @@ final class FirstPersonEffects {
                 }
             } else if (g instanceof Emitter) {
                 particles((Emitter)g);
+            } else if (g instanceof DeathDrops) {
+                DeathDrops drops = (DeathDrops)g;
+                for (int j = 0; j < drops.length; j++) {
+                    ItemSprite item = (ItemSprite)drops.memberAt(j);
+                    if (!item.visible) continue;
+                    float ground = item.groundY();
+                    double lift = (ground - item.y - item.height() - (Difficulties.is3d ? 5 : 0)) / 16;
+                    view.effectSprite(item, (item.x + item.width() / 2) / 16, ground / 16 - .5,
+                            Math.max(0, lift) + .225, .45, 0, 1, -1, false);
+                }
             } else if (g instanceof Group) {
                 collectGroup((Group)g, nesting + 1);
             }

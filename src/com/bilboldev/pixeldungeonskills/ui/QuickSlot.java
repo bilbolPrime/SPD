@@ -53,18 +53,14 @@ import com.bilboldev.pixeldungeonskills.actors.skills.SpiritArmor;
 import com.bilboldev.pixeldungeonskills.actors.skills.skill4.TalentSkill;
 import com.bilboldev.pixeldungeonskills.sprites.SkillSprite;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
-import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.Presentation;
 
 public class QuickSlot extends Button implements WndBag.Listener {
 
-	private static final String TXT_SELECT_ITEM = "Select an item for the quickslot";
-
 	public static final int MAX_SLOTS = 10;
 	public static Object[] values = new Object[MAX_SLOTS];
 	private static final QuickSlot[] slots = new QuickSlot[MAX_SLOTS];
-	private static QuickSlot stickySlot;
 	private int index;
 
 	private Item itemInSlot;
@@ -110,10 +106,9 @@ public class QuickSlot extends Button implements WndBag.Listener {
 
 	public void index(int value) {
 		index = value;
-		if (index < 0) stickySlot = this;
-		else slots[index] = this;
+		slots[index] = this;
 		item( select() );
-		bindAction(index < 0 ? GameAction.LAST_SKILL : GameAction.valueOf("QUICKSLOT_" + (index + 1)));
+		bindAction(GameAction.valueOf("QUICKSLOT_" + (index + 1)));
 	}
 
 	@Override
@@ -128,9 +123,7 @@ public class QuickSlot extends Button implements WndBag.Listener {
 	public void destroy() {
 		super.destroy();
 
-		if (index < 0) {
-			if (stickySlot == this) stickySlot = null;
-		} else if (slots[index] == this) slots[index] = null;
+		if (slots[index] == this) slots[index] = null;
 		crossM.remove();
 
 		lastTarget = null;
@@ -144,14 +137,10 @@ public class QuickSlot extends Button implements WndBag.Listener {
 			@Override
 			protected void onClick() {
 				if (confirmSkillTarget()) return;
-				if (PartySession.input(Dungeon.hero, index < 0 ? "last_skill" : "quick", Math.max(0, index))) {
+				if (PartySession.input(Dungeon.hero, "quick", index)) {
                     suggestSkillTarget();
                     return;
                 }
-				if (index < 0) {
-					useSticky();
-					return;
-				}
 				if (selectedSkill() != null) {
 					useSkill();
 					return;
@@ -239,32 +228,23 @@ public class QuickSlot extends Button implements WndBag.Listener {
 
 	@Override
 	protected void onClick() {
-		if (index < 0) return;
 		if (PartySession.input(Dungeon.hero, "quick_assign", index)) return;
 		choose();
 	}
 
 	@Override
 	protected boolean onLongClick() {
-		if (index < 0) {
-			if (!PartySession.input(Dungeon.hero, "last_skill", 0)) useSticky();
-			return true;
-		}
 		if (PartySession.input(Dungeon.hero, "quick_assign", index)) return true;
 		choose();
 		return true;
 	}
 
     private void choose() {
-        if (Dungeon.hero.talents() != null) GameScene.show(new WndQuickSlot(index));
-        else GameScene.selectItem(this, WndBag.Mode.QUICKSLOT,
-                Message.key("custom.generated.entry_select_an_item_for_the_quickslot_7c094feb25"));
+        GameScene.show(new WndQuickSlot(index));
     }
 
 	@SuppressWarnings("unchecked")
 	private Item select() {
-		if (index < 0) return null;
-
 		Object content = values[index];
 		if (content instanceof Item) {
 
@@ -320,7 +300,6 @@ public class QuickSlot extends Button implements WndBag.Listener {
 	}
 
     private Skill selectedSkill() {
-        if (index < 0) return Dungeon.hero == null ? null : Dungeon.hero.heroSkills.lastUsed;
         if (!(values[index] instanceof Integer) || Dungeon.hero == null) return null;
         int ref = (Integer)values[index];
         if (skillHero != Dungeon.hero || skillTree != Dungeon.hero.skillTree || skillRef != ref) {
@@ -340,31 +319,17 @@ public class QuickSlot extends Button implements WndBag.Listener {
     }
 
     public static void assign(Skill skill) {
-        Hero hero = Dungeon.hero;
         if (!canAssign(skill)) return;
-        if (hero.talents() != null) {
-            GameScene.show(new WndQuickSlot(skill));
-            return;
-        }
-        if (!bindFree(skill)) {
-            remember(hero, skill);
-            if (toggle(skill, hero)) skill.execute(hero, Skill.AC_ACTIVATE);
-            refresh();
-        }
+        GameScene.show(new WndQuickSlot(skill));
     }
 
     public static void bind(Skill skill, int slot) {
-        if (!canAssign(skill) || slot < -1 || slot >= visibleSlots()) return;
+        if (!canAssign(skill) || slot < 0 || slot >= visibleSlots()) return;
         Skill[] skills = LocalCoop.skills(Dungeon.hero);
         for (int ref = 0; ref < skills.length; ref++) {
             if (skills[ref] != skill) continue;
-            if (slot == -1) {
-                remember(Dungeon.hero, skill);
-                if (toggle(skill, Dungeon.hero) && !skill.active) skill.execute(Dungeon.hero, Skill.AC_ACTIVATE);
-            } else {
-                for (int i = 0; i < MAX_SLOTS; i++) if (Integer.valueOf(ref).equals(values[i])) values[i] = null;
-                values[slot] = ref;
-            }
+            for (int i = 0; i < MAX_SLOTS; i++) if (Integer.valueOf(ref).equals(values[i])) values[i] = null;
+            values[slot] = ref;
             refresh();
             return;
         }
@@ -425,27 +390,24 @@ public class QuickSlot extends Button implements WndBag.Listener {
         hero.heroSkills.lastUsed = skill;
     }
 
-    public static void useSticky() {
+    public static void useLastSkill() {
         Hero hero = Dungeon.hero;
+        if (hero == null || !hero.isAlive()) return;
         Skill skill = hero.heroSkills.lastUsed;
-        if (!hero.isAlive() || !canAssign(skill)) return;
-        if (toggle(skill, hero)) {
-            GameScene.show(new WndOptions(new SkillSprite(skill.image()), Message.skillName(skill),
-                    Message.key("skills4.unbind"), Message.key("skills4.yes"), Message.key("skills4.no")) {
-                @Override protected void onSelect(int choice) {
-                    if (choice != 0 || !hero.isAlive()) return;
-                    LocalCoop.withHero(hero, () -> {
-                        if (hero.heroSkills.lastUsed != skill) return;
-                        if (skill.active) skill.execute(hero, Skill.AC_DEACTIVATE);
-                        hero.heroSkills.lastUsed = null;
-                        refresh();
-                    });
-                }
-            });
-        } else {
-            if (stickySlot != null && !PartySession.remoteContext()) stickySlot.useSkill();
-            else useSkill(hero, skill);
+        if (!canAssign(skill)) return;
+        if (!PartySession.remoteContext()) {
+            for (int i = 0; i < visibleSlots(); i++) {
+                QuickSlot slot = slots[i];
+                if (slot == null || slot.selectedSkill() != skill) continue;
+                if (slot.confirmSkillTarget()) return;
+                if (PartySession.input(hero, "last_skill", 0)) slot.suggestSkillTarget();
+                else slot.useSkill();
+                return;
+            }
         }
+        if (PartySession.input(hero, "last_skill", 0)) return;
+        if (!PartySession.remoteContext()) cancel();
+        useSkill(hero, skill);
     }
 
     private void useSkill() {
@@ -594,7 +556,6 @@ public class QuickSlot extends Button implements WndBag.Listener {
 
 	public static void refresh() {
 		if (LocalCoop.isRestoring()) return;
-		if (stickySlot != null) stickySlot.item(null);
 		for (QuickSlot slot : slots) {
 			if (slot != null) {
                 slot.skillRef = -1;
@@ -614,7 +575,6 @@ public class QuickSlot extends Button implements WndBag.Listener {
 		for (QuickSlot slot : slots) {
 			if (slot != null) slot.clearTarget();
 		}
-        if (stickySlot != null) stickySlot.clearTarget();
 	}
 
     private void clearTarget() {

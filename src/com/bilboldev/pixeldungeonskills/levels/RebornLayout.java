@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.levels;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
@@ -114,7 +115,8 @@ final class RebornLayout {
     static void assignSpecials(RegularLevel level) {
         ArrayList<Room.Type> choices = new ArrayList<>(Room.SPECIALS);
         Room.Type scheduled = RebornSideRooms.scheduled(Dungeon.depth);
-        if (Dungeon.bossLevel(Dungeon.depth+1)) choices.remove(Room.Type.WEAK_FLOOR);
+        if (JourneyRun.active() || Dungeon.bossLevel(Dungeon.depth+1))
+            choices.remove(Room.Type.WEAK_FLOOR);
         for (Room room : level.rooms) if (room.type == Room.Type.NULL) {
             if (Level.pitRoomNeeded) {
                 room.type = Room.Type.PIT;

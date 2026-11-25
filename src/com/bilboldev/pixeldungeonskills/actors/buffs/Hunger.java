@@ -19,6 +19,7 @@ package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.ResultDescriptions;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
@@ -106,6 +107,7 @@ public class Hunger extends Buff implements Hero.Doom {
 			}
 
 			float step = ((Hero)target).heroClass == HeroClass.ROGUE ? STEP * 1.2f : STEP;
+			if (JourneyRun.active()) step *= 2;
 			spend( target.buff( Shadows.class ) == null ? step : step * 1.5f );
 
 		} else {
@@ -125,6 +127,11 @@ public class Hunger extends Buff implements Hero.Doom {
 			level = STARVING;
 		}
 
+		BuffIndicator.refreshHero();
+	}
+
+	public void satisfy() {
+		level = 0;
 		BuffIndicator.refreshHero();
 	}
 

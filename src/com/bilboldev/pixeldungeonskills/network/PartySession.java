@@ -30,7 +30,6 @@ import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.scenes.SurfaceScene;
 import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
-import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
@@ -604,7 +603,6 @@ public final class PartySession {
 
             if (!started) {
                 Generator.reset();
-                ItemDropCards.resetRun();
                 SupporterEntitlements.resetRunAura();
             }
             PartySnapshot.restore(pendingState, 1);

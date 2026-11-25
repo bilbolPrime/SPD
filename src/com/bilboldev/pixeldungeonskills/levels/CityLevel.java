@@ -23,6 +23,8 @@ import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.levels.Room.Type;
@@ -111,6 +113,7 @@ public class CityLevel extends RegularLevel {
 	public String tileDesc(int tile) {
 		switch (tile) {
 		case Terrain.ENTRANCE:
+            if (JourneyRun.recovering()) return Messages.get("journey.recovery_objective");
 			return "A ramp leads up to the upper depth.";
 		case Terrain.EXIT:
 			return "A ramp leads down to the lower depth.";

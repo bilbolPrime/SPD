@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.levels;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.NPC;
 import com.bilboldev.pixeldungeonskills.RebornChallenges;
 import com.bilboldev.pixeldungeonskills.RunSeed;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -17,15 +18,19 @@ public final class RebornEncounters {
     private RebornEncounters() {}
 
     public static int packs(int depth) {
+        if (JourneyRun.active()) return depth == 1 ? 0 : 1 + (depth - 1) / 10;
         if (depth < 2 || depth > 24 || depth % 5 == 0 || depth == 21) return 0;
         return depth < 16 ? 1 : 2;
     }
 
     public static int population(int depth) {
+        if (JourneyRun.active()) return 6 + 2 * ((depth - 1) / 5) + (depth - 1) % 5;
         return 5 + depth % 5 + (depth-1)/10;
     }
 
     public static boolean championPair(int depth, int pack) {
+        if (JourneyRun.active())
+            return Math.floorMod(Dungeon.rebornEncounterSeed + Dungeon.levelKey() + pack, 6 - (depth - 1) / 5) == 0;
         int index = pack;
         for (int d = 2; d < depth; d++) index += packs(d);
         return Math.floorMod(Dungeon.rebornEncounterSeed + index, 5) == 0;
@@ -72,7 +77,7 @@ public final class RebornEncounters {
             final int[] approach = level.themedLayout ? RebornDungeonBuilder.distances(level, anchor) : null;
             java.util.Collections.sort(cells, (a, b) -> Integer.compare(approach == null ? Level.distance(center, a) : approach[a],
                     approach == null ? Level.distance(center, b) : approach[b]));
-            Mob leader = Bestiary.mob(Dungeon.depth);
+            Mob leader = Bestiary.mob(JourneyRun.active() && Dungeon.depth == 21 ? 22 : Dungeon.depth);
             leader.pos = anchor;
             leader.rebornPack = pack+1;
             RebornChampion.grant(leader, pair);
@@ -95,7 +100,7 @@ public final class RebornEncounters {
         ArrayList<Integer> cells = new ArrayList<>();
         for (Room room : rooms) cells.addAll(safeCells(level, room, 4));
         while (count < population(Dungeon.depth) && !cells.isEmpty()) {
-            Mob mob = Bestiary.mob(Dungeon.depth);
+            Mob mob = Bestiary.mob(JourneyRun.active() && Dungeon.depth == 21 ? 22 : Dungeon.depth);
             mob.pos = cells.remove(Random.Int(cells.size()));
             add(level, mob);
             count++;

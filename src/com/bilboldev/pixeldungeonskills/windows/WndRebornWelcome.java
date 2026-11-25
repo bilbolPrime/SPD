@@ -52,7 +52,8 @@ public final class WndRebornWelcome extends WndScrollable {
         header.setSize(width, 66);
 
         Component content = new Component();
-        RenderedTextMultiline greeting = paragraph(message, 9, 0xE8E1F0, textWidth);
+        RenderedTextMultiline greeting = paragraph(message + "\n\n" + Messages.get(WndWelcome.class, "switch_hint"),
+                9, 0xE8E1F0, textWidth);
         greeting.setPos(PAD, 0);
         content.add(greeting);
         float bottom = greeting.bottom();

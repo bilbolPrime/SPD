@@ -156,7 +156,8 @@ public class Badges {
 		HAPPY_END( "Happy end", 38 ),
 		CHAMPION( "Challenge won", 39, true ),
 		SUPPORTER( "Thanks for your support!", 31, true ),
-		KNOW_IT_ALL( "Discover all Lore, including recipes, quests, equipment effects and every creature's drops", 64, true );
+		KNOW_IT_ALL( "Discover all Lore, including recipes, quests, equipment effects and every creature's drops", 64, true ),
+		JOURNEY_COMPLETE( "Complete a Journey", 65, true );
 
 		public boolean meta;
 
@@ -187,6 +188,7 @@ public class Badges {
 	private static HashSet<Badge> local = new HashSet<Badges.Badge>();
 
 	private static boolean saveNeeded = false;
+	private static volatile boolean journeyCompletePending;
 
 	public static Callback loadingListener = null;
 
@@ -253,8 +255,11 @@ public class Badges {
 	}
 
 	public static void saveGlobal() {
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
+		saveGlobalFile();
+	}
 
+	private static void saveGlobalFile() {
 		Bundle bundle = null;
 
 		if (saveNeeded) {
@@ -264,9 +269,9 @@ public class Badges {
 
 			try {
 				OutputStream output = Game.instance.openFileOutput( BADGES_FILE, Game.MODE_PRIVATE );
-				Bundle.write( bundle, output );
+				boolean saved = Bundle.write( bundle, output );
 				output.close();
-				saveNeeded = false;
+				if (saved) saveNeeded = false;
 			} catch (IOException e) {
 
 			}
@@ -299,7 +304,7 @@ public class Badges {
 	}
 
 	public static void validateMonstersSlain() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.MONSTERS_SLAIN_1 ) && Statistics.enemiesSlain >= 10) {
@@ -323,7 +328,7 @@ public class Badges {
 	}
 
 	public static void validateGoldCollected() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.GOLD_COLLECTED_1 ) && Statistics.goldCollected >= 100) {
@@ -347,7 +352,7 @@ public class Badges {
 	}
 
 	public static void validateLevelReached() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.LEVEL_REACHED_1 ) && Dungeon.hero.lvl >= 6) {
@@ -371,7 +376,7 @@ public class Badges {
 	}
 
 	public static void validateStrengthAttained() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.STRENGTH_ATTAINED_1 ) && Dungeon.hero.STR >= 13) {
@@ -395,7 +400,7 @@ public class Badges {
 	}
 
 	public static void validateFoodEaten() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.FOOD_EATEN_1 ) && Statistics.foodEaten >= 10) {
@@ -419,7 +424,7 @@ public class Badges {
 	}
 
 	public static void validatePotionsCooked() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.POTIONS_COOKED_1 ) && Statistics.potionsCooked >= 3) {
@@ -443,7 +448,7 @@ public class Badges {
 	}
 
 	public static void validatePiranhasKilled() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 
 		if (!local.contains( Badge.PIRANHAS ) && Statistics.piranhasKilled >= 6) {
@@ -455,7 +460,7 @@ public class Badges {
 	}
 
 	public static void validateItemLevelAquired( Item item ) {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 
 		if (!item.levelKnown) {
 			return;
@@ -484,7 +489,7 @@ public class Badges {
 	}
 
 	public static void validateAllPotionsIdentified() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_POTIONS_IDENTIFIED ) && Potion.allKnown()) {
 
@@ -497,7 +502,7 @@ public class Badges {
 	}
 
 	public static void validateAllScrollsIdentified() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_SCROLLS_IDENTIFIED ) && Scroll.allKnown()) {
 
@@ -510,7 +515,7 @@ public class Badges {
 	}
 
 	public static void validateAllRingsIdentified() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_RINGS_IDENTIFIED ) && Ring.allKnown()) {
 
@@ -523,7 +528,7 @@ public class Badges {
 	}
 
 	public static void validateAllWandsIdentified() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (Dungeon.hero != null && Dungeon.hero.isAlive() &&
 			!local.contains( Badge.ALL_WANDS_IDENTIFIED ) && Wand.allKnown()) {
 
@@ -536,7 +541,7 @@ public class Badges {
 	}
 
 	public static void validateAllBagsBought( Item bag ) {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 
 		Badge badge = null;
 		if (bag instanceof SeedPouch) {
@@ -564,7 +569,7 @@ public class Badges {
 	}
 
 	public static void validateAllItemsIdentified() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!global.contains( Badge.ALL_ITEMS_IDENTIFIED ) &&
 			global.contains( Badge.ALL_POTIONS_IDENTIFIED ) &&
 			global.contains( Badge.ALL_SCROLLS_IDENTIFIED ) &&
@@ -577,7 +582,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromFire() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_FIRE;
 		local.add( badge );
 		displayBadge( badge );
@@ -586,7 +591,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromPoison() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_POISON;
 		local.add( badge );
 		displayBadge( badge );
@@ -595,7 +600,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromGas() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_GAS;
 		local.add( badge );
 		displayBadge( badge );
@@ -604,7 +609,7 @@ public class Badges {
 	}
 
 	public static void validateDeathFromHunger() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_HUNGER;
 		local.add( badge );
 		displayBadge( badge );
@@ -613,14 +618,14 @@ public class Badges {
 	}
 
 	public static void validateDeathFromGlyph() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_GLYPH;
 		local.add( badge );
 		displayBadge( badge );
 	}
 
 	public static void validateDeathFromFalling() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = Badge.DEATH_FROM_FALLING;
 		local.add( badge );
 		displayBadge( badge );
@@ -640,7 +645,7 @@ public class Badges {
 
 	public static void validateBossSlain() {
 		if (RunSeed.customRun()) return;
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
 		Badge badge = null;
 		switch (Dungeon.depth) {
 		case 5:
@@ -776,7 +781,7 @@ public class Badges {
 
 	public static void validateMastery() {
 		if (RunSeed.customRun()) return;
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		switch (Dungeon.hero.heroClass) {
@@ -807,7 +812,7 @@ public class Badges {
 	}
 
 	public static void validateMasteryCombo( int n ) {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.MASTERY_COMBO ) && n == 7) {
 			Badge badge = Badge.MASTERY_COMBO;
 			local.add( badge );
@@ -816,7 +821,7 @@ public class Badges {
 	}
 
 	public static void validateRingOfHaggler() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.RING_OF_HAGGLER ) && new RingOfHaggler().isKnown()) {
 			Badge badge = Badge.RING_OF_HAGGLER;
 			local.add( badge );
@@ -825,7 +830,7 @@ public class Badges {
 	}
 
 	public static void validateRingOfThorns() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.RING_OF_THORNS ) && new RingOfThorns().isKnown()) {
 			Badge badge = Badge.RING_OF_THORNS;
 			local.add( badge );
@@ -835,7 +840,7 @@ public class Badges {
 
 	public static void validateRare( Mob mob ) {
 		if (RunSeed.customRun()) return;
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = null;
 		if (mob instanceof Albino) {
@@ -867,7 +872,7 @@ public class Badges {
 
 	public static void validateVictory() {
 		if (RunSeed.customRun()) return;
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
 
 		Badge badge = Badge.VICTORY;
 		displayBadge( badge );
@@ -910,8 +915,28 @@ public class Badges {
 		}
 	}
 
+	public static void validateJourneyComplete() {
+		if (!JourneyRun.victory() || RunSeed.customRun()) return;
+		restoreGlobalIfNeeded();
+		boolean unlocked = global.add( Badge.JOURNEY_COMPLETE );
+		if (unlocked) saveNeeded = true;
+		saveGlobalFile();
+		if (unlocked) journeyCompletePending = true;
+	}
+
+	public static void showJourneyComplete() {
+		if (!JourneyRun.victory() || RunSeed.customRun() || !journeyCompletePending) return;
+		journeyCompletePending = false;
+		GLog.h(Badges.class, "new", Message.key("badges$badge.journey_complete.desc"));
+		PixelScene.showBadge( Badge.JOURNEY_COMPLETE );
+	}
+
+	static void clearJourneyNotification() {
+		journeyCompletePending = false;
+	}
+
 	public static void validateNoKilling() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.NO_MONSTERS_SLAIN ) && Statistics.completedWithNoKilling) {
 			Badge badge = Badge.NO_MONSTERS_SLAIN;
 			local.add( badge );
@@ -920,7 +945,7 @@ public class Badges {
 	}
 
 	public static void validateGrimWeapon() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.GRIM_WEAPON )) {
 			Badge badge = Badge.GRIM_WEAPON;
 			local.add( badge );
@@ -929,7 +954,7 @@ public class Badges {
 	}
 
 	public static void validateNightHunter() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		if (!local.contains( Badge.NIGHT_HUNTER ) && Statistics.nightHunt >= 15) {
 			Badge badge = Badge.NIGHT_HUNTER;
 			local.add( badge );
@@ -943,7 +968,7 @@ public class Badges {
 	}
 
 	public static void validateGamesPlayed() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		Badge badge = null;
 		if (Rankings.INSTANCE.totalNumber >= 10) {
 			badge = Badge.GAMES_PLAYED_1;
@@ -962,23 +987,23 @@ public class Badges {
 	}
 
 	public static void validateHappyEnd() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		displayBadge( Badge.HAPPY_END );
 	}
 
 	public static void validateLore() {
-		if (TutorialRun.active() || GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || JourneyRun.active()) return;
 		restoreGlobalIfNeeded();
 		if (!global.contains(Badge.KNOW_IT_ALL) && Lore.complete()) displayBadge(Badge.KNOW_IT_ALL);
 	}
 
 	public static void validateChampion() {
-		if (RunSeed.customRun()) return;
+		if (RunSeed.customRun() || JourneyRun.active()) return;
 		displayBadge( Badge.CHAMPION );
 	}
 
 	private static void displayBadge( Badge badge ) {
-		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || LocalCoop.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || DailyRun.active() || JourneyRun.active() || LocalCoop.active()) return;
 
 		if (badge == null) {
 			return;

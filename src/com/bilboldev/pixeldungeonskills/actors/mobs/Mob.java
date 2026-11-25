@@ -28,6 +28,7 @@ import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -51,6 +52,7 @@ import com.bilboldev.pixeldungeonskills.effects.Wound;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.Corpse;
+import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.mechanics.Ballistica;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -62,7 +64,6 @@ import com.bilboldev.utils.Random;
 
 public abstract class Mob extends Char {
     public int rebornPack;
-    public transient int helperCardRun;
 
 	private static final String	TXT_DIED	= "custom.generated.entry_you_hear_something_died_in_the_distance_c8daadf6e5";
 
@@ -85,6 +86,8 @@ public abstract class Mob extends Char {
 
 	protected int EXP = 1;
     public boolean challengeChampion, challengeExtra;
+    public int journeyGuard;
+    public int journeyForce;
 	protected int maxLvl = 30;
 
 	protected Char enemy;
@@ -122,6 +125,8 @@ public abstract class Mob extends Char {
         if (rebornPack != 0) bundle.put("reborn_pack", rebornPack);
         bundle.put("challenge_champion", challengeChampion);
         bundle.put("challenge_extra", challengeExtra);
+        if (journeyGuard != 0) bundle.put("journey_guard", journeyGuard);
+        if (journeyForce != 0) bundle.put("journey_force", journeyForce);
 	}
 
 	@Override
@@ -146,6 +151,8 @@ public abstract class Mob extends Char {
         rebornPack = bundle.getInt("reborn_pack");
         challengeChampion = bundle.getBoolean("challenge_champion");
         challengeExtra = bundle.getBoolean("challenge_extra");
+        journeyGuard = bundle.getInt("journey_guard");
+        journeyForce = bundle.getInt("journey_force");
 	}
 
 	public CharSprite sprite() {
@@ -566,6 +573,8 @@ public abstract class Mob extends Char {
 
 	@Override
 	public void die( Object cause ) {
+        JourneyRun.supplyGuardSlain(this);
+        JourneyRun.reinforcementSlain(this);
         if (cause != null) {
             DeathBomb.leave(this);
             CosmeticPets.defeated(this);
@@ -627,11 +636,11 @@ public abstract class Mob extends Char {
 
 		if(Random.Float() < 0.2f){
 			Item item = Generator.random(  );
-			Dungeon.level.drop( item, pos, this, true ).sprite.drop();
+			if (item != null) Dungeon.level.drop( item, pos, this, true ).sprite.drop();
 		}
         else {
 			Item item = Generator.randomConsumable(  );
-			Dungeon.level.drop( item, pos, this, true ).sprite.drop();
+			if (item != null) Dungeon.level.drop( item, pos, this, true ).sprite.drop();
 		}
 
     }
@@ -644,6 +653,7 @@ public abstract class Mob extends Char {
 	}
 
 	protected void dropLoot() {
+		if (JourneyRun.active() && loot instanceof Food) return;
 		if (loot != null && Random.Float() < lootChance) {
 			Item item = null;
 			if (loot instanceof Generator.Category) {
@@ -661,7 +671,7 @@ public abstract class Mob extends Char {
 
 			}
 
-			Dungeon.level.drop( item, pos, this ).sprite.drop();
+			if (item != null) Dungeon.level.drop( item, pos, this ).sprite.drop();
 		}
 	}
 
@@ -719,6 +729,8 @@ public abstract class Mob extends Char {
 	}
 
 	public String displayName() {
+        if (JourneyRun.isReinforcementLeader(this)) return Messages.get("journey.leader_name");
+        if (JourneyRun.isOfficer(this)) return Messages.get("journey.officer_name");
 		String localized = message( "name" );
 		RebornChampion reborn = buff(RebornChampion.class);
 		if (reborn != null) return reborn.displayName(localized != null ? localized : name);
@@ -726,13 +738,16 @@ public abstract class Mob extends Char {
 	}
 
     @Override public Message nameMessage() {
+        if (JourneyRun.isReinforcementLeader(this)) return Message.key("journey.leader_name");
+        if (JourneyRun.isOfficer(this)) return Message.key("journey.officer_name");
         Message base = super.nameMessage();
         return buff(RebornChampion.class) == null ? base : Message.key(RebornChampion.class, "name", base);
     }
 
 	public String displayDescription() {
 		String localized = message( "desc" );
-		return localized != null ? localized : Messages.maybeTranslate( description() );
+		String description = localized != null ? localized : Messages.maybeTranslate( description() );
+        return JourneyRun.isOfficer(this) ? description + "\n\n" + Messages.get("journey.officer_desc") : description;
 	}
 
 	protected String stateMessage( String key ) {

@@ -25,44 +25,43 @@ import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor.Glyph;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.levels.traps.LightningTrap;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
 import com.bilboldev.utils.Random;
 
 public class Potential extends Glyph {
 
-	private static final String TXT_POTENTIAL	= "%s of potential";
-	
 	private static ItemSprite.Glowing BLUE = new ItemSprite.Glowing( 0x66CCEE );
-	
+
 	@Override
 	public int proc( Armor armor, Char attacker, Char defender, int damage) {
 
 		int level = Math.max( 0, armor.effectiveLevel() );
-		
+
 		if (Level.adjacent( attacker.pos, defender.pos ) && Random.Int( level + 7 ) >= 6) {
-			
+
 			int dmg = Random.IntRange( 1, damage );
 			attacker.damage( dmg, LightningTrap.LIGHTNING );
 			dmg = Random.IntRange( 1, dmg );
 			defender.damage( dmg, LightningTrap.LIGHTNING );
-			
+
 			checkOwner( defender );
 			if (defender == Dungeon.hero) {
 				Camera.main.shake( 2, 0.3f );
 			}
-			
+
 			int[] points = {attacker.pos, defender.pos};
 			attacker.sprite.parent.add( new Lightning( points, 2, null ) );
 
 		}
-		
+
 		return damage;
 	}
-	
+
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_POTENTIAL, weaponName );
+		return Messages.get( "items.armor.glyphs.potential.name", (Object)weaponName );
 	}
 
 	@Override

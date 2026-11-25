@@ -21,6 +21,7 @@ import java.util.HashSet;
 
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.Char;
 import com.bilboldev.pixeldungeonskills.actors.blobs.ToxicGas;
@@ -78,7 +79,7 @@ public class Piranha extends Mob {
 
 	@Override
 	public void die( Object cause ) {
-		Dungeon.level.drop( new MysteryMeat(), pos, this ).sprite.drop();
+		if (!JourneyRun.active()) Dungeon.level.drop( new MysteryMeat(), pos, this ).sprite.drop();
 		super.die( cause );
 
 		Statistics.piranhasKilled++;

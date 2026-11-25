@@ -14,6 +14,7 @@ import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemapOld;
 import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.ui.GameLog;
 import com.bilboldev.pixeldungeonskills.ui.GauntletHeckle;
 import com.bilboldev.pixeldungeonskills.windows.WndGauntletVictory;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class GauntletScene extends GameScene {
             Game.switchScene(TitleScene.class);
             return;
         }
+        if (InterlevelScene.mode == InterlevelScene.Mode.GUANTLET) GameLog.wipe();
         InterlevelScene.mode = InterlevelScene.Mode.NONE;
         super.create();
         Camera.main.zoom(Math.max(minZoom, Math.min(maxZoom, defaultZoom + GauntletRun.zoomOffset())));

@@ -17,8 +17,11 @@
  */
 package com.bilboldev.pixeldungeonskills.windows;
 
+import java.util.ArrayList;
+
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.ui.MenuModel;
+import com.bilboldev.pixeldungeonskills.network.PartySession;
 import com.bilboldev.pixeldungeonskills.network.PartyWindows;
 
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
@@ -61,6 +64,7 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.Icons;
 import com.bilboldev.pixeldungeonskills.ui.ItemSlot;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
+import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.RectF;
 
@@ -105,6 +109,7 @@ public class WndBag extends WndTabbed {
 	private int nCols;
 	private int nRows;
 	private int slotSize;
+	private ControlRow itemGrid;
 
 	protected int count;
 	protected int col;
@@ -148,7 +153,7 @@ public class WndBag extends WndTabbed {
             lastBag = bag;
         }
 
-		nCols = landscapeLayout() ? COLS_L : COLS_P;
+		nCols = Game.width >= Game.height ? COLS_L : COLS_P;
 		nRows = (Belongings.BACKPACK_SIZE + 4 + 1) / nCols + ((Belongings.BACKPACK_SIZE + 4 + 1) % nCols > 0 ? 1 : 0);
 		int availableWidth = boundedWidth(1000);
 		int availableHeight = maxFrameHeight() - frameHeight();
@@ -168,24 +173,23 @@ public class WndBag extends WndTabbed {
 		txtTitle.y = (int)(TITLE_HEIGHT - txtTitle.height()) / 2;
 		add( txtTitle );
 
+		if (nCols == COLS_P) itemGrid = new ControlRow();
 		placeItems( bag );
 
-		resize( slotsWidth, slotsHeight + TITLE_HEIGHT );
-
-		Belongings stuff = owner.belongings;
-		Bag[] bags = {
-			stuff.backpack,
-			stuff.getItem( SeedPouch.class ),
-			stuff.getItem( ScrollHolder.class ),
-			stuff.getItem(PotionHolder.class),
-			stuff.getItem( WandHolster.class ),
-			stuff.getItem( Keyring.class )};
-		int tabWidth = TAB_WIDTH;
-		if (Presentation.reborn()) {
-			int bagCount = 0;
-			for (Bag b : bags) if (b != null) bagCount++;
-			tabWidth = Math.min(TAB_WIDTH, (slotsWidth + chrome.marginHor() - 2) / bagCount);
+		if (itemGrid != null) {
+			int rows = row + (col > 0 ? 1 : 0);
+			itemGrid.setSize(slotsWidth, rows * (slotSize + SLOT_MARGIN) - SLOT_MARGIN);
+			ScrollPane pane = itemGrid.scrollPane(itemGrid);
+			add(pane);
+			resize(slotsWidth, slotsHeight + TITLE_HEIGHT);
+			pane.setRect(0, TITLE_HEIGHT, slotsWidth, height - TITLE_HEIGHT);
+		} else {
+			resize(slotsWidth, slotsHeight + TITLE_HEIGHT);
 		}
+
+		ArrayList<Bag> bags = carriedBags(owner);
+		int tabWidth = Math.min(TAB_WIDTH, (slotsWidth + chrome.marginHor() - 2) / bags.size());
+		int firstTab = menuModel.choices.size();
 
 		for (Bag b : bags) {
 			if (b != null) {
@@ -196,6 +200,14 @@ public class WndBag extends WndTabbed {
 
 				tab.select( b == bag );
 			}
+		}
+
+		int potion = bags.indexOf(owner.belongings.getItem(PotionHolder.class));
+		int after = bags.indexOf(owner.belongings.getItem(ScrollHolder.class));
+		if (after < 0) after = bags.indexOf(owner.belongings.getItem(SeedPouch.class));
+		if (potion >= 0 && after > potion) {
+			MenuModel.Choice choice = menuModel.choices.remove(firstTab + potion);
+			menuModel.choices.add(firstTab + after, choice);
 		}
 	}
 
@@ -223,14 +235,16 @@ public class WndBag extends WndTabbed {
 	protected void placeItems( Bag container ) {
 
 		Belongings stuff = owner.belongings;
-		placeItem( stuff.weapon != null ? stuff.weapon : new Placeholder( ItemSpriteSheet.WEAPON ) );
-		placeItem( stuff.armor != null ? stuff.armor : new Placeholder( ItemSpriteSheet.ARMOR ) );
-		placeItem( stuff.ring1 != null ? stuff.ring1 : new Placeholder( ItemSpriteSheet.RING ) );
-		placeItem( stuff.ring2 != null ? stuff.ring2 : new Placeholder( ItemSpriteSheet.RING ) );
-        placeItem( stuff.bow != null ? stuff.bow : new Placeholder( ItemSpriteSheet.EMPTY_BOW ) );
+		boolean backpack = (container == stuff.backpack);
 
-		boolean backpack = (container == owner.belongings.backpack);
-		int equipmentSlots = ((5 + nCols - 1) / nCols) * nCols;
+		boolean equipment = backpack || itemGrid == null || PartySession.remoteContext();
+		placeItem( stuff.weapon != null ? stuff.weapon : new Placeholder( ItemSpriteSheet.WEAPON ), equipment );
+		placeItem( stuff.armor != null ? stuff.armor : new Placeholder( ItemSpriteSheet.ARMOR ), equipment );
+		placeItem( stuff.ring1 != null ? stuff.ring1 : new Placeholder( ItemSpriteSheet.RING ), equipment );
+		placeItem( stuff.ring2 != null ? stuff.ring2 : new Placeholder( ItemSpriteSheet.RING ), equipment );
+        placeItem( stuff.bow != null ? stuff.bow : new Placeholder( ItemSpriteSheet.EMPTY_BOW ), equipment );
+
+		int equipmentSlots = equipment ? ((5 + nCols - 1) / nCols) * nCols : 0;
 		if (!backpack) {
 			count = equipmentSlots;
 			col = 0;
@@ -238,6 +252,10 @@ public class WndBag extends WndTabbed {
 		}
 
 		for (Item item : container.items) {
+			if (backpack && Bag.isHolder(item)) {
+                placeItem(item, false);
+                continue;
+            }
 			placeItem( item );
 		}
 
@@ -246,20 +264,30 @@ public class WndBag extends WndTabbed {
 		}
 
 		if (container == owner.belongings.backpack) {
-			row = nRows - 1;
+			row = itemGrid == null ? nRows - 1 : Math.max(nRows - 1, row);
 			col = nCols - 1;
 			placeItem( new Gold(readOnly ? 0 : Dungeon.gold) );
 		}
 	}
 
 	protected void placeItem( final Item item ) {
+		placeItem(item, true);
+	}
+
+	private void placeItem(Item item, boolean visible) {
+		ItemButton button = new ItemButton(item);
+		if (item != null && !(item instanceof Placeholder)) menuModel.add(button, Message.item(item));
+		if (!visible) {
+
+			button.visible = button.active = false;
+			add(button);
+			return;
+		}
 
 		int x = col * (slotSize + SLOT_MARGIN);
-		int y = TITLE_HEIGHT + row * (slotSize + SLOT_MARGIN);
-
-		ItemButton button = new ItemButton(item);
-        add(button.setPos(x, y));
-        if (item != null && !(item instanceof Placeholder)) menuModel.add(button, Message.item(item));
+		int y = (itemGrid == null ? TITLE_HEIGHT : 0) + row * (slotSize + SLOT_MARGIN);
+		if (itemGrid == null) add(button.setPos(x, y));
+		else itemGrid.add(button.setPos(x, y));
 
 		if (++col >= nCols) {
 			col = 0;
@@ -301,6 +329,27 @@ public class WndBag extends WndTabbed {
 		return 20;
 	}
 
+    public static ArrayList<Bag> carriedBags(Hero hero) {
+        ArrayList<Bag> bags = new ArrayList<>();
+        Belongings stuff = hero.belongings;
+        for (Bag bag : new Bag[]{stuff.backpack, stuff.getItem(PotionHolder.class),
+                stuff.getItem(SeedPouch.class), stuff.getItem(ScrollHolder.class),
+                stuff.getItem(WandHolster.class), stuff.getItem(Keyring.class)})
+            if (bag != null) bags.add(bag);
+        for (Item item : stuff.backpack.items)
+            if (Bag.isHolder(item) && !bags.contains(item)) bags.add((Bag)item);
+        return bags;
+    }
+
+    public static Image bagIcon(Bag bag) {
+        if (bag instanceof SeedPouch) return Icons.SEED_POUCH.get();
+        if (bag instanceof ScrollHolder) return Icons.SCROLL_HOLDER.get();
+        if (bag instanceof PotionHolder) return Icons.POTION_HOLDER.get();
+        if (bag instanceof WandHolster) return Icons.WAND_HOLSTER.get();
+        if (bag instanceof Keyring) return Icons.KEYRING.get();
+        return Icons.BACKPACK.get();
+    }
+
 	private class BagTab extends Tab {
 
 		private Image icon;
@@ -312,7 +361,7 @@ public class WndBag extends WndTabbed {
 
 			this.bag = bag;
 
-			icon = icon();
+			icon = bagIcon(bag);
 			add( icon );
 		}
 
@@ -326,7 +375,7 @@ public class WndBag extends WndTabbed {
 		protected void layout() {
 			super.layout();
 
-			icon.copy( icon() );
+			icon.copy( bagIcon(bag) );
 			icon.x = x + (width - icon.width) / 2;
 			icon.y = y + (height - icon.height) / 2 - 2 - (selected ? 0 : 1);
 			if (!selected && icon.y < y + CUT) {
@@ -337,21 +386,6 @@ public class WndBag extends WndTabbed {
 			}
 		}
 
-		private Image icon() {
-			if (bag instanceof SeedPouch) {
-				return Icons.get( Icons.SEED_POUCH );
-			} else if (bag instanceof ScrollHolder) {
-				return Icons.get( Icons.SCROLL_HOLDER );
-			} else if (bag instanceof PotionHolder) {
-				return Icons.get( Icons.POTION_HOLDER );
-			}else if (bag instanceof WandHolster) {
-				return Icons.get( Icons.WAND_HOLSTER );
-			} else if (bag instanceof Keyring) {
-				return Icons.get( Icons.KEYRING );
-			} else {
-				return Icons.get( Icons.BACKPACK );
-			}
-		}
 	}
 
 	private static class Placeholder extends Item {
@@ -396,6 +430,7 @@ public class WndBag extends WndTabbed {
 			}
 
 			width = height = slotSize;
+			if (itemGrid != null) itemGrid.addControl(hotArea);
 		}
 
 		@Override

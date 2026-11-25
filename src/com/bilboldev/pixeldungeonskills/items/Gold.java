@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.items;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.levels.DailyHoardLevel;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -106,6 +108,11 @@ public class Gold extends Item {
 	@Override
 	public String info() {
 		return desc();
+	}
+
+	@Override
+	public String desc() {
+		return JourneyRun.active() ? Messages.get("journey.gold") : super.desc();
 	}
 
 	@Override

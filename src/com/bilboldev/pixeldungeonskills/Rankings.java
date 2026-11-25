@@ -47,7 +47,7 @@ public enum Rankings {
 	public int wonNumber;
 
 	public void submit( boolean win ) {
-		if (TutorialRun.active() || GauntletRun.active() || LocalCoop.active() || RunSeed.customRun()) return;
+		if (TutorialRun.active() || GauntletRun.active() || JourneyRun.active() || LocalCoop.active() || RunSeed.customRun()) return;
 
 		load();
 

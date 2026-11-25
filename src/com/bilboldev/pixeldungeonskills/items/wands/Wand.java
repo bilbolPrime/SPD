@@ -29,6 +29,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.Char;
@@ -72,7 +73,7 @@ public abstract class Wand extends KindOfWeapon {
 
 	protected Charger charger;
 
-	private boolean curChargeKnown = false;
+	private boolean curChargeKnown = JourneyRun.active();
 
 	private int usagesToKnow = USAGES_TO_KNOW;
 
@@ -457,7 +458,7 @@ public abstract class Wand extends KindOfWeapon {
 		}
 		maxCharges = bundle.getInt( MAX_CHARGES );
 		curCharges = bundle.getInt( CUR_CHARGES );
-		curChargeKnown = bundle.getBoolean( CUR_CHARGE_KNOWN );
+		curChargeKnown = JourneyRun.active() || bundle.getBoolean( CUR_CHARGE_KNOWN );
 	}
 
 	protected static CellSelector.Listener zapper = new  CellSelector.Listener() {

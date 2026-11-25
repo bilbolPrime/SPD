@@ -2,6 +2,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.items.Item;
 import com.bilboldev.pixeldungeonskills.items.food.Food;
 import com.bilboldev.pixeldungeonskills.items.potions.PotionOfHealing;
@@ -19,6 +20,16 @@ public class ForgottenOffering extends RoomProp {
     @Override
     public void interact() {
         if (!available()) return;
+        if (JourneyRun.active()) {
+            GameScene.show(new WndOptions(Message.actor(this), Message.of(this, "desc"),
+                    Message.key(PotionOfHealing.class, "name"), Message.key(RebornSideRooms.class, "leave")) {
+                @Override
+                protected void onSelect(int index) {
+                    if (index == 0) choose(false);
+                }
+            });
+            return;
+        }
         GameScene.show(new WndOptions(Message.actor(this),
                 Message.of(this, "desc"),
                 Message.key(Food.class, "name"),

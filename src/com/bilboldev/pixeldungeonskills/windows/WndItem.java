@@ -116,7 +116,7 @@ public class WndItem extends WndScrollable {
 				}
 
 			}
-            if (hero.talents() != null && item.defaultAction != null) {
+            if (item.defaultAction != null) {
                 RedButton bind = new ActionButton(Message.key("skills4.quickslot").toString()) {
                     @Override protected void onClick() {
                         if (PartyWindows.select(this)) return;

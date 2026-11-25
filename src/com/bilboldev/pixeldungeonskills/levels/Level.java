@@ -32,6 +32,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Statistics;
@@ -51,10 +52,12 @@ import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.HiredMerc;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.RatScout;
 import com.bilboldev.pixeldungeonskills.effects.Pushing;
 import com.bilboldev.pixeldungeonskills.effects.particles.FlowParticle;
 import com.bilboldev.pixeldungeonskills.effects.particles.WindParticle;
+import com.bilboldev.pixeldungeonskills.items.DewVial;
 import com.bilboldev.pixeldungeonskills.items.Generator;
 import com.bilboldev.pixeldungeonskills.items.Gold;
 import com.bilboldev.pixeldungeonskills.items.Heap;
@@ -189,8 +192,8 @@ public abstract class Level implements Bundlable {
             if(Random.Int(5) == 0)
                 addItemToSpawn( new CupidArrow(1) );
 
-			addItemToSpawn( Generator.random( Generator.Category.FOOD ) );
-			if (Dungeon.posNeeded()) {
+			if (!JourneyRun.active()) addItemToSpawn( Generator.random( Generator.Category.FOOD ) );
+			if (!JourneyRun.active() && Dungeon.posNeeded()) {
 				addItemToSpawn( new PotionOfStrength() );
 				Dungeon.potionOfStrength++;
 			}
@@ -206,7 +209,7 @@ public abstract class Level implements Bundlable {
 			if (Dungeon.depth > 1) {
 				switch (Random.Int( 10 )) {
 				case 0:
-					if (!Dungeon.bossLevel( Dungeon.depth + 1 )) {
+					if (!JourneyRun.active() && !Dungeon.bossLevel( Dungeon.depth + 1 )) {
 						feeling = Feeling.CHASM;
 					}
 					break;
@@ -220,7 +223,7 @@ public abstract class Level implements Bundlable {
 			}
 		}
 
-		boolean pitNeeded = Dungeon.depth > 1 && weakFloorCreated;
+		boolean pitNeeded = !JourneyRun.active() && Dungeon.depth > 1 && weakFloorCreated;
 
 		do {
 			Arrays.fill( map, feeling == Feeling.CHASM ? Terrain.CHASM : Terrain.WALL );
@@ -231,6 +234,7 @@ public abstract class Level implements Bundlable {
 		} while (!build());
 		decorate();
 		finishBuild();
+        if (JourneyRun.active()) removeChasms();
 
 		buildFlagMaps();
 		cleanWalls();
@@ -279,6 +283,7 @@ public abstract class Level implements Bundlable {
 		Collection<Bundlable> collection = bundle.getCollection( HEAPS );
 		for (Bundlable h : collection) {
 			Heap heap = (Heap)h;
+			if (JourneyRun.active() && heap.isEmpty()) continue;
 			if (resizingNeeded) {
 				heap.pos = adjustPos( heap.pos );
 			}
@@ -297,6 +302,7 @@ public abstract class Level implements Bundlable {
 		collection = bundle.getCollection( MOBS );
 		for (Bundlable m : collection) {
 			Mob mob = (Mob)m;
+			if (JourneyRun.active() && (mob instanceof HiredMerc || mob instanceof MercenaryCamp)) continue;
 			if (mob instanceof HiredMerc && !mob.isAlive()) continue;
 			if (mob != null) {
 				if (resizingNeeded) {
@@ -470,6 +476,7 @@ public abstract class Level implements Bundlable {
 	}
 
     public Actor mercRespawner() {
+        if (JourneyRun.active()) return null;
         return new Actor() {
             @Override
             protected boolean act() {
@@ -555,7 +562,7 @@ public abstract class Level implements Bundlable {
 	}
 
 	public void addItemToSpawn( Item item ) {
-		if (item != null) {
+		if (item != null && !(JourneyRun.active() && (item instanceof Food || item instanceof DewVial))) {
 			itemsToSpawn.add( item );
 		}
 	}
@@ -574,6 +581,34 @@ public abstract class Level implements Bundlable {
 		buildFlagMaps();
 		cleanWalls();
 	}
+
+    public void removeChasms() {
+
+        boolean[] exterior = new boolean[map.length];
+        int[] cells = new int[map.length];
+        int first = 0, last = 0;
+        for (int cell = 0; cell < map.length; cell++) {
+            if ((Terrain.flags[map[cell]] & Terrain.PIT) != 0
+                    && (cell < WIDTH || cell >= map.length - WIDTH || cell % WIDTH == 0 || cell % WIDTH == WIDTH - 1)) {
+                exterior[cell] = true;
+                cells[last++] = cell;
+            }
+        }
+        while (first < last) {
+            int cell = cells[first++];
+            for (int offset : NEIGHBOURS4) {
+                int next = cell + offset;
+                if (next >= 0 && next < map.length && distance(cell, next) == 1 && !exterior[next]
+                        && (Terrain.flags[map[next]] & Terrain.PIT) != 0) {
+                    exterior[next] = true;
+                    cells[last++] = next;
+                }
+            }
+        }
+        for (int cell = 0; cell < map.length; cell++)
+            if ((Terrain.flags[map[cell]] & Terrain.PIT) != 0) map[cell] = exterior[cell] ? Terrain.WALL : Terrain.EMPTY;
+        if (feeling == Feeling.CHASM) feeling = Feeling.NONE;
+    }
 
 	protected boolean gatherParty(Char entering, int cell, int gate) {
 		if (!LocalCoop.contains(entering)) return true;
@@ -722,6 +757,7 @@ public abstract class Level implements Bundlable {
 	}
 
 	private static Item challengeDrop(Item item) {
+        if (JourneyRun.active() && (item instanceof Food || item instanceof DewVial)) return null;
         RebornChallenges.plain(item);
 		if (Dungeon.isChallenged( Challenges.NO_FOOD ) && item instanceof Food) {
 			item = new Gold( item.price() );
@@ -747,6 +783,13 @@ public abstract class Level implements Bundlable {
 
 	public Heap drop( Item item, int cell ) {
 		item = challengeDrop(item);
+        if (JourneyRun.active() && item == null) {
+            Heap skipped = new Heap();
+            skipped.pos = cell;
+            GameScene.discard(skipped);
+            if (skipped.sprite != null) skipped.sprite.kill();
+            return skipped;
+        }
 
 		if ((map[cell] == Terrain.ALCHEMY) && !(item instanceof Plant.Seed)) {
 			int n;
@@ -1054,7 +1097,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (int i=0; i < LENGTH; i++) {
-				fieldOfView[i] &= discoverable[i];
+				fieldOfView[i] &= discoverable[i] || c.isAlive() && c.flying && pit[i];
 			}
 		}
 
@@ -1272,9 +1315,13 @@ public abstract class Level implements Bundlable {
 		case Terrain.WATER:
 			return text( "levels.level.water_desc", "In case of burning step into the water to extinguish the fire." );
 		case Terrain.ENTRANCE:
+			if (JourneyRun.active()) return Messages.get(JourneyRun.floorIndex() > 0 ? "journey.floor_entrance_hint"
+                    : JourneyRun.canReturnToCamp() ? "journey.recovery_objective" : "journey.entrance_hint");
 			return text( "levels.level.entrance_desc", "Stairs lead up to the upper depth." );
 		case Terrain.EXIT:
 		case Terrain.UNLOCKED_EXIT:
+			if (JourneyRun.active()) return Messages.get(JourneyRun.floorIndex() + 1 < JourneyRun.floorCount()
+                    ? "journey.floor_exit_hint" : JourneyRun.objectiveExitHint());
 			return text( "levels.level.exit_desc", "Stairs lead down to the lower depth." );
 		case Terrain.EMBERS:
 			return text( "levels.level.embers_desc", "Embers cover the floor." );

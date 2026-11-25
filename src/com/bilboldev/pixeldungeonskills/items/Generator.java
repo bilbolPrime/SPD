@@ -24,6 +24,7 @@ import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Badges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Statistics;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
@@ -279,9 +280,15 @@ public class Generator {
     public static List<Class<?>> lootClasses(Category category) {
         List<Class<?>> classes = new ArrayList<>();
         for (int i = 0; i < category.classes.length; i++) {
+            if (JourneyRun.active() && !journeyLoot(category.classes[i])) continue;
             if (category.probs[i] > 0) classes.add(category.classes[i]);
         }
         return classes;
+    }
+
+    private static boolean journeyLoot(Class<?> itemClass) {
+        return !Food.class.isAssignableFrom(itemClass) && itemClass != ScrollOfIdentify.class
+                && itemClass != RingOfSatiety.class && itemClass != Essence.Harvest.class;
     }
 
 	private static final Class<?>[] GUN_TIERS = {
@@ -354,6 +361,7 @@ public class Generator {
 				cat = Category.SEED;
 			}
 		}
+		if (JourneyRun.active() && cat == Category.FOOD) return null;
 		return ((Item)cat.classes[Random.chances( cat.probs )].newInstance()).random();
 		} catch (Exception e) {
 
@@ -572,6 +580,7 @@ public class Generator {
 	}
 
 	public static Item random( Category cat ) {
+		if (JourneyRun.active() && cat == Category.FOOD) return null;
 		if (cat == Category.ESSENCE && !Dungeon.rules().hasRebornEncounters()) return null;
 		try {
 
@@ -581,11 +590,20 @@ public class Generator {
 			case ESSENCE:
 				float[] weights = cat.probs.clone();
 				if (!Essence.memoryAvailable()) weights[Essence.Type.MEMORY.ordinal()] = 0;
+				if (JourneyRun.active()) weights[Essence.Type.HARVEST.ordinal()] = 0;
 				return ((Item)cat.classes[Random.chances(weights)].newInstance()).random();
 			case ARMOR:
 				return randomArmor();
 			case WEAPON:
 				return randomWeapon();
+			case SCROLL:
+			case RING:
+                if (JourneyRun.active()) {
+                    float[] itemWeights = cat.probs.clone();
+                    for (int i = 0; i < cat.classes.length; i++)
+                        if (!journeyLoot(cat.classes[i])) itemWeights[i] = 0;
+                    return ((Item)cat.classes[Random.chances(itemWeights)].newInstance()).random();
+                }
 			default:
 				return ((Item)cat.classes[Random.chances( cat.probs )].newInstance()).random();
 			}
@@ -598,6 +616,7 @@ public class Generator {
 	}
 
 	public static Item random( Class<? extends Item> cl ) {
+		if (JourneyRun.active() && !journeyLoot(cl)) return null;
 		try {
 
 			return ((Item)cl.newInstance()).random();

@@ -255,6 +255,12 @@ public class Game extends ApplicationAdapter {
         instance.afterSceneCreate = null;
     }
 
+    public static void cancelSceneChange() {
+        instance.requestedReset = false;
+        instance.sceneClass = instance.scene.getClass();
+        instance.afterSceneCreate = null;
+    }
+
     public static Scene scene() {
         Game game = instance;
         return game == null ? null : game.scene;

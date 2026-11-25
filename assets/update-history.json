@@ -942,5 +942,52 @@
         ]
       }
     ]
+  },
+  {
+    "version": "2.5.0",
+    "build": 150,
+    "date": "2026-11-23",
+    "sections": [
+      {
+        "title": "Journey",
+        "notes": [
+          "Lead _six heroes_ through occupied lands in a new Reborn adventure. Choose one hero for each expedition; fallen heroes cannot return.",
+          "Bosses send _reinforcements_ into earlier regions.",
+          "Complete a Journey with a _random seed_ to earn _Journey Complete_, its own badge."
+        ]
+      },
+      {
+        "title": "QoL Changes",
+        "notes": [
+          "_Helper cards_ are now _off by default_. Turn them on in Settings.",
+          "_Item holders_ no longer take up inventory slots.",
+          "Switch between _Classic and Reborn_ with the button beside Settings on the title screen.",
+          "Fire _guns and rifles_ straight from your inventory in Classic and Reborn. Their attributes still apply only while equipped.",
+          "Assign _items or skills_ to any visible quickslot in Classic and Reborn. The separate quick-skill button has been removed.",
+          "Moved _Inspect_ to the bottom-left corner. A _Search_ button slides out above it on mobile and desktop. Hold Inspect to search immediately.",
+          "Tap _Wait_ to reveal _Sleep_.",
+          "On mobile, the _Compact_ button layout groups skills, companions and settings in one menu."
+        ]
+      },
+      {
+        "title": "Game Balance",
+        "notes": [
+          "Reduced the carried bonuses of _Stone, Shade, Wind and Iron Essences_ to _+1 per grade_.",
+          "_Essences_ of any type or grade can now be merged. Grades add together up to _X_."
+        ]
+      },
+      {
+        "title": "Fixes",
+        "notes": [
+          "Improved tapping on _doors, characters and items_ in 2.5D view.",
+          "_Fallen heroes_ stay down when switching views.",
+          "_Mercenaries_ keep their appearance when switching views, including the Archer Maiden.",
+          "_Mercenaries for hire_ now show the armor they actually wear.",
+          "_Boss music_ starts when a boss enters the arena.",
+          "Fixed missing translations in _enchantment and armor glyph names_.",
+          "Heroes remain visible while _levitating over chasms_."
+        ]
+      }
+    ]
   }
 ]

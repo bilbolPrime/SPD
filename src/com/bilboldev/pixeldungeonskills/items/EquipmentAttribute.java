@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.items;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
@@ -103,12 +104,24 @@ public final class EquipmentAttribute {
     }
 
     public static void roll(Item item) {
+        roll(item, false);
+    }
+
+    public static void roll(Item item, boolean guaranteed) {
+        roll(item, guaranteed, false);
+    }
+
+    public static void rollMaximum(Item item) {
+        roll(item, true, true);
+    }
+
+    private static void roll(Item item, boolean guaranteed, boolean maximum) {
         if (!Dungeon.rules().hasRebornEncounters() || !supported(item)
-                || item.attributes.length != 0 || Random.Int(100) >= 80) return;
+                || item.attributes.length != 0 || !guaranteed && Random.Int(100) >= 80) return;
         int depth = Math.max(1, Dungeon.depth);
-        int count = Random.IntRange(1, 3);
-        Hero[] heroes = LocalCoop.heroes();
-        if (heroes.length == 0 && Dungeon.hero != null) heroes = new Hero[]{Dungeon.hero};
+        int count = maximum ? 3 : Random.IntRange(1, 3);
+        Hero[] heroes = JourneyRun.active() ? JourneyRun.livingHeroes() : LocalCoop.heroes();
+        if (!JourneyRun.active() && heroes.length == 0 && Dungeon.hero != null) heroes = new Hero[]{Dungeon.hero};
         ArrayList<EquipmentAttribute> eligible = new ArrayList<>();
         for (EquipmentAttribute option : options(item)) {
             if (option.type == Type.CLASS_SKILLS && depth < 11) continue;
@@ -116,6 +129,23 @@ public final class EquipmentAttribute {
             if (option.type == Type.SKILL && TALENTS[option.target].requiredLevel() > depth) continue;
             if (!relevant(option, heroes)) continue;
             eligible.add(option);
+        }
+        if (JourneyRun.active()) {
+            ArrayList<Hero> candidates = new ArrayList<>();
+            for (Hero hero : heroes) {
+                for (EquipmentAttribute option : eligible) {
+                    if ((option.type == Type.SKILL || option.type == Type.CLASS_SKILLS || option.type == Type.TREE_SKILLS)
+                            && relevant(option, new Hero[]{hero})) {
+                        candidates.add(hero);
+                        break;
+                    }
+                }
+            }
+            if (!candidates.isEmpty()) {
+                Hero[] chosen = {Random.element(candidates)};
+                for (int i = eligible.size() - 1; i >= 0; i--)
+                    if (!relevant(eligible.get(i), chosen)) eligible.remove(i);
+            }
         }
         float[] weights = new float[TYPES.length];
         for (EquipmentAttribute option : eligible) weights[option.type.ordinal()] = weight(option.type);
@@ -131,7 +161,7 @@ public final class EquipmentAttribute {
             EquipmentAttribute chosen = targets.get(Random.chances(targetWeights));
             int progress = Math.min(24, depth - 1);
             int upper = type.min + ((type.max - type.min) * progress + 23) / 24;
-            item.attributes[i] = new EquipmentAttribute(type, Random.IntRange(type.min, upper), chosen.target);
+            item.attributes[i] = new EquipmentAttribute(type, maximum ? type.max : Random.IntRange(type.min, upper), chosen.target);
         }
     }
 

@@ -72,7 +72,6 @@ final class FirstPersonView {
     private final GameScene scene;
     private final FirstPersonEffects effects;
     private final FirstPersonCombat combat;
-    private final FirstPersonKeys keys;
     private final FirstPersonWeapon heldWeapon;
     private final Camera ui;
     final Camera mapCamera;
@@ -128,7 +127,6 @@ final class FirstPersonView {
         this.scene = scene;
         this.ui = ui;
         desktopControls = GameActions.enabled && ControlSettings.backend != null;
-        keys = desktopControls ? new FirstPersonKeys(ui) : null;
         heldWeapon = new FirstPersonWeapon(ui);
         level = Dungeon.level;
         effects = new FirstPersonEffects(scene, this);
@@ -888,7 +886,8 @@ final class FirstPersonView {
                 addSprite(sprite, sprite.ch.pos, 1.0);
         }
         if (scene instanceof GauntletScene) ((GauntletScene)scene).drawSpectators(this);
-        for (Heap heap : level.heaps.values()) if (heap.type != Heap.Type.HIDDEN) addSprite(heap.sprite, heap.pos, 0.45);
+        for (Heap heap : level.heaps.values()) if (heap.type != Heap.Type.HIDDEN)
+            addSprite(heap.sprite, heap.pos, 0.45, true, heap.revealed);
         for (Plant plant : level.plants.values()) addSprite(plant.sprite, plant.pos, 0.55);
         for (int cell = 0; cell < level.map.length; cell++) {
             int terrain = level.map[cell];
@@ -1464,10 +1463,6 @@ final class FirstPersonView {
         return cell < -1 ? (GameScene.isPerspectiveTargeting() ? -2 - cell : -1) : cell;
     }
 
-    void drawKeys() {
-        if (keys != null && !controllerControls) keys.draw();
-    }
-
     void destroy() {
         if (destroyed) return;
         destroyed = true;
@@ -1487,7 +1482,6 @@ final class FirstPersonView {
         effects.destroy();
         combat.destroy();
         heldWeapon.destroy();
-        if (keys != null) keys.destroy();
         for (Image art : terrainSprites) if (art != null) art.destroy();
         grassAlt.destroy();
         TextureCache.remove(texture);

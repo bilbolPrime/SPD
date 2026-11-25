@@ -67,6 +67,7 @@ import com.bilboldev.pixeldungeonskills.levels.HallsLevel;
 import com.bilboldev.pixeldungeonskills.levels.LastLevel;
 import com.bilboldev.pixeldungeonskills.levels.LastShopLevel;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.pixeldungeonskills.levels.PrisonBossLevel;
 import com.bilboldev.pixeldungeonskills.levels.PrisonLevel;
 import com.bilboldev.pixeldungeonskills.levels.Room;
@@ -77,7 +78,6 @@ import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.scenes.StartScene;
 import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
-import com.bilboldev.pixeldungeonskills.ui.ItemDropCards;
 import com.bilboldev.pixeldungeonskills.utils.BArray;
 import com.bilboldev.pixeldungeonskills.windows.WndResurrect;
 import com.bilboldev.utils.Bundlable;
@@ -121,6 +121,7 @@ public class Dungeon {
     }
 
     public static int levelKey() {
+        if (JourneyRun.active() && !JourneyRun.inCamp()) return JourneyRun.levelKey();
         return IceCaves.levelKey(depth);
     }
 
@@ -187,7 +188,6 @@ public class Dungeon {
     }
 
     private static void useSpecialRunRules() {
-        ItemDropCards.resetRun();
         SupporterEntitlements.resetRunAura();
         seed = null;
         LocalCoop.clear();
@@ -209,7 +209,6 @@ public class Dungeon {
 
 	public static void init() {
 		Lore.clearNotices();
-        ItemDropCards.resetRun();
         SupporterEntitlements.resetRunAura();
         if (runRules.hasSeed()) {
             if (seed == null) seed = RunSeed.random();
@@ -226,7 +225,7 @@ public class Dungeon {
         challengeBosses = 0;
 		playableRun = true;
 
-		challenges = TutorialRun.active() || DailyRun.active() ? 0 : runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
+		challenges = TutorialRun.active() || DailyRun.active() || JourneyRun.active() ? 0 : runRules.challenges(runRules.hasChallenges() ? PixelDungeon.rebornChallenges() : PixelDungeon.challenges());
 		Skill.skillTrack = 0;
 		Actor.clear();
 
@@ -378,7 +377,6 @@ public class Dungeon {
 
 	public static void initGauntlet() {
 		Lore.clearNotices();
-        ItemDropCards.resetRun();
 
         if (!GauntletRun.active()) throw new IllegalStateException("Start an isolated Gauntlet session first");
         runRules = RunRules.newRun(GameplayMode.REBORN);
@@ -438,6 +436,46 @@ public class Dungeon {
         try (Random.Scope random = RunSeed.scope(RunSeed.FLOOR, IceCaves.levelKey(depth + 1));
              Generator.Scope loot = RunSeed.active() ? Generator.isolate() : null) {
             return createLevel();
+        }
+    }
+
+    static Level newJourneyLevel(JourneyRoute.Node node, int floor) {
+        Dungeon.level = null;
+        Actor.clear();
+        depth = node.depth(floor);
+        boolean boss = (node.gate || node.finish) && floor == node.floors - 1;
+        Arrays.fill(visible, false);
+        try (Random.Scope random = RunSeed.scope(RunSeed.FLOOR, levelKey());
+             Generator.Scope loot = Generator.isolate()) {
+            Level next;
+            if (node.finish && boss) next = new HallsBossLevel();
+            else switch (node.biome) {
+                case SEWERS:
+                    next = boss ? new SewerBossLevel() : new SewerLevel();
+                    break;
+                case PRISON:
+                    next = boss ? new PrisonBossLevel() : new PrisonLevel();
+                    break;
+                case CAVES:
+                    next = boss ? new CavesBossLevel() : new CavesLevel();
+                    break;
+                case CITY:
+                    next = boss ? new CityBossLevel() : new CityLevel();
+                    break;
+                case HALLS:
+                    next = new HallsLevel();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported Journey biome");
+            }
+            next.create();
+            for (int cell = 0; cell < Level.LENGTH; cell++)
+                if (next.map[cell] == Terrain.STORAGE) next.map[cell] = Terrain.EMPTY;
+            next.storage = -1;
+            next.rebuildFlags();
+            Statistics.deepestFloor = Math.max(Statistics.deepestFloor, depth);
+            Statistics.qualifiedForNoKilling = !boss;
+            return next;
         }
     }
 
@@ -544,7 +582,7 @@ public class Dungeon {
 	}
 
 	public static boolean shopOnLevel() {
-        return depth == 1 || depth == 6 || depth == 11 || depth == 16;
+        return !JourneyRun.active() && (depth == 1 || depth == 6 || depth == 11 || depth == 16);
 	}
 
 	public static boolean bossLevel() {
@@ -584,12 +622,12 @@ public class Dungeon {
 		if (LocalCoop.active()) LocalCoop.placeParty(level, pos != -1 ? pos : level.exit);
 		Actor.init();
 
-		Actor respawner = level.respawner();
+		Actor respawner = JourneyRun.active() ? null : level.respawner();
 		if (respawner != null) {
-			Actor.add( level.respawner() );
+			Actor.add(respawner);
 		}
 
-        if (!LocalCoop.active()) {
+        if (!LocalCoop.active() && !JourneyRun.active()) {
             for (Mob mob : level.mobs) {
                 if (mob instanceof HiredMerc && mob.isAlive()) {
                     hero.hiredMerc = (HiredMerc)mob;
@@ -598,7 +636,7 @@ public class Dungeon {
             }
         }
         hero.checkMerc = hero.hiredMerc != null && !level.mobs.contains(hero.hiredMerc);
-        if(!LocalCoop.active() && depth != ColdGirl.FROST_DEPTH && depth != 0) {
+        if(!LocalCoop.active() && !JourneyRun.active() && depth != ColdGirl.FROST_DEPTH && depth != 0) {
             Actor mercRespawn = level.mercRespawner();
             if (mercRespawn != null) {
                 Actor.add(mercRespawn);
@@ -744,6 +782,10 @@ public class Dungeon {
 	}
 
 	public static void saveGame( String fileName ) throws IOException {
+		if (JourneyRun.active()) {
+			JourneyRun.save();
+			return;
+		}
 		if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
@@ -814,6 +856,10 @@ public class Dungeon {
 	}
 
 	public static void saveLevel() throws IOException {
+		if (JourneyRun.active()) {
+			JourneyRun.save();
+			return;
+		}
         if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) {
 			LocalCoop.rememberLevel(levelKey(), level);
@@ -840,6 +886,11 @@ public class Dungeon {
 	}
 
 	public static void saveAll() throws IOException {
+		if (JourneyRun.active()) {
+			Actor.fixTime();
+			JourneyRun.save();
+			return;
+		}
         if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
@@ -892,7 +943,6 @@ public class Dungeon {
 
 	private static void loadGame(Bundle bundle, boolean fullLoad, RunRules restored) throws IOException {
 		Lore.clearNotices();
-		ItemDropCards.resetRun();
 		SupporterEntitlements.resetRunAura();
 		LocalCoop.clear();
 		runRules = restored;
@@ -1010,6 +1060,7 @@ public class Dungeon {
 	}
 
 	public static void deleteGame(HeroClass cl, int slot, boolean deleteLevels) {
+        if (JourneyRun.active()) return;
         if (TutorialRun.active() || DailyRun.active()) return;
 		if (LocalCoop.active()) return;
 		if (GauntletRun.active()) return;
@@ -1062,7 +1113,7 @@ public class Dungeon {
 
 	public static void fail( String desc, Object cause ) {
 		if (LocalCoop.active()) return;
-		if (TutorialRun.active() || GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || JourneyRun.active()) return;
 		resultDescription = desc;
 		resultCauseClassName = resultCauseClassName( cause );
 		if (hero.belongings.getItem( Ankh.class ) == null || Dungeon.depth == ColdGirl.FROST_DEPTH) {
@@ -1075,7 +1126,7 @@ public class Dungeon {
 
 	public static void win( String desc ) {
 		if (LocalCoop.active()) return;
-		if (TutorialRun.active() || GauntletRun.active()) return;
+		if (TutorialRun.active() || GauntletRun.active() || JourneyRun.active()) return;
 
 		hero.belongings.identify();
 

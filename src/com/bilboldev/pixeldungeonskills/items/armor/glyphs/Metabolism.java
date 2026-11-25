@@ -25,6 +25,7 @@ import com.bilboldev.pixeldungeonskills.actors.buffs.Hunger;
 import com.bilboldev.pixeldungeonskills.effects.Speck;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.items.armor.Armor.Glyph;
+import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite.Glowing;
@@ -32,8 +33,6 @@ import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.utils.Random;
 
 public class Metabolism extends Glyph {
-
-	private static final String TXT_METABOLISM	= "%s of metabolism";
 
 	private static ItemSprite.Glowing RED = new ItemSprite.Glowing( 0xCC0000 );
 
@@ -67,7 +66,7 @@ public class Metabolism extends Glyph {
 
 	@Override
 	public String name( String weaponName) {
-		return String.format( TXT_METABOLISM, weaponName );
+		return Messages.get( "items.armor.curses.metabolism.name", (Object)weaponName );
 	}
 
 	@Override

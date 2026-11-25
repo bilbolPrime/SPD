@@ -43,11 +43,6 @@ abstract class TitleMenuButton extends Button {
         add(icon = image);
     }
 
-    boolean fitsWidth(float buttonWidth) {
-        float textWidth = buttonWidth - (buttonWidth < 120 ? 43 : 53);
-        return label.width * labelScaleX * 0.85f <= textWidth;
-    }
-
     @Override
     protected void layout() {
         super.layout();
@@ -63,13 +58,21 @@ abstract class TitleMenuButton extends Button {
         boolean compact = width < 120;
         float iconSize = Math.min(compact ? 16 : 22, height - 6);
         icon.scale.set(iconSize / Math.max(icon.width, icon.height));
-        icon.x = PixelScene.align(x + 8);
-        icon.y = PixelScene.align(y + (height - iconSize) / 2);
         label.scale.set(labelScaleX, labelScaleY);
-        float fit = Math.min(1, (width - (compact ? 43 : 53)) / Math.max(1, label.width()));
+        float fit = Math.min(1, (width - (compact ? 12 : 53)) / Math.max(1, label.width()));
         label.scale.set(labelScaleX * fit, labelScaleY * fit);
-        label.x = PixelScene.align(x + (compact ? 28 : 38));
-        label.y = PixelScene.align(y + (height - label.baseLine()) / 2 - 1);
+        if (compact) {
+            icon.x = PixelScene.align(x + (width - icon.width()) / 2);
+            icon.y = PixelScene.align(y + (height - iconSize - 3 - label.baseLine()) / 2);
+            label.x = PixelScene.align(x + (width - label.width()) / 2);
+            label.y = PixelScene.align(icon.y + iconSize + 3);
+        } else {
+            icon.x = PixelScene.align(x + 8);
+            icon.y = PixelScene.align(y + (height - iconSize) / 2);
+            label.x = PixelScene.align(x + 38);
+            label.y = PixelScene.align(y + (height - label.baseLine()) / 2 - 1);
+        }
+        arrow.visible = !compact;
         arrow.x = PixelScene.align(x + width - arrow.width() - 9);
         arrow.y = PixelScene.align(y + (height - arrow.baseLine()) / 2 - 1);
     }

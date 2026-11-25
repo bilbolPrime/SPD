@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.items;
 
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -72,6 +73,7 @@ public class ItemStatusHandler<T extends Item> {
             images.put( item, allImages[i] );
 
         }
+        if (JourneyRun.active()) known.addAll(Arrays.asList(items));
         revision++;
     }
 
@@ -98,6 +100,7 @@ public class ItemStatusHandler<T extends Item> {
 			images.put( item, imagesLeft.get( index ) );
 			imagesLeft.remove( index );
 		}
+		if (JourneyRun.active()) known.addAll(Arrays.asList(items));
 		revision++;
 	}
 
@@ -110,6 +113,7 @@ public class ItemStatusHandler<T extends Item> {
 		known = new HashSet<Class<? extends T>>();
 
 		restore( bundle, labels, images );
+		if (JourneyRun.active()) known.addAll(Arrays.asList(items));
 		revision++;
 	}
 

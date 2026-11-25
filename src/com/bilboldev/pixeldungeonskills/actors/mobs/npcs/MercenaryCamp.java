@@ -3,6 +3,7 @@ package com.bilboldev.pixeldungeonskills.actors.mobs.npcs;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
+import com.bilboldev.pixeldungeonskills.items.armor.Armor;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.sprites.CharSprite;
 import com.bilboldev.pixeldungeonskills.sprites.MercSprite;
@@ -34,7 +35,8 @@ public class MercenaryCamp extends NPC {
     @Override
     public CharSprite sprite() {
         MercSprite result = (MercSprite)super.sprite();
-        result.updateArmor(offer());
+        Armor armor = offer().startingArmor();
+        result.updateArmor(offer(), armor == null ? 0 : armor.tier);
         return result;
     }
 

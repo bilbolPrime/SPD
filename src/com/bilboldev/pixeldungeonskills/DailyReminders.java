@@ -25,7 +25,7 @@ public final class DailyReminders {
     private DailyReminders() {}
 
     public static void showRequested(boolean inRun) {
-        if (TutorialRun.active()) return;
+        if (TutorialRun.active() || JourneyRun.active()) return;
         if (configureRequested && settings != null) {
             configureRequested = false;
             if (!(Window.topWindow() instanceof WndDailyReminders))

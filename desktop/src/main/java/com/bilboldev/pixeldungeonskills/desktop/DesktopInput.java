@@ -1,5 +1,8 @@
 package com.bilboldev.pixeldungeonskills.desktop;
 
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -19,6 +22,7 @@ import com.bilboldev.input.Touchscreen;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.pixeldungeonskills.network.PartyPrompts;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.TitleScene;
@@ -73,6 +77,9 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
     private Object selectorContext;
     private long contextVersion = -1;
     private float scrollDelay;
+    private int waitSource = -1;
+    private float waitTime;
+    private Hero waitHero;
     private Object perspectiveContext;
     private boolean thirdPersonContext;
     private boolean mouseLook, mouseLookFailed, ignoreMouseMotion, discardFocusClick;
@@ -113,6 +120,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
             return true;
         }
         if (!inputAvailable() || !keysDown.add(keycode)) return true;
+        ControlSettings.keyboardHints = true;
         Window window = Window.topWindow();
         if (Game.isFreeDesktop() && (window instanceof WndHeroAppearance || window instanceof WndHeroAppearance.RatKingHint)
                 && (keycode >= Input.Keys.A && keycode <= Input.Keys.Z || keycode == Input.Keys.DEL)) return true;
@@ -227,6 +235,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
     }
 
     private void pressAction(GameAction action, int source) {
+        if (action != GameAction.WAIT) clearWait();
         if (action.isMovement()) {
             if (PartyControls.keyboardCursor()) {
                 showPointer();
@@ -247,6 +256,16 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
                 Touchscreen.processTouchDown(id, centreAim ? Game.width / 2f : pointerX,
                         centreAim ? Game.height / 2f : pointerY, action == GameAction.POINTER_SECONDARY);
             }
+        } else if (action == GameAction.WAIT) {
+            movement.clear();
+            Button button = GameActions.visibleButton(GameAction.WAIT);
+            if (waitSource < 0 && button != null && button.acceptsAction()
+                    && GameScene.canAcceptGameplayInput() && Dungeon.hero.isAlive() && !Dungeon.hero.paralysed
+                    && (LocalCoop.active() ? LocalCoop.acceptsInput() : Dungeon.hero.ready)) {
+                waitSource = source;
+                waitTime = 0;
+                waitHero = Dungeon.hero;
+            }
         } else if (action == GameAction.ZOOM_IN || action == GameAction.ZOOM_OUT) {
             scroll(action == GameAction.ZOOM_IN ? -1 : 1);
             scrollDelay = 0.3f;
@@ -258,7 +277,13 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
     }
 
     private void releaseAction(GameAction action, int source) {
-        if (action.isMovement()) movement.release(source);
+        if (action == GameAction.WAIT && source == waitSource) {
+            syncContext();
+            if (source != waitSource) return;
+            boolean owned = waitHero == Dungeon.hero;
+            clearWait();
+            if (owned) GameActions.perform(GameAction.WAIT);
+        } else if (action.isMovement()) movement.release(source);
         else if (!activeKeys.containsValue(action) && !activeButtons.containsValue(action)) {
             if (action == GameAction.POINTER_PRIMARY) Touchscreen.processTouchUp(PRIMARY_POINTER);
             else if (action == GameAction.POINTER_SECONDARY) Touchscreen.processTouchUp(SECONDARY_POINTER);
@@ -274,6 +299,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
             ignoredMouseButtons.add(button);
             return true;
         }
+        ControlSettings.keyboardHints = false;
         syncContext();
         useMouse();
         if (awaitingLookClick && canCaptureLook() && inside(x, y, Game.width, Game.height)) {
@@ -499,6 +525,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
                 if (held.getValue().isMovement()) movement.release(CONTROLLER_SOURCE + held.getKey());
             }
             activeButtons.clear();
+            if (waitSource >= CONTROLLER_SOURCE) clearWait();
         }
         controllerActive = false;
         cursorButtons.clear();
@@ -539,6 +566,13 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
             captureWasActive = capturing;
         }
         float dt = Math.min(0.1f, Math.max(0, elapsed));
+        if (waitSource >= 0) {
+            if (waitHero != Dungeon.hero) clearWait();
+            else if ((waitTime += dt) >= Button.longClick) {
+                clearWait();
+                GameActions.perform(GameAction.REST);
+            }
+        }
         if (Math.abs(rightX) < 0.2f && Math.abs(rightY) < 0.2f) requireRightNeutral = false;
         if (!requireRightNeutral && (Math.abs(rightX) >= 0.2f || Math.abs(rightY) >= 0.2f)) {
             if (controllerMode == ControllerMode.LOOK) {
@@ -665,11 +699,18 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
     }
 
     private void clearActions() {
+        clearWait();
         movement.clear();
         activeKeys.clear();
         activeButtons.clear();
         cancelControllerTouches();
         requireLeftNeutral = Math.abs(leftX) >= 0.25f || Math.abs(leftY) >= 0.25f;
+    }
+
+    private void clearWait() {
+        waitSource = -1;
+        waitHero = null;
+        waitTime = 0;
     }
 
     public void resetState() {
@@ -855,6 +896,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
         if (down) {
             if (!buttonsDown.add(code)) return true;
             controllerActive = true;
+            ControlSettings.keyboardHints = false;
             syncControllerMode();
             if (bindings.capture(code, true)) return true;
             GameAction action = bindings.actionFor(code, true);
@@ -917,6 +959,7 @@ public final class DesktopInput extends InputAdapter implements ControllerListen
         if (!trigger && Math.abs(value) >= activation
                 && !(axisCode == map.axisRightX || axisCode == map.axisRightY ? requireRightNeutral : requireLeftNeutral)) {
             controllerActive = true;
+            ControlSettings.keyboardHints = false;
             syncContext();
         }
         return true;

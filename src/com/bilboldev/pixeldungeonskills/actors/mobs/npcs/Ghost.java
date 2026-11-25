@@ -26,6 +26,7 @@ import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Challenges;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.Journal;
 import com.bilboldev.pixeldungeonskills.Lore;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
@@ -243,6 +244,7 @@ public class Ghost extends NPC {
 		}
 
 		public static void spawn( SewerLevel level ) {
+			if (JourneyRun.active()) return;
 			if (!spawned && Dungeon.depth > 1 && Random.Int( 5 - Dungeon.depth ) == 0) {
 
 				Ghost ghost = new Ghost();

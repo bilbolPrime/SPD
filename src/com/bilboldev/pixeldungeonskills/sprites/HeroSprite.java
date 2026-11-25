@@ -45,6 +45,11 @@ import com.bilboldev.utils.RectF;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
 
 public class HeroSprite extends CharSprite {
+	private final int floor = Dungeon.levelKey();
+
+	public boolean onCurrentLevel() {
+		return floor == Dungeon.levelKey();
+	}
 
 	protected static final int FRAME_WIDTH	= 12;
     protected static final int FRAME_HEIGHT	= 15;
@@ -92,7 +97,14 @@ public class HeroSprite extends CharSprite {
 		texture( hero.spritesheet() );
 		updateArmor();
 
-		idle();
+		if (hero.isAlive()) {
+			idle();
+		} else {
+			play(die);
+			curFrame = die.frames.length - 1;
+			frame(die.frames[curFrame]);
+			finished = true;
+		}
 	}
 
 	public void updateArmor() {

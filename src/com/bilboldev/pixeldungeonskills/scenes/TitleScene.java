@@ -21,7 +21,7 @@ import com.bilboldev.pixeldungeonskills.DailyReminders;
 
 import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.TutorialRun;
-import com.bilboldev.pixeldungeonskills.Assets;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 
 import com.bilboldev.pixeldungeonskills.Lore;
 import java.util.ArrayList;
@@ -52,16 +52,18 @@ import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSpriteSheet;
 import com.bilboldev.pixeldungeonskills.ui.ExitButton;
 import com.bilboldev.pixeldungeonskills.ui.PrefsButton;
+import com.bilboldev.pixeldungeonskills.ui.PresentationButton;
 import com.bilboldev.pixeldungeonskills.ui.UpdateButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
-import com.bilboldev.pixeldungeonskills.windows.WndDaily;
 import com.bilboldev.pixeldungeonskills.windows.WndSettings;
+import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import java.io.IOException;
 import com.bilboldev.utils.Signal;
 import com.bilboldev.utils.PointF;
 
 public class TitleScene extends PixelScene {
     public enum Page {
-        HOME, HEROES, RANKINGS, BADGES, ABOUT, LIBRARY, TUTORIAL, DAILY
+        HOME, PLAY, HEROES, GAUNTLET, RANKINGS, BADGES, ABOUT, LIBRARY, TUTORIAL, DAILY, JOURNEY
     }
     static final HeroClass[] HERO_CLASSES = {HeroClass.WARRIOR, HeroClass.MAGE, HeroClass.ROGUE,
             HeroClass.HUNTRESS, HeroClass.NECROMANCER, HeroClass.MERCENARY};
@@ -87,6 +89,9 @@ public class TitleScene extends PixelScene {
 
     @Override
     public void create() {
+        boolean journeySaveFailed = false;
+        try { JourneyRun.leave(); }
+        catch (IOException error) { journeySaveFailed = true; }
         Lore.clearNotices();
         GauntletRun.finish();
         DailyRun.leave();
@@ -124,57 +129,18 @@ public class TitleScene extends PixelScene {
             Music.INSTANCE.play(Presentation.titleMusic(), true);
         }
 
-        addAction(Messages.get(TitleScene.class, "play"), 0, true, Page.HEROES);
-        TitleMenuButton tutorial = new TitleMenuButton(Messages.get("tutorial.menu"), 0, false) {
-            { icon(new Image(Assets.TUTORIAL)); }
-
-            @Override protected void onClick() {
-                navigate(Page.TUTORIAL);
-            }
-        };
-        home.add(tutorial);
-        buttons.add(tutorial);
-        TitleMenuButton daily = new TitleMenuButton(Messages.get("daily.menu"), 0, false) {
-            private long date = DailyRun.today();
-            { icon(WndDaily.image(date)); }
-
-            @Override protected void onClick() { navigate(Page.DAILY); }
-
-            @Override public void update() {
-                super.update();
-                if (date != DailyRun.today()) {
-                    date = DailyRun.today();
-                    icon(WndDaily.image(date));
-                    layout();
-                }
-            }
-        };
-        home.add(daily);
-        buttons.add(daily);
-        int secondaryStart = buttons.size();
+        addAction(Messages.get(TitleScene.class, "play"), 0, true, Page.PLAY);
         addAction(Messages.get(TitleScene.class, "rankings"), 2, false, Page.RANKINGS);
         addAction(Messages.maybeTranslate("Badges"), 3, false, Page.BADGES);
         TitleMenuButton library = addAction(Messages.get(TitleScene.class, "library"), 1, false, Page.LIBRARY);
         library.icon(new ItemSprite(ItemSpriteSheet.MASTERY, null));
         addAction(Messages.maybeTranslate("About"), 1, false, Page.ABOUT);
-        float menuWidth = Math.min(portrait ? 176 : 164, portrait ? w - 32 : w * 0.35f);
+
+        float menuWidth = Math.min(Window.isDesktopRuntime() ? 300 : 240, portrait ? w - 32 : w * .46f);
         float gap = 4;
-        float available = h - (portrait ? 124 : 48) - (buttons.size() - 1) * gap;
         float targetHeight = Math.max(34, 48 * Game.density / zoom);
-        boolean paired = portrait || Game.height < 600 * Game.density
-                || available / buttons.size() < targetHeight;
-        if (paired) {
-            float pairedWidth = Math.min(240, portrait ? w - 32 : w * .46f);
-            for (int i = secondaryStart; i < secondaryStart + 4; i++) {
-                if (!buttons.get(i).fitsWidth((pairedWidth - gap) / 2)) {
-                    paired = false;
-                    break;
-                }
-            }
-            if (paired) menuWidth = pairedWidth;
-        }
-        int rows = buttons.size() - (paired ? 2 : 0);
-        available = h - (portrait ? 124 : 48) - (rows - 1) * gap;
+        int rows = buttons.size();
+        float available = h - (portrait ? 124 : 48) - (rows - 1) * gap;
         float buttonHeight = Math.min(targetHeight, available / rows);
         float menuHeight = rows * buttonHeight + (rows - 1) * gap;
         float menuX = portrait ? (w - menuWidth) / 2 : Math.max(16, w * 0.065f);
@@ -202,12 +168,7 @@ public class TitleScene extends PixelScene {
         runes.alpha(0.32f);
         home.add(runes);
         for (int i = 0; i < buttons.size(); i++) {
-            boolean sharedRow = paired && i >= secondaryStart && i < secondaryStart + 4;
-            int row = sharedRow ? secondaryStart + (i - secondaryStart) / 2
-                    : paired && i >= secondaryStart + 4 ? i - 2 : i;
-            float buttonWidth = sharedRow ? (menuWidth - gap) / 2 : menuWidth;
-            float x = menuX + (sharedRow && (i - secondaryStart) % 2 == 1 ? buttonWidth + gap : 0);
-            buttons.get(i).setRect(align(x), align(menuY + row * (buttonHeight + gap)), buttonWidth, buttonHeight);
+            buttons.get(i).setRect(align(menuX), align(menuY + i * (buttonHeight + gap)), menuWidth, buttonHeight);
         }
         utilities(w, h);
 
@@ -249,6 +210,7 @@ public class TitleScene extends PixelScene {
             reveal();
             add(VersionNewsInfo.getWelcomeWindow());
         }
+        if (journeySaveFailed) add(new WndMessage(Messages.get("journey.save_failed")));
     }
 
     protected Page initialPage() {
@@ -363,6 +325,9 @@ public class TitleScene extends PixelScene {
         PrefsButton prefs = new PrefsButton();
         prefs.setRect(8, 8, 24, 24);
         add(prefs);
+        PresentationButton mode = new PresentationButton();
+        mode.setPos(prefs.right() + 4, prefs.top());
+        home.add(mode);
         ExitButton exit = new ExitButton();
         exit.setRect(w - 30, 8, 24, 24);
         add(exit);
@@ -450,7 +415,15 @@ public class TitleScene extends PixelScene {
             refreshHeroes();
             return;
         }
-        if (page != Page.HOME) navigate(Page.HOME);
-        else super.onBackPressed();
+        switch (page) {
+            case HEROES: case GAUNTLET: case TUTORIAL: case DAILY: case JOURNEY:
+                navigate(Page.PLAY);
+                break;
+            case HOME:
+                super.onBackPressed();
+                break;
+            default:
+                navigate(Page.HOME);
+        }
     }
 }

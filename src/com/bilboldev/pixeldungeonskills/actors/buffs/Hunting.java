@@ -18,6 +18,7 @@
 package com.bilboldev.pixeldungeonskills.actors.buffs;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.food.MysteryMeat;
 import com.bilboldev.pixeldungeonskills.utils.GLog;
@@ -30,7 +31,7 @@ public class Hunting extends Buff {
 
 			Hero hero = (Hero)target;
 
-            if(hero.skillTree.hunting() < 1)
+            if(JourneyRun.active() || hero.skillTree.hunting() < 1)
             {
                 spend( 100 );
                 return true;

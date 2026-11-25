@@ -25,6 +25,8 @@ import com.bilboldev.gltextures.SmartTexture;
 import com.bilboldev.gltextures.TextureCache;
 import com.bilboldev.glwrap.Texture;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
 import com.bilboldev.pixeldungeonskills.scenes.GauntletScene;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
@@ -37,6 +39,7 @@ public class FogOfWar extends Image {
 	private static final int INVISIBLE	= 0xFF000000;
 
 	private int[] pixels;
+	private int[] mappedPixels;
 
 	private int pWidth;
 	private int pHeight;
@@ -103,7 +106,44 @@ public class FogOfWar extends Image {
 			}
 		}
 
-		texture.pixels( width2, height2, pixels );
+		for (Heap heap : Dungeon.level.heaps.values()) {
+			if (heap.revealed && mappedPixels == null) mappedPixels = new int[width2 * height2 * 4];
+		}
+		if (mappedPixels == null) {
+			texture.pixels( width2, height2, pixels );
+			return;
+		}
+
+		int stride = width2 * 2;
+		for (int row = 0; row < height2; row++) for (int col = 0; col < width2; col++) {
+			int nextCol = Math.min(col + 1, width2 - 1);
+			int nextRow = Math.min(row + 1, height2 - 1);
+			int top = pixels[row * width2 + col];
+			int right = average(top, pixels[row * width2 + nextCol]);
+			int bottom = pixels[nextRow * width2 + col];
+			int bottomRight = average(bottom, pixels[nextRow * width2 + nextCol]);
+			int at = row * 2 * stride + col * 2;
+			mappedPixels[at] = top;
+			mappedPixels[at + 1] = right;
+			mappedPixels[at + stride] = average(top, bottom);
+			mappedPixels[at + stride + 1] = average(right, bottomRight);
+		}
+		for (Heap heap : Dungeon.level.heaps.values()) {
+			if (heap.revealed && mapped[heap.pos] && !visible[heap.pos] && !visited[heap.pos]) {
+				int col = heap.pos % (pWidth - 1), row = heap.pos / (pWidth - 1);
+				mappedPixels[(row * 2 + 1) * stride + col * 2 + 1] = MAPPED;
+			}
+		}
+		texture.pixels(stride, height2 * 2, mappedPixels);
+		texture.width = stride;
+		texture.height = height2 * 2;
+		frame(0, 0, stride, height2 * 2);
+		scale.set(DungeonTilemap.SIZE / 2f);
+		x = y = -DungeonTilemap.SIZE / 4f;
+	}
+
+	private static int average(int first, int second) {
+		return (first & second) + (((first ^ second) & 0xFEFEFEFE) >>> 1);
 	}
 
 	@Override

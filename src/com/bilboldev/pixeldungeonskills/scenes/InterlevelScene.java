@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.Camera;
 import com.bilboldev.noosa.Game;
+import com.bilboldev.noosa.Scene;
 import com.bilboldev.noosa.audio.Music;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
@@ -31,6 +32,7 @@ import com.bilboldev.pixeldungeonskills.DailyRun;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.IceCaves;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.levels.CavesBossLevel;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.Statistics;
@@ -75,7 +77,7 @@ public class InterlevelScene extends PixelScene {
 	private static final String ERR_GENERIC			= "Something went wrong..."	;
 
 	public static enum Mode {
-		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT, FROST, DAILY, TUTORIAL
+		DESCEND, ASCEND, CONTINUE, RESURRECT, RETURN, FALL, NONE, TELEPORT, TELEPORT_BACK, MOVIE, MOVIE_OUT, MISSION, PLAY_ONLINE, GUANTLET, GUANTLET_NEXT, FROST, DAILY, TUTORIAL, JOURNEY, JOURNEY_CAMP
 	};
 	public static Mode mode;
 
@@ -121,6 +123,8 @@ public class InterlevelScene extends PixelScene {
 		case CONTINUE:
 		case DAILY:
 		case TUTORIAL:
+		case JOURNEY:
+		case JOURNEY_CAMP:
 			text = Messages.get( Mode.class, "continue" );
 			break;
 		case RESURRECT:
@@ -177,11 +181,21 @@ public class InterlevelScene extends PixelScene {
 			public void run() {
 
 				try {
+					if (JourneyRun.active() && transitionMode != Mode.JOURNEY
+							&& transitionMode != Mode.JOURNEY_CAMP && transitionMode != Mode.FALL)
+						throw new IOException("Journey areas cannot change dungeon floors");
 
 					if (transitionMode != Mode.GUANTLET && transitionMode != Mode.GUANTLET_NEXT
-							&& transitionMode != Mode.DAILY && transitionMode != Mode.TUTORIAL) Generator.reset();
+							&& transitionMode != Mode.DAILY && transitionMode != Mode.TUTORIAL
+							&& transitionMode != Mode.JOURNEY && transitionMode != Mode.JOURNEY_CAMP) Generator.reset();
 
 					switch (transitionMode) {
+					case JOURNEY:
+						JourneyRun.prepareArea();
+						break;
+					case JOURNEY_CAMP:
+						JourneyRun.finishArea();
+						break;
 					case DAILY:
 						freshRun = DailyRun.prepare();
 						break;
@@ -284,7 +298,10 @@ public class InterlevelScene extends PixelScene {
 				Music.INSTANCE.volume( p );
 			}
 			if ((timeLeft -= Game.elapsed) <= 0) {
-                if (transitionMode == Mode.DAILY) {
+                if (transitionMode == Mode.JOURNEY_CAMP) {
+                    mode = Mode.NONE;
+                    Game.switchScene(JourneyScene.class);
+                } else if (transitionMode == Mode.DAILY) {
                     mode = freshRun ? Mode.DAILY : Mode.NONE;
                     Game.switchScene(DailyScene.class);
                 } else if (transitionMode == Mode.TUTORIAL) {
@@ -321,6 +338,16 @@ public class InterlevelScene extends PixelScene {
 				TutorialRun.finish();
 				mode = Mode.NONE;
 				Game.switchScene(TitleScene.class);
+				return;
+			}
+			if (error != null && JourneyRun.active()) {
+				add(new WndError(Messages.get("journey.start_failed")) {
+					@Override public void onBackPressed() {
+						super.onBackPressed();
+						Game.switchScene(TitleScene.class);
+					}
+				});
+				error = null;
 				return;
 			}
 			if (error == null) {
@@ -462,6 +489,13 @@ public class InterlevelScene extends PixelScene {
 	}
 
 	private void fall() throws Exception {
+		if (JourneyRun.active()) {
+			fallingHero = null;
+			Actor.fixTime();
+			Dungeon.hero.curAction = null;
+			Dungeon.switchLevel(Dungeon.level, Dungeon.level.entrance);
+			return;
+		}
 		Hero fallen = fallingHero;
 		fallingHero = null;
 		if (LocalCoop.contains(fallen)) LocalCoop.activate(fallen);
@@ -659,6 +693,25 @@ public class InterlevelScene extends PixelScene {
 		Actor.clear();
 		level.rebuildFlags();
 		return level;
+	}
+
+	@Override
+	public boolean canLeave(Class<? extends Scene> next) {
+		if (JourneyRun.active() && next == TitleScene.class) {
+			try {
+				JourneyRun.prepareLeave();
+			} catch (IOException failure) {
+				Game.cancelSceneChange();
+				add(new WndError(Messages.get("journey.save_failed")) {
+					@Override public void onBackPressed() {
+						super.onBackPressed();
+						Game.switchScene(TitleScene.class);
+					}
+				});
+				return false;
+			}
+		}
+		return super.canLeave(next);
 	}
 
 	private void resurrect() throws Exception {

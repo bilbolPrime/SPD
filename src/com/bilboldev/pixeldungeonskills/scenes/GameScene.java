@@ -17,6 +17,7 @@
  */
 package com.bilboldev.pixeldungeonskills.scenes;
 
+import com.bilboldev.input.ControlSettings;
 import com.bilboldev.pixeldungeonskills.TutorialRun;
 import com.bilboldev.pixeldungeonskills.DailyReminders;
 
@@ -47,6 +48,7 @@ import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.effects.BossRemains;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.ui.BuffIndicator;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
@@ -67,6 +69,7 @@ import com.bilboldev.pixeldungeonskills.actors.blobs.Blob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.ColdGirl;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.effects.BannerSprites;
+import com.bilboldev.pixeldungeonskills.effects.DeathDrops;
 import com.bilboldev.pixeldungeonskills.effects.BlobEmitter;
 import com.bilboldev.pixeldungeonskills.effects.EmoIcon;
 import com.bilboldev.pixeldungeonskills.effects.FixedText;
@@ -110,6 +113,7 @@ import com.bilboldev.pixeldungeonskills.utils.GLog;
 import com.bilboldev.pixeldungeonskills.windows.WndBag.Mode;
 import com.bilboldev.pixeldungeonskills.windows.WndGame;
 import com.bilboldev.pixeldungeonskills.windows.WndBag;
+import com.bilboldev.pixeldungeonskills.windows.WndError;
 import com.bilboldev.pixeldungeonskills.windows.WndPartnerActions;
 import com.bilboldev.pixeldungeonskills.windows.WndStory;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
@@ -169,6 +173,7 @@ public class GameScene extends PixelScene {
     protected Group emoicons;
 
     protected Toolbar toolbar;
+    private StatusPane statusPane;
     protected Toast prompt;
 
     private static WeakReference<Hero> perspectiveHero = new WeakReference<>(null);
@@ -176,6 +181,7 @@ public class GameScene extends PixelScene {
     private static long terrainSeed;
     private static int sessionViewMode = 2;
     private FirstPersonView firstPersonView;
+    private DesktopKeyHints keyHints;
     com.bilboldev.pixeldungeonskills.effects.TenguWarnings tenguWarnings;
     com.bilboldev.pixeldungeonskills.effects.BossWarnings bossWarnings;
     private FirstPersonButton firstPersonButton;
@@ -366,7 +372,9 @@ public class GameScene extends PixelScene {
 		mobs.add( hero );
 		if (LocalCoop.active()) {
 			for (Hero teammate : LocalCoop.heroes()) {
-				if (teammate == Dungeon.hero || !teammate.isAlive()) continue;
+				if (teammate == Dungeon.hero) continue;
+				if (!teammate.isAlive() && (!(teammate.sprite instanceof HeroSprite)
+						|| !((HeroSprite)teammate.sprite).onCurrentLevel())) continue;
 				HeroSprite sprite = new HeroSprite(teammate);
 				sprite.place(teammate.pos);
 				mobs.add(sprite);
@@ -385,7 +393,7 @@ public class GameScene extends PixelScene {
             add(itemDrops);
         }
 
-		StatusPane sb = new StatusPane();
+		StatusPane sb = statusPane = new StatusPane();
 		sb.camera = uiCamera;
 		sb.setSize( uiCamera.width, 0 );
 		add( sb );
@@ -424,6 +432,7 @@ public class GameScene extends PixelScene {
             toolbar.layoutViewButton(firstPersonButton);
             add(firstPersonButton);
         }
+		bringToFront(toolbar);
 
 		switch (InterlevelScene.mode) {
 		case RESURRECT:
@@ -543,6 +552,17 @@ public class GameScene extends PixelScene {
 
     @Override
     public boolean canLeave(Class<? extends Scene> next) {
+        if (JourneyRun.dying() && (next != InterlevelScene.class
+                || InterlevelScene.mode != InterlevelScene.Mode.JOURNEY_CAMP)) return false;
+        if (JourneyRun.active() && next == TitleScene.class) {
+            try {
+                JourneyRun.prepareLeave();
+            } catch (IOException failure) {
+                Game.cancelSceneChange();
+                show(new WndError(Messages.get("journey.save_failed")));
+                return false;
+            }
+        }
         if (next != getClass() || PartySession.client() || Dungeon.hero == null || !Dungeon.hero.isAlive()) return true;
 
         Actor current = Actor.current();
@@ -554,6 +574,7 @@ public class GameScene extends PixelScene {
         PartyPresentation.detachDeaths(this);
         PartyVisuals.detach(this);
         closeFirstPerson();
+		if (keyHints != null) keyHints.destroy();
 
 		scene = null;
 		Badges.saveGlobal();
@@ -654,7 +675,7 @@ public class GameScene extends PixelScene {
     }
 
     public static boolean canLookAround() {
-        return isPerspectiveView() && canAcceptGameplayInput() && Window.topWindow() == null &&
+        return isPerspectiveView() && canAcceptGameplayInput() && Window.topWindow() == null && !Toolbar.menuOpen() &&
                 Dungeon.hero != null && Dungeon.hero.isAlive() && cellSelector != null &&
                 cellSelector.exists && cellSelector.parent == scene && cellSelector.listener != null;
     }
@@ -695,8 +716,15 @@ public class GameScene extends PixelScene {
     public static void cycleView() {
         if (scene == null || scene != Game.scene() || scene.firstPersonButton == null || Window.topWindow() != null) return;
         if (scene instanceof GauntletScene && !com.bilboldev.pixeldungeonskills.GauntletRun.acceptsInput()) return;
+        Toolbar.closeTrays();
         scene.setViewMode(PartySession.splitControls() ? (viewMode() == 2 ? 3 : 2) : (viewMode() + 1) % 4);
         if (cellSelector != null) cellSelector.resetViewGesture();
+    }
+
+    public static void updateButtonLayout() {
+        if (scene == null) return;
+        scene.statusPane.refreshButtonLayout();
+        if (scene.firstPersonButton != null) scene.toolbar.layoutViewButton(scene.firstPersonButton);
     }
 
     public static String perspectiveHelp() {
@@ -762,6 +790,7 @@ public class GameScene extends PixelScene {
         if (bossWarnings != null) bossWarnings.refresh();
         if (firstPersonView == null) {
             super.draw();
+            drawKeyHints();
             return;
         }
         Camera original = Camera.main;
@@ -790,6 +819,7 @@ public class GameScene extends PixelScene {
         }
         if (firstPersonView == null) {
             super.draw();
+            drawKeyHints();
             return;
         }
         firstPersonView.drawHint();
@@ -798,12 +828,13 @@ public class GameScene extends PixelScene {
             Gizmo g = members.get(i);
             if (g != null && g.exists && g.visible && g.camera() != original) g.draw();
         }
-        try {
-            firstPersonView.drawKeys();
-        } catch (RuntimeException | LinkageError failure) {
-            firstPersonFailed(failure);
-            super.draw();
-        }
+        drawKeyHints();
+    }
+
+    private void drawKeyHints() {
+        if (!ControlSettings.keyboardHints || ControlSettings.backend == null) return;
+        if (keyHints == null) keyHints = new DesktopKeyHints(uiCamera);
+        keyHints.draw();
     }
 
 	@Override
@@ -839,6 +870,7 @@ public class GameScene extends PixelScene {
 				&& !PartyWindows.busy()
 				&& (!LocalCoop.active() || Window.topWindow() == null)
 				&& (!GauntletRun.active() || GauntletRun.acceptsInput())
+                && !JourneyRun.dying()
                 && (!TutorialRun.active()
                     || (TutorialRun.acceptsInput() && Window.topWindow() == null))
                 && (!DailyRun.active()
@@ -847,6 +879,8 @@ public class GameScene extends PixelScene {
 			Actor.process();
 		}
 		if (partyTurn != null) partyTurn.update();
+        if (JourneyRun.active() || !DailyRun.active() && !GauntletRun.active() && Dungeon.bossLevel())
+            Music.INSTANCE.boss(com.bilboldev.pixeldungeonskills.DungeonMusic.hasBoss());
 		if (LocalCoop.active()) {
 			Hero focus = cameraHero();
 			if (focus != null && (LocalCoop.following(focus) || LocalCoop.following(LocalCoop.partner(focus)))) {
@@ -1028,6 +1062,19 @@ public class GameScene extends PixelScene {
 		}
 	}
 
+    public static void deathDrops(Heap remains, Iterable<Item> items) {
+        if (scene == null) return;
+        if (remains.sprite == null) scene.addHeapSprite(remains);
+        else remains.sprite.link(remains);
+        DeathDrops drops = new DeathDrops(remains.pos, items);
+        if (drops.length > 0) {
+            remains.sprite.alpha(0);
+            effect(drops);
+        } else {
+            remains.sprite.drop();
+        }
+    }
+
 	public static void discard( Heap heap ) {
 		if (scene != null) {
 			scene.addDiscardedSprite( heap );
@@ -1186,6 +1233,7 @@ public class GameScene extends PixelScene {
 
 	public static void show( Window wnd ) {
 		if (PartyWindows.capture(wnd)) return;
+		Toolbar.closeTrays();
 		cancelCellSelector();
 		scene.add( wnd );
 	}
@@ -1215,6 +1263,7 @@ public class GameScene extends PixelScene {
 	}
 
 	public static void bossSlain() {
+		JourneyRun.bossSlain();
 		Music.INSTANCE.boss(false);
 		if (Dungeon.hero.isAlive()) {
 			Banner bossSlain = new Banner( BannerSprites.get( BannerSprites.Type.BOSS_SLAIN ) );
@@ -1265,6 +1314,7 @@ public class GameScene extends PixelScene {
 
 	public static void selectCell( CellSelector.Listener listener ) {
         if (PartySession.captureTarget(listener, listener == defaultCellListener)) return;
+        Toolbar.targeting(listener, listener != defaultCellListener);
     	try
 		{
 			cellSelector.listener = listener;
@@ -1300,6 +1350,7 @@ public class GameScene extends PixelScene {
 
 	public static boolean cancel() {
     	try {
+            if (Toolbar.closeTrays()) return true;
             if (LocalCoop.wantsToFollow(Dungeon.hero)) {
                 if (!PartySession.input(Dungeon.hero, "unfollow", 0)) LocalCoop.stopFollowing(Dungeon.hero);
                 return true;

@@ -1,6 +1,7 @@
 package com.bilboldev.pixeldungeonskills.ui;
 
 import com.bilboldev.pixeldungeonskills.LibraryCreatureStats;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Champ;
 import com.bilboldev.pixeldungeonskills.actors.buffs.RebornChampion;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Bestiary;
@@ -21,6 +22,7 @@ import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Blacksmith;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Imp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ImpShopkeeper;
+import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.JourneyCaptive;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryCamp;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Prospector;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
@@ -32,12 +34,19 @@ public final class MobCardText {
 
     static String description(Mob mob) {
         String description = abilities(mob);
+        if (JourneyRun.isOfficer(mob)) description = Messages.get("journey.officer_desc") + "\n" + description;
+        if (JourneyRun.isSupplyGuard(mob)) description = "_" + Messages.get(JourneyRun.isOfficer(mob)
+                ? "journey.officer_name" : "journey.supply_guard") + "_\n" + description;
         String traits = LibraryCreatureStats.traits(mob);
         return traits.isEmpty() ? description : description + "\n" + traits;
     }
 
     public static String inspection(Mob mob) {
         StringBuilder text = new StringBuilder(mob.displayDescription());
+        if (JourneyRun.isSupplyGuard(mob) && !JourneyRun.isOfficer(mob)) {
+            text.append("\n\n_").append(Messages.get("journey.supply_guard")).append("_\n")
+                    .append(Messages.get("journey.guards_blocked"));
+        }
         String hint = peopleHint(mob);
         if (hint != null && !(mob instanceof MercenaryCamp)) {
             text.append("\n\n").append(Messages.get("ui.itemdropcards." + hint));
@@ -71,6 +80,7 @@ public final class MobCardText {
     }
 
     private static String abilities(Mob mob) {
+        if (mob instanceof JourneyCaptive) return mob.description();
         if (mob instanceof DailyAlly) return mob.description();
         if (mob instanceof DailyDemon) return mob.description();
         if (mob instanceof DailyDefender || mob instanceof DailyRaider || mob instanceof DailyCityGuard) return mob.description();

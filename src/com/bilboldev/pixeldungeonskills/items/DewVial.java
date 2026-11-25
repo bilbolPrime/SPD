@@ -150,6 +150,15 @@ public class DewVial extends Item {
 		updateQuickslot();
 	}
 
+    public Dewdrop empty() {
+        if (volume == 0) return null;
+        Dewdrop dew = new Dewdrop();
+        dew.quantity(volume);
+        volume = 0;
+        updateQuickslot();
+        return dew;
+    }
+
 	public static void autoDrink( Hero hero ) {
 		DewVial vial = hero.belongings.getItem( DewVial.class );
 		if (vial != null && vial.isFull()) {

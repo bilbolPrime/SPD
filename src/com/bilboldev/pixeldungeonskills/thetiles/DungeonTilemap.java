@@ -22,6 +22,7 @@ import com.bilboldev.noosa.Tilemap;
 import com.bilboldev.noosa.tweeners.AlphaTweener;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.levels.Level;
+import com.bilboldev.pixeldungeonskills.levels.Terrain;
 import com.bilboldev.utils.GameMath;
 import com.bilboldev.utils.Point;
 import com.bilboldev.utils.PointF;
@@ -55,16 +56,17 @@ public abstract class DungeonTilemap extends DungeonTilemapOld {
 
 		int cell = (int)p.x + (int)p.y * Dungeon.level.width();
 
-		if (wallAssist
-				&& map != null
-				&& DungeonTileSheet.wallStitcheable(map[cell])){
+		if (wallAssist && map != null && cell + mapWidth < size) {
+			int below = map[cell + mapWidth];
+			boolean wall = DungeonTileSheet.wallStitcheable(map[cell]);
+			boolean door = below == Terrain.DOOR || below == Terrain.LOCKED_DOOR;
+			boolean edge = p.y % 1 >= 0.75f;
 
-			if (cell + mapWidth < size
-					&& p.y % 1 >= 0.75f
-					&& !DungeonTileSheet.wallStitcheable(map[cell + mapWidth])){
+			boolean panel = wall && door && p.y % 1 >= 7f / SIZE
+					&& p.x % 1 >= 3f / SIZE && p.x % 1 < 13f / SIZE;
+			if (panel || edge && (wall || door) && !DungeonTileSheet.wallStitcheable(below)) {
 				cell += mapWidth;
 			}
-
 		}
 
 		return cell;

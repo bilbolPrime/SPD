@@ -262,8 +262,7 @@ public class WndSkillNew extends WndScrollable {
 
     private void addQuickSlot(ArrayList<RedButton> buttons, Skill skill) {
         if (!QuickSlot.canAssign(skill)) return;
-        String label = Dungeon.hero.talents() != null || QuickSlot.freeSlot() >= 0 ? "skills4.quickslot" : "skills4.sticky";
-        RedButton button = new RedButton(Messages.get(label)) {
+        RedButton button = new RedButton(Messages.get("skills4.quickslot")) {
             @Override protected void onClick() {
                 if (PartyWindows.select(this)) return;
                 hide();
@@ -272,7 +271,7 @@ public class WndSkillNew extends WndScrollable {
         };
         button.setSize(Math.max(BUTTON_WIDTH, button.reqWidth()), BUTTON_HEIGHT);
         buttons.add(button);
-        menuModel.add(button, Message.key(label));
+        menuModel.add(button, Message.key("skills4.quickslot"));
     }
 
 	private String buildInfoText( Skill skill ) {

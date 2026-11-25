@@ -25,14 +25,13 @@ import com.bilboldev.pixeldungeonskills.Rankings;
 import com.bilboldev.pixeldungeonskills.actors.hero.HeroClass;
 import com.bilboldev.pixeldungeonskills.effects.BadgeBanner;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
-import com.bilboldev.pixeldungeonskills.sprites.RatKingSprite;
 import com.bilboldev.pixeldungeonskills.ui.ScrollPane;
 import com.bilboldev.pixeldungeonskills.ui.SteamPageButton;
 import com.bilboldev.pixeldungeonskills.ui.Window;
+import com.bilboldev.pixeldungeonskills.ui.HighlightedText;
 import com.bilboldev.pixeldungeonskills.ui.RebornChrome;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.windows.WndBadge;
-import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.windows.WndWelcome;
 import com.bilboldev.utils.PointF;
 
@@ -46,13 +45,16 @@ abstract class TitleHubPanel extends TitleLayer {
 
     static TitleHubPanel create(TitleScene host, TitleScene.Page page, TitleBackdrop backdrop) {
         switch (page) {
-            case HEROES: return new Heroes(host, backdrop);
+            case PLAY: return new PlayPanel(host);
+            case HEROES: return new Heroes(host, backdrop, false);
+            case GAUNTLET: return new Heroes(host, backdrop, true);
             case RANKINGS: return new Records(host);
             case BADGES: return new Gallery(host);
             case ABOUT: return new Archive(host);
             case LIBRARY: return new LibraryPanel(host);
             case TUTORIAL: return new TutorialPanel(host);
             case DAILY: return new DailyPanel(host);
+            case JOURNEY: return new JourneyPanel(host);
             default: throw new IllegalArgumentException("No panel for " + page);
         }
     }
@@ -130,15 +132,19 @@ abstract class TitleHubPanel extends TitleLayer {
 
     private static final class Heroes extends TitleHubPanel {
         private final TitleBackdrop backdrop;
+        private final boolean gauntlet;
         private final ArrayList<HeroChoice> heroes = new ArrayList<>();
         private Group details;
 
-        Heroes(TitleScene host, TitleBackdrop backdrop) {
-            super(host, msg(StartScene.companionLeader() == null ? "heroes_title" : "companion_title"));
+        Heroes(TitleScene host, TitleBackdrop backdrop, boolean gauntlet) {
+            super(host, gauntlet ? Messages.get("gauntlet.title")
+                    : msg(StartScene.companionLeader() == null ? "heroes_title" : "companion_title"));
             this.backdrop = backdrop;
+            this.gauntlet = gauntlet;
             cardW = portrait ? screenW - 24 : Math.min(240, screenW * .38f);
             cardY = portrait ? screenH * .62f : Math.max(91, 48 + target);
             cardH = Math.max(108 + target, 66 + 2 * Math.max(30, target));
+            if (gauntlet) cardH = Math.max(cardH, Math.min(204, screenH * .42f));
             cardY = Math.min(cardY, screenH - cardH - 16);
             card();
             for (int i = 0; i < TitleScene.HERO_CLASSES.length; i++) {
@@ -169,6 +175,24 @@ abstract class TitleHubPanel extends TitleLayer {
             details = new Group();
             add(details);
             HeroClass hero = TitleScene.selectedHero;
+            if (gauntlet) {
+                BitmapText name = text(details, hero == null ? msg("heroes_title")
+                        : Messages.capitalize(Messages.maybeTranslate(hero.title())), 13,
+                        0xE6DAF7, cardX + 12, cardY + 11);
+                fit(name, cardW - 24);
+                HighlightedText explanation = new HighlightedText(9);
+                explanation.setColor(0xBBB3C8, 0xECD095);
+                explanation.text(Messages.get("gauntlet.intro"), (int)cardW - 28, false);
+                ScrollPane scroll = new ScrollPane(explanation);
+                details.add(scroll);
+                scroll.setRect(cardX + 12, cardY + 33, cardW - 24, cardH - target - 57);
+                if (hero != null) button(details, Messages.get("gauntlet.start"), true, () -> {
+                    StartScene.curClass = TitleScene.selectedHero;
+                    TitleScene.leavingForRun();
+                    GauntletRun.start();
+                }).setRect(cardX + 12, cardY + cardH - target - 12, cardW - 24, target);
+                return;
+            }
             HeroClass leader = StartScene.companionLeader();
             if (leader != null) {
                 String leaderName = Messages.capitalize(Messages.maybeTranslate(leader.title()));
@@ -181,7 +205,7 @@ abstract class TitleHubPanel extends TitleLayer {
                 return;
             }
             if (hero == null) {
-                BitmapText title = text(details, msg("choose_hero"), 12, 0xE6DAF7, cardX + 12, cardY + 15);
+                BitmapText title = text(details, msg("heroes_title"), 12, 0xE6DAF7, cardX + 12, cardY + 15);
                 fit(title, cardW - 24);
                 paragraph(details, msg("choose_hero_body"), 9, 0xB5ADC1,
                         cardX + 12, cardY + 38, cardW - 24);
@@ -194,22 +218,10 @@ abstract class TitleHubPanel extends TitleLayer {
                     cardX + 12, cardY + 30, cardW - 24);
             float row = Math.max(30, target);
             float top = cardY + cardH - 10 - row;
-            float half = (cardW - 24) / 2;
             top -= row + 4;
             HubButton play = button(details, Messages.get(StartScene.class, "play"), true,
                     () -> StartScene.beginStartFlow(host, TitleScene.selectedHero));
-            play.setRect(cardX + 10, top, half, row);
-            HubButton gauntlet = button(details, msg("gauntlet"), false, () -> {
-                host.add(new WndOptions(new RatKingSprite(), Messages.get("gauntlet.title"),
-                        Messages.get("gauntlet.intro"), Messages.get("gauntlet.start")) {
-                    @Override protected void onSelect(int index) {
-                        StartScene.curClass = TitleScene.selectedHero;
-                        TitleScene.leavingForRun();
-                        GauntletRun.start();
-                    }
-                });
-            });
-            gauntlet.setRect(cardX + 14 + half, top, half, row);
+            play.setRect(cardX + 10, top, cardW - 20, row);
             button(details, Messages.get(StartScene.class, "party_mode"), false,
                     () -> StartScene.beginPartyFlow(host, TitleScene.selectedHero))
                     .setRect(cardX + 10, top + row + 4, cardW - 20, row);

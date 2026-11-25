@@ -24,6 +24,7 @@ import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.GameplayMode;
 import com.bilboldev.pixeldungeonskills.RivalEncounter;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
@@ -59,6 +60,7 @@ public class CavesBossLevel extends Level {
 	private int arenaDoor;
 	private boolean enteredArena = false;
 	private boolean keyDropped = false;
+    private boolean journeyReentry;
     private int[] rebornButtresses = new int[0];
 
 	@Override
@@ -86,6 +88,7 @@ public class CavesBossLevel extends Level {
 		bundle.put( DOOR, arenaDoor );
 		bundle.put( ENTERED, enteredArena );
 		bundle.put( DROPPED, keyDropped );
+        if (journeyReentry) bundle.put("journey_reentry", true);
         bundle.put("ice_passage", icePassage);
         bundle.put("ice_arrived", iceArrived);
         if (rebornButtresses.length > 0) bundle.put("reborn_buttresses", rebornButtresses);
@@ -97,6 +100,7 @@ public class CavesBossLevel extends Level {
 		arenaDoor = bundle.getInt( DOOR );
 		enteredArena = bundle.getBoolean( ENTERED );
 		keyDropped = bundle.getBoolean( DROPPED );
+        journeyReentry = bundle.getBoolean("journey_reentry");
         icePassage = bundle.getBoolean("ice_passage");
         iceArrived = bundle.getBoolean("ice_arrived");
         rebornButtresses = bundle.getIntArray("reborn_buttresses");
@@ -314,10 +318,24 @@ public class CavesBossLevel extends Level {
 		return -1;
 	}
 
+    public void reenterJourney() {
+        if (!JourneyRun.active() || !enteredArena || keyDropped) return;
+        journeyReentry = true;
+        set(arenaDoor, Terrain.DOOR);
+        GameScene.updateMap(arenaDoor);
+    }
+
 	@Override
 	public void press( int cell, Char hero ) {
 
 		super.press( cell, hero );
+		if (hero == Dungeon.hero) breakRepairPad(cell);
+        if (journeyReentry && hero == Dungeon.hero && outsideEntraceRoom(cell) && !keyDropped) {
+            journeyReentry = false;
+            set(arenaDoor, Terrain.WALL);
+            GameScene.updateMap(arenaDoor);
+            Dungeon.observe();
+        }
 
         if (icePassage && cell % WIDTH < 27 && (hero == Dungeon.hero || LocalCoop.contains(hero))) {
             if (!gatherParty(hero, cell, ICE_DOOR)) return;
@@ -365,6 +383,7 @@ public class CavesBossLevel extends Level {
 		if (!keyDropped && item instanceof SkeletonKey) {
 
 			keyDropped = true;
+            journeyReentry = false;
 
 			CellEmitter.get( arenaDoor ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
 
@@ -376,6 +395,13 @@ public class CavesBossLevel extends Level {
 		return super.drop( item, cell );
 	}
 
+    public void breakRepairPad(int cell) {
+        if (!JourneyRun.bossArea() || map[cell] != Terrain.INACTIVE_TRAP) return;
+        set(cell, Terrain.EMPTY);
+        GameScene.updateMap(cell);
+        CellEmitter.get(cell).burst(Speck.factory(Speck.ROCK), 5);
+    }
+
 	private boolean outsideEntraceRoom( int cell ) {
 		int cx = cell % WIDTH;
 		int cy = cell / WIDTH;
@@ -385,6 +411,7 @@ public class CavesBossLevel extends Level {
 
 	@Override
 	public String tileName( int tile ) {
+		if (tile == Terrain.INACTIVE_TRAP && JourneyRun.bossArea()) return Messages.get("journey.repair_pad");
 		switch (tile) {
         case Terrain.COLLAPSED_CAVE:
             return Messages.get(CavesBossLevel.class, "collapsed_name");
@@ -401,10 +428,12 @@ public class CavesBossLevel extends Level {
 
 	@Override
 	public String tileDesc( int tile ) {
+		if (tile == Terrain.INACTIVE_TRAP && JourneyRun.bossArea()) return Messages.get("journey.repair_pad_desc");
 		switch (tile) {
         case Terrain.COLLAPSED_CAVE:
             return Messages.get(CavesBossLevel.class, "collapsed_desc");
 		case Terrain.ENTRANCE:
+            if (JourneyRun.recovering()) return Messages.get("journey.recovery_objective");
 			return "The ladder leads up to the upper depth.";
 		case Terrain.EXIT:
 			return "The ladder leads down to the lower depth.";

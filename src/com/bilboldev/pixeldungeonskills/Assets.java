@@ -32,6 +32,7 @@ public class Assets {
 
 	public static final String CHROME	= "chrome.png";
 	public static final String ICONS	= "icons.png";
+	public static final String CLASSIC_MODE = "classic_mode.png";
 	public static final String STATUS	= "status_pane.png";
     public static final String STATUS_MISSION	= "status_pane_mission.png";
 	public static final String STATUS_GAUNTLET	= "status_pane_gauntlet.png";
@@ -42,6 +43,8 @@ public class Assets {
     public static final String MP_BAR_DROPPING	= "mana_bar_dropping.png";
 	public static final String XP_BAR	= "exp_bar.png";
 	public static final String TOOLBAR	= "toolbar.png";
+	public static final String TOOLBAR_SEARCH = "toolbar-search.png";
+	public static final String TOOLBAR_MENU = "toolbar-menu.png";
 	public static final String SHADOW	= "shadow.png";
 
 	public static final String WARRIOR	= "warrior.png";
@@ -168,6 +171,9 @@ public class Assets {
     public static final String HERO_SKILL = "hero_skills.png";
 	public static final String DAMAGE_ICONS = "damage_icons.png";
 	public static final String DAILY_CHALLENGES = "daily-challenges.png";
+	public static final String JOURNEY_NODES = "journey-nodes.png";
+	public static final String JOURNEY_BOSS_ARENAS = "journey-boss-arenas.png";
+    public static final String JOURNEY = "journey.png";
     public static final String TUTORIAL = "tutorial.png";
 	public static final String FONTS1X	= "font1x.png";
 	public static final String FONTS15X	= "font15x.png";

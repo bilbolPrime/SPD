@@ -20,17 +20,24 @@ package com.bilboldev.pixeldungeonskills.ui;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.pixeldungeonskills.messages.Messages;
 import com.bilboldev.input.GameAction;
+import com.bilboldev.input.GameActions;
+import com.bilboldev.input.ControlSettings;
 import com.bilboldev.noosa.BitmapText;
 import com.bilboldev.noosa.ColorBlock;
 import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.Gizmo;
+import com.bilboldev.noosa.Group;
 import com.bilboldev.noosa.Image;
+import com.bilboldev.noosa.TouchArea;
+import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.ui.Button;
 import com.bilboldev.noosa.ui.Component;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Chrome;
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.DailyRun;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
+import com.bilboldev.pixeldungeonskills.JourneyRoute;
 import com.bilboldev.pixeldungeonskills.levels.DailyOutpostLevel;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.network.PartySession;
@@ -56,6 +63,7 @@ import com.bilboldev.pixeldungeonskills.levels.gauntlet.GauntletArena;
 import com.bilboldev.pixeldungeonskills.plants.Plant;
 import com.bilboldev.pixeldungeonskills.scenes.CellSelector;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.scenes.JourneyScene;
 import com.bilboldev.pixeldungeonskills.scenes.PixelScene;
 import com.bilboldev.pixeldungeonskills.sprites.HeroSprite;
 import com.bilboldev.pixeldungeonskills.sprites.ItemSprite;
@@ -71,27 +79,38 @@ import com.bilboldev.pixeldungeonskills.windows.WndBag;
 import com.bilboldev.pixeldungeonskills.windows.WndMerc;
 import com.bilboldev.pixeldungeonskills.windows.WndMercs;
 import com.bilboldev.pixeldungeonskills.windows.WndMessage;
+import com.bilboldev.pixeldungeonskills.windows.WndOptions;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.MercenaryRecruitment;
-import com.bilboldev.pixeldungeonskills.windows.WndMessage;
 import com.bilboldev.pixeldungeonskills.windows.WndRatKing;
 import com.bilboldev.pixeldungeonskills.windows.WndRebornChallenges;
 import com.bilboldev.pixeldungeonskills.windows.WndSkill;
 import com.bilboldev.pixeldungeonskills.windows.WndSkillsNew;
+import com.bilboldev.pixeldungeonskills.windows.WndSettings;
 import com.bilboldev.pixeldungeonskills.windows.WndTradeItem;
 
 public class Toolbar extends Component {
 
 	private Tool btnWait;
+    private Tool btnSleep;
     private Tool btnSkill;
+    private Tool btnTree;
+    private Tool btnSearch;
+    private Tool btnSettings;
     private Tool btnMerc;
+    private PartnerTool btnParty;
     private Tool btnSupport;
-    private Tool btnLastUsed;
-
     private Tool btnKing;
 	private Tool btnChallenges;
 	private Tool btnInfoSearch;
 	private Tool btnInventory;
 	private Tool[] quickSlots;
+	private Group skillTray, searchTray, waitTray;
+	private TouchArea outsideTray;
+	private boolean compactControls;
+	private boolean skillsOpen, searchOpen, waitOpen;
+	private float skillSlide, searchSlide, waitSlide;
+	private int trayHero;
+	private Tool[] menuTools;
 
 	private PickedUpItem pickedUp;
 	private ColorBlock tutorialGlow;
@@ -99,8 +118,6 @@ public class Toolbar extends Component {
 	private float guideTime;
 
 	private boolean lastEnabled = true;
-
-    public static boolean tapAgainToSearch = false;
 
 	private static Toolbar instance;
 
@@ -114,28 +131,51 @@ public class Toolbar extends Component {
 
 	@Override
 	protected void createChildren() {
+		compactControls = !Window.isDesktopRuntime() && Presentation.compactButtons();
+		add(outsideTray = new TouchArea(0, 0, 0, 0) {
+			@Override protected void onClick(Touch touch) {
+				closeTrays();
+			}
+		});
+		outsideTray.active = false;
+		add(skillTray = new Group());
+		add(searchTray = new Group());
+		add(waitTray = new Group());
 
 		add( btnWait = new Tool( 0, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
-				Dungeon.hero.rest( false );
+				if (waitOpen) {
+					Dungeon.hero.rest(false);
+				} else {
+					closeTrays();
+					waitOpen = true;
+					trayHero = Dungeon.hero.id();
+					layoutTrays();
+				}
 			};
 			protected boolean onLongClick() {
-				Dungeon.hero.rest( true );
+				sleep();
 				return true;
 			};
 		} );
+		waitTray.add(btnSleep = new IconTool(Icons.SLEEP.get()) {
+			@Override protected void onClick() { sleep(); }
+			@Override protected void layout() {
+				super.layout();
+				if (GameActions.enabled && ControlSettings.keyboardHints) icon.y = PixelScene.align(y + 3);
+			}
+		});
 
         add( btnSkill = new Tool( 20, 7, 20, 25 ) {
 			private SkillsIndicator skillsIndicator;
             @Override
             protected void onClick() {
-				if (PartySession.openSkills()) return;
-				GameScene.show(new WndSkillsNew(null, null));
+				if (compactControls) toggleSkills();
+				else openSkills();
             };
             protected boolean onLongClick() {
-				if (PartySession.openSkills()) return true;
-				GameScene.show(new WndSkillsNew(null, null));
+				openSkills();
                 return true;
             };
 
@@ -151,51 +191,81 @@ public class Toolbar extends Component {
 				skillsIndicator.fill( this );
 			};
         });
+		skillTray.add(btnTree = new Tool(20, 7, 20, 25) {
+			@Override protected void onClick() { openSkills(); }
+		});
+		Image settingsIcon = Icons.PREFS.get();
+		if (!Presentation.reborn()) settingsIcon.tint(0xFFE4AE, .35f);
+		Group menu = compactControls ? skillTray : this;
+		menu.add(btnSettings = new IconTool(settingsIcon) {
+			@Override protected void onClick() {
+				closeTrays();
+				GameScene.show(new WndSettings(true, true));
+			}
+		});
 
-        add( btnKing = new Tool( 135, 7, 21, 25 ) {
+        menu.add( btnKing = new Tool( 135, 7, 21, 25 ) {
             @Override
             protected void onClick() {
+                closeTrays();
                 WndRatKing.show(WndRatKing.Mode.NORMAL);
             };
             protected boolean onLongClick() {
-                WndRatKing.show(WndRatKing.Mode.NORMAL);
+                onClick();
                 return true;
             };
         });
 		add(btnChallenges = new ChallengeTool());
 
-        add(btnLastUsed = new QuickslotTool(83, 7, 22, 25, -1));
-
-        add(btnMerc = DailyRun.active() ? new DailyTool() : GauntletRun.active() ? new GauntletTool()
-                : LocalCoop.active() ? new PartnerTool() : new MercTool());
-        add(btnSupport = new SupportTool());
+        Group companionControls = DailyRun.active() || GauntletRun.active() || JourneyRun.active() ? this : menu;
+        companionControls.add(btnMerc = DailyRun.active() ? new DailyTool() : GauntletRun.active() ? new GauntletTool()
+                : JourneyRun.active() ? new JourneyTool() : LocalCoop.active() ? new PartnerTool() : new MercTool());
+        if (!Window.isDesktopRuntime() && btnMerc instanceof PartnerTool) add(btnParty = new PartnerTool());
+        menu.add(btnSupport = new SupportTool());
+		menuTools = new Tool[]{btnTree, btnMerc, btnKing, btnSupport, btnSettings};
 
 		add( btnInfoSearch = new Tool( 107, 7, 20, 25 ) {
 			@Override
 			protected void onClick() {
-                if(tapAgainToSearch == false) {
-                    GameScene.selectCell(informer);
-                }
-                else
-                {
-                    Dungeon.hero.search(true);
-                }
-                tapAgainToSearch = !tapAgainToSearch;
+				if (searchOpen) {
+					closeTrays();
+				} else {
+					closeTrays();
+					searchOpen = true;
+					trayHero = Dungeon.hero.id();
+					GameScene.selectCell(informer);
+					layoutTrays();
+				}
 			}
             @Override
             protected boolean onLongClick() {
-                Dungeon.hero.search(true); return true;
+                search();
+                return true;
             }
+
+			@Override public boolean triggerAction(boolean alternate) {
+				if (!alternate && searchOpen) {
+					if (!acceptsAction()) return false;
+					Toolbar.this.search();
+					return true;
+				}
+				return super.triggerAction(alternate);
+			}
 		} );
+		searchTray.add(btnSearch = new IconTool(new Image(Assets.TOOLBAR_SEARCH)) {
+			@Override protected void onClick() { search(); }
+		});
 
 		add( btnInventory = new Tool( 60, 7, 23, 25 ) {
 			private GoldIndicator gold;
 			@Override
 			protected void onClick() {
+				closeTrays();
 				if (PartySession.openInventory()) return;
 				GameScene.show( new WndBag( Dungeon.hero.belongings.backpack, null, WndBag.Mode.ALL, null ) );
 			}
 			protected boolean onLongClick() {
+				closeTrays();
 				GameScene.show( new WndCatalogus() );
 				return true;
 			};
@@ -230,25 +300,28 @@ public class Toolbar extends Component {
 
 		btnWait.bindAction(GameAction.WAIT);
 		btnWait.bindAlternateAction(GameAction.REST);
-		btnSkill.bindAction(GameAction.SKILLS);
-		btnKing.bindAction(GameAction.RAT_KING);
-		btnMerc.bindAction(GameAction.MERCENARIES);
+		btnSleep.bindAction(GameAction.REST);
+		bindModeActions();
 		btnInfoSearch.bindAction(GameAction.EXAMINE);
 		btnInventory.bindAction(GameAction.INVENTORY);
+		updateSkillIcon();
 		updateModeTools();
+		layoutTrays();
 	}
 
 	@Override
 	protected void layout() {
-		btnWait.setPos( x, y );
-
-		btnInfoSearch.setPos( 0, 70 );
-        btnMerc.setPos( 0, 40 );
+		btnInfoSearch.setPos(x, y);
+		btnWait.setPos(btnInfoSearch.right(), y);
         btnSkill.setPos(btnWait.right(), y);
-        btnKing.setPos(0, 100);
-		btnChallenges.setPos(btnKing.left(), btnKing.top());
-        btnSupport.setPos(0, 160);
-        btnLastUsed.setPos(btnSkill.right(), y);
+		btnChallenges.setPos(x, compactControls ? sideButtonTop() : 100);
+		if (btnParty != null) btnParty.setPos(x, 40);
+		if (btnMerc.parent == this) btnMerc.setPos(x, 40);
+		if (!compactControls) {
+			btnSettings.setPos(x, 70);
+			btnKing.setPos(x, 100);
+			btnSupport.setPos(x, 160);
+		}
 		int count = Math.min(Presentation.quickSlots(), maxQuickSlots(width, camera().height));
 		float right = x + width;
 		for (int i = 0; i < quickSlots.length; i++) {
@@ -261,15 +334,62 @@ public class Toolbar extends Component {
 			}
 		}
 		btnInventory.setPos(right - btnInventory.width(), y);
+		outsideTray.width = camera().width;
+		outsideTray.height = camera().height;
+		layoutTrays();
 	}
 
 	public void layoutViewButton(Button button) {
 		if (camera().width >= camera().height) {
-			button.setRect(btnLastUsed.right(), btnLastUsed.top(), btnLastUsed.width(), btnLastUsed.height());
+			button.setRect(btnSkill.right(), y, 22, btnSkill.height());
 		} else {
-			float gap = btnKing.top() - btnInfoSearch.bottom();
-			button.setRect(btnKing.left(), btnKing.bottom() + gap, btnKing.width(), btnKing.height());
+			float top = compactControls ? sideButtonTop() + (btnChallenges.visible ? 30 : 0) : 130;
+			button.setRect(x, top, 21, btnSkill.height());
 		}
+	}
+
+	private float sideButtonTop() {
+		boolean progressOrParty = (btnParty != null && btnParty.visible)
+				|| (btnMerc.parent == this && btnMerc.visible);
+		return progressOrParty ? 70 : 40;
+	}
+
+	private void bindModeActions() {
+		GameActions.unbind(btnSkill);
+		GameActions.unbind(btnKing);
+		GameActions.unbind(btnMerc);
+		if (compactControls) {
+			btnSkill.bindAlternateAction(GameAction.SKILLS);
+		} else {
+			btnSkill.bindAction(GameAction.SKILLS);
+			btnKing.bindAction(GameAction.RAT_KING);
+			btnMerc.bindAction(GameAction.MERCENARIES);
+		}
+	}
+
+	private void updateSkillIcon() {
+		btnSkill.base.texture(RebornHud.texture(compactControls ? Assets.TOOLBAR_MENU : Assets.TOOLBAR));
+		btnSkill.base.frame(compactControls ? 0 : 20, compactControls ? 0 : 7, 20, 25);
+	}
+
+	public static void refreshButtonLayout() {
+		if (instance == null) return;
+		boolean compact = !Window.isDesktopRuntime() && Presentation.compactButtons();
+		if (instance.compactControls == compact) return;
+		closeTrays();
+		instance.skillSlide = instance.searchSlide = instance.waitSlide = 0;
+		instance.compactControls = compact;
+		Group menu = compact ? instance.skillTray : instance;
+		menu.add(instance.btnSettings);
+		menu.add(instance.btnKing);
+		menu.add(instance.btnSupport);
+		if (!(instance.btnMerc instanceof DailyTool) && !(instance.btnMerc instanceof GauntletTool)
+				&& !(instance.btnMerc instanceof JourneyTool)) menu.add(instance.btnMerc);
+		instance.bindModeActions();
+		instance.updateSkillIcon();
+		instance.updateModeTools();
+		instance.layout();
+		GameScene.updateButtonLayout();
 	}
 
 	@Override
@@ -277,16 +397,12 @@ public class Toolbar extends Component {
 		super.update();
 
 		boolean enabled = LocalCoop.active() ? LocalCoop.acceptsInput() && Dungeon.hero.isAlive() : Dungeon.hero.ready;
-		btnLastUsed.visible = true;
 		if (lastEnabled != enabled) {
 			lastEnabled = enabled;
 
 			for (Gizmo tool : members) {
 				if (tool instanceof Tool) {
-                    ((Tool)tool).enable(lastEnabled && (!(tool instanceof QuickslotTool) || tool.visible));
-
-                    if(tool == btnMerc && Dungeon.depth == ColdGirl.FROST_DEPTH)
-                        ((Tool)tool).enable(false);
+					((Tool)tool).enable(lastEnabled && (!(tool instanceof QuickslotTool) || tool.visible));
 				}
 			}
 		}
@@ -295,7 +411,122 @@ public class Toolbar extends Component {
 			btnInventory.enable( true );
 		}
 		updateModeTools();
+		if ((skillsOpen || searchOpen || waitOpen) && (Window.topWindow() != null || !GameScene.canAcceptGameplayInput()
+				|| Dungeon.hero.id() != trayHero
+				|| !Dungeon.hero.isAlive() || (searchOpen && !canUseHero()))) closeTrays();
+		skillSlide = slide(skillSlide, skillsOpen);
+		searchSlide = slide(searchSlide, searchOpen);
+		waitSlide = slide(waitSlide, waitOpen);
+		layoutTrays();
 		updateTutorialGuide();
+	}
+
+	private boolean canUseHero() {
+		return Dungeon.hero.isAlive() && (LocalCoop.active() ? LocalCoop.acceptsInput() : Dungeon.hero.ready);
+	}
+
+	private void openSkills() {
+		if (!canUseHero()) return;
+		closeTrays();
+		if (PartySession.openSkills()) return;
+		GameScene.show(new WndSkillsNew(null, null));
+	}
+
+	private void search() {
+		closeTrays();
+		Dungeon.hero.search(true);
+	}
+
+	private void sleep() {
+		if (!canUseHero()) return;
+		int owner = Dungeon.hero.id();
+		closeTrays();
+		GameScene.show(new WndOptions(Icons.SLEEP.get(), Message.key("ui.toolbar.sleep"),
+				Message.key("ui.toolbar.sleep_confirm"), Message.key("ui.toolbar.sleep"),
+				Message.key("ui.toolbar.item_cancel")) {
+			@Override protected void onSelect(int index) {
+				if (index == 0 && Dungeon.hero.id() == owner && canUseHero()) Dungeon.hero.rest(true);
+			}
+		});
+	}
+
+	private void toggleSkills() {
+		boolean open = !skillsOpen;
+		closeTrays();
+		skillsOpen = open;
+		trayHero = Dungeon.hero.id();
+		layoutTrays();
+	}
+
+	public static boolean closeTrays() {
+		if (instance == null) return false;
+		boolean open = instance.skillsOpen || instance.searchOpen || instance.waitOpen;
+		boolean inspecting = instance.searchOpen;
+		instance.skillsOpen = instance.searchOpen = instance.waitOpen = false;
+		instance.btnSkill.selected = instance.btnInfoSearch.selected = instance.btnWait.selected = false;
+		instance.outsideTray.active = false;
+		instance.skillTray.active = instance.searchTray.active = instance.waitTray.active = false;
+		if (inspecting) GameScene.ready();
+		return open;
+	}
+
+	public static boolean menuOpen() {
+		return instance != null && instance.skillsOpen;
+	}
+
+	public static void targeting(CellSelector.Listener listener, boolean selecting) {
+		if (instance != null && listener != informer && (selecting || instance.searchOpen)) {
+			instance.searchOpen = false;
+			closeTrays();
+		}
+	}
+
+	public static boolean shortcut(GameAction action) {
+		if (instance == null) return false;
+		Tool tool = action == GameAction.RAT_KING ? instance.btnKing
+				: action == GameAction.MERCENARIES ? instance.btnMerc : null;
+		return tool != null && tool.shortcut();
+	}
+
+	public static Button keyHintButton(GameAction action) {
+		Button button = GameActions.visibleButton(action);
+		if (instance != null) {
+			if (button == instance.btnInfoSearch && instance.searchOpen) return instance.btnSearch;
+		}
+		return button;
+	}
+
+	private static float slide(float amount, boolean open) {
+		return open ? Math.min(1, amount + Game.elapsed / .18f) : Math.max(0, amount - Game.elapsed / .18f);
+	}
+
+	private void layoutTrays() {
+		if (menuTools == null || btnSearch == null || btnSleep == null) return;
+		skillTray.visible = compactControls && skillSlide > 0;
+		skillTray.active = skillTray.visible && skillsOpen && skillSlide == 1;
+		searchTray.visible = searchSlide > 0;
+		searchTray.active = searchTray.visible && searchOpen && searchSlide == 1;
+		waitTray.visible = waitSlide > 0;
+		waitTray.active = waitTray.visible && waitOpen && waitSlide == 1;
+		outsideTray.active = skillsOpen || waitOpen;
+		btnSkill.selected = skillsOpen;
+		btnInfoSearch.selected = searchOpen;
+		btnWait.selected = waitOpen;
+		if (!skillTray.visible && !searchTray.visible && !waitTray.visible) return;
+		float progress = skillSlide * skillSlide * (3 - 2 * skillSlide);
+		int index = 0;
+		for (Tool tool : menuTools) {
+			if (!tool.visible || tool.parent != skillTray) continue;
+			float left = btnSkill.left() + (index % 2) * 24;
+			float top = y - (index / 2 + 1) * 29;
+			tool.setPos(btnSkill.left() + (left - btnSkill.left()) * progress,
+					y + (top - y) * progress);
+			index++;
+		}
+		progress = searchSlide * searchSlide * (3 - 2 * searchSlide);
+		btnSearch.setPos(btnInfoSearch.left(), y - 29 * progress);
+		progress = waitSlide * waitSlide * (3 - 2 * waitSlide);
+		btnSleep.setPos(btnWait.left(), y - 29 * progress);
 	}
 
 	private void updateTutorialGuide() {
@@ -306,10 +537,10 @@ public class Toolbar extends Component {
 		Tool target;
 		switch (TutorialRun.guideAction()) {
 			case WAIT: target = btnWait; break;
-			case INSPECT:
-			case SEARCH: target = btnInfoSearch; break;
+			case INSPECT: target = btnInfoSearch; break;
+			case SEARCH: target = searchOpen ? btnSearch : btnInfoSearch; break;
 			case INVENTORY: target = btnInventory; break;
-			case SKILLS: target = btnSkill; break;
+			case SKILLS: target = skillsOpen ? btnTree : btnSkill; break;
 			case QUICKSLOT:
 				int slot = TutorialRun.guideQuickslot();
 				if (slot < 0 || slot >= quickSlots.length) return;
@@ -333,9 +564,15 @@ public class Toolbar extends Component {
 	}
 
 	private void updateModeTools() {
-		btnSupport.visible = Game.width < Game.height;
+		btnSupport.visible = compactControls || Game.width < Game.height;
 		btnSupport.enable(btnSupport.visible);
+		btnSettings.visible = compactControls || (!Window.isDesktopRuntime() && Game.width < Game.height);
+		btnSettings.enable(btnSettings.visible);
 		boolean enabled = LocalCoop.active() ? LocalCoop.acceptsInput() && Dungeon.hero.isAlive() : Dungeon.hero.ready;
+		btnSkill.enable(compactControls || (enabled && Dungeon.hero.isAlive()));
+		btnTree.enable(enabled && Dungeon.hero.isAlive());
+		btnSearch.enable(enabled && Dungeon.hero.isAlive());
+		btnSleep.enable(enabled && Dungeon.hero.isAlive());
 		btnKing.visible = Dungeon.rules().allowsRatKing();
 		btnKing.enable(btnKing.visible && enabled);
 		btnChallenges.visible = Dungeon.rules().hasChallenges() && (Dungeon.challenges & RebornChallenges.ALL) != 0;
@@ -350,11 +587,18 @@ public class Toolbar extends Component {
 			btnMerc.enable(!DailyRun.finished());
 		} else if (btnMerc instanceof GauntletTool) {
 			btnMerc.enable(GauntletRun.acceptsInput());
+		} else if (btnMerc instanceof JourneyTool) {
+			btnMerc.enable(!JourneyRun.dying() && Dungeon.hero.isAlive());
 		} else {
-			btnMerc.visible = !GauntletRun.active();
+			btnMerc.visible = !GauntletRun.active() && !JourneyRun.active();
 			btnMerc.enable(btnMerc.visible && enabled && Dungeon.depth != ColdGirl.FROST_DEPTH);
 		}
 		if (btnMerc instanceof PartnerTool) ((PartnerTool)btnMerc).updateWaiting();
+		if (btnParty != null) {
+			btnParty.visible = compactControls && btnMerc.visible;
+			btnParty.enable(btnParty.visible && btnMerc.active);
+			btnParty.updateWaiting();
+		}
 	}
 
 	public void pickup( Item item ) {
@@ -368,7 +612,7 @@ public class Toolbar extends Component {
 	}
 
 	private static int maxQuickSlots(float width, float height) {
-		int left = width >= height ? 84 : 62;
+		int left = width >= height ? 82 : 60;
 		return Math.max(1, Math.min(QuickSlot.MAX_SLOTS, (int)(width - left - 23) / 22));
 	}
 
@@ -388,14 +632,14 @@ public class Toolbar extends Component {
 	private static CellSelector.Listener informer = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
-
-            tapAgainToSearch = false;
+            if (instance != null) instance.searchOpen = false;
+            closeTrays();
 
 			if (cell == null) {
 				return;
 			}
 
-			if (cell < 0 || cell > Level.LENGTH || (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell])) {
+			if (cell < 0 || cell >= Level.LENGTH || (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell])) {
 				GameScene.show( new WndMessage(Message.key("scenes.gamescene.dont_know")) ) ;
 				return;
 			}
@@ -452,7 +696,7 @@ public class Toolbar extends Component {
 		}
 		@Override
 		public Message prompt() {
-			return Message.key("custom.toolbar.examine_prompt");
+			return Message.key("ui.toolbar.inspect_prompt");
 		}
 	};
 
@@ -462,6 +706,8 @@ public class Toolbar extends Component {
 		private final int disabledColor = Presentation.reborn() ? 0x6B527C : BGCOLOR;
 
 		protected Image base;
+		private ColorBlock selectionBorder;
+		private boolean selected;
 
 		public Tool( int x, int y, int width, int height ) {
 			this(Assets.TOOLBAR, x, y, width, height);
@@ -494,6 +740,32 @@ public class Toolbar extends Component {
 		}
 
 		@Override
+		public void draw() {
+			super.draw();
+			if (!selected) return;
+			if (selectionBorder == null) selectionBorder = new ColorBlock(1, 1, 0xFFD6BE98);
+			selectionBorder.camera = camera();
+			selectionBorder.alpha(.8f);
+			selectionBorder.x = x + 1;
+			selectionBorder.y = y + 1;
+			selectionBorder.size(width - 2, 1);
+			selectionBorder.draw();
+			selectionBorder.y = bottom() - 2;
+			selectionBorder.draw();
+			selectionBorder.y = y + 2;
+			selectionBorder.size(1, height - 4);
+			selectionBorder.draw();
+			selectionBorder.x = right() - 2;
+			selectionBorder.draw();
+		}
+
+		@Override
+		public void destroy() {
+			super.destroy();
+			if (selectionBorder != null) selectionBorder.destroy();
+		}
+
+		@Override
 		protected void onTouchDown() {
 			base.brightness( 1.4f );
 		}
@@ -517,18 +789,21 @@ public class Toolbar extends Component {
 				active = value;
 			}
 		}
+
+		boolean shortcut() {
+			if (!visible || !active) return false;
+			onClick();
+			return true;
+		}
 	}
 
-    private static class SupportTool extends Tool {
-        private Image icon;
+    private static class IconTool extends Tool {
+        protected final Image icon;
 
-        SupportTool() {
+        IconTool(Image icon) {
             super(83, 7, 22, 25);
-        }
-
-        @Override protected void createChildren() {
-            super.createChildren();
-            add(icon = Icons.SUPPORT.get());
+            this.icon = icon;
+            add(icon);
         }
 
         @Override protected void layout() {
@@ -536,8 +811,15 @@ public class Toolbar extends Component {
             icon.x = PixelScene.align(x + (width - icon.width()) / 2);
             icon.y = PixelScene.align(y + (height - icon.height()) / 2);
         }
+    }
+
+    private static class SupportTool extends IconTool {
+        SupportTool() {
+            super(Icons.SUPPORT.get());
+        }
 
         @Override protected void onClick() {
+            closeTrays();
             Game.scene().add(new WndHeroAppearance(
                     PartySession.network() ? PartySession.localHero() : Dungeon.hero));
         }
@@ -573,6 +855,7 @@ public class Toolbar extends Component {
 
 		@Override
 		protected void onClick() {
+			closeTrays();
 			GameScene.show(new WndRebornChallenges(Dungeon.challenges, null));
 		}
 	}
@@ -624,6 +907,7 @@ public class Toolbar extends Component {
         }
 
         @Override protected void onClick() {
+            closeTrays();
             GauntletArena arena = GauntletRun.arena();
             if (arena == null) return;
             String text = Messages.get("gauntlet.wave", Math.max(1, arena.wave()), GauntletArena.WAVES, arena.themeName());
@@ -636,6 +920,63 @@ public class Toolbar extends Component {
                     Icons.RAT_KING.get(), Messages.get("gauntlet.title"), text));
         }
     }
+
+	private static class JourneyTool extends Tool {
+		private Image icon;
+		private BitmapText floor;
+		private int shownFloor = -1;
+
+		JourneyTool() { super(83, 7, 22, 25); }
+
+		@Override protected void createChildren() {
+			super.createChildren();
+			add(icon = new Image(Assets.JOURNEY));
+			icon.scale.set(.5f);
+			add(floor = new BitmapText(PixelScene.font1x));
+			floor.hardlight(0xFFEBA4);
+		}
+
+		@Override public void update() {
+			super.update();
+			int current = JourneyRun.floorIndex();
+			if (current == shownFloor) return;
+			shownFloor = current;
+			floor.text((current + 1) + "/" + JourneyRun.floorCount());
+			floor.measure();
+			layout();
+		}
+
+		@Override protected void layout() {
+			super.layout();
+			icon.x = PixelScene.align(camera(), x + (width - icon.width()) / 2);
+			icon.y = y + 3;
+			floor.x = PixelScene.align(camera(), x + (width - floor.width()) / 2);
+			floor.y = bottom() - floor.height() - 2;
+		}
+
+		@Override protected void onClick() {
+			closeTrays();
+			JourneyRoute.Node node = JourneyRun.deployedNode();
+			if (node == null) return;
+			String text = Messages.get("journey.floor", JourneyRun.floorIndex() + 1, node.floors) + "\n\n";
+			if (!JourneyRun.recovering()) text += Messages.get("journey.target_depth", node.depth(node.floors - 1)) + "\n\n";
+			if (JourneyRun.recovering()) {
+				text += Messages.get("journey.recovery_objective");
+			} else if (node.objective != JourneyRoute.Objective.NONE) {
+				int guards = JourneyRun.guardsRemaining();
+				text += JourneyRun.objectiveComplete() ? Messages.get("journey.guards_cleared")
+						: Messages.get(JourneyScene.objectiveKey(node)) + "\n\n"
+						+ (guards > 0 ? Messages.get("journey.guards_left", guards)
+						: Messages.get(JourneyRun.objectiveExitHint()));
+			} else if ((node.gate || node.finish) && !JourneyRun.objectiveComplete()) {
+				text += Messages.get(node.finish ? "journey.final_objective" : "journey.boss_objective");
+			} else {
+				text += Messages.get("journey.entrance_hint");
+			}
+			GameScene.show(new com.bilboldev.pixeldungeonskills.windows.WndTitledMessage(
+					new Image(Assets.JOURNEY), JourneyScene.areaName(node), text));
+		}
+	}
 
 	private static class DailyTool extends Tool {
 		private Image icon;
@@ -676,6 +1017,7 @@ public class Toolbar extends Component {
 		}
 
 		@Override protected void onClick() {
+			closeTrays();
 			GameScene.show(new WndDailyChallenge(DailyRun.day(), true));
 		}
 	}
@@ -727,6 +1069,7 @@ public class Toolbar extends Component {
 
 		@Override
 		protected void onClick() {
+			closeTrays();
 			if (Dungeon.hero.hiredMerc != null) {
 				GameScene.show(new WndMerc(null, null));
 			} else if (Dungeon.rules().allowsOnDemandHiring()) {
@@ -738,6 +1081,7 @@ public class Toolbar extends Component {
 
 		@Override
 		protected boolean onLongClick() {
+			closeTrays();
 			if (Dungeon.hero.hiredMerc == null && Dungeon.rules().allowsOnDemandHiring()) {
 				GameScene.show(new WndSkill(null, CurrentSkills.mercMenu));
 			} else {
@@ -822,6 +1166,7 @@ public class Toolbar extends Component {
 
 		@Override
 		protected void onClick() {
+			closeTrays();
 			if (!active || !LocalCoop.acceptsInput() || Window.topWindow() != null) return;
 			if (PartySession.network() || PartySession.splitControls()) {
 				GameScene.show(new WndPartner(LocalCoop.partner(Dungeon.hero)));
@@ -835,6 +1180,7 @@ public class Toolbar extends Component {
 
 		@Override
 		protected boolean onLongClick() {
+			closeTrays();
 			if (active && LocalCoop.acceptsInput() && Window.topWindow() == null)
 				GameScene.show(new WndPartner(LocalCoop.partner(Dungeon.hero)));
 			return true;

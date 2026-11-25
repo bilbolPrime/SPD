@@ -21,6 +21,7 @@ import java.util.ArrayList;
 
 import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.ImpShopkeeper;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Shopkeeper;
@@ -108,7 +109,7 @@ public class ShopPainter extends Painter {
 		switch (Dungeon.depth) {
             case 1:
 
-				items.add( new OverpricedRation() );
+				if (!JourneyRun.active()) items.add( new OverpricedRation() );
                 break;
 		case 6:
 			items.add( (Random.Int( 2 ) == 0 ? new Quarterstaff() : new Spear()).identify() );
@@ -154,7 +155,7 @@ public class ShopPainter extends Painter {
 		}
 
         items.add( new SoulCrystal() );
-		items.add( new ScrollOfIdentify() );
+		if (!JourneyRun.active()) items.add( new ScrollOfIdentify() );
 		items.add( new ScrollOfRemoveCurse() );
 		items.add( new ScrollOfMagicMapping() );
 
@@ -162,10 +163,12 @@ public class ShopPainter extends Painter {
 			items.add( Generator.random( Generator.Category.SCROLL ) );
 		}
 
-		items.add( new OverpricedRation() );
-		items.add( new OverpricedRation() );
+		if (!JourneyRun.active()) {
+			items.add( new OverpricedRation() );
+			items.add( new OverpricedRation() );
+		}
 
-		if (!LocalCoop.active()) items.add( new Ankh() );
+		if (!LocalCoop.active() && !JourneyRun.active()) items.add( new Ankh() );
 
 		Item[] range =items.toArray( new Item[0] );
 		Random.shuffle( range );

@@ -23,6 +23,7 @@ import com.bilboldev.noosa.Game;
 import com.bilboldev.noosa.audio.Sample;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
 import com.bilboldev.pixeldungeonskills.items.wands.WandOfBlink;
@@ -97,6 +98,10 @@ public class LloydsBeacon extends Item {
 
 	@Override
 	public void execute( Hero hero, String action ) {
+		if (JourneyRun.active() && action == AC_RETURN && returnDepth != Dungeon.levelKey()) {
+			GLog.w(TXT_PREVENTING);
+			return;
+		}
 
 		if (action == AC_SET || action == AC_RETURN) {
 

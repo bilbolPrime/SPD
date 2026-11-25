@@ -529,7 +529,12 @@ public class WndSkillsNew extends WndTabbed {
                 }
             }
 
-			bg.visible = false;
+			bg.visible = quickslot;
+			if (quickslot) {
+				active = QuickSlot.canAssign(skill);
+				icon.alpha(active ? 1 : .25f);
+				bg.color(active ? 0xFFB49C6F : 0xFF46404D);
+			}
 		}
 
 		@Override
@@ -568,6 +573,7 @@ public class WndSkillsNew extends WndTabbed {
 
 		@Override
 		protected void onClick() {
+            if (quickslot && !QuickSlot.canAssign(skill)) return;
             if (PartyWindows.select(this)) return;
             if (listener != null) {
 

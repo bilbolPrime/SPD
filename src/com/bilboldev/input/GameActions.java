@@ -10,6 +10,7 @@ import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.LocalCoop;
 import com.bilboldev.pixeldungeonskills.levels.Level;
 import com.bilboldev.pixeldungeonskills.scenes.GameScene;
+import com.bilboldev.pixeldungeonskills.ui.QuickSlot;
 import com.bilboldev.pixeldungeonskills.ui.Window;
 import com.bilboldev.pixeldungeonskills.windows.WndHero;
 import com.bilboldev.pixeldungeonskills.windows.WndJournal;
@@ -104,7 +105,11 @@ public final class GameActions {
                 return true;
             }
         }
-        return false;
+        if (action == GameAction.LAST_SKILL) {
+            QuickSlot.useLastSkill();
+            return true;
+        }
+        return com.bilboldev.pixeldungeonskills.ui.Toolbar.shortcut(action);
     }
 
     public static boolean canMove() {

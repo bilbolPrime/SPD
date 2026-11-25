@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.bilboldev.pixeldungeonskills.Bones;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.RunSeed;
 import com.bilboldev.pixeldungeonskills.actors.Actor;
 import com.bilboldev.pixeldungeonskills.actors.buffs.Buff;
@@ -142,7 +143,7 @@ public abstract class RegularLevel extends Level {
 		}
 
 		specials = new ArrayList<Room.Type>( Room.SPECIALS );
-		if (Dungeon.bossLevel( Dungeon.depth + 1 )) {
+		if (JourneyRun.active() || Dungeon.bossLevel( Dungeon.depth + 1 )) {
 			specials.remove( Room.Type.WEAK_FLOOR );
 		}
 		assignRoomType();

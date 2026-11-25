@@ -24,6 +24,7 @@ import com.bilboldev.noosa.particles.PixelParticle;
 import com.bilboldev.pixeldungeonskills.Assets;
 import com.bilboldev.pixeldungeonskills.Difficulties;
 import com.bilboldev.pixeldungeonskills.Dungeon;
+import com.bilboldev.pixeldungeonskills.JourneyRun;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.actors.mobs.npcs.Ghost;
 import com.bilboldev.pixeldungeonskills.items.DewVial;
@@ -115,7 +116,7 @@ public class SewerLevel extends RegularLevel {
 
 	@Override
 	protected void createItems() {
-		if (Dungeon.dewVial && Random.Int( 4 - Dungeon.depth ) == 0) {
+		if (!JourneyRun.active() && Dungeon.dewVial && Random.Int( 4 - Dungeon.depth ) == 0) {
 			addItemToSpawn( new DewVial() );
 			Dungeon.dewVial = false;
 		}

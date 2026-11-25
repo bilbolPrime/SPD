@@ -20,7 +20,13 @@ package com.bilboldev.pixeldungeonskills.scenes;
 import com.bilboldev.pixeldungeonskills.messages.Message;
 import com.bilboldev.input.Touchscreen.Touch;
 import com.bilboldev.noosa.TouchArea;
+import com.bilboldev.noosa.Visual;
+import com.bilboldev.pixeldungeonskills.Dungeon;
 import com.bilboldev.pixeldungeonskills.GauntletRun;
+import com.bilboldev.pixeldungeonskills.LocalCoop;
+import com.bilboldev.pixeldungeonskills.actors.hero.Hero;
+import com.bilboldev.pixeldungeonskills.actors.mobs.Mob;
+import com.bilboldev.pixeldungeonskills.items.Heap;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTerrainTilemap;
 import com.bilboldev.pixeldungeonskills.thetiles.DungeonTilemap;
 import com.bilboldev.pixeldungeonskills.PixelDungeon;
@@ -57,20 +63,38 @@ public class CellSelector extends TouchArea {
 
 		} else {
 
-			if(target instanceof DungeonTerrainTilemap)
-			{
-				select( ((DungeonTerrainTilemap)target).screenToTile(
-						(int)touch.current.x,
-						(int)touch.current.y ) );
-			}
-			else
-			{
+			if (target instanceof DungeonTerrainTilemap) {
+				select(raisedCell((int)touch.current.x, (int)touch.current.y));
+			} else {
 				select( ((DungeonTilemapOld)target).screenToTile(
 						(int)touch.current.x,
 						(int)touch.current.y ) );
 			}
 
 		}
+	}
+
+	private int raisedCell(int x, int y) {
+		PointF point = camera.screenToCamera(x, y);
+		Hero hero = Dungeon.hero;
+		if (spriteHit(hero.sprite, hero.pos, point)) return hero.pos;
+		Hero partner = LocalCoop.partner(hero);
+		if (partner != null && spriteHit(partner.sprite, partner.pos, point)) return partner.pos;
+		for (Mob mob : Dungeon.level.mobs) {
+			if (spriteHit(mob.sprite, mob.pos, point)) return mob.pos;
+		}
+		for (int i = 0; i < Dungeon.level.heaps.size(); i++) {
+			Heap heap = Dungeon.level.heaps.valueAt(i);
+			if (spriteHit(heap.sprite, heap.pos, point)) return heap.pos;
+		}
+		return ((DungeonTerrainTilemap)target).screenToTile(x, y, true);
+	}
+
+	private boolean spriteHit(Visual sprite, int cell, PointF point) {
+		if (sprite == null || !sprite.exists || !sprite.visible || !sprite.overlapsPoint(point.x, point.y)) return false;
+		PointF center = DungeonTilemap.tileCenterToWorld(cell);
+
+		return Math.abs(point.x - center.x) <= 12 && Math.abs(point.y - center.y) <= 12;
 	}
 
 	public void select( int cell ) {
